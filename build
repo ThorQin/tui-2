@@ -1,0 +1,69 @@
+#!/bin/bash
+# =====================================
+# CLEAN BUILD
+# =====================================
+rm -rf target
+if [ "$1" = "clean" ]; then
+    exit
+fi
+
+# =====================================
+# BUILD RELEASE PACKAGE
+# =====================================
+mkdir target
+cd target
+
+mkdir tui
+ln -s ../../depends tui/depends
+cp ../license tui/
+cp ../README.md tui/
+
+# Need install typescript:
+# npm install -g typescript
+tsc -m amd --out tui/tui2.all.js ../src/*.ts
+if [ $? -ne 0 ]; then
+    exit
+fi
+echo "Compile typescript success!"
+
+# Need install node-minify
+# npm install -g node-minify
+echo "var compressor = require('node-minify');
+new compressor.minify({
+    type: 'gcc', // Using Google Closure
+    //type: 'uglifyjs',
+    //type: 'yui-js',
+    fileIn: 'tui2.all.js',
+    fileOut: 'tui2.all.min.js',
+    options: ['--create_source_map tui2.all.min.js.map'],
+    callback: function(err, min){
+        err && console.log(err);
+    }
+});" > tui/compress.js
+
+cd tui
+node compress.js
+if [ $? -ne 0 ]; then
+    exit
+fi
+echo "Compress javascript file success!"
+rm compress.js
+cd ..
+
+# Need install less
+# npm install -g less
+lessc ../src/less/tui2.less tui/css/tui2.min.css
+if [ $? -ne 0 ]; then
+    exit
+fi
+echo "Compile LESS file success!"
+
+os=`uname`
+
+if [ "$1" = "package" ]; then
+    filename=tui-`cat ../version.txt`.zip
+    zip -r $filename tui tui/depends > /dev/null
+    echo "$filename created!"
+fi
+echo "Finished!"
+#rm tui/depends
