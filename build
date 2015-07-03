@@ -8,7 +8,7 @@ if [ "$1" = "clean" ]; then
 fi
 
 # =====================================
-# BUILD RELEASE PACKAGE
+# BUILD
 # =====================================
 mkdir target
 cd target
@@ -18,52 +18,69 @@ ln -s ../../depends tui/depends
 cp ../license tui/
 cp ../README.md tui/
 
+# Compile TS
 # Need install typescript:
 # npm install -g typescript
 tsc -m amd --out tui/tui2.all.js ../src/*.ts
 if [ $? -ne 0 ]; then
     exit
 fi
-echo "Compile typescript success!"
+echo "Compile Typescript source success!"
 
-# Need install node-minify
-# npm install -g node-minify
-echo "var compressor = require('node-minify');
-new compressor.minify({
-    type: 'gcc', // Using Google Closure
-    //type: 'uglifyjs',
-    //type: 'yui-js',
-    fileIn: 'tui2.all.js',
-    fileOut: 'tui2.all.min.js',
-    options: ['--create_source_map tui2.all.min.js.map'],
-    callback: function(err, min){
-        err && console.log(err);
-    }
-});" > tui/compress.js
 
-cd tui
-node compress.js
-if [ $? -ne 0 ]; then
-    exit
-fi
-echo "Compress javascript file success!"
-rm compress.js
-cd ..
-
+# Compile LESS
 # Need install less
 # npm install -g less
-lessc ../src/less/tui2.less tui/css/tui2.min.css
+lessc ../src/less/tui2.less tui/css/tui2.css
 if [ $? -ne 0 ]; then
     exit
 fi
-echo "Compile LESS file success!"
+echo "Compile LESS source success!"
 
-os=`uname`
+
+# Do compress if need
+if [ "$1" = "package" ] || [ "$1" = "compress" ]; then # if package or compress
+    # Need install node-minify
+    # npm install -g node-minify
+    echo "var compressor = require('node-minify');
+    new compressor.minify({
+        type: 'gcc', // Using Google Closure
+        //type: 'uglifyjs',
+        //type: 'yui-js',
+        fileIn: 'tui2.all.js',
+        fileOut: 'tui2.all.min.js',
+        options: ['--create_source_map tui2.all.min.js.map'],
+        callback: function(err, min){
+            err && console.log(err);
+        }
+    });
+    new compressor.minify({
+        type: 'clean-css',
+        fileIn: ['css/tui2.css'],
+        fileOut: 'css/tui2.min.css',
+        callback: function(err, min){
+            err && console.log(err);
+        }
+    });
+    " > tui/compress.js
+    
+    cd tui
+    node compress.js
+    if [ $? -ne 0 ]; then
+        exit
+    fi
+    echo "Compress Javascript & CSS success!"
+    rm compress.js
+    cd ..
+fi
+
 
 if [ "$1" = "package" ]; then
+    #os=`uname`
     filename=tui-`cat ../version.txt`.zip
     zip -r $filename tui tui/depends > /dev/null
     echo "$filename created!"
 fi
+
+
 echo "Finished!"
-#rm tui/depends
