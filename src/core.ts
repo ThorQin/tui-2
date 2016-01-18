@@ -1,0 +1,278 @@
+/// <reference path="jquery.d.ts" />
+/// <reference path="json.ts" />
+/// <reference path="keyboard.ts" />
+module tui {
+    
+    export const UNDEFINED = ((undefined?: any): string => {
+		return typeof undefined;
+	})();
+    
+    // Used to decide which language should be used to display UI control
+    export var lang = ((): string => {
+		return (navigator.language || navigator.browserLanguage || navigator.userLanguage).toLowerCase();
+	})();
+    
+    var _dict: any = {};
+
+	/**
+	 * Register a translation dictionary.
+	 */
+	export function dict(lang: string, dict: {}): void;
+	export function dict(lang: string, func: (str: string) => string): void;
+	export function dict(lang: string, translator: any): void {
+		if (typeof translator === "function")
+			_dict[lang] = translator;
+		else if (typeof translator === "object" && translator !== null) {
+			_dict[lang] = function(str: string) {
+				return translator[str] || str;
+			};
+		}
+	}
+    
+    /**
+	 * Multi-language support, translate source text to specified language(default use tui.lang setting)
+	 * @param str {string} source text
+	 * @param lang {string} if specified then use this parameter as objective language otherwise use tui.lang as objective language
+	 */
+	export function str(str: string, lang?: string): string {
+		if (!lang) {
+			if (!tui.lang)
+				lang = "en-us";
+			else
+				lang = tui.lang;
+		}
+		var func = _dict[lang];
+		if (typeof func === "function") {
+			return func(str);
+		} else {
+            func = _dict["en-us"];
+            if (typeof func === "function")
+                return func(str);
+            else
+                return str;
+        }
+	}
+    
+    export var newId = (function () {
+		var id = 0;
+		return function () {
+			var uid = 'tui-id-' + id++;
+			return uid;
+		};
+	})();
+    
+	export interface EventInfo {
+		name: string;
+	}
+	
+    export interface EventHandler {
+		(data: EventInfo): any;
+		isOnce?: boolean;
+	}
+
+	/**
+	 * Base object, all other control extended from this base class.
+	 */
+	export class EventObject {
+		private _events: any = {};
+
+        /**
+		 * Register event handler.
+		 * @param {string} eventName
+		 * @param {EventHandler} handler Which handler to be registered
+		 * @param {boolean} atFirst If true then handler will be triggered firstly
+		 */
+		bind(eventName: string, handler: EventHandler, atFirst: boolean) {
+			if (!eventName)
+				return;
+			if (!this._events[eventName]) {
+				this._events[eventName] = [];
+			}
+			var handlers = this._events[eventName];
+			for (var i = 0; i < handlers.length; i++) {
+				if (handlers[i] === handler)
+					return;
+			}
+			if (atFirst)
+                handlers.splice(0, 0, handler);
+			else
+				handlers.push(handler);
+		}
+
+        /**
+		 * Unregister event handler.
+		 * @param eventName
+		 * @param handler Which handler to be unregistered if don't specified then unregister all handler
+		 */
+		unbind(eventName: string, handler: EventHandler) {
+			if (!eventName)
+				return;
+			var handlers = this._events[eventName];
+			if (handler) {
+				for (var i = 0; i < handlers.length; i++) {
+					if (handler === handlers[i]) {
+						handlers.splice(i, 1);
+						return;
+					}
+				}
+			} else {
+				handlers.length = 0;
+			}
+		}
+
+		/**
+		 * Register event handler.
+		 * @param {string} eventName
+		 * @param {callback} callback Which handler to be registered
+		 * @param {boolean} atFirst If true then handler will be triggered firstly
+		 */
+		on(eventName: string, callback: EventHandler, atFirst: boolean = false): void {
+			var envs = eventName.split(/\s+/);
+			for (var i = 0; i < envs.length; i++) {
+				var v = envs[i];
+				this.bind(v, callback, atFirst);
+			}
+		}
+
+		/**
+		 * Register event handler.
+		 * @param eventName
+		 * @param callback Which handler to be registered but event only can be trigered once
+		 * @param atFirst If true then handler will be triggered firstly
+		 */
+		once(eventName: string, callback: EventHandler, atFirst: boolean = false): void {
+			callback.isOnce = true;
+			this.on(eventName, callback, atFirst);
+		}
+
+		/**
+		 * Unregister event handler.
+		 * @param eventName
+		 * @param callback Which handler to be unregistered if don't specified then unregister all handler
+		 */
+		off(eventName: string, callback?: EventHandler): void {
+			var envs = eventName.split(/\s+/);
+			for (var i = 0; i < envs.length; i++) {
+				var v = envs[i];
+				this.unbind(v, callback);
+			}
+		}
+
+		/**
+		 * Fire event. If some handler process return false then cancel the event channe and return false either
+		 * @param {string} eventName
+		 * @param {any[]} param
+		 */
+		fire(eventName: string, data?: any): any {
+			// srcElement: HTMLElement, e?: JQueryEventObject, ...param: any[]
+			var array: EventHandler[] = this._events[eventName];
+			if (!array) {
+				return;
+			}
+			var _data: EventInfo = null;
+			if (data) {
+				_data = data;
+				_data.name = eventName;
+			} else
+				_data = { "name": eventName };
+			var removeArray: EventHandler[] = [];
+			for (var i = 0; i < array.length; i++) {
+				var handler = array[i];
+				if (handler.isOnce)
+					removeArray.push(handler);
+				var val = handler.call(this, _data);
+				if (typeof val === "boolean" && !val)
+					return false;
+			}
+			for (var i = 0; i < removeArray.length; i++) {
+				this.off(eventName, removeArray[i]);
+			}
+		}
+	}
+
+	export const event: EventObject = new EventObject();
+	
+	
+	function cloneInternal(obj: any, excludeProperties: any) {
+		if (obj === null)
+			return null;
+		else if (typeof obj === UNDEFINED)
+			return undefined;
+		else if (obj instanceof Array) {
+			var newArray: any[] = [];
+			for (var idx in obj) {
+				if (obj.hasOwnProperty(idx) && excludeProperties.indexOf(idx) < 0) {
+					newArray.push(cloneInternal(obj[idx], excludeProperties));
+				}
+			}
+			return newArray;
+		} else if (typeof obj === "number")
+			return obj;
+		else if (typeof obj === "string")
+			return obj;
+		else if (typeof obj === "boolean")
+			return obj;
+		else if (typeof obj === "function")
+			return obj;
+		else {
+			var newObj: any = {};
+			for (var idx in obj) {
+				if (obj.hasOwnProperty(idx) && excludeProperties.indexOf(idx) < 0) {
+					newObj[idx] = cloneInternal(obj[idx], excludeProperties);
+				}
+			}
+			return newObj;
+		}
+	}
+
+	/**
+	 * Deeply copy an object to an other object, but only contain properties without methods
+	 */
+	export function clone(obj: any, excludeProperties?: any) {
+		if (typeof excludeProperties === "string" && $.trim(excludeProperties).length > 0) {
+			return cloneInternal(obj, [excludeProperties]);
+		} else if (excludeProperties instanceof Array) {
+			return cloneInternal(obj, excludeProperties);
+		} else
+			return JSON.parse(JSON.stringify(obj));
+	}
+	
+	/**
+	 * Get IE version
+	 * @return {Number}
+	 */
+	export var ieVer = (() => {
+		var rv = -1; // Return value assumes failure.
+		if (navigator.appName === "Microsoft Internet Explorer" ||
+			navigator.appName === "Netscape") {
+			var ua = navigator.userAgent;
+			var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+			if (re.exec(ua) !== null)
+				rv = parseFloat(RegExp.$1);
+		}
+		if (rv === -1 && navigator.appName === "Netscape") {
+			var ua = navigator.userAgent;
+			var re = new RegExp("Trident/([0-9]{1,}[\.0-9]{0,})");
+			if (re.exec(ua) !== null)
+				rv = parseFloat(RegExp.$1);
+			if (rv >= 7.0)
+				rv = 11.0;
+		}
+		return rv;
+	})();
+
+	/**
+	 * Get Firefox version
+	 * @return {Number}
+	 */
+	export var ffVer = (() => {
+		var rv = -1; // Return value assumes failure.
+		if (navigator.appName === "Netscape") {
+			var ua = navigator.userAgent;
+			var re = new RegExp("Firefox/([0-9]{1,}[\.0-9]{0,})");
+			if (re.exec(ua) !== null)
+				rv = parseFloat(RegExp.$1);
+		}
+		return rv;
+	})();
+}

@@ -1,5 +1,5 @@
 module tui {
-    const KeyCode = {
+    export const keyCode: any = {
         "BACK": 8,
         "TAB": 9,
         "ENTER": 13,
@@ -96,9 +96,9 @@ module tui {
         "BACKSLASH": 220,
         "RIGHT_BRACKET": 221,
         "QUOTE": 222
-    }
+    };
 
-    const KeyName = {
+    export const keyName: any = {
         "8": "BACK",
         "9": "TAB",
         "13": "ENTER",
@@ -196,5 +196,5 @@ module tui {
         "221": "RIGHT_BRACKET",
         "222": "QUOTE"
     };
-    
+
 }
