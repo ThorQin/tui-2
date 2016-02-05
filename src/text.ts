@@ -1,5 +1,6 @@
 /// <reference path="core.ts" />
 module tui.text {
+	"use strict";
 	/**
      * Convert anything to boolean
      */

@@ -1,4 +1,5 @@
 module tui {
+	"use strict";
     export const keyCode: any = {
         "BACK": 8,
         "TAB": 9,

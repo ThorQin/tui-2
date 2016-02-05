@@ -1,6 +1,6 @@
 /// <reference path="core.ts" />
 module tui.browser {
-    
+    "use strict";
 	export class BackupedScrollPosition {
 		private backupInfo: {obj:HTMLElement; left: number; top:number; }[] = [];
 		constructor(target: HTMLElement) {

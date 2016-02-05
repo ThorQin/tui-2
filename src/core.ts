@@ -2,7 +2,7 @@
 /// <reference path="json.ts" />
 /// <reference path="keyboard.ts" />
 module tui {
-    
+    "use strict";
     export const UNDEFINED = ((undefined?: any): string => {
 		return typeof undefined;
 	})();
