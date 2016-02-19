@@ -53,16 +53,15 @@ module tui {
         }
 	}
     
-    export var newId = (function () {
+    export var tuid = (function () {
 		var id = 0;
 		return function () {
-			var uid = 'tui-id-' + id++;
-			return uid;
+			return ('tuid-' + id++);
 		};
 	})();
     
 	export interface EventInfo {
-		name: string;
+		eventName: string;
 	}
 	
     export interface EventHandler {
@@ -128,8 +127,8 @@ module tui {
 		 */
 		on(eventName: string, callback: EventHandler, atFirst: boolean = false): void {
 			var envs = eventName.split(/\s+/);
-			for (var i = 0; i < envs.length; i++) {
-				var v = envs[i];
+			for (let i = 0; i < envs.length; i++) {
+				let v = envs[i];
 				this.bind(v, callback, atFirst);
 			}
 		}
@@ -152,8 +151,8 @@ module tui {
 		 */
 		off(eventName: string, callback?: EventHandler): void {
 			var envs = eventName.split(/\s+/);
-			for (var i = 0; i < envs.length; i++) {
-				var v = envs[i];
+			for (let i = 0; i < envs.length; i++) {
+				let v = envs[i];
 				this.unbind(v, callback);
 			}
 		}
@@ -164,27 +163,31 @@ module tui {
 		 * @param {any[]} param
 		 */
 		fire(eventName: string, data?: any): any {
-			// srcElement: HTMLElement, e?: JQueryEventObject, ...param: any[]
-			var array: EventHandler[] = this._events[eventName];
-			if (!array) {
-				return;
+			var handlers: EventHandler[] = this._events[eventName];
+			if (!(handlers instanceof Array)) {
+				handlers = [];
 			}
+			var wildcardHandlers: EventHandler[] = this._events['*'];
+			if (wildcardHandlers instanceof Array)
+				handlers = handlers.concat(wildcardHandlers);
+			if (handlers.length === 0)
+				return;
 			var _data: EventInfo = null;
 			if (data) {
 				_data = data;
-				_data.name = eventName;
+				_data.eventName = eventName;
 			} else
-				_data = { "name": eventName };
+				_data = { "eventName": eventName };
 			var removeArray: EventHandler[] = [];
-			for (var i = 0; i < array.length; i++) {
-				var handler = array[i];
+			for (let i = 0; i < handlers.length; i++) {
+				let handler = handlers[i];
 				if (handler.isOnce)
 					removeArray.push(handler);
-				var val = handler.call(this, _data);
+				let val = handler.call(this, _data);
 				if (typeof val === "boolean" && !val)
 					return false;
 			}
-			for (var i = 0; i < removeArray.length; i++) {
+			for (let i = 0; i < removeArray.length; i++) {
 				this.off(eventName, removeArray[i]);
 			}
 		}
@@ -199,8 +202,8 @@ module tui {
 		else if (typeof obj === UNDEFINED)
 			return undefined;
 		else if (obj instanceof Array) {
-			var newArray: any[] = [];
-			for (var idx in obj) {
+			let newArray: any[] = [];
+			for (let idx in obj) {
 				if (obj.hasOwnProperty(idx) && excludeProperties.indexOf(idx) < 0) {
 					newArray.push(cloneInternal(obj[idx], excludeProperties));
 				}
@@ -215,8 +218,8 @@ module tui {
 		else if (typeof obj === "function")
 			return obj;
 		else {
-			var newObj: any = {};
-			for (var idx in obj) {
+			let newObj: any = {};
+			for (let idx in obj) {
 				if (obj.hasOwnProperty(idx) && excludeProperties.indexOf(idx) < 0) {
 					newObj[idx] = cloneInternal(obj[idx], excludeProperties);
 				}
@@ -245,14 +248,14 @@ module tui {
 		var rv = -1; // Return value assumes failure.
 		if (navigator.appName === "Microsoft Internet Explorer" ||
 			navigator.appName === "Netscape") {
-			var ua = navigator.userAgent;
-			var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+			let ua = navigator.userAgent;
+			let re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
 			if (re.exec(ua) !== null)
 				rv = parseFloat(RegExp.$1);
 		}
 		if (rv === -1 && navigator.appName === "Netscape") {
-			var ua = navigator.userAgent;
-			var re = new RegExp("Trident/([0-9]{1,}[\.0-9]{0,})");
+			let ua = navigator.userAgent;
+			let re = new RegExp("Trident/([0-9]{1,}[\.0-9]{0,})");
 			if (re.exec(ua) !== null)
 				rv = parseFloat(RegExp.$1);
 			if (rv >= 7.0)
@@ -268,8 +271,8 @@ module tui {
 	export var ffVer = (() => {
 		var rv = -1; // Return value assumes failure.
 		if (navigator.appName === "Netscape") {
-			var ua = navigator.userAgent;
-			var re = new RegExp("Firefox/([0-9]{1,}[\.0-9]{0,})");
+			let ua = navigator.userAgent;
+			let re = new RegExp("Firefox/([0-9]{1,}[\.0-9]{0,})");
 			if (re.exec(ua) !== null)
 				rv = parseFloat(RegExp.$1);
 		}

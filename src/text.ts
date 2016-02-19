@@ -31,6 +31,21 @@ module tui.text {
 		return token ? token : "";
 	}
 	
+	export function toDashSplit(word: string): string {
+		var buffer: string = '';
+		for (let i = 0; i < word.length; i++) {
+			let c = word[i];
+			let code = c.charCodeAt(0);
+			if (code >= 65 && code <= 90) {
+				if (i > 0)
+					buffer += '-';
+				buffer += c.toLowerCase();
+			} else
+				buffer += c;
+		}
+		return buffer;
+	}
+	
 	
 	/**
 	 * Format a number that padding it with '0'
@@ -72,5 +87,12 @@ module tui.text {
 		if (anchor)
 			anchor = anchor[1];
 		return anchor;
+	}
+	
+	export function getNodeText(node: HTMLElement) {
+		if (node.innerText)
+			return node.innerText;
+		else if (node.textContent)
+			return node.textContent;
 	}
 }

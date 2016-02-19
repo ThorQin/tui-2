@@ -14,20 +14,38 @@ module tui.widget {
 
 	export interface Rect extends Position, Size {}
 	
+	function parseValue(value: string): any {
+		if (value === null || value.length === 0)
+			return null;
+		if (/^\{.+\}$/.test(value)) {
+			value = value.substring(1, value.length - 1);
+			return eval("(" + value + ")");
+		} else
+			return value;
+	}	
+	
 	export class Data {
 		protected _data: { [index: string]: any } = undefined;
-		private owner: WidgetBase;
-		constructor(owner: WidgetBase) {
+		private owner: Widget;
+		constructor(owner: Widget) {
 			this.owner = owner;
 		}
 		private load() {
 			if (typeof this._data !== UNDEFINED) {
 				return;
 			}
-			var elem: HTMLElement = this.owner.getRoot();
+			var elem: HTMLElement = this.owner.getComponent();
 			if (elem != null) {
 				var dataStr = elem.getAttribute("data");
 				this._data = eval("(" + dataStr + ")");
+				if (!(this._data instanceof Object))
+					this._data = {};
+				for (let i = 0; i < elem.attributes.length; i++) {
+					let attr = elem.attributes[i];
+					let v = parseValue(attr.value);
+					if (v !== null)
+						this._data[attr.name] = v;
+				}
 			} else
 				this._data = {};
 		}
@@ -69,6 +87,9 @@ module tui.widget {
 			return this.set(p1, p2);
 		}
 		
+		/**
+		 * Only non-existing property will be set
+		 */
 		init(data: any): Data;
 		init(key: string, value: any): Data;
 		init(p1: any, p2?: any): Data {
@@ -107,40 +128,71 @@ module tui.widget {
 		}
 	}
 	
-	export abstract class WidgetBase extends EventObject {
+	export abstract class Widget extends EventObject {
 		
 		public autoRefresh: boolean = false;
 		public data: Data = new Data(this);
 		
-		private _root: HTMLElement;
+		private _components: { [index: string]: HTMLElement } = {};
 		
 		// Any widgets should implement following methods
 		
-		abstract getComponent(name: string): any;
-		abstract getNodeName(): string;
+		abstract init(): void;
 		abstract render(): void;
 		
-		refresh(): WidgetBase {
+		getComponent(name?: string): HTMLElement {
+			if (arguments.length > 0) {
+				return this._components[name];
+			} else {
+				return this._components[''];
+			}
+		}
+		
+		setChildNodes(childNodes: Node[]) {
+			for (let i = 0; i < childNodes.length; i++)
+				this.getComponent().appendChild(childNodes[i]);
+		}
+		
+		getNodeName(): string {
+			return text.toDashSplit(getClassName(this.constructor));
+		}
+		
+		refresh(): Widget {
 			this.autoRefresh && this.render();
 			return this;
 		}
 		
-		constructor(root: HTMLElement) {
+		constructor(root?: HTMLElement) {
 			super();
-			this._root = root;
+			if (root instanceof Object)
+				this._components[''] = root;
+			else {
+				this._components[''] = document.createElement(this.getNodeName());
+			}
+			
+			// Obtain all child nodes
+			var childNodes: Node[] = [];
+			var script: string = "";
+			for (let i = 0; i < root.childNodes.length; i++) {
+				let node = root.childNodes[i];
+				browser.removeNode(node);
+				if (getFullName(node) === "tui:script") {
+					script += (browser.getNodeText(node) + "\n");
+				} else
+					childNodes.push(node);
+			}
+			this.setChildNodes(childNodes);
+			this.init();
+			if (script.length > 0) {
+				var fn: Function = eval("(function(){\n" + script + "})");
+				fn.call(this);
+			}
+			this.render();
 			this.autoRefresh = true;
 		}
 		
-		getRoot(): HTMLElement {
-			 return this._root;
-		}
-		
-		getParent(): HTMLElement {
-			return this.data.get("parent");
-		}
-		
-		getRect(): Rect {
-			var elem = this.getRoot();
+		getRectOffset(): Rect {
+			var elem = this.getComponent();
 			if (elem === null)
 				return null;
 			return { 
@@ -152,7 +204,7 @@ module tui.widget {
 		}
 		
 		getRectOfPage(): Rect {
-			var elem = this.getRoot();
+			var elem = this.getComponent();
 			if (elem === null)
 				return null;
 			var offset = $(elem).offset();
@@ -165,7 +217,7 @@ module tui.widget {
 		}
 		
 		getRectOfScreen(): Rect {
-			var elem = this.getRoot();
+			var elem = this.getComponent();
 			if (elem === null) 
 				return null;
 			var offset = $(elem).offset();
@@ -183,11 +235,15 @@ module tui.widget {
 	
 	var widgetRegistration: { [index: string]: { new (elem?: HTMLElement): any; } }  = {};
 	
-	export function register(type: string, constructor: { new (elem?: HTMLElement): any; }) {
-		widgetRegistration["tui:" + type.toLowerCase()] = constructor;
+	export function register(constructor: { new (elem?: HTMLElement): any; }, type?: string) {
+		if (typeof type === "string")
+			widgetRegistration["tui:" + type.toLowerCase()] = constructor;
+		else {
+			widgetRegistration["tui:" + text.toDashSplit(getClassName(constructor))] = constructor;
+		}
 	}
 	
-	export function get(id: string): WidgetBase {
+	export function get(id: string): Widget {
 		var elem: any = document.getElementById(id);
 		if (elem === null)
 			return null;
@@ -201,6 +257,11 @@ module tui.widget {
 		return new widgetRegistration["tui:" + type.toLowerCase()]();
 	}
 	
+	export function getClassName(func: Function): string {
+		var results = /function\s+([^\s]+)\s*\(/.exec(func.toString());
+		return (results && results.length > 1) ? results[1] : "";
+	}
+	
 	function getFullName(targetElem: any): string {
 		if (targetElem.scopeName && targetElem.scopeName.toLowerCase() === "tui") {
 			return targetElem.scopeName + ":" + targetElem.nodeName.toLowerCase();
@@ -208,6 +269,7 @@ module tui.widget {
 			return targetElem.nodeName.toLowerCase();
 		}
 	}
+	
 	export function init(parent: HTMLElement) {
 		for (let i = 0; i < parent.childNodes.length; i++) {
 			let node: Node = parent.childNodes[i];

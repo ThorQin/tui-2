@@ -1,0 +1,106 @@
+@import 'awesome4.less';
+@import 'settings.less';
+
+.font() {
+	font:@pageFont;
+}
+.btn() {
+	.font();
+	padding:@buttonPaddingTopBottom @buttonPaddingLeftRight;
+	text-align:center;
+	vertical-align:middle;
+	text-decoration:none;
+	display:inline-block;
+}
+.shadow(@x, @y, @blur, @color : rgba(0,0,0,.1)) {
+	//filter: e(%("progid:DXImageTransform.Microsoft.Shadow(color=%d, direction=%d, strength=%d)", (@color + #000), 135, 2));
+	-webkit-box-shadow: @x @y @blur @color;
+	-moz-box-shadow: @x @y @blur @color;
+	box-shadow: @x @y @blur @color;
+}
+.border-radius(@size) {
+	-webkit-border-radius:@size;
+	-moz-border-radius:@size;
+	border-radius:@size;
+}
+.top-left-radius(@size) {
+	-webkit-border-top-left-radius:@size;
+	-moz-border-top-left-radius:@size;
+	border-top-left-radius:@size;
+}
+.top-right-radius(@size) {
+	-webkit-border-top-right-radius:@size;
+	-moz-border-top-right-radius:@size;
+	border-top-right-radius:@size;
+}
+.bottom-left-radius(@size) {
+	-webkit-border-bottom-left-radius:@size;
+	-moz-border-bottom-left-radius:@size;
+	border-bottom-left-radius:@size;
+}
+.bottom-right-radius(@size) {
+	-webkit-border-bottom-right-radius:@size;
+	-moz-border-bottom-right-radius:@size;
+	border-bottom-right-radius:@size;
+}
+.right-radius(@size) {
+	.top-right-radius(@size);
+	.bottom-right-radius(@size);
+}
+.left-radius(@size) {
+	.top-left-radius(@size);
+	.bottom-left-radius(@size);
+}
+.top-radius(@size) {
+	.top-left-radius(@size);
+	.top-right-radius(@size);
+}
+.bottom-radius(@size) {
+	.bottom-left-radius(@size);
+	.bottom-right-radius(@size);
+}
+
+.liner-color(@begin, @end) {
+	background-color: (@begin + @end) / 2;
+	filter:e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d')", @begin, @end));
+	background-image: -webkit-gradient(linear, left top, left bottom, from(@begin), to(@end));
+	background-image: -webkit-linear-gradient(top, @begin, @end);
+	background-image: -moz-linear-gradient(top,  @begin, @end);
+	background-image: -ms-linear-gradient(top, @begin, @end);  
+	background-image: -o-linear-gradient(top, @begin, @end);
+}
+.btn-color(@begin, @end) {
+	.liner-color(@begin,@end);
+	border-color: @end - #111;
+	&:hover {
+		.liner-color(@end,@begin);
+	}
+	&:active,&.tui-actived {
+		.liner-color(@end - #111, @end - #111);
+		&[data-disabled] {
+			.liner-color(@end, @end);
+		}
+	}
+}
+.icon-base() {
+	display: inline-block;
+	font-family: FontAwesome;
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.icon() {
+	.icon-base();
+	font-size:@fontSize;
+	width:14px;
+	//margin-right:4px;
+}
+
+.opacity(@value) {
+	opacity:@value;
+	@filterValue: @value * 100;
+	filter:alpha(opacity=@filterValue);
+}

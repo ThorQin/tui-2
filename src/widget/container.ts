@@ -1,6 +1,6 @@
 /// <reference path="base.ts" />
 module tui.widget {
-	export abstract class Container extends WidgetBase {
+	export abstract class Container extends Widget {
 		protected _children: HTMLElement[];
 		
 		addChild(child: HTMLElement, index?: number): Container {
@@ -19,11 +19,6 @@ module tui.widget {
 				this.refresh();
 			}
 			return this;
-		}
-		
-		constructor(root: HTMLElement) {
-			super(root);
-			tui.widget.init(root);
 		}
 		
 		getChild(index: number): HTMLElement {

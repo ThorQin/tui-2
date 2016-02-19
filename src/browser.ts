@@ -70,7 +70,7 @@ module tui.browser {
 	 * @param elem {HTMLElement or ID of the element} Objective element
 	 * @param text {string or other object that can be translated to string}
 	 */
-	function elementText(elem: any, text?: any): string {
+	function nodeText(elem: any, text?: any): string {
 		if (typeof elem === "string")
 			elem = document.getElementById(elem);
 		if (elem) {
@@ -87,19 +87,19 @@ module tui.browser {
 				if (c.nodeName.toLowerCase() === "#text") {
 					buf += c.nodeValue;
 				} else
-					buf += elementText(c);
+					buf += nodeText(c);
 			}
 			return buf;
 		} else
 			return null;
 	}
 	
-	export function getElementText(elem: any): string {
-		return elementText(elem);
+	export function getNodeText(elem: any): string {
+		return nodeText(elem);
 	}
 	
-	export function setElementText(elem: any, text: string): void {
-		elementText(elem, text);
+	export function setNodeText(elem: any, text: string): void {
+		nodeText(elem, text);
 	}
 
 
