@@ -15,13 +15,13 @@ cd target
 
 mkdir tui
 ln -s ../../depends tui/depends
-cp ../license tui/
+cp ../LICENSE tui/
 cp ../README.md tui/
 
 # Compile TS
 # Need install typescript:
 # npm install -g typescript
-tsc -m amd --out tui/tui2.all.js ../src/*.ts
+tsc -m amd --outFile tui/tui2.all.js --rootDir ../src --sourceMap --sourceRoot src --removeComments -t ES5 --noEmitOnError
 if [ $? -ne 0 ]; then
     exit
 fi

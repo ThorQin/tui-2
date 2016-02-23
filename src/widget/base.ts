@@ -173,13 +173,17 @@ module tui.widget {
 			// Obtain all child nodes
 			var childNodes: Node[] = [];
 			var script: string = "";
+			var removed: Node[] = [];
 			for (let i = 0; i < root.childNodes.length; i++) {
 				let node = root.childNodes[i];
-				browser.removeNode(node);
+				removed.push(node);
 				if (getFullName(node) === "tui:script") {
 					script += (browser.getNodeText(node) + "\n");
 				} else
 					childNodes.push(node);
+			}
+			for (let removeNode of removed) {
+				browser.removeNode(removeNode);
 			}
 			this.setChildNodes(childNodes);
 			this.init();

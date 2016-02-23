@@ -5,10 +5,12 @@
         "removeComments": false,
         "outDir": "build",
         "outFile": "build/tui2.js",
-        "sourceMap": true
+        "sourceMap": true,
+		"noEmitOnError": true
 	},
     "exclude": [
         "build",
+        "server",
         "depends",
 		"test"
     ]

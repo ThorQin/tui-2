@@ -1,0 +1,14 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+	"files.exclude": {
+        "**/.git": true,
+        "build": true,
+		"depends": true,
+		"server": true,
+		"test/build": true,
+		"test/depends": true,
+		"test/src": true,
+		"test/runtime": true,
+        "node_modules": true
+    }
+}
