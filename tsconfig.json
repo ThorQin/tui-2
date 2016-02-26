@@ -3,15 +3,16 @@
 		"target": "es5",
         "noImplicitAny": true,
         "removeComments": false,
-        "outDir": "build",
-        "outFile": "build/tui2.js",
+        "outFile": "dist/tui2.js",
         "sourceMap": true,
+		"sourceRoot": "src",
 		"noEmitOnError": true
 	},
     "exclude": [
-        "build",
-        "server",
         "depends",
-		"test"
+		"dist",
+		"test",
+		"node_modules",
+		"src/less"
     ]
 }

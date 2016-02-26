@@ -2,13 +2,8 @@
 {
 	"files.exclude": {
         "**/.git": true,
-        "build": true,
 		"depends": true,
-		"server": true,
-		"test/build": true,
-		"test/depends": true,
-		"test/src": true,
-		"test/runtime": true,
-        "node_modules": true
+        "node_modules": true,
+		"dist": true
     }
 }

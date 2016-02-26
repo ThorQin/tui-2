@@ -7,6 +7,9 @@ module tui.widget {
 	export class Button extends Widget {
 		init(): void {
 			var root = this.getComponent();
+			
+			$(root).attr("unselectable", "on");
+			
 			$(root).click((e) => {
 				this.fire("click", e);
 			});
@@ -14,7 +17,6 @@ module tui.widget {
 		
 		render(): void {
 			var root = this.getComponent();
-			
 			if (this.data.get("checked")) {
 				$(root).addClass("tui-checked");
 			} else {

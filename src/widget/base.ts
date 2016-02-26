@@ -167,8 +167,10 @@ module tui.widget {
 			if (root instanceof Object)
 				this._components[''] = root;
 			else {
-				this._components[''] = document.createElement(this.getNodeName());
+				root = document.createElement(this.getNodeName());
+				this._components[''] = root;
 			}
+			(<any>root).__widget__ = this;
 			
 			// Obtain all child nodes
 			var childNodes: Node[] = [];

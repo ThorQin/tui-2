@@ -1,4 +1,0 @@
-#!/bin/bash
-tsc -w &
-cd server
-npm start

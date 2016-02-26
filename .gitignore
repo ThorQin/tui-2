@@ -1,6 +1,2 @@
-build
-server
-test/build
-test/depends
-test/src
-target
+dist
+node_modules

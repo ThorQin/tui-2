@@ -6,21 +6,21 @@
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
 		<title>Test</title>
 		
-		<link rel="stylesheet" href="depends/font-awesome-4.3.0/css/font-awesome.css">
-		<link rel="stylesheet/less" type="text/css" href="src/less/tui2.less" />
+		<link rel="stylesheet" href="font-awesome-4.3.0/css/font-awesome.css">
+		<link rel="stylesheet" href="css/tui2.css" />
 		
-		<script type="text/javascript" src="depends/es5-shim.js"></script>
-		<script type="text/javascript" src="depends/jquery-1.11.3.js"></script>
-        <script type="text/javascript" src="build/tui2.js"></script>
-		<script type="text/javascript" src="runtime/less.min.js"></script>
+		<script type="text/javascript" src="es5-shim.js"></script>
+		<script type="text/javascript" src="jquery-1.11.3.js"></script>
+        <script type="text/javascript" src="tui2.js"></script>
 		
 	</head>
 	<body>
-		<tui:button>
-			按钮
+		<tui:button class="tui-menu">
+			<i class="fa fa-pencil"></i> 按钮
 			<tui:script>
 				this.on("click", function(){alert("click")});
 			</tui:script>
 		</tui:button>
+		<tui:button class="tui-dropdown"></tui:button>
 	</body>
 </html>
