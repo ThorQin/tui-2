@@ -5,13 +5,17 @@ module tui.widget {
 	 * Events: click
 	 */
 	export class Button extends Widget {
+        
 		init(): void {
 			var root = this.getComponent();
 			
-			$(root).attr("unselectable", "on");
+			$(root).attr({
+                "unselectable": "on"
+            });
 			
 			$(root).click((e) => {
-				this.fire("click", e);
+                if (!this.data.get("disabled"))
+				    this.fire("click", e);
 			});
 		}
 		
@@ -21,6 +25,13 @@ module tui.widget {
 				$(root).addClass("tui-checked");
 			} else {
 				$(root).removeClass("tui-checked");
+			}
+            if (this.data.get("disabled")) {
+                $(root).addClass("tui-disabled");
+                $(root).removeAttr("tabIndex");
+			} else {
+				$(root).removeClass("tui-disabled");
+                $(root).attr("tabIndex", "1");
 			}
 		}
 	}

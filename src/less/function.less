@@ -12,9 +12,14 @@
 	text-decoration:none;
 	display:inline-block;
 }
-.shadow(@x, @y, @blur, @color : rgba(0,0,0,.1)) {
-	box-shadow: @x @y @blur @color;
+.shadow(@blur : 1px, @color : rgba(0,0,0,.1)) {
+	box-shadow: 1px 1px 1px @color;
 }
+
+.inset-shadow(@blur : 2px, @color : rgba(0,0,0,.1)) {
+    box-shadow: 1px 1px @blur @color inset;
+}
+
 .border-radius(@size) {
 	border-radius:@size;
 }
@@ -52,16 +57,22 @@
 	filter:e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d')", @begin, @end));
 	background-image: linear-gradient(to bottom, @begin, @end);
 }
-.btn-color(@begin, @end) {
-	.liner-color(@begin,@end);
-	border-color: @end - #111;
-	&:hover {
-		.liner-color(@end,@begin);
-	}
+.btn-color(@color, @focusColor, @borderColor: @color, @focusBorderColor: @focusColor) {
+    background-color: @color;
+	border-color: @borderColor;
+    &:focus {
+        outline: dotted 1px #03f;
+    }
+    &:focus,&:hover {
+        background-color: @focusColor;
+        border-color: @focusBorderColor;
+    }
 	&:active,&.tui-actived {
-		.liner-color(@end - #111, @end - #111);
-		&[data-disabled] {
-			.liner-color(@end, @end);
+        background-color: @focusColor - #111;
+        border-color: @focusBorderColor - #111;
+		&.tui-disabled {
+            background-color: @color;
+            border-color: @borderColor;
 		}
 	}
 }

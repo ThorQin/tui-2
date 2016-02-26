@@ -6,10 +6,11 @@ tui\:button {
 	cursor:pointer;
 	.border-radius(@buttonBorderRadius);
 	text-decoration: none;
-	color: #000;
-	.btn-color(@panelColor + #111, @panelColor );
-	border: 1px solid @borderColor;
+	color: @textColor;
+    border: 1px solid @borderColor;
+	.btn-color(@windowColor, @panelColor - #111, @borderColor, @borderColor);
 	min-width:40px;
+    outline: none;
 	&.tui-menu:after {
 		.icon-base();
 		font-size:@fontSize;
@@ -21,6 +22,7 @@ tui\:button {
 	}
 	&.tui-checked {
 		.btn-color(@panelColor - #111, @panelColor - #111);
+        .inset-shadow();
 	}
 	&.tui-dropdown {
 		min-width:10px;
@@ -38,23 +40,23 @@ tui\:button {
 
 	&.tui-success {
 		color: #fff;
-		.btn-color(#00c555, #00b545);
+		.btn-color(#00c555, #00a020);
 	}
 	&.tui-primary {
 		color: #fff;
-		.btn-color(#0085f5, #0075e5);
+		.btn-color(#00aaff, #0090d0);
 	}
 	&.tui-danger {
 		color: #fff;
-		.btn-color(#f51500, #e50500);
+		.btn-color(#e03040, #d03020);
 	}
 	&.tui-warning {
 		color: #fff;
-		.btn-color(#ff8a00, #ef7a00);
+		.btn-color(#ff9a30, #e07a20);
 	}
 	&.tui-disabled {
 		cursor:default;
-		.btn-color(@panelColor, @panelColor);
+		.btn-color(@panelColor, @panelColor, @borderColor, @borderColor);
 		color: @panelColor - #333;
 	}
 }
