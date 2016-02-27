@@ -11,7 +11,7 @@ module tui {
     export var lang = ((): string => {
 		return (navigator.language || navigator.browserLanguage || navigator.userLanguage).toLowerCase();
 	})();
-    
+
     var _dict: any = {};
 
 	/**
@@ -52,18 +52,18 @@ module tui {
                 return str;
         }
 	}
-    
-    export var tuid = (function () {
+
+    export var tuid = (function() {
 		var id = 0;
-		return function () {
+		return function() {
 			return ('tuid-' + id++);
 		};
 	})();
-    
+
 	export interface EventInfo {
 		eventName: string;
 	}
-	
+
     export interface EventHandler {
 		(data: EventInfo): any;
 		isOnce?: boolean;
@@ -194,8 +194,8 @@ module tui {
 	}
 
 	export const event: EventObject = new EventObject();
-	
-	
+
+
 	function cloneInternal(obj: any, excludeProperties: any) {
 		if (obj === null)
 			return null;

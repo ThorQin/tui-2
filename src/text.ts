@@ -25,12 +25,12 @@ module tui.text {
 	 */
 	export function format(token: string, ...params: any[]): string {
 		var formatrg = /\{(\d+)\}/g;
-		token && (typeof token === "string") && params.length && (token = token.replace(formatrg, function (str, i) {
+		token && (typeof token === "string") && params.length && (token = token.replace(formatrg, function(str, i) {
 			return params[i] === null ? "" : params[i];
 		}));
 		return token ? token : "";
 	}
-	
+
 	export function toDashSplit(word: string): string {
 		var buffer: string = '';
 		for (let i = 0; i < word.length; i++) {
@@ -88,7 +88,7 @@ module tui.text {
 			anchor = anchor[1];
 		return anchor;
 	}
-	
+
 	export function getNodeText(node: HTMLElement) {
 		if (node.innerText)
 			return node.innerText;

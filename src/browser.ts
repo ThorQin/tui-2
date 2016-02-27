@@ -60,6 +60,21 @@ module tui.browser {
 		var el = div.firstChild;
 		return div.removeChild(el);
 	}
+	
+	export function toHTML(node: NodeList): string;
+	export function toHTML(node: Node[]): string;
+	export function toHTML(node: Node): string;
+	export function toHTML(node: any): string {
+		var elem = document.createElement("span");
+		if (typeof node.nodeName === "string") {
+			elem.appendChild(node);
+		} else if (typeof node.length === "number") {
+			for (let i = 0; i < node.length; i++) {
+				elem.appendChild(node[i]);
+			}
+		} 
+		return elem.innerHTML;
+	}
 
 	export function removeNode(node: Node): void {
 		node.parentNode && node.parentNode.removeChild(node);

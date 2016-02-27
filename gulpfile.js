@@ -7,7 +7,6 @@ var gulp = require('gulp'),
     cssnano = require('gulp-cssnano'),
     uglify = require('gulp-uglify'),
     rename = require('gulp-rename'),
-    notify = require('gulp-notify'),
 	async = require('async'),
 	zip = require('gulp-zip'),
     rimraf = require('rimraf');
@@ -29,9 +28,6 @@ gulp.task('ts', function () {
 			.pipe(ts(tsProject));
 			tsResult.js.pipe(sourcemaps.write('.', { sourceRoot: 'src' }))
 			.pipe(gulp.dest('.'))
-			.on("error", notify.onError(function (error) {
-				return "TS Error: " + error.message;
-			}))
 			.on('end', cb);
 		},
 		function (cb) {
@@ -39,9 +35,6 @@ gulp.task('ts', function () {
 			.pipe(rename('tui2.min.js'))
 			.pipe(uglify())
 			.pipe(gulp.dest('dist'))
-			.on("error", notify.onError(function (error) {
-				return "JS Minifier Error: " + error.message;
-			}))
 			.on('end', cb);
 		},
 		function (cb) {
@@ -62,9 +55,6 @@ gulp.task('less', function () {
 			.pipe(cssnano())
 			.pipe(sourcemaps.write('.', { sourceRoot: '../src/less' }))
 			.pipe(gulp.dest('dist/css'))
-			.on("error", notify.onError(function (error) {
-				return "Less Error: " + error.message;
-			}))
 			.on('end', cb);
 		},
 		function (cb) {
