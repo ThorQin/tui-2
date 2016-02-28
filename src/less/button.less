@@ -9,7 +9,6 @@ tui\:button {
 	color: @textColor;
     border: 1px solid @borderColor;
 	.btn-color(@windowColor, @panelColor - #111, @borderColor, @borderColor);
-	min-width:40px;
     outline: none;
 	&.tui-menu:after {
 		.icon-base();
@@ -20,10 +19,7 @@ tui\:button {
 	&:hover {
 		color: #000;
 	}
-	&.tui-checked {
-		.btn-color(@panelColor - #111, @panelColor - #111);
-        .inset-shadow();
-	}
+	
 	&.tui-dropdown {
 		min-width:10px;
 		padding-left:5px;
@@ -54,9 +50,27 @@ tui\:button {
 		color: #fff;
 		.btn-color(#ff9a30, #e07a20);
 	}
+	
+	&.tui-checked {
+		color: @textColor;
+		.btn-color(@panelColor - #333, @panelColor - #333);
+        .inset-shadow();
+	}
+	
 	&.tui-disabled {
 		cursor:default;
 		.btn-color(@panelColor, @panelColor, @borderColor, @borderColor);
 		color: @panelColor - #333;
 	}
 }
+
+tui\:group {
+	display: inline;
+}
+
+.tui-group {
+	.group();
+	vertical-align: middle;
+	display: inline-block;
+}
+

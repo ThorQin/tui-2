@@ -15,17 +15,44 @@
 		
 	</head>
 	<body>
-		<tui:button class="tui-menu" checked="{true}" >
+		<tui:button class="tui-menu" >
 			<i class="fa fa-pencil"></i> 按钮
 			<tui:script>
 				this.on("click", function(){this.data.set("checked", !this.data.get("checked"))});
 			</tui:script>
 		</tui:button>
 		<tui:button class="tui-dropdown"></tui:button>
-        <tui:button class="tui-primary" >&nbsp;</tui:button>
-        <tui:button class="tui-danger" >危险</tui:button>
+        <tui:button class="tui-primary" >
+			<tui:script>
+				this.on("click", function(){this.data.set("checked", !this.data.get("checked"))});
+			</tui:script>
+		</tui:button>
+        <tui:button class="tui-danger" >Text</tui:button>
         <tui:button class="tui-warning" >警告</tui:button>
         <tui:button class="tui-success" >成功</tui:button>
         <tui:button class="tui-success" disabled="{true}" >成功</tui:button>
+		
+		<tui:group class="tui-group">
+			<tui:button><i class="fa fa-pencil"></i></tui:button>
+			<tui:button><i class="fa fa-pencil"></i></tui:button>
+			<tui:button><i class="fa fa-pencil"></i></tui:button>
+			<tui:button><i class="fa fa-pencil"></i></tui:button>
+			<tui:button disabled="{true}" ><i class="fa fa-pencil"></i></tui:button>
+			
+			
+		</tui:group>
+		
+		<tui:group  class="tui-group">
+				<tui:button><i class="fa fa-pencil"></i>
+				</tui:button>
+				<tui:button><i class="fa fa-pencil"></i><tui:script>
+				this.on("click", function(){this.data.set("checked", !this.data.get("checked"))});
+			</tui:script></tui:button>
+				<tui:button><i class="fa fa-pencil"></i><tui:script>
+				this.on("click", function(){this.data.set("checked", !this.data.get("checked"))});
+			</tui:script></tui:button>
+				<tui:button><i class="fa fa-pencil"></i></tui:button>
+				<tui:button disabled="{true}" ><i class="fa fa-pencil"></i></tui:button>
+			</tui:group>
 	</body>
 </html>

@@ -162,7 +162,7 @@ module tui.widget {
 
 		constructor(root?: HTMLElement) {
 			super();
-			if (root instanceof Object)
+			if (root !== null && typeof root === "object" && root.nodeName)
 				this._components[''] = root;
 			else {
 				root = document.createElement(this.getNodeName());
@@ -185,10 +185,10 @@ module tui.widget {
 			for (let removeNode of removed) {
 				browser.removeNode(removeNode);
 			}
-			this.setChildNodes(childNodes);
 			this.init();
+			this.setChildNodes(childNodes);
 			if (script.length > 0) {
-				var fn: Function = eval("(function(){\n" + script + "})");
+				var fn: Function = eval("(0,function(){\n" + script + "})");
 				fn.call(this);
 			}
 			this.render();
@@ -277,7 +277,7 @@ module tui.widget {
 	export function init(parent: HTMLElement) {
 		for (let i = 0; i < parent.childNodes.length; i++) {
 			let node: Node = parent.childNodes[i];
-			if (node.nodeType === Node.ELEMENT_NODE) {
+			if (node.nodeType === 1) { // Element Node
 				let elem = <HTMLElement>node;
 				let constructor = widgetRegistration[getFullName(elem)];
 				if (constructor) {

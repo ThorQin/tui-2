@@ -7,7 +7,7 @@ module tui.widget {
 	export class Button extends Widget {
 
 		setChildNodes(childNodes: Node[]) {
-			this.data.set("text", browser.toHTML(childNodes));
+			this.data.set("value", browser.toHTML(childNodes));
 		}
 
 		init(): void {
@@ -16,6 +16,11 @@ module tui.widget {
 			$(root).attr({
                 "unselectable": "on"
             });
+			
+			$(root).mousedown((e) => {
+                if (!this.data.get("disabled"))
+					root.focus();
+			});
 
 			$(root).click((e) => {
                 if (!this.data.get("disabled"))
@@ -37,10 +42,10 @@ module tui.widget {
 				$(root).removeClass("tui-disabled");
 				$(root).attr("tabIndex", "1");
 			}
-			var text = this.data.get("text");
-			if (typeof text !== "string")
-				text = "";
-			$(root).html(text);
+			var value = this.data.get("value");
+			if (typeof value !== "string")
+				value = "";
+			$(root).html(value);
 		}
 	}
 
