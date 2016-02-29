@@ -14,9 +14,20 @@ module tui.widget {
 		}
 		
 		render(): void {
-			
+			var root = this.getComponent();
+			var result = search(root);
+			if (this.get("name")) {
+				for (let child of result) {
+					child.set({
+						"group": this.get("name"),
+					});
+				}
+			}
 		}
 	}
 	
+	export class ButtonGroup extends Group {}
+	
 	register(Group);
+	register(ButtonGroup);
 }

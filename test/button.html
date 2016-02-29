@@ -36,24 +36,23 @@
 			<tui:button><i class="fa fa-file-o"></i></tui:button>
 			<tui:button><i class="fa fa-save"></i></tui:button>
 		</tui:group>
-		<tui:group  class="tui-group">
-			<tui:button group="edit" radio={true} checkable={true}><i class="fa fa-copy"></i></tui:button>
-			<tui:button  group="edit" radio={true} checkable={true}><i class="fa fa-cut"></i></tui:button>
-			<tui:button  group="edit" radio={true} checkable={true}><i class="fa fa-paste"></i></tui:button>
-		</tui:group>
-		<tui:group  class="tui-group">
-			<tui:button><i class="fa fa-align-left"></i></tui:button>
-			<tui:button><i class="fa fa-align-justify"></i></tui:button>
-			<tui:button><i class="fa fa-align-right"></i></tui:button>
+		<tui:button-group name="edit" class="tui-group">
+			<tui:button type=toggle-radio><i class="fa fa-copy"></i></tui:button>
+			<tui:button type=radio><i class="fa fa-cut"></i></tui:button>
+			<tui:button type=radio><i class="fa fa-paste"></i></tui:button>
+		</tui:button-group>
+		<tui:button-group name="align">
+			<tui:button type=radio><i class="fa fa-align-left"></i></tui:button>
+			<tui:button type=radio><i class="fa fa-align-justify"></i></tui:button>
+			<tui:button type=radio><i class="fa fa-align-right"></i></tui:button>
 			<tui:button><i class="fa fa-font"></i></tui:button>
 			<tui:button disabled="{true}" ><i class="fa fa-pencil"></i></tui:button>
-		</tui:group>
+		</tui:button-group>
 		<div id="newArea">
 		</div>
 		
 		<script>
-			var btn = tui.widget.create("button", {"value": "测试新创建的对象"});
-			$("#newArea").append(btn.getComponent());
+			tui.widget.create("button", {"value": "测试新创建的对象"}).appendTo("newArea");
 		</script>
 	</body>
 </html>

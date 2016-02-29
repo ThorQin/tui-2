@@ -31,9 +31,6 @@ module tui.widget {
 
 	export abstract class WidgetBase extends EventObject  {
 		private _data: { [index: string]: any } = undefined;
-
-		public autoRefresh: boolean = false;
-
 		abstract getComponent(name?: string): HTMLElement;
 		abstract render(): void;
 		
@@ -45,7 +42,7 @@ module tui.widget {
 		}
 		
 		refresh(): WidgetBase {
-			this.autoRefresh && this.render();
+			this.get("autoRefresh") === true && this.render();
 			return this;
 		}
 
@@ -89,13 +86,13 @@ module tui.widget {
 		set(p1: any, p2?: any): WidgetBase {
 			this.load();
 			if (typeof p2 === UNDEFINED && p1 instanceof Object) {
-				let refreshValue = this.autoRefresh;
-				this.autoRefresh = false;
+				let refreshValue = this.get("autoRefresh");
+				this.set("autoRefresh", false);
 				for (let key in p1) {
-					if (p1.hasOwnProperty(key))
+					if (p1.hasOwnProperty(key) && key !== "autoRefresh")
 						this.set(key, p1[key]);
 				}
-				this.autoRefresh = refreshValue;
+				this.set("autoRefresh", refreshValue);
 			} else if (typeof p1 === "string" && typeof p2 !== UNDEFINED) {
 				let propertyControls = this.getPropertyControls();
 				if (propertyControls[p1]) {
@@ -119,13 +116,13 @@ module tui.widget {
 		setInit(p1: any, p2?: any): WidgetBase {
 			if (typeof p2 === UNDEFINED) {
 				if (p1 instanceof Object) {
-					let refreshValue = this.autoRefresh;
-					this.autoRefresh = false;
+					let refreshValue = this.get("autoRefresh");
+					this.set("autoRefresh", false);
 					for (var key in p1) {
-						if (p1.hasOwnProperty(key) && this.get(key) === null)
+						if (p1.hasOwnProperty(key) && this.get(key) === null && key !== "autoRefresh")
 							this.set(key, p1[key]);
 					}
-					this.autoRefresh = refreshValue;
+					this.set("autoRefresh", refreshValue);
 					this.refresh();
 				}
 			} else {
@@ -141,6 +138,18 @@ module tui.widget {
 		private _components: { [index: string]: HTMLElement } = {};
 		
 		abstract init(): void;
+		
+		appendTo(parent: HTMLElement): Widget
+		appendTo(parent: any): Widget {
+			if (typeof parent === "string") {
+				parent = document.getElementById(parent);
+			} 
+			if (parent && typeof parent === "object" && typeof parent.appendChild === "function") {
+				(<HTMLElement>parent).appendChild(this.getComponent());
+				this.set("autoRefresh", true);				
+			}
+			return this;
+		}
 		
 		setChildNodes(childNodes: Node[]): void {
 			// Default do nothing ...
@@ -191,8 +200,6 @@ module tui.widget {
 				var fn: Function = eval("(0,function(){\n" + script + "})");
 				fn.call(this);
 			}
-			this.render();
-			this.autoRefresh = true;
 		}
 
 		getRectOffset(): Rect {
@@ -287,7 +294,7 @@ module tui.widget {
 		}
 	}
 	
-	export function init(parent: HTMLElement, initFunc?: (elem: HTMLElement) => { [index: string]: any }) {
+	export function init(parent: HTMLElement, initFunc?: (widget: Widget) => boolean) {
 		for (let i = 0; i < parent.childNodes.length; i++) {
 			let node: Node = parent.childNodes[i];
 			if (node.nodeType === 1) { // Element Node
@@ -295,13 +302,12 @@ module tui.widget {
 				let constructor = widgetRegistration[getFullName(elem)];
 				if (constructor) {
 					if (!(<any>elem).__widget__) {
-						let initParam: { [index: string]: any };
-						if (typeof initFunc === "function")
-							initParam = initFunc(elem);
-						if (typeof initParam !== UNDEFINED && initParam !== null)
-							new constructor(elem, initParam);
-						else
-							new constructor(elem);
+						let widget: Widget = new constructor(elem);
+						if (typeof initFunc === "function") {
+							if (initFunc(widget))
+								widget.set("autoRefresh", true);	
+						} else
+							 widget.set("autoRefresh", true);
 					}
 				} else
 					init(elem, initFunc);

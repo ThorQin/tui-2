@@ -3,7 +3,7 @@ module tui.widget {
 	"use strict";
 	/**
 	 * Button
-	 * Attributes: value, checkable, checked, radio, group, disabled
+	 * Attributes: value, type, checked, radio, group, disabled
 	 * Events: click, mousedown, mouseup, keydown, keyup
 	 */
 	export class Button extends Widget {
@@ -48,22 +48,24 @@ module tui.widget {
 			var onClick = (e: any) => {
 				if (this.get("disabled"))
 					return;
-				if (this.get("checkable")) {
-					this.set("checked", !!!this.get("checked"));
-					let groupName = this.get("group");
-					if (groupName && this.get("checked") && this.get("radio")) {
-						let result = search( (elem: Widget) => {
-							if (elem.get("group") === groupName
-								&& elem.get("checkable")
-								&& elem.get("radio")
-								&& elem !== this)
-								return true;
-							else
-								return false;
-						})
-						for (let elem of result) {
-							elem.set("checked", false);
-						}
+				if (this.get("type") === "toggle" || this.get("type") === "toggle-radio") {
+					this.set("checked", !this.get("checked"));
+				} else if (this.get("type") === "radio")
+					this.set("checked", true);
+				
+				let groupName = this.get("group");
+				if (groupName && (this.get("type") === "radio" || 
+					this.get("type") === "toggle-radio" && this.get("checked"))) {
+					let result = search( (elem: Widget) => {
+						if (elem.get("group") === groupName
+							&& (elem.get("type") === "radio" || elem.get("type") === "toggle-radio")
+							&& elem !== this)
+							return true;
+						else
+							return false;
+					})
+					for (let elem of result) {
+						elem.set("checked", false);
 					}
 				}
 				this.fire("click", e);
@@ -98,6 +100,21 @@ module tui.widget {
 			$root.html(value);
 		}
 	}
+	
+	export class CheckBox extends Button {
+		init(): void {
+			super.init();
+			this.set("type", "toggle");
+		}
+	}
+	export class RadioBox extends Button {
+		init(): void {
+			super.init();
+			this.set("type", "radio");
+		}
+	}
 
 	register(Button);
+	register(CheckBox);
+	register(RadioBox);
 }
