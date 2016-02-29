@@ -23,18 +23,37 @@ module tui.widget {
 		} else
 			return value;
 	}
+	
+	export interface  PropertyControl {
+		get(data: { [index: string]: any }): any;
+		set(data: { [index: string]: any }, value: any): void;
+	}
 
-	export class Data {
-		protected _data: { [index: string]: any } = undefined;
-		private owner: Widget;
-		constructor(owner: Widget) {
-			this.owner = owner;
+	export abstract class WidgetBase extends EventObject  {
+		private _data: { [index: string]: any } = undefined;
+
+		public autoRefresh: boolean = false;
+
+		abstract getComponent(name?: string): HTMLElement;
+		abstract render(): void;
+		
+		/**
+		 * If went to control properties set & get behavior then override this method
+		 */
+		getPropertyControls(): { [index: string]: PropertyControl } {
+			return {};
 		}
+		
+		refresh(): WidgetBase {
+			this.autoRefresh && this.render();
+			return this;
+		}
+
 		private load() {
 			if (typeof this._data !== UNDEFINED) {
 				return;
 			}
-			var elem: HTMLElement = this.owner.getComponent();
+			var elem: HTMLElement = this.getComponent();
 			if (elem != null) {
 				var dataStr = elem.getAttribute("data");
 				this._data = eval("(" + dataStr + ")");
@@ -54,95 +73,79 @@ module tui.widget {
 			this.load();
 			if (typeof key === UNDEFINED || key === null) {
 				return this._data;
-			} else {
-				var value = this._data[key];
-				return (typeof value === UNDEFINED ? null : value);
-			}
-		}
-
-		set(data: any): Data;
-		set(key: string, value: any): Data;
-		set(p1: any, p2?: any): Data {
-			this.load();
-			if (typeof p2 === UNDEFINED) {
-				if (p1 instanceof Object) {
-					for (let key in p1) {
-						if (p1.hasOwnProperty(key))
-							this._data[key] = p1[key];
-					}
+			} else if (typeof key === "string") {
+				let propertyControls = this.getPropertyControls();
+				if (propertyControls[key]) {
+					return propertyControls[key].get(this._data);
+				} else {
+					var value = this._data[key];
+					return (typeof value === UNDEFINED ? null : value);
 				}
-			} else {
-				this._data[p1] = p2;
 			}
-			this.owner.refresh();
-			return this;
 		}
 
-		setForce(data: any): Data;
-		setForce(key: string, value: any): Data;
-		setForce(p1: any, p2?: any): Data {
-			let refresh = this.owner.autoRefresh;
-			this.owner.autoRefresh = false;
-			this.clear();
-			this.owner.autoRefresh = refresh;
-			return this.set(p1, p2);
+		set(data: any): WidgetBase;
+		set(key: string, value: any): WidgetBase;
+		set(p1: any, p2?: any): WidgetBase {
+			this.load();
+			if (typeof p2 === UNDEFINED && p1 instanceof Object) {
+				let refreshValue = this.autoRefresh;
+				this.autoRefresh = false;
+				for (let key in p1) {
+					if (p1.hasOwnProperty(key))
+						this.set(key, p1[key]);
+				}
+				this.autoRefresh = refreshValue;
+			} else if (typeof p1 === "string" && typeof p2 !== UNDEFINED) {
+				let propertyControls = this.getPropertyControls();
+				if (propertyControls[p1]) {
+					propertyControls[p1].set(this._data, p2);
+				} else {
+					if (p2 === null)
+						delete this._data[p1];
+					else 
+						this._data[p1] = p2;
+				}
+			}
+			this.refresh();
+			return this;
 		}
 		
 		/**
 		 * Only non-existing property will be set
 		 */
-		init(data: any): Data;
-		init(key: string, value: any): Data;
-		init(p1: any, p2?: any): Data {
+		setInit(data: any): WidgetBase;
+		setInit(key: string, value: any): WidgetBase;
+		setInit(p1: any, p2?: any): WidgetBase {
 			if (typeof p2 === UNDEFINED) {
-				this.load();
 				if (p1 instanceof Object) {
+					let refreshValue = this.autoRefresh;
+					this.autoRefresh = false;
 					for (var key in p1) {
-						if (p1.hasOwnProperty(key) && !this._data.hasOwnProperty(key))
-							this._data[key] = p1[key];
+						if (p1.hasOwnProperty(key) && this.get(key) === null)
+							this.set(key, p1[key]);
 					}
+					this.autoRefresh = refreshValue;
+					this.refresh();
 				}
 			} else {
-				if (!this.has(key))
-					this._data[p1] = p2;
+				if (this.get(key) === null)
+					this.set(p1, p2);
 			}
-			this.owner.refresh();
 			return this;
-		}
-
-		remove(key: string): Data {
-			if (this.has(key))
-				delete this._data[key];
-			this.owner.refresh();
-			return this;
-		}
-
-		clear(): Data {
-			this._data = {};
-			this.owner.refresh();
-			return this;
-		}
-
-		has(key: string): boolean {
-			this.load();
-			return this._data.hasOwnProperty(key);
 		}
 	}
 
-	export abstract class Widget extends EventObject {
-
-		public autoRefresh: boolean = false;
-		public data: Data = new Data(this);
+	export abstract class Widget extends WidgetBase {
 
 		private _components: { [index: string]: HTMLElement } = {};
 		
-		// Any widgets should implement following methods
-		
 		abstract init(): void;
-		abstract render(): void;
-
-		setChildNodes(childNodes: Node[]): void { }
-
+		
+		setChildNodes(childNodes: Node[]): void {
+			// Default do nothing ...
+		}
+		
 		getComponent(name?: string): HTMLElement {
 			if (arguments.length > 0) {
 				return this._components[name];
@@ -155,19 +158,13 @@ module tui.widget {
 			return text.toDashSplit(getClassName(this.constructor));
 		}
 
-		refresh(): Widget {
-			this.autoRefresh && this.render();
-			return this;
-		}
-
-		constructor(root?: HTMLElement) {
+		constructor(root: HTMLElement, initParam?: { [index: string]: any }) {
 			super();
-			if (root !== null && typeof root === "object" && root.nodeName)
-				this._components[''] = root;
-			else {
-				root = document.createElement(this.getNodeName());
-				this._components[''] = root;
+			
+			if (getFullName(root) !== "tui:" + this.getNodeName()) {
+				throw new TypeError("Node type unmatched!");
 			}
+			this._components[''] = root;
 			(<any>root).__widget__ = this;
 			
 			// Obtain all child nodes
@@ -185,8 +182,11 @@ module tui.widget {
 			for (let removeNode of removed) {
 				browser.removeNode(removeNode);
 			}
-			this.init();
 			this.setChildNodes(childNodes);
+			if (typeof initParam !== UNDEFINED) {
+				this.setInit(initParam);
+			}
+			this.init();
 			if (script.length > 0) {
 				var fn: Function = eval("(0,function(){\n" + script + "})");
 				fn.call(this);
@@ -237,9 +237,9 @@ module tui.widget {
 
 	} // End of class WidgetBase
 	
-	var widgetRegistration: { [index: string]: { new (elem?: HTMLElement): any; } } = {};
+	var widgetRegistration: { [index: string]: { new (elem: HTMLElement, initParam?: { [index: string]: any }): any; } } = {};
 
-	export function register(constructor: { new (elem?: HTMLElement): any; }, type?: string) {
+	export function register(constructor: { new (elem: HTMLElement, initParam?: { [index: string]: any }): any; }, type?: string) {
 		if (typeof type === "string")
 			widgetRegistration["tui:" + type.toLowerCase()] = constructor;
 		else {
@@ -257,8 +257,21 @@ module tui.widget {
 			return null;
 	}
 
-	export function create<T>(type: string): T {
-		return new widgetRegistration["tui:" + type.toLowerCase()]();
+	export function create<T>(type: Function, initParam?: { [index: string]: any }): T;
+	export function create<T>(type: string, initParam?: { [index: string]: any }): T;
+	export function create<T>(type: any, initParam?: { [index: string]: any }): T {
+		if (typeof type === "function") {
+			type = text.toDashSplit(getClassName(type));
+		} else if (typeof type !== "string")
+			throw new TypeError("Invalid parameters.");
+		var constructor = widgetRegistration["tui:" + type.toLowerCase()];
+		if (typeof constructor !== "function")
+			throw new Error("Undefined type: " + type);
+		var element = document.createElement("tui:" + type);
+		if (typeof initParam !== UNDEFINED)
+			return new constructor(element, initParam);
+		else 
+			return new constructor(element);
 	}
 
 	export function getClassName(func: Function): string {
@@ -273,8 +286,8 @@ module tui.widget {
 			return targetElem.nodeName.toLowerCase();
 		}
 	}
-
-	export function init(parent: HTMLElement) {
+	
+	export function init(parent: HTMLElement, initFunc?: (elem: HTMLElement) => { [index: string]: any }) {
 		for (let i = 0; i < parent.childNodes.length; i++) {
 			let node: Node = parent.childNodes[i];
 			if (node.nodeType === 1) { // Element Node
@@ -282,12 +295,55 @@ module tui.widget {
 				let constructor = widgetRegistration[getFullName(elem)];
 				if (constructor) {
 					if (!(<any>elem).__widget__) {
-						new constructor(elem);
+						let initParam: { [index: string]: any };
+						if (typeof initFunc === "function")
+							initParam = initFunc(elem);
+						if (typeof initParam !== UNDEFINED && initParam !== null)
+							new constructor(elem, initParam);
+						else
+							new constructor(elem);
 					}
 				} else
-					init(elem);
+					init(elem, initFunc);
 			}
 		}
+	}
+	
+	export function search(filter: (elem: Widget) => boolean): Widget[];
+	export function search(searchArea: HTMLElement): Widget[];
+	export function search(searchArea: HTMLElement, filter: (elem: Widget) => boolean): Widget[];
+	export function search(p1?: any, p2?: any): Widget[] {
+		var searchArea: HTMLElement = null;
+		var filter: (elem: Widget) => boolean = null;
+		if (typeof p2 === UNDEFINED) {
+			if (typeof p1 === "function")
+				filter = p1;
+			else if (typeof p1 === "object" && p1.nodeName)
+				searchArea = p1;
+		} else if (typeof p2 === "function") {
+			searchArea = p1;
+			filter = p2;
+		}
+		
+		var result: Widget[] = [];
+		if (searchArea === null) {
+			searchArea = document.body;
+		}
+		function searchElem(parent: HTMLElement) {
+			for (let i = 0; i < parent.childNodes.length; i++) {
+				let node: Node = parent.childNodes[i];
+				if (node.nodeType !== 1) { // Is not an element
+					continue;
+				}
+				let widget = (<any>node).__widget__; 
+				if (widget && (filter && filter(widget) || filter === null)) {
+					result.push(widget);
+				}
+				searchElem(<HTMLElement>node);
+			}
+		}
+		searchElem(searchArea);
+		return result;
 	}
 
 	$(window.document).ready(function() {

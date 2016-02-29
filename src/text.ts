@@ -34,7 +34,7 @@ module tui.text {
 	export function toDashSplit(word: string): string {
 		var buffer: string = '';
 		for (let i = 0; i < word.length; i++) {
-			let c = word[i];
+			let c = word.charAt(i);
 			let code = c.charCodeAt(0);
 			if (code >= 65 && code <= 90) {
 				if (i > 0)
