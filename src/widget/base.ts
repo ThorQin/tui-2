@@ -144,7 +144,7 @@ module tui.widget {
 			if (typeof parent === "string") {
 				parent = document.getElementById(parent);
 			} 
-			if (parent && typeof parent === "object" && typeof parent.appendChild === "function") {
+			if (parent && typeof parent === "object" && parent.appendChild) {
 				(<HTMLElement>parent).appendChild(this.getComponent());
 				this.set("autoRefresh", true);				
 			}
@@ -288,7 +288,10 @@ module tui.widget {
 
 	function getFullName(targetElem: any): string {
 		if (targetElem.scopeName && targetElem.scopeName.toLowerCase() === "tui") {
-			return targetElem.scopeName + ":" + targetElem.nodeName.toLowerCase();
+			if (targetElem.nodeName.toLowerCase().match("^" + targetElem.scopeName + ":") !== null)
+				return targetElem.nodeName.toLowerCase();
+			else
+				return targetElem.scopeName + ":" + targetElem.nodeName.toLowerCase();
 		} else {
 			return targetElem.nodeName.toLowerCase();
 		}

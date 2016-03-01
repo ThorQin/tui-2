@@ -9,7 +9,6 @@ tui\:button {
 	color: @textColor;
     border: 1px solid @borderColor;
 	.btn-color(@windowColor, @panelColor - #111, @borderColor, @borderColor);
-    outline: none;
 	&.tui-menu:after {
 		.icon-base();
 		font-size:@fontSize;
@@ -53,7 +52,7 @@ tui\:button {
 	
 	&.tui-checked {
 		color: @textColor;
-		.btn-color(@panelColor - #333, @panelColor - #333);
+		.btn-color(@panelColor - #222, @panelColor - #222);
         .inset-shadow();
 	}
 	
@@ -61,6 +60,74 @@ tui\:button {
 		cursor:default;
 		.btn-color(@panelColor, @panelColor, @borderColor, @borderColor);
 		color: @panelColor - #333;
+	}
+}
+
+
+tui\:check-box,tui\:radio-box {
+	.btn();
+	padding: 0 6px;
+	text-align:center;
+	margin:2px;
+	cursor:pointer;
+	text-decoration: none;
+	.border-radius(@buttonBorderRadius);
+	color: #000;
+	vertical-align:middle;
+
+	&.tui-notify {
+		color:red;
+		&:hover {
+			color:red;
+		}
+	}
+}
+
+tui\:check-box {
+	&:before {
+		display:inline-block;
+		.icon();
+		.fa-square-o();
+		text-align:left;
+		color: #00bbff;
+		width: 15px;
+	}
+	&.tui-checked:before {
+		display:inline-block;
+		.icon();
+		.fa-check-square-o();
+		text-align:left;
+		width: 15px;
+	}
+	&.tui-tri-state:before {
+		display:inline-block;
+		.icon();
+		.fa-check-square();
+		text-align:left;
+	}
+	&:hover {
+		color:inherit;
+	}
+}
+
+tui\:radio-box {
+	&:before {
+		display:inline-block;
+		.icon();
+		.fa-circle-thin();
+		text-align:left;
+		color: #00bbff;
+		width: 15px;
+	}
+	&.tui-checked:before {
+		display:inline-block;
+		.icon();
+		.fa-dot-circle-o();
+		text-align:left;
+		width: 15px;
+	}
+	&:hover {
+		color:inherit;
 	}
 }
 

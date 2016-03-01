@@ -22,11 +22,7 @@
 			</tui:script>
 		</tui:button>
 		<tui:button class="tui-dropdown"></tui:button>
-        <tui:button class="tui-primary" >重要
-			<tui:script>
-				this.on("click", function(){this.data.set("checked", !this.data.get("checked"))});
-			</tui:script>
-		</tui:button>
+        <tui:button class="tui-primary" type="toggle">重要</tui:button>
         <tui:button class="tui-danger" >Text</tui:button>
         <tui:button class="tui-warning" >警告</tui:button>
         <tui:button class="tui-success" >成功</tui:button>
@@ -54,5 +50,25 @@
 		<script>
 			tui.widget.create("button", {"value": "测试新创建的对象"}).appendTo("newArea");
 		</script>
+		
+		<div>
+			<tui:group name="radio-group">
+				<tui:radio-box>选项1</tui:radio-box>
+				<tui:radio-box>选项2</tui:radio-box>
+				<tui:radio-box>选项3</tui:radio-box>
+				<tui:radio-box>选项4</tui:radio-box>
+				<tui:radio-box>选项5</tui:radio-box>
+			</tui:group>
+		</div>
+		
+		<div>
+			<tui:button-group name="check-group">
+				<tui:check-box>选项1</tui:check-box>
+				<tui:check-box>选项2</tui:check-box>
+				<tui:check-box>选项3</tui:check-box>
+				<tui:check-box>选项4</tui:check-box>
+				<tui:check-box>选项5</tui:check-box>
+			</tui:button-group>
+		</div>
 	</body>
 </html>

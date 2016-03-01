@@ -14,16 +14,19 @@
 	vertical-align:middle;
 	text-decoration:none;
 	display:inline-block;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .group() {
 	margin-left:2px;
 	margin-right:2px;
 	white-space:nowrap;
-	
+	overflow: hidden;
 	> *, > *.tui-focus, > *:focus {
 		vertical-align:middle;
-		display:inline-block;
+
 		float:left;
 		margin-left:0;
 		margin-right:0;
@@ -96,9 +99,6 @@
 .btn-color(@color, @focusColor, @borderColor: @color, @focusBorderColor: @focusColor) {
     background-color: @color;
 	border-color: @borderColor;
-    &:focus {
-        outline: dotted 1px #03f;
-    }
     &:focus,&:hover {
         background-color: @focusColor;
         border-color: @focusBorderColor;
