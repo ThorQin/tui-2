@@ -2,17 +2,7 @@
 module tui.widget {
 	"use strict";
 
-	export interface Size {
-		width: number;
-		height: number;
-	}
-
-	export interface Position {
-		left: number;
-		top: number;
-	}
-
-	export interface Rect extends Position, Size { }
+	
 
 	function parseValue(value: string): any {
 		if (value === null || value.length === 0)
@@ -42,7 +32,9 @@ module tui.widget {
 		}
 		
 		refresh(): WidgetBase {
-			this.get("autoRefresh") === true && this.render();
+			if (this.get("autoRefresh") === true) {
+				this.render();
+			} 
 			return this;
 		}
 
@@ -131,7 +123,7 @@ module tui.widget {
 			}
 			return this;
 		}
-	}
+	} // End of class WidgetBase
 
 	export abstract class Widget extends WidgetBase {
 
@@ -149,6 +141,10 @@ module tui.widget {
 				this.set("autoRefresh", true);				
 			}
 			return this;
+		}
+		
+		detach() {
+			browser.removeNode(this.getComponent());
 		}
 		
 		setChildNodes(childNodes: Node[]): void {
@@ -197,52 +193,13 @@ module tui.widget {
 			}
 			this.init();
 			if (script.length > 0) {
+				// Will not cause refresh, because initialization is not finished yet.
 				var fn: Function = eval("(0,function(){\n" + script + "})");
 				fn.call(this);
 			}
 		}
 
-		getRectOffset(): Rect {
-			var elem = this.getComponent();
-			if (elem === null)
-				return null;
-			return {
-				left: elem.offsetLeft,
-				top: elem.offsetTop,
-				width: elem.offsetWidth,
-				height: elem.offsetHeight
-			};
-		}
-
-		getRectOfPage(): Rect {
-			var elem = this.getComponent();
-			if (elem === null)
-				return null;
-			var offset = $(elem).offset();
-			return {
-				left: offset.left,
-				top: offset.top,
-				width: elem.offsetWidth,
-				height: elem.offsetHeight
-			};
-		}
-
-		getRectOfScreen(): Rect {
-			var elem = this.getComponent();
-			if (elem === null)
-				return null;
-			var offset = $(elem).offset();
-			var $doc = $(document);
-			return {
-				left: offset.left - $doc.scrollLeft(),
-				top: offset.top - $doc.scrollTop(),
-				width: elem.offsetWidth,
-				height: elem.offsetHeight
-			};
-		}
-
-
-	} // End of class WidgetBase
+	} // End of class Widget
 	
 	var widgetRegistration: { [index: string]: { new (elem: HTMLElement, initParam?: { [index: string]: any }): any; } } = {};
 
@@ -311,6 +268,9 @@ module tui.widget {
 								widget.set("autoRefresh", true);	
 						} else
 							 widget.set("autoRefresh", true);
+					} else {
+						let widget: Widget = (<any>elem).__widget__;
+						widget.refresh();
 					}
 				} else
 					init(elem, initFunc);

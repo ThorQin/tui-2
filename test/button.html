@@ -23,10 +23,10 @@
 		</tui:button>
 		<tui:button class="tui-dropdown"></tui:button>
         <tui:button class="tui-primary" type="toggle">重要</tui:button>
-        <tui:button class="tui-danger" >Text</tui:button>
+        <tui:button class="tui-danger" >危险</tui:button>
         <tui:button class="tui-warning" >警告</tui:button>
         <tui:button class="tui-success" >成功</tui:button>
-        <tui:button class="tui-success" disabled="{true}" >成功</tui:button>
+        <tui:button class="tui-success" disabled="{true}" >禁用</tui:button>
 		
 		<tui:group  class="tui-group">
 			<tui:button><i class="fa fa-file-o"></i></tui:button>
@@ -48,7 +48,7 @@
 		</div>
 		
 		<script>
-			tui.widget.create("button", {"value": "测试新创建的对象"}).appendTo("newArea");
+			tui.widget.create("button", {"value": "脚本创建的对象"}).appendTo("newArea");
 		</script>
 		
 		<div>

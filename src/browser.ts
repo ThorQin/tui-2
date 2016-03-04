@@ -117,78 +117,53 @@ module tui.browser {
 		nodeText(elem, text);
 	}
 
+	export interface Size {
+		width: number;
+		height: number;
+	}
 
-	export function getRelativePosition(srcObj: HTMLElement, offsetParent: HTMLElement) {
-		if (!offsetParent.nodeName && !offsetParent.tagName)
-			throw new Error("Offset parent must be an html element.");
-		var result = { x: srcObj.offsetLeft, y: srcObj.offsetTop };
-		var obj: HTMLElement = <HTMLElement>srcObj.offsetParent;
-		while (obj) {
-			if (obj === offsetParent)
-				return result;
-			result.x += ((obj.offsetLeft || 0) + (obj.clientLeft || 0) - (obj.scrollLeft || 0));
-			result.y += ((obj.offsetTop || 0) + (obj.clientTop || 0) - (obj.scrollTop || 0));
-			if (obj.nodeName.toLowerCase() === "body" && obj.offsetParent === null)
-				obj = obj.parentElement;
-			else
-				obj = <HTMLElement>obj.offsetParent;
-		}
-		return null;
-	};
+	export interface Position {
+		left: number;
+		top: number;
+	}
 
-	export function getFixedPosition(target: HTMLElement): { x: number; y: number; } {
-		var $target = $(target);
-		var offset = $target.offset();
-		var $doc = $(document);
+	export interface Rect extends Position, Size { }
+	
+	export function getRectOfParent(elem: HTMLElement): Rect {
+		if (elem === null)
+			return null;
 		return {
-			x: offset.left - $doc.scrollLeft(),
-			y: offset.top - $doc.scrollTop()
+			left: elem.offsetLeft,
+			top: elem.offsetTop,
+			width: elem.offsetWidth,
+			height: elem.offsetHeight
 		};
 	}
-	
-	export function debugElementPosition(target: HTMLElement): void;
-	export function debugElementPosition(target: string): void;
-	export function debugElementPosition(target: any): void {
-		$(target).mousedown(function (e) {
-			var pos = tui.browser.getFixedPosition(this);
-			var anchor = document.createElement("span");
-			anchor.style.backgroundColor = "#ccc";
-			anchor.style.opacity = "0.5";
-			anchor.style.display = "inline-block";
-			anchor.style.position = "fixed";
-			anchor.style.left = pos.x + "px";
-			anchor.style.top = pos.y + "px";
-			anchor.style.width = this.offsetWidth + "px";
-			anchor.style.height = this.offsetHeight + "px";
-			document.body.appendChild(anchor);
-			$(anchor).mouseup(function (e) {
-				document.body.removeChild(anchor);
-			});
-		});
+
+	export function getRectOfPage(elem: HTMLElement): Rect {
+		if (elem === null)
+			return null;
+		var offset = $(elem).offset();
+		return {
+			left: offset.left,
+			top: offset.top,
+			width: elem.offsetWidth,
+			height: elem.offsetHeight
+		};
 	}
-	
-	
-	/**
-	 * Obtain hosted document's window size (exclude scrollbars if have)
-	 * NOTE: this function will spend much CPU time to run, 
-	 * so you SHOULD NOT try to call this function repeatedly.
-	 */
-	export function getWindowSize(): { width: number; height: number } {
-		var div = document.createElement("div");
-		div.style.display = "block";
-		div.style.position = "fixed";
-		div.style.left = "0";
-		div.style.top = "0";
-		div.style.right = "0";
-		div.style.bottom = "0";
-		div.style.visibility = "hidden";
-		var parent = document.body || document.documentElement;
-		parent.appendChild(div);
-		var size = { width: div.offsetWidth, height: div.offsetHeight };
-		parent.removeChild(div);
-		return size;
-	};
-	
+
+	export function getRectOfScreen(elem: HTMLElement): Rect {
+		if (elem === null)
+			return null;
+		var offset = $(elem).offset();
+		var $doc = $(document);
+		return {
+			left: offset.left - $doc.scrollLeft(),
+			top: offset.top - $doc.scrollTop(),
+			width: elem.offsetWidth,
+			height: elem.offsetHeight
+		};
+	}
 	
 	/**
 	 * Get top window's body element
