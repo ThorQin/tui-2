@@ -18,7 +18,7 @@
 		<tui:button class="tui-menu" >
 			<i class="fa fa-pencil"></i> 按钮
 			<tui:script>
-				this.on("click", function(){this.data.set("checked", !this.data.get("checked"))});
+				this.on("click", function(){this.set("checked", !this.get("checked"))});
 			</tui:script>
 		</tui:button>
 		<tui:button class="tui-dropdown"></tui:button>
@@ -32,15 +32,15 @@
 			<tui:button><i class="fa fa-file-o"></i></tui:button>
 			<tui:button><i class="fa fa-save"></i></tui:button>
 		</tui:group>
-		<tui:button-group name="edit" class="tui-group">
-			<tui:button type=toggle-radio><i class="fa fa-copy"></i></tui:button>
-			<tui:button type=radio><i class="fa fa-cut"></i></tui:button>
-			<tui:button type=radio><i class="fa fa-paste"></i></tui:button>
+		<tui:button-group name="edit" type=toggle-radio>
+			<tui:button><i class="fa fa-copy"></i></tui:button>
+			<tui:button><i class="fa fa-cut"></i></tui:button>
+			<tui:button><i class="fa fa-paste"></i></tui:button>
 		</tui:button-group>
-		<tui:button-group name="align">
-			<tui:button type=radio><i class="fa fa-align-left"></i></tui:button>
-			<tui:button type=radio><i class="fa fa-align-justify"></i></tui:button>
-			<tui:button type=radio><i class="fa fa-align-right"></i></tui:button>
+		<tui:button-group name="align" type=radio>
+			<tui:button><i class="fa fa-align-left"></i></tui:button>
+			<tui:button><i class="fa fa-align-justify"></i></tui:button>
+			<tui:button><i class="fa fa-align-right"></i></tui:button>
 			<tui:button><i class="fa fa-font"></i></tui:button>
 			<tui:button disabled="{true}" ><i class="fa fa-pencil"></i></tui:button>
 		</tui:button-group>

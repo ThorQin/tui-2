@@ -15,12 +15,12 @@ module tui.widget {
 	}
 	
 	export interface  PropertyControl {
-		get(data: { [index: string]: any }): any;
-		set(data: { [index: string]: any }, value: any): void;
+		get?(): any;
+		set?(value: any): void;
 	}
 
 	export abstract class WidgetBase extends EventObject  {
-		private _data: { [index: string]: any } = undefined;
+		protected _data: { [index: string]: any } = undefined;
 		abstract getComponent(name?: string): HTMLElement;
 		abstract render(): void;
 		
@@ -64,8 +64,8 @@ module tui.widget {
 				return this._data;
 			} else if (typeof key === "string") {
 				let propertyControls = this.getPropertyControls();
-				if (propertyControls[key]) {
-					return propertyControls[key].get(this._data);
+				if (propertyControls[key] && typeof propertyControls[key].get === "function") {
+					return propertyControls[key].get();
 				} else {
 					var value = this._data[key];
 					return (typeof value === UNDEFINED ? null : value);
@@ -87,8 +87,8 @@ module tui.widget {
 				this.set("autoRefresh", refreshValue);
 			} else if (typeof p1 === "string" && typeof p2 !== UNDEFINED) {
 				let propertyControls = this.getPropertyControls();
-				if (propertyControls[p1]) {
-					propertyControls[p1].set(this._data, p2);
+				if (propertyControls[p1] && typeof propertyControls[p1].set === "function") {
+					propertyControls[p1].set(p2);
 				} else {
 					if (p2 === null)
 						delete this._data[p1];
@@ -149,6 +149,37 @@ module tui.widget {
 		
 		setChildNodes(childNodes: Node[]): void {
 			// Default do nothing ...
+		}
+		
+		getPropertyControls(): { [index: string]: PropertyControl } {
+			return {
+				"parent": {
+					"get": (): any => {
+						let elem = this.getComponent().parentNode;
+						while (elem) {
+							if ((<any>elem).__widget__) {
+								return (<any>elem).__widget__;
+							} else {
+								elem = elem.parentNode;
+							}
+						}
+						return null;
+					},
+					"set": (value: any) => {}
+				}, 
+				"group": {
+					"get": (): any => {
+						if (this.get("inner") === true) // inner component cannot belong to a group
+							return null;
+						if (this._data["group"])
+							return this._data["group"];
+						let parent = this.get("parent");
+						if (parent && parent instanceof Group && parent.get("name"))
+							return parent.get("name");
+						return null;
+					}
+				}
+			};
 		}
 		
 		getComponent(name?: string): HTMLElement {
@@ -307,8 +338,8 @@ module tui.widget {
 				let widget = (<any>node).__widget__; 
 				if (widget && (filter && filter(widget) || filter === null)) {
 					result.push(widget);
-				}
-				searchElem(<HTMLElement>node);
+				} else
+					searchElem(<HTMLElement>node);
 			}
 		}
 		searchElem(searchArea);

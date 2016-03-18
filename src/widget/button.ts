@@ -13,6 +13,21 @@ module tui.widget {
 				this.set("value", browser.toHTML(childNodes));
 		}
 
+		getPropertyControls(): { [index: string]: PropertyControl } {
+			var props = super.getPropertyControls();
+			props["type"] = {
+				"get": (): any => {
+					if (this._data["type"])
+						return this._data["type"];
+					let parent = this.get("parent");
+					if (parent && parent instanceof Group && parent.get("type"))
+						return parent.get("type");
+					return null;
+				}
+			};
+			return props;
+		}
+
 		init(): void {
 			var $root = $(this.getComponent());
 
