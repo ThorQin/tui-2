@@ -44,30 +44,29 @@
 			<tui:button><i class="fa fa-font"></i></tui:button>
 			<tui:button disabled="{true}" ><i class="fa fa-pencil"></i></tui:button>
 		</tui:button-group>
-		<div id="newArea">
-		</div>
 		
+		<div id="newArea"></div>		
 		<script>
-			tui.widget.create("button", {"value": "脚本创建的对象"}).appendTo("newArea");
+			new$("button", {"text": "脚本创建的对象"}).appendTo("newArea");
 		</script>
 		
 		<div>
 			<tui:group name="radio-group">
-				<tui:radio-box>选项1</tui:radio-box>
-				<tui:radio-box>选项2</tui:radio-box>
-				<tui:radio-box>选项3</tui:radio-box>
-				<tui:radio-box>选项4</tui:radio-box>
-				<tui:radio-box>选项5</tui:radio-box>
+				<tui:radio>选项1</tui:radio>
+				<tui:radio>选项2</tui:radio>
+				<tui:radio>选项3</tui:radio>
+				<tui:radio>选项4</tui:radio>
+				<tui:radio>选项5</tui:radio>
 			</tui:group>
 		</div>
 		
 		<div>
 			<tui:button-group name="check-group">
-				<tui:check-box>选项1</tui:check-box>
-				<tui:check-box>选项2</tui:check-box>
-				<tui:check-box>选项3</tui:check-box>
-				<tui:check-box>选项4</tui:check-box>
-				<tui:check-box>选项5</tui:check-box>
+				<tui:check>选项1</tui:check>
+				<tui:check>选项2</tui:check>
+				<tui:check>选项3</tui:check>
+				<tui:check>选项4</tui:check>
+				<tui:check>选项5</tui:check>
 			</tui:button-group>
 		</div>
 	</body>

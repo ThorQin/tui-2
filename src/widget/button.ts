@@ -2,15 +2,15 @@
 module tui.widget {
 	"use strict";
 	/**
-	 * Button
-	 * Attributes: value, type, checked, radio, group, disabled
+	 * <button>
+	 * Attributes: value, text, type, checked, radio, group, disabled
 	 * Events: click, mousedown, mouseup, keydown, keyup
 	 */
 	export class Button extends Widget {
 
 		setChildNodes(childNodes: Node[]) {
 			if (childNodes && childNodes.length > 0)
-				this.set("value", browser.toHTML(childNodes));
+				this.set("text", browser.toHTML(childNodes));
 		}
 
 		getPropertyControls(): { [index: string]: PropertyControl } {
@@ -25,11 +25,18 @@ module tui.widget {
 					return null;
 				}
 			};
+			props["value"] = {
+				"get": (): any => {
+					if (this._data["value"])
+						return this._data["value"];
+					return this.get("text");
+				}
+			};
 			return props;
 		}
 
 		init(): void {
-			var $root = $(this.getComponent());
+			var $root = $(this._);
 
 			$root.attr({
                 "unselectable": "on"
@@ -96,7 +103,7 @@ module tui.widget {
 		}
 
 		render(): void {
-			var $root = $(this.getComponent());
+			var $root = $(this._);
 			if (this.get("checked")) {
 				$root.addClass("tui-checked");
 			} else {
@@ -109,20 +116,20 @@ module tui.widget {
 				$root.removeClass("tui-disabled");
 				$root.attr("tabIndex", "1");
 			}
-			var value = this.get("value");
-			if (typeof value !== "string")
-				value = "";
-			$root.html(value);
+			var text = this.get("text");
+			if (typeof text !== "string")
+				text = "";
+			$root.html(text);
 		}
 	}
 	
-	export class CheckBox extends Button {
+	export class Check extends Button {
 		init(): void {
 			super.init();
 			this.set("type", "toggle");
 		}
 	}
-	export class RadioBox extends Button {
+	export class Radio extends Button {
 		init(): void {
 			super.init();
 			this.set("type", "radio");
@@ -130,6 +137,6 @@ module tui.widget {
 	}
 
 	register(Button);
-	register(CheckBox);
-	register(RadioBox);
+	register(Check);
+	register(Radio);
 }

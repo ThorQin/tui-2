@@ -1,20 +1,26 @@
 /// <reference path="base.ts" />
 module tui.widget {
 	"use strict";
+	
+	/**
+	 * <group>
+	 * Attributes: name, type
+	 * Events: 
+	 */
 	export class Group extends Widget {
 		
 		setChildNodes(childNodes: Node[]) {
 			for (let node of childNodes) {
-				this.getComponent().appendChild(node);
+				this._.appendChild(node);
 			}
 		}
 
 		init(): void {
-			widget.init(this.getComponent());
+			widget.init(this._);
 		}
 		
 		render(): void {
-			var root = this.getComponent();
+			var root = this._;
 			var result = search(root);
 			for (let child of result) {
 				child.render();

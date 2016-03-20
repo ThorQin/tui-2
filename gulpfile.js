@@ -70,7 +70,7 @@ gulp.task('clean', function (cb) {
 });
 
 // START A SERVER TO DEBUG
-gulp.task('test', ['ts', 'less', 'watch'], function () {
+gulp.task('run', ['ts', 'less', 'watch'], function () {
 	connect.server({
 		root: ['test', 'dist', 'depends'],
 		livereload: false

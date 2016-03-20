@@ -51,12 +51,12 @@
 }
 
 
-.shadow(@blur : 1px, @color : rgba(0,0,0,.1)) {
-	box-shadow: 1px 1px 1px @color;
+.shadow(@x: 1px, @y: 1px, @blur: 1px, @color: rgba(0,0,0,.1)) {
+	box-shadow: @x @y @blur @color;
 }
 
-.inset-shadow(@blur : 2px, @color : rgba(0,0,0,.1)) {
-    box-shadow: 2px 2px @blur @color inset;
+.inset-shadow(@x: 1px, @y: 1px, @blur : 2px, @color : rgba(0,0,0,.1)) {
+    box-shadow: @x @y @blur @color inset;
 }
 
 .border-radius(@size) {

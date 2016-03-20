@@ -19,7 +19,7 @@ module tui.widget {
 		set?(value: any): void;
 	}
 
-	export abstract class WidgetBase extends EventObject  {
+	export abstract class WidgetBase extends EventObject {
 		protected _data: { [index: string]: any } = undefined;
 		abstract getComponent(name?: string): HTMLElement;
 		abstract render(): void;
@@ -124,10 +124,13 @@ module tui.widget {
 			return this;
 		}
 	} // End of class WidgetBase
+	
+	var namedWidgets:{ [index: string]: Widget } = {};
 
 	export abstract class Widget extends WidgetBase {
 
 		private _components: { [index: string]: HTMLElement } = {};
+		_: HTMLElement;
 		
 		abstract init(): void;
 		
@@ -137,14 +140,14 @@ module tui.widget {
 				parent = document.getElementById(parent);
 			} 
 			if (parent && typeof parent === "object" && parent.appendChild) {
-				(<HTMLElement>parent).appendChild(this.getComponent());
+				(<HTMLElement>parent).appendChild(this._);
 				this.set("autoRefresh", true);				
 			}
 			return this;
 		}
 		
 		detach() {
-			browser.removeNode(this.getComponent());
+			browser.removeNode(this._);
 		}
 		
 		setChildNodes(childNodes: Node[]): void {
@@ -153,9 +156,21 @@ module tui.widget {
 		
 		getPropertyControls(): { [index: string]: PropertyControl } {
 			return {
+				"id": {
+					"set": (value: any) => {
+						if (this._data["id"]) {
+							delete namedWidgets[this._data["id"]];
+						}
+						if (typeof value === "string" && value.length > 0) {
+							namedWidgets[value] = this;
+							this._data["id"] = value;
+						} else
+							delete this._data["id"];
+					}	
+				},
 				"parent": {
 					"get": (): any => {
-						let elem = this.getComponent().parentNode;
+						let elem = this._.parentNode;
 						while (elem) {
 							if ((<any>elem).__widget__) {
 								return (<any>elem).__widget__;
@@ -201,6 +216,7 @@ module tui.widget {
 				throw new TypeError("Node type unmatched!");
 			}
 			this._components[''] = root;
+			this._ = root;
 			(<any>root).__widget__ = this;
 			
 			// Obtain all child nodes
@@ -228,9 +244,27 @@ module tui.widget {
 				var fn: Function = eval("(0,function(){\n" + script + "})");
 				fn.call(this);
 			}
+			// Any widget which has ID property will be registered in namedWidgets
+			let id = this.get("id"); 
+			if (typeof id === "string" && id.length > 0)
+				namedWidgets[id] = this;
 		}
 
 	} // End of class Widget
+	
+	
+	/**
+	 * Any config element can extends from this class.
+	 */
+	export class Item extends Widget {
+		setChildNodes(childNodes: Node[]): void {
+			for (let node of childNodes)
+				this._.appendChild(node);
+		}
+		init(): void {}
+		render(): void {}
+	}  // End of ConfigNode
+	
 	
 	var widgetRegistration: { [index: string]: { new (elem: HTMLElement, initParam?: { [index: string]: any }): any; } } = {};
 
@@ -244,17 +278,23 @@ module tui.widget {
 
 	export function get(id: string): Widget {
 		var elem: any = document.getElementById(id);
-		if (elem === null)
-			return null;
+		if (elem === null) {
+			if (namedWidgets[id])
+				return namedWidgets[id];
+			else
+				return null;
+		}
 		if (elem.__widget__)
 			return elem.__widget__;
 		else
 			return null;
 	}
+	
+	(<any>window)["get$"] = get;
 
-	export function create<T>(type: Function, initParam?: { [index: string]: any }): T;
-	export function create<T>(type: string, initParam?: { [index: string]: any }): T;
-	export function create<T>(type: any, initParam?: { [index: string]: any }): T {
+	export function create(type: Function, initParam?: { [index: string]: any }): Widget;
+	export function create(type: string, initParam?: { [index: string]: any }): Widget;
+	export function create(type: any, initParam?: { [index: string]: any }): Widget {
 		if (typeof type === "function") {
 			type = text.toDashSplit(getClassName(type));
 		} else if (typeof type !== "string")
@@ -263,18 +303,23 @@ module tui.widget {
 		if (typeof constructor !== "function")
 			throw new Error("Undefined type: " + type);
 		var element = document.createElement("tui:" + type);
+		var obj: Widget;
 		if (typeof initParam !== UNDEFINED)
-			return new constructor(element, initParam);
+			obj = new constructor(element, initParam);
 		else 
-			return new constructor(element);
+			obj = new constructor(element);
+		obj.set("autoRefresh", true);
+		return obj;
 	}
+	
+	(<any>window)["new$"] = create;
 
 	export function getClassName(func: Function): string {
 		var results = /function\s+([^\s]+)\s*\(/.exec(func.toString());
 		return (results && results.length > 1) ? results[1] : "";
 	}
 
-	function getFullName(targetElem: any): string {
+	export function getFullName(targetElem: any): string {
 		if (targetElem.scopeName && targetElem.scopeName.toLowerCase() === "tui") {
 			if (targetElem.nodeName.toLowerCase().match("^" + targetElem.scopeName + ":") !== null)
 				return targetElem.nodeName.toLowerCase();
@@ -292,16 +337,20 @@ module tui.widget {
 				let elem = <HTMLElement>node;
 				let constructor = widgetRegistration[getFullName(elem)];
 				if (constructor) {
-					if (!(<any>elem).__widget__) {
-						let widget: Widget = new constructor(elem);
-						if (typeof initFunc === "function") {
-							if (initFunc(widget))
-								widget.set("autoRefresh", true);	
-						} else
-							 widget.set("autoRefresh", true);
-					} else {
-						let widget: Widget = (<any>elem).__widget__;
-						widget.refresh();
+					try {
+						if (!(<any>elem).__widget__) {
+							let widget: Widget = new constructor(elem);
+							if (typeof initFunc === "function") {
+								if (initFunc(widget))
+									widget.set("autoRefresh", true);
+							} else
+								widget.set("autoRefresh", true);
+						} else {
+							let widget: Widget = (<any>elem).__widget__;
+							widget.refresh();
+						}
+					} catch (e) {
+						if (console) console.error(e.message);
 					}
 				} else
 					init(elem, initFunc);

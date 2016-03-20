@@ -83,25 +83,25 @@ module tui.browser {
 	/**
 	 * Get or set a HTMLElement's text content, return Element's text content.
 	 * @param elem {HTMLElement or ID of the element} Objective element
-	 * @param text {string or other object that can be translated to string}
+	 * @param text {string or boolean}
 	 */
 	function nodeText(elem: any, text?: any): string {
 		if (typeof elem === "string")
 			elem = document.getElementById(elem);
 		if (elem) {
-			if (typeof text !== UNDEFINED) {
+			if (typeof text === "string") {
 				elem.innerHTML = "";
 				elem.appendChild(document.createTextNode(text));
 				return text;
 			}
-			if (typeof elem.textContent !== UNDEFINED)
-				return elem.textContent;
+			if (typeof text !== "boolean")
+				text = true;
 			var buf: string = "";
 			for (var i = 0; i < elem.childNodes.length; i++) {
 				var c = elem.childNodes[i];
 				if (c.nodeName.toLowerCase() === "#text") {
 					buf += c.nodeValue;
-				} else
+				} else if (text)
 					buf += nodeText(c);
 			}
 			return buf;
@@ -115,6 +115,10 @@ module tui.browser {
 	
 	export function setNodeText(elem: any, text: string): void {
 		nodeText(elem, text);
+	}
+	
+	export function getNodeOwnText(elem: any): string {
+		return nodeText(elem, false);
 	}
 
 	export interface Size {

@@ -1,0 +1,88 @@
+@import 'commons.less';
+
+tui\:popup,tui\:menu {
+	display:inline-block;
+	position:fixed;
+	overflow: hidden;
+	left:0;
+	top:0;
+	outline:none;
+	z-index:@popupLayer;
+	.shadow(0px, 3px, 7px, rgba(0,0,0,0.3));
+	.border-radius(@buttonBorderRadius);
+	border: 1px solid (@borderColor);
+	background-color: @windowColor;
+	min-height: 10px;
+	min-width: 20px;
+}
+
+tui\:menu:before {
+	content:"";
+	display:block;
+	position:absolute;
+	top:0;
+	left:0px;
+	width:24px;
+	bottom:0;
+	background: #f0f0f0;
+}
+
+tui\:menu.big:before {
+	display:none;
+}
+
+
+@itemHeight: 28px;
+@bigHeight: 30px;
+tui\:menu>div {
+	height:@itemHeight;
+	line-height:@itemHeight;
+	white-space: nowrap;
+	overflow: hidden;
+	position: relative;
+	padding-right: 30px;
+	cursor: default;
+	outline: none;
+	&>.icon {
+		.icon-base();
+		display: inline-block;
+		line-height: 1;
+		width:24px;
+		text-align: center;
+		margin-right:5px;
+	}
+	&.line {
+		height: 0px;
+		border-top:1px solid @borderColor;
+		margin: 1px 0;
+	}
+	&.menu:after {
+		.fa-caret-right();
+		.icon-base();
+		position: absolute;
+		top:0;
+		right:10px;
+		bottom:0;
+		height: @itemHeight;
+		line-height: @itemHeight;
+	}
+	&.active,&.sub {
+		background-color: @lineSelectFocusedBackgroundColor;
+		color: @lineSelectFocusedForeColor;
+	}
+}
+tui\:menu.big>div {
+	height:@bigHeight;
+	line-height:@bigHeight;
+	&>.icon {
+		margin-right:0px;
+	}
+	&.line {
+		height: 0px;
+	}
+	&.menu:after {
+		height: @bigHeight;
+		line-height: @bigHeight;
+	}
+}
+

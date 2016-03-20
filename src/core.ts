@@ -81,21 +81,22 @@ module tui {
 		 * @param {EventHandler} handler Which handler to be registered
 		 * @param {boolean} atFirst If true then handler will be triggered firstly
 		 */
-		bind(eventName: string, handler: EventHandler, atFirst: boolean) {
+		bind(eventName: string, handler: EventHandler, atFirst: boolean): EventObject {
 			if (!eventName)
-				return;
+				return this;
 			if (!this._events[eventName]) {
 				this._events[eventName] = [];
 			}
 			var handlers = this._events[eventName];
 			for (var i = 0; i < handlers.length; i++) {
 				if (handlers[i] === handler)
-					return;
+					return this;
 			}
 			if (atFirst)
                 handlers.splice(0, 0, handler);
 			else
 				handlers.push(handler);
+			return this;
 		}
 
         /**
@@ -103,20 +104,21 @@ module tui {
 		 * @param eventName
 		 * @param handler Which handler to be unregistered if don't specified then unregister all handler
 		 */
-		unbind(eventName: string, handler: EventHandler) {
+		unbind(eventName: string, handler: EventHandler): EventObject {
 			if (!eventName)
-				return;
+				return this;
 			var handlers = this._events[eventName];
 			if (handler) {
 				for (var i = 0; i < handlers.length; i++) {
 					if (handler === handlers[i]) {
 						handlers.splice(i, 1);
-						return;
+						return this;
 					}
 				}
 			} else {
 				handlers.length = 0;
 			}
+			return this;
 		}
 
 		/**
@@ -125,12 +127,13 @@ module tui {
 		 * @param {callback} callback Which handler to be registered
 		 * @param {boolean} atFirst If true then handler will be triggered firstly
 		 */
-		on(eventName: string, callback: EventHandler, atFirst: boolean = false): void {
+		on(eventName: string, callback: EventHandler, atFirst: boolean = false): EventObject {
 			var envs = eventName.split(/\s+/);
 			for (let i = 0; i < envs.length; i++) {
 				let v = envs[i];
 				this.bind(v, callback, atFirst);
 			}
+			return this;
 		}
 
 		/**
@@ -139,9 +142,9 @@ module tui {
 		 * @param callback Which handler to be registered but event only can be trigered once
 		 * @param atFirst If true then handler will be triggered firstly
 		 */
-		once(eventName: string, callback: EventHandler, atFirst: boolean = false): void {
+		once(eventName: string, callback: EventHandler, atFirst: boolean = false): EventObject {
 			callback.isOnce = true;
-			this.on(eventName, callback, atFirst);
+			return this.on(eventName, callback, atFirst);
 		}
 
 		/**
@@ -149,20 +152,22 @@ module tui {
 		 * @param eventName
 		 * @param callback Which handler to be unregistered if don't specified then unregister all handler
 		 */
-		off(eventName: string, callback?: EventHandler): void {
+		off(eventName: string, callback?: EventHandler): EventObject {
 			var envs = eventName.split(/\s+/);
 			for (let i = 0; i < envs.length; i++) {
 				let v = envs[i];
 				this.unbind(v, callback);
 			}
+			return this;
 		}
 
 		/**
 		 * Fire event. If some handler process return false then cancel the event channe and return false either
 		 * @param {string} eventName
 		 * @param {any[]} param
+		 * @return {boolean} If any handler return false then stop other processing and return false either, otherwise return true
 		 */
-		fire(eventName: string, data?: any): any {
+		fire(eventName: string, data?: any): boolean {
 			var handlers: EventHandler[] = this._events[eventName];
 			if (!(handlers instanceof Array)) {
 				handlers = [];
@@ -171,7 +176,7 @@ module tui {
 			if (wildcardHandlers instanceof Array)
 				handlers = handlers.concat(wildcardHandlers);
 			if (handlers.length === 0)
-				return;
+				return true;
 			var _data: EventInfo = null;
 			if (data) {
 				_data = data;
@@ -190,6 +195,7 @@ module tui {
 			for (let i = 0; i < removeArray.length; i++) {
 				this.off(eventName, removeArray[i]);
 			}
+			return true;
 		}
 	}
 
