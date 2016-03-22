@@ -40,28 +40,45 @@ tui\:menu>div {
 	white-space: nowrap;
 	overflow: hidden;
 	position: relative;
-	padding-right: 30px;
+	padding-right: 16px;
 	cursor: default;
 	outline: none;
+	color:@textColor;
 	&>.icon {
-		.icon-base();
-		display: inline-block;
-		line-height: 1;
+		display: block;
+		height:@itemHeight;
+		line-height: @itemHeight;
 		width:24px;
 		text-align: center;
 		margin-right:5px;
+		float:left;
+	}
+	&>.label {
+		float:left;
+		height:@itemHeight;
+		line-height:@itemHeight;
+	}
+	&>.shortcut {
+		float:right;
+		height:@itemHeight;
+		line-height:@itemHeight;
+		margin-left:10px;
+		color: @disabledTextColor;
 	}
 	&.line {
 		height: 0px;
 		border-top:1px solid @borderColor;
 		margin: 1px 0;
 	}
+	&.disabled {
+		color: @disabledTextColor;
+	}
 	&.menu:after {
 		.fa-caret-right();
 		.icon-base();
 		position: absolute;
 		top:0;
-		right:10px;
+		right:5px;
 		bottom:0;
 		height: @itemHeight;
 		line-height: @itemHeight;
@@ -69,6 +86,11 @@ tui\:menu>div {
 	&.active,&.sub {
 		background-color: @lineSelectFocusedBackgroundColor;
 		color: @lineSelectFocusedForeColor;
+	}
+	&:after {
+		display:block;
+		content: "";
+		clear:both;
 	}
 }
 tui\:menu.big>div {

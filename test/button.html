@@ -17,16 +17,16 @@
 	<body>
 		<tui:button class="tui-menu" >
 			<i class="fa fa-pencil"></i> 按钮
-			<tui:script>
+			<tui:init>
 				this.on("click", function(){this.set("checked", !this.get("checked"))});
-			</tui:script>
+			</tui:init>
 		</tui:button>
 		<tui:button class="tui-dropdown"></tui:button>
         <tui:button class="tui-primary" type="toggle">重要</tui:button>
         <tui:button class="tui-danger" >危险</tui:button>
         <tui:button class="tui-warning" >警告</tui:button>
         <tui:button class="tui-success" >成功</tui:button>
-        <tui:button class="tui-success" disabled="{true}" >禁用</tui:button>
+        <tui:button class="tui-success" disable="{true}" >禁用</tui:button>
 		
 		<tui:group  class="tui-group">
 			<tui:button><i class="fa fa-file-o"></i></tui:button>
@@ -42,7 +42,7 @@
 			<tui:button><i class="fa fa-align-justify"></i></tui:button>
 			<tui:button><i class="fa fa-align-right"></i></tui:button>
 			<tui:button><i class="fa fa-font"></i></tui:button>
-			<tui:button disabled="{true}" ><i class="fa fa-pencil"></i></tui:button>
+			<tui:button disable="{true}" ><i class="fa fa-pencil"></i></tui:button>
 		</tui:button-group>
 		
 		<div id="newArea"></div>		

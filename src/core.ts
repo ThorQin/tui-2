@@ -61,7 +61,8 @@ module tui {
 	})();
 
 	export interface EventInfo {
-		eventName: string;
+		event: string;
+		data: any;
 	}
 
     export interface EventHandler {
@@ -177,18 +178,16 @@ module tui {
 				handlers = handlers.concat(wildcardHandlers);
 			if (handlers.length === 0)
 				return true;
-			var _data: EventInfo = null;
-			if (data) {
-				_data = data;
-				_data.eventName = eventName;
-			} else
-				_data = { "eventName": eventName };
+			var eventInfo: EventInfo = {
+				"event": eventName,
+				"data": data
+			};
 			var removeArray: EventHandler[] = [];
 			for (let i = 0; i < handlers.length; i++) {
 				let handler = handlers[i];
 				if (handler.isOnce)
 					removeArray.push(handler);
-				let val = handler.call(this, _data);
+				let val = handler.call(this, eventInfo);
 				if (typeof val === "boolean" && !val)
 					return false;
 			}

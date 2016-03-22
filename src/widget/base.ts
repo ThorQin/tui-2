@@ -226,7 +226,7 @@ module tui.widget {
 			for (let i = 0; i < root.childNodes.length; i++) {
 				let node = root.childNodes[i];
 				removed.push(node);
-				if (getFullName(node) === "tui:script") {
+				if (getFullName(node) === "tui:init") {
 					script += (browser.getNodeText(node) + "\n");
 				} else
 					childNodes.push(node);
@@ -331,29 +331,39 @@ module tui.widget {
 	}
 	
 	export function init(parent: HTMLElement, initFunc?: (widget: Widget) => boolean) {
-		for (let i = 0; i < parent.childNodes.length; i++) {
-			let node: Node = parent.childNodes[i];
-			if (node.nodeType === 1) { // Element Node
-				let elem = <HTMLElement>node;
-				let constructor = widgetRegistration[getFullName(elem)];
-				if (constructor) {
-					try {
-						if (!(<any>elem).__widget__) {
-							let widget: Widget = new constructor(elem);
-							if (typeof initFunc === "function") {
-								if (initFunc(widget))
-									widget.set("autoRefresh", true);
-							} else
-								widget.set("autoRefresh", true);
-						} else {
-							let widget: Widget = (<any>elem).__widget__;
-							widget.refresh();
-						}
-					} catch (e) {
-						if (console) console.error(e.message);
-					}
-				} else
-					init(elem, initFunc);
+		var initSet: any[][] = [];
+		function searchInitCtrls(parent: HTMLElement) {
+			for (let i = 0; i < parent.childNodes.length; i++) {
+				let node: Node = parent.childNodes[i];
+				if (node.nodeType === 1) { // Element Node
+					let elem = <HTMLElement>node;
+					let constructor = widgetRegistration[getFullName(elem)];
+					if (constructor) {
+						let item = [elem, constructor];
+						initSet.push(item);
+					} else
+						searchInitCtrls(elem);
+				}
+			}
+		}
+		searchInitCtrls(parent);
+		for (let item of initSet) {
+			let elem = item[0];
+			let constructor = item[1];
+			try {
+				if (!(<any>elem).__widget__) {
+					let widget: Widget = new constructor(elem);
+					if (typeof initFunc === "function") {
+						if (initFunc(widget))
+							widget.set("autoRefresh", true);
+					} else
+						widget.set("autoRefresh", true);
+				} else {
+					let widget: Widget = (<any>elem).__widget__;
+					widget.refresh();
+				}
+			} catch (e) {
+				if (console) console.error(e.message);
 			}
 		}
 	}

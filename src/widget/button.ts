@@ -3,7 +3,7 @@ module tui.widget {
 	"use strict";
 	/**
 	 * <button>
-	 * Attributes: value, text, type, checked, radio, group, disabled
+	 * Attributes: value, text, type, checked, radio, group, disable
 	 * Events: click, mousedown, mouseup, keydown, keyup
 	 */
 	export class Button extends Widget {
@@ -43,32 +43,32 @@ module tui.widget {
             });
 			
 			$root.mousedown((e) => {
-				if (this.get("disabled"))
+				if (this.get("disable"))
 					return;
                 $root.focus();
 				this.fire("mousedown", e);
 			});
 			
 			$root.mouseup((e) => {
-                if (this.get("disabled"))
+                if (this.get("disable"))
 					return;
 				this.fire("mouseup", e);
 			});
 			
 			$root.keydown((e) => {
-				if (this.get("disabled"))
+				if (this.get("disable"))
 					return;
 				this.fire("keydown", e);
 			});
 			
 			$root.keyup((e) => {
-                if (this.get("disabled"))
+                if (this.get("disable"))
 					return;
 				this.fire("keyup", e);
 			});
 			
 			var onClick = (e: any) => {
-				if (this.get("disabled"))
+				if (this.get("disable"))
 					return;
 				if (this.get("type") === "toggle" || this.get("type") === "toggle-radio") {
 					this.set("checked", !this.get("checked"));
@@ -109,11 +109,11 @@ module tui.widget {
 			} else {
 				$root.removeClass("tui-checked");
 			}
-            if (this.get("disabled")) {
-				$root.addClass("tui-disabled");
+            if (this.get("disable")) {
+				$root.addClass("tui-disable");
 				$root.removeAttr("tabIndex");
 			} else {
-				$root.removeClass("tui-disabled");
+				$root.removeClass("tui-disable");
 				$root.attr("tabIndex", "1");
 			}
 			var text = this.get("text");
