@@ -2,6 +2,7 @@
 <html lang="en-US" xmlns:tui>
 	<head>
 		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta http-equiv="content-type" content="text/html;charset=utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
 		<title>Test</title>
@@ -14,31 +15,33 @@
         <script type="text/javascript" src="tui2.js"></script>
 		
 	</head>
-	<body>
-		<div style="height:400px;line-height:400px;text-align:center">
-			<tui:button id="myButton">弹出</tui:button>
+	<body >
+		<div style="position:absolute;top:50%;margin-top:-25px;left:0;right:0; 
+				height:50px;line-height:50px;text-align:center">
+			<tui:button id="myButton">弹出层</tui:button>
 			<tui:button id="menuButton">弹出菜单</tui:button>
 		</div>
 		
 		<tui:popup id="myPopup">
-			<tui:button id="popBtn">按钮1
+			<div style="width:200px;height:100px;text-align:center;line-height:100px;">
+			<tui:button id="popBtn">HTML中的按钮
 				<tui:init>
 					this.on("click", function(){
-						alert("click");
 						newPopup(this._);
 					});
 				</tui:init>	
 			</tui:button>
+			</div>
 		</tui:popup>
 		
 		<tui:menu id="myMenu" class="big">
 			<tui:item icon="fa-user" shortcut="Ctrl+A">菜单项1</tui:item>
 			<tui:item type="check" checked="{true}" >第二个菜单项</tui:item>
 			<tui:item text="子菜单">
-				<tui:item type="check" checked="{true}">子菜单项1</tui:item>
-				<tui:item>第二个菜单项</tui:item>
-				<tui:item>菜单项2</tui:item>
-				<tui:item>菜单项3</tui:item>
+				<tui:item type="radio" checked="{true}">子菜单项1</tui:item>
+				<tui:item type="radio" >第二个菜单项</tui:item>
+				<tui:item type="radio" >菜单项2</tui:item>
+				<tui:item type="radio" >菜单项3</tui:item>
 			</tui:item>
 			<tui:item disable="{true}">菜单项2</tui:item>
 			<tui:item>菜单项3</tui:item>
@@ -63,24 +66,16 @@
 			</tui:item>
 		</tui:menu>
 		
-		<div style="position:absolute">
-			<div style="border:1px solid black;white-space:nowrap">
-			<span style="float:left">一段文字比较长一些</span><span style="float:right">Ctrl+A</span>
-			<div style="clear:both"></div>
-			</div>
-			<div  style="border:1px solid black;white-space:nowrap">
-			<span  style="float:left">一段文字</span><span style="float:right">F5</span>
-			<div style="clear:both"></div>
-			</div>
-		</div>
-		
 		<script>
 			function newPopup(elem) {
-				var newBtn = new$("button", {"text": "弹出"});
+				var newDiv = document.createElement("div");
+				newDiv.style.padding = "20px";
+				var newBtn = new$("button", {"text": "动态创建的按钮，点击还可以创建新的"});
 				newBtn.on("click", function(){
 					newPopup(this._)
 				});
-				new$("popup", {"content": newBtn._}).open(elem);
+				newBtn.appendTo(newDiv);
+				new$("popup", {"content": newDiv}).open(elem);
 			}
 			$(function(){
 				
@@ -88,7 +83,7 @@
 					get$("myPopup").open(this._);
 				});
 				get$("myMenu").on("click", function(e){
-					alert(e.event + "\n" + JSON.stringify(e.data));
+					
 				});
 				get$("menuButton").on("click", function(e) {
 					get$("myMenu").open(this._);

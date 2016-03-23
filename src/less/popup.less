@@ -1,7 +1,7 @@
 @import 'commons.less';
 
 tui\:popup,tui\:menu {
-	display:inline-block;
+	display:none;
 	position:fixed;
 	overflow: hidden;
 	left:0;
@@ -25,29 +25,28 @@ tui\:menu:before {
 	width:24px;
 	bottom:0;
 	background: #f0f0f0;
+	z-index: -1;
 }
 
 tui\:menu.big:before {
 	display:none;
 }
 
-
 @itemHeight: 28px;
-@bigHeight: 30px;
 tui\:menu>div {
-	height:@itemHeight;
-	line-height:@itemHeight;
+	display:block;
 	white-space: nowrap;
-	overflow: hidden;
-	position: relative;
-	padding-right: 16px;
 	cursor: default;
 	outline: none;
 	color:@textColor;
-	&>.icon {
-		display: block;
+	&>* {
+		display: inline-block;
 		height:@itemHeight;
 		line-height: @itemHeight;
+		vertical-align: middle;
+	}
+	&>.icon {
+		.icon-base();
 		width:24px;
 		text-align: center;
 		margin-right:5px;
@@ -55,16 +54,19 @@ tui\:menu>div {
 	}
 	&>.label {
 		float:left;
-		height:@itemHeight;
-		line-height:@itemHeight;
 	}
 	&>.shortcut {
-		float:right;
-		height:@itemHeight;
-		line-height:@itemHeight;
-		margin-left:10px;
 		color: @disabledTextColor;
+		margin-left:10px;
+		float:right;
 	}
+	&>.arrow {
+		.icon-base();
+		width:16px;
+		float:right;
+		text-align: center;
+	}
+	
 	&.line {
 		height: 0px;
 		border-top:1px solid @borderColor;
@@ -73,17 +75,7 @@ tui\:menu>div {
 	&.disabled {
 		color: @disabledTextColor;
 	}
-	&.menu:after {
-		.fa-caret-right();
-		.icon-base();
-		position: absolute;
-		top:0;
-		right:5px;
-		bottom:0;
-		height: @itemHeight;
-		line-height: @itemHeight;
-	}
-	&.active,&.sub {
+	&.actived,&.sub {
 		background-color: @lineSelectFocusedBackgroundColor;
 		color: @lineSelectFocusedForeColor;
 	}
@@ -94,17 +86,16 @@ tui\:menu>div {
 	}
 }
 tui\:menu.big>div {
-	height:@bigHeight;
-	line-height:@bigHeight;
+	&>* {
+		display: inline-block;
+		height:@itemHeight + 6px;
+		line-height: @itemHeight + 6px;
+	}
 	&>.icon {
 		margin-right:0px;
 	}
 	&.line {
 		height: 0px;
-	}
-	&.menu:after {
-		height: @bigHeight;
-		line-height: @bigHeight;
 	}
 }
 

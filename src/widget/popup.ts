@@ -59,7 +59,7 @@ module tui.widget {
 			
 			$root.keydown((e) => {
 				var c = e.keyCode;
-				if (c === keyCode["ESCAPE"]) {
+				if (c === KeyCode.ESCAPE) {
 					this.close();
 					if (this.get("referElement")) {
 						this.get("referElement").focus();

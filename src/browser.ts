@@ -388,7 +388,7 @@ module tui.browser {
 	
 	var _accMap: any = {};
 	function accelerate(e: JQueryKeyEventObject) {
-		var k = keyName[e.keyCode];
+		var k = KeyCode[e.keyCode];
 		if (!k) {
 			return;
 		}
