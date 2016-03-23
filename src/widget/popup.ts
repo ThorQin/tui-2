@@ -2,21 +2,21 @@
 module tui.widget {
 	"use strict";
 	
-	var stack: Popup[] = [];
+	export var popStack: Popup[] = [];
 	
 	function findPopupToClose(bindElem?: HTMLElement) {
 		var index = 0;
 		if (bindElem && bindElem.nodeName) {
-			for (let i = 0; i < stack.length; i++) {
-				let item = stack[i];
+			for (let i = 0; i < popStack.length; i++) {
+				let item = popStack[i];
 				if (browser.isAncestry(bindElem, item._)) {
 					index = i + 1;
 					break;
 				}
 			}
 		}
-		if (index < stack.length)
-			stack[index].close();
+		if (index < popStack.length)
+			popStack[index].close();
 	}
 	
 	setInterval( function () {
@@ -107,7 +107,7 @@ module tui.widget {
 			} else
 				throw new SyntaxError("Invalid popup refer value, must be an element or position");
 
-			this.popIndex = stack.push(this) - 1;
+			this.popIndex = popStack.push(this) - 1;
 			this.set("direction", direction);
 			this.set("opened", true);
 			this.appendTo(document.body); // Will cause refresh
@@ -129,11 +129,11 @@ module tui.widget {
 		close(): void {
 			if (!this.get("opened"))
 				return;
-			for (let i = this.popIndex; i < stack.length; i++) {
-				let item = stack[i];
+			for (let i = this.popIndex; i < popStack.length; i++) {
+				let item = popStack[i];
 				item.closeSelf();
 			}
-			stack.splice(this.popIndex, stack.length - this.popIndex + 1);
+			popStack.splice(this.popIndex, popStack.length - this.popIndex + 1);
 		}
 		
 		render(): void {

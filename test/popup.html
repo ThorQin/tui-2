@@ -20,6 +20,7 @@
 				height:50px;line-height:50px;text-align:center">
 			<tui:button id="myButton">弹出层</tui:button>
 			<tui:button id="menuButton">弹出菜单</tui:button>
+			<tui:button id="winStyleMenuButton">Windows风格菜单</tui:button>
 		</div>
 		
 		<tui:popup id="myPopup">
@@ -66,6 +67,14 @@
 			</tui:item>
 		</tui:menu>
 		
+		<tui:menu id="winMenu">
+			<tui:item>项目1</tui:item>
+			<tui:item>项目2</tui:item>
+			<tui:item>一个比较长的内容</tui:item>
+			<tui:item type="line"></tui:item>
+			<tui:item icon="fa-sign-out"  shortcut="Ctrl+Q">退出</tui:item>
+		</tui:menu>
+		
 		<script>
 			function newPopup(elem) {
 				var newDiv = document.createElement("div");
@@ -88,6 +97,9 @@
 				get$("menuButton").on("click", function(e) {
 					get$("myMenu").open(this._);
 					
+				});
+				get$("winStyleMenuButton").on("click", function(e) {
+					get$("winMenu").open(this._);
 				});
 			});
 		</script>

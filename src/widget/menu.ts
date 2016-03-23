@@ -163,20 +163,20 @@ module tui.widget {
 							$(icon).removeClass("fa-check");
 							setTimeout(function(){
 								$(icon).addClass("fa-check");
-							},0);
+							});
 						}
 					} else if (item.icon) {
 						$(icon).removeClass(item.icon);
 						setTimeout(function(){
 							$(icon).addClass(item.icon);
-						},0);
+						});
 					}
 					if (item.type === "menu") {
 						var arrow = $(div).children(".arrow")[0];
 						$(arrow).removeClass("fa-caret-right");
 						setTimeout(function(){
 							$(arrow).addClass("fa-caret-right");
-						}, 50);
+						});
 					}
 				}
 			};
@@ -270,6 +270,11 @@ module tui.widget {
 					if (this.get("referElement")) {
 						this.get("referElement").focus();
 					}					
+				} else if (c === KeyCode.LEFT) {
+					stopEvent();
+					if (popStack.length < 2 || !(popStack[popStack.length - 2] instanceof Menu))
+						return;
+					popStack[popStack.length - 2]._.focus();
 				}
 				if (data.length === 0) {
 					this.activeItem = null;
@@ -321,15 +326,18 @@ module tui.widget {
 					let div = findMenuItemDiv(this.activeItem);
 					if ($(div).hasClass("sub"))
 						return;
+					let itemIndex = this.activeItem;
 					openSubMenuTimer = setTimeout(() => {
 						let childItems = item.children;
 						let subMenu: Menu = <Menu>create(Menu, {"items": childItems});
 						if ($(this._).hasClass("big"))
 							$(subMenu._).addClass("big");
 						$(div).addClass("sub");
+						ie8hack(div, itemIndex);
 						subMenu.open(div, "rT");
 						subMenu.on("close", function(){
 							$(div).removeClass("sub");
+							ie8hack(div, itemIndex);
 						});
 						subMenu.on("click", (e) => {
 							this.fire("click", e.data);

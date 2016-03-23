@@ -283,4 +283,23 @@ module tui {
 		}
 		return rv;
 	})();
+	
+	/**
+	 * Format a number that padding it with '0'
+	 */
+	export function paddingNumber(v: number, min: number, max?: number, alignLeft: boolean = false): string {
+		var result = Math.abs(v) + "";
+		while (result.length < min) {
+			result = "0" + result;
+		}
+		if (typeof max === "number" && result.length > max) {
+			if (alignLeft)
+				result = result.substr(0, max);
+			else
+				result = result.substr(result.length - max, max);
+		}
+		if (v < 0)
+			result = "-" + result;
+		return result;
+	}
 }
