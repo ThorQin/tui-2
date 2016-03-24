@@ -31,6 +31,9 @@ module tui.text {
 		return token ? token : "";
 	}
 
+	/**
+	 * Convert 'aaaBbbCcc' to 'aaa-bbb-ccc'
+	 */
 	export function toDashSplit(word: string): string {
 		var buffer: string = '';
 		for (let i = 0; i < word.length; i++) {
@@ -40,6 +43,23 @@ module tui.text {
 				if (i > 0)
 					buffer += '-';
 				buffer += c.toLowerCase();
+			} else
+				buffer += c;
+		}
+		return buffer;
+	}
+	
+	/**
+	 * Convert 'aaa-bbb-ccc' or 'aaa_bbb_ccc' to 'aaaBbbCcc' 
+	 */
+	export function toCamel(word: string): string {
+		var buffer: string = '';
+		word = word.toLowerCase();
+		for (let i = 0; i < word.length; i++) {
+			let c = word.charAt(i);
+			if (c === '-' || c === '_') {
+				if (++i < word.length)
+					buffer += word.charAt(i).toUpperCase();
 			} else
 				buffer += c;
 		}
@@ -89,10 +109,4 @@ module tui.text {
 		return anchor;
 	}
 
-	export function getNodeText(node: HTMLElement) {
-		if (node.innerText)
-			return node.innerText;
-		else if (node.textContent)
-			return node.textContent;
-	}
 }

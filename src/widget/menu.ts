@@ -22,7 +22,7 @@ module tui.widget {
 	 */
 	export class Menu extends Popup {
 		private activeItem: number = null;
-		setChildNodes(childNodes: Node[]) {
+		protected setChildNodes(childNodes: Node[]) {
 			var data: MenuItem[] = [];
 			function hasChildItem(node: HTMLElement): boolean {
 				for (var i =0; i < node.childNodes.length; i++) {

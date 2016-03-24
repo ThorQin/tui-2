@@ -8,14 +8,14 @@ module tui.widget {
 	 */
 	export class Button extends Widget {
 
-		setChildNodes(childNodes: Node[]) {
+		protected setChildNodes(childNodes: Node[]) {
 			if (childNodes && childNodes.length > 0)
 				this.set("text", browser.toHTML(childNodes));
 		}
 
-		getPropertyControls(): { [index: string]: PropertyControl } {
-			var props = super.getPropertyControls();
-			props["type"] = {
+		protected preInit(): void {
+			super.preInit();
+			this.restrict("type", {
 				"get": (): any => {
 					if (this._data["type"])
 						return this._data["type"];
@@ -24,15 +24,14 @@ module tui.widget {
 						return parent.get("type");
 					return null;
 				}
-			};
-			props["value"] = {
+			});
+			this.restrict("value", {
 				"get": (): any => {
 					if (this._data["value"])
 						return this._data["value"];
 					return this.get("text");
 				}
-			};
-			return props;
+			});
 		}
 
 		init(): void {
@@ -114,7 +113,7 @@ module tui.widget {
 				$root.removeAttr("tabIndex");
 			} else {
 				$root.removeClass("tui-disable");
-				$root.attr("tabIndex", "1");
+				$root.attr("tabIndex", "0");
 			}
 			var text = this.get("text");
 			if (typeof text !== "string")

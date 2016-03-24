@@ -39,28 +39,28 @@ tui\:menu>div {
 	cursor: default;
 	outline: none;
 	color:@textColor;
-	&>* {
+	>* {
 		display: inline-block;
 		height:@itemHeight;
 		line-height: @itemHeight;
 		vertical-align: middle;
 	}
-	&>.icon {
+	>.icon {
 		.icon-base();
 		width:24px;
 		text-align: center;
 		margin-right:5px;
 		float:left;
 	}
-	&>.label {
+	>.label {
 		float:left;
 	}
-	&>.shortcut {
+	>.shortcut {
 		color: @disabledTextColor;
 		margin-left:10px;
 		float:right;
 	}
-	&>.arrow {
+	>.arrow {
 		.icon-base();
 		width:16px;
 		float:right;
@@ -86,12 +86,12 @@ tui\:menu>div {
 	}
 }
 tui\:menu.big>div {
-	&>* {
+	>* {
 		display: inline-block;
 		height:@itemHeight + 6px;
 		line-height: @itemHeight + 6px;
 	}
-	&>.icon {
+	>.icon {
 		margin-right:0px;
 	}
 	&.line {

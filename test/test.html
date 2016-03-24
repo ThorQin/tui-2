@@ -13,12 +13,17 @@
 		<script type="text/javascript" src="es5-shim.js"></script>
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
+		<script>
+			$(function(){
+				$("#test").keydown(function(e){
+					alert((e.target || e.srcElement).nodeName);
+				});
+			});
+		</script>
 	</head>
 	<body>
-		<ul>
-			<li><a href="button.html">按钮</a></li>
-			<li><a href="popup.html">弹出层</a></li>
-			<li><a href="calendar.html">日历</a></li>
-		</ul>
+		<div id="test">
+			<input>
+		</div>
 	</body>
 </html>

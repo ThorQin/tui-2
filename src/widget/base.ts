@@ -21,14 +21,16 @@ module tui.widget {
 
 	export abstract class WidgetBase extends EventObject {
 		protected _data: { [index: string]: any } = undefined;
+		protected _pcs: { [index: string]: PropertyControl } = {};
 		abstract getComponent(name?: string): HTMLElement;
 		abstract render(): void;
 		
-		/**
-		 * If went to control properties set & get behavior then override this method
-		 */
-		getPropertyControls(): { [index: string]: PropertyControl } {
-			return {};
+		//restrict
+		protected restrict(key: string, propCtrl: PropertyControl): void {
+			if (propCtrl === null)
+				delete this._pcs[key];
+			else
+				this._pcs[key] = propCtrl;
 		}
 		
 		refresh(): WidgetBase {
@@ -37,25 +39,30 @@ module tui.widget {
 			} 
 			return this;
 		}
-
+		
 		private load() {
 			if (typeof this._data !== UNDEFINED) {
 				return;
 			}
+			this._data = {};
 			var elem: HTMLElement = this.getComponent();
 			if (elem != null) {
 				var dataStr = elem.getAttribute("data");
-				this._data = eval("(" + dataStr + ")");
-				if (!(this._data instanceof Object))
-					this._data = {};
+				var tmpData = eval("(" + dataStr + ")"); 
+				if (tmpData instanceof Object) {
+					for (let key in tmpData) {
+						if (tmpData.hasOwnProperty(key)) {
+							this._set(key, tmpData[key]);
+						}
+					}
+				}
 				for (let i = 0; i < elem.attributes.length; i++) {
 					let attr = elem.attributes[i];
 					let v = parseValue(attr.value);
 					if (v !== null)
-						this._data[attr.name] = v;
+						this._set(text.toCamel(attr.name), v);
 				}
-			} else
-				this._data = {};
+			}
 		}
 
 		get(key?: string): any {
@@ -63,9 +70,8 @@ module tui.widget {
 			if (typeof key === UNDEFINED || key === null) {
 				return this._data;
 			} else if (typeof key === "string") {
-				let propertyControls = this.getPropertyControls();
-				if (propertyControls[key] && typeof propertyControls[key].get === "function") {
-					return propertyControls[key].get();
+				if (this._pcs[key] && typeof this._pcs[key].get === "function") {
+					return this._pcs[key].get();
 				} else {
 					var value = this._data[key];
 					return (typeof value === UNDEFINED ? null : value);
@@ -76,19 +82,23 @@ module tui.widget {
 		set(data: any): WidgetBase;
 		set(key: string, value: any): WidgetBase;
 		set(p1: any, p2?: any): WidgetBase {
+			this._set(p1, p2);
+			this.refresh();
+			return this;
+		}
+		
+		protected _set(data: any): WidgetBase;
+		protected _set(key: string, value: any): WidgetBase;
+		protected _set(p1: any, p2?: any): WidgetBase {
 			this.load();
 			if (typeof p2 === UNDEFINED && p1 instanceof Object) {
-				let refreshValue = this.get("autoRefresh");
-				this.set("autoRefresh", false);
 				for (let key in p1) {
-					if (p1.hasOwnProperty(key) && key !== "autoRefresh")
-						this.set(key, p1[key]);
+					if (p1.hasOwnProperty(key))
+						this._set(key, p1[key]);
 				}
-				this.set("autoRefresh", refreshValue);
 			} else if (typeof p1 === "string" && typeof p2 !== UNDEFINED) {
-				let propertyControls = this.getPropertyControls();
-				if (propertyControls[p1] && typeof propertyControls[p1].set === "function") {
-					propertyControls[p1].set(p2);
+				if (this._pcs[p1] && typeof this._pcs[p1].set === "function") {
+					this._pcs[p1].set(p2);
 				} else {
 					if (p2 === null)
 						delete this._data[p1];
@@ -96,7 +106,6 @@ module tui.widget {
 						this._data[p1] = p2;
 				}
 			}
-			this.refresh();
 			return this;
 		}
 		
@@ -108,13 +117,10 @@ module tui.widget {
 		setInit(p1: any, p2?: any): WidgetBase {
 			if (typeof p2 === UNDEFINED) {
 				if (p1 instanceof Object) {
-					let refreshValue = this.get("autoRefresh");
-					this.set("autoRefresh", false);
 					for (var key in p1) {
-						if (p1.hasOwnProperty(key) && this.get(key) === null && key !== "autoRefresh")
-							this.set(key, p1[key]);
+						if (p1.hasOwnProperty(key) && this.get(key) === null)
+							this._set(key, p1[key]);
 					}
-					this.set("autoRefresh", refreshValue);
 					this.refresh();
 				}
 			} else {
@@ -129,9 +135,9 @@ module tui.widget {
 
 	export abstract class Widget extends WidgetBase {
 
-		private _components: { [index: string]: HTMLElement } = {};
+		protected _components: { [index: string]: HTMLElement } = {};
 		_: HTMLElement;
-		
+
 		abstract init(): void;
 		
 		appendTo(parent: HTMLElement): Widget
@@ -150,51 +156,49 @@ module tui.widget {
 			browser.removeNode(this._);
 		}
 		
-		setChildNodes(childNodes: Node[]): void {
+		protected setChildNodes(childNodes: Node[]): void {
 			// Default do nothing ...
 		}
 		
-		getPropertyControls(): { [index: string]: PropertyControl } {
-			return {
-				"id": {
-					"set": (value: any) => {
-						if (this._data["id"]) {
-							delete namedWidgets[this._data["id"]];
-						}
-						if (typeof value === "string" && value.length > 0) {
-							namedWidgets[value] = this;
-							this._data["id"] = value;
-						} else
-							delete this._data["id"];
-					}	
-				},
-				"parent": {
-					"get": (): any => {
-						let elem = this._.parentNode;
-						while (elem) {
-							if ((<any>elem).__widget__) {
-								return (<any>elem).__widget__;
-							} else {
-								elem = elem.parentNode;
-							}
-						}
-						return null;
-					},
-					"set": (value: any) => {}
-				}, 
-				"group": {
-					"get": (): any => {
-						if (this.get("inner") === true) // inner component cannot belong to a group
-							return null;
-						if (this._data["group"])
-							return this._data["group"];
-						let parent = this.get("parent");
-						if (parent && parent instanceof Group && parent.get("name"))
-							return parent.get("name");
-						return null;
+		protected preInit(): void {
+			this.restrict("id", {
+				"set": (value: any) => {
+					if (this._data["id"]) {
+						delete namedWidgets[this._data["id"]];
 					}
+					if (typeof value === "string" && value.length > 0) {
+						namedWidgets[value] = this;
+						this._data["id"] = value;
+					} else
+						delete this._data["id"];
+				}	
+			});
+			this.restrict("parent", {
+				"get": (): any => {
+					let elem = this._.parentNode;
+					while (elem) {
+						if ((<any>elem).__widget__) {
+							return (<any>elem).__widget__;
+						} else {
+							elem = elem.parentNode;
+						}
+					}
+					return null;
+				},
+				"set": (value: any) => {}
+			}); 
+			this.restrict("group", {
+				"get": (): any => {
+					if (this.get("inner") === true) // inner component cannot belong to a group
+						return null;
+					if (this._data["group"])
+						return this._data["group"];
+					let parent = this.get("parent");
+					if (parent && parent instanceof Group && parent.get("name"))
+						return parent.get("name");
+					return null;
 				}
-			};
+			});
 		}
 		
 		getComponent(name?: string): HTMLElement {
@@ -211,13 +215,15 @@ module tui.widget {
 
 		constructor(root: HTMLElement, initParam?: { [index: string]: any }) {
 			super();
-			
+
 			if (getFullName(root) !== "tui:" + this.getNodeName()) {
 				throw new TypeError("Node type unmatched!");
 			}
 			this._components[''] = root;
 			this._ = root;
 			(<any>root).__widget__ = this;
+			
+			this.preInit();
 			
 			// Obtain all child nodes
 			var childNodes: Node[] = [];
@@ -261,6 +267,7 @@ module tui.widget {
 			for (let node of childNodes)
 				this._.appendChild(node);
 		}
+		preInit(): void {};
 		init(): void {}
 		render(): void {}
 	}  // End of ConfigNode

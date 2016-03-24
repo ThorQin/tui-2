@@ -35,7 +35,7 @@ module tui.widget {
 		private referRect: browser.Rect = null;
 		private checkInterval: number = null;
 	
-		setChildNodes(childNodes: Node[]) {
+		protected setChildNodes(childNodes: Node[]) {
 			if (childNodes.length > 0) {
 				var div = document.createElement("div");
 				for (let node of childNodes) {

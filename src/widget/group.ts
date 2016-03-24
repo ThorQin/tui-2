@@ -9,7 +9,7 @@ module tui.widget {
 	 */
 	export class Group extends Widget {
 		
-		setChildNodes(childNodes: Node[]) {
+		protected setChildNodes(childNodes: Node[]) {
 			for (let node of childNodes) {
 				this._.appendChild(node);
 			}
