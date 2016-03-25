@@ -79,27 +79,27 @@
 			function newPopup(elem) {
 				var newDiv = document.createElement("div");
 				newDiv.style.padding = "20px";
-				var newBtn = new$("button", {"text": "动态创建的按钮，点击还可以创建新的"});
+				var newBtn = $new("button", {"text": "动态创建的按钮，点击还可以创建新的"});
 				newBtn.on("click", function(){
 					newPopup(this._)
 				});
 				newBtn.appendTo(newDiv);
-				new$("popup", {"content": newDiv}).open(elem);
+				$new("popup", {"content": newDiv}).open(elem);
 			}
 			$(function(){
 				
-				get$("myButton").on("click", function(e) {
-					get$("myPopup").open(this._);
+				$get("myButton").on("click", function(e) {
+					$get("myPopup").open(this._);
 				});
-				get$("myMenu").on("click", function(e){
+				$get("myMenu").on("click", function(e){
 					
 				});
-				get$("menuButton").on("click", function(e) {
-					get$("myMenu").open(this._);
+				$get("menuButton").on("click", function(e) {
+					$get("myMenu").open(this._);
 					
 				});
-				get$("winStyleMenuButton").on("click", function(e) {
-					get$("winMenu").open(this._);
+				$get("winStyleMenuButton").on("click", function(e) {
+					$get("winMenu").open(this._);
 				});
 			});
 		</script>

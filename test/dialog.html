@@ -15,15 +15,32 @@
         <script type="text/javascript" src="tui2.js"></script>
 		<script>
 			$(function(){
-				$("#test").mousedown(function(e){
-					console.log(e.which);
+				$get("myDialog").on("click-ok", function(){
+					alert("click ok!");
+					this.close();
+				}).on("close", function(){
+					alert("closed");
+				}).on("open", function(){
+					alert("open");
+				});
+				$("#dlgBtn").click(function(){
+					alert("click");
+				});
+				$get("dlgBtn").on("click", function(e){
+					$get("myDialog").open();
 				});
 			});
 		</script>
 	</head>
 	<body>
-		<div id="test" onselectstart="function(){return false}">
-			a b c
-		</div>
+		<tui:button id="dlgBtn">对话框</tui:button>
+		<tui:dialog id="myDialog" title="这是一个很长很长的标题这是一个很长很长的标题这是一个很长很长的标题这是一个很长很长的标题">
+			<div>
+			<tui:calendar></tui:calendar>
+			</div>
+			<div>
+				<tui:button>测试一下咯</tui:button>
+			</div>
+		</tui:dialog>
 	</body>
 </html>

@@ -1,8 +1,123 @@
 /// <reference path="../core.ts" />
 module tui.widget {
 	"use strict";
-
 	
+	var _maskOpened: boolean = false;
+	var _mask: HTMLDivElement = document.createElement("div");
+	_mask.setAttribute("unselectable", "on");
+	_mask.onselectstart = function(){return false;};
+	var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
+	$(_mask).on(mousewheelevt, function (ev) {
+		ev.stopPropagation();
+		ev.preventDefault();
+	});
+
+	var _tooltip: HTMLSpanElement = document.createElement("span");
+	_tooltip.className = "tui-tooltip";
+	_tooltip.setAttribute("unselectable", "on");
+
+	var _tooltipTarget: HTMLElement = null;
+	
+	var _maskCloseCallback: () => void = null;
+
+	/**
+	 * Show a mask layer to prevent user drag or select document elements which don't want to be affected.
+	 * It's very useful when user perform a dragging operation.
+	 */
+	export function openDragMask(onMove: (e: JQueryEventObject) => void, onClose: () => void = null) {
+		_mask.innerHTML = "";
+		_mask.className = "tui-mask";
+		_mask.style.cursor = "";
+		_mask.removeAttribute("tabIndex");
+		_mask.removeAttribute("data-tooltip");
+		_mask.removeAttribute("data-cursor-tooltip");
+		document.body.appendChild(_mask);
+		$(_mask).mousemove(onMove);
+		_maskOpened = true;
+		_maskCloseCallback = onClose;
+		return _mask;
+	}
+	/**
+	 * Close a mask layer
+	 */
+	export function closeDragMask() {
+		if (!_maskOpened)
+			return;
+		$(_mask).off();
+		browser.removeNode(_mask);
+		if (typeof _maskCloseCallback === "function")
+			_maskCloseCallback();
+	}
+	
+	$(document).mouseup(function(e){
+		closeDragMask();
+	});
+
+	export function showTooltipAtCursor(target: HTMLElement, tooltip: string, x: number, y: number) {
+		if (target === _tooltipTarget || target === _tooltip) {
+			_tooltip.style.left = x - 17 + "px";
+			_tooltip.style.top = y + 20 + "px";
+			_tooltip.innerHTML = tooltip;
+			return;
+		}
+		document.body.appendChild(_tooltip);
+		_tooltip.innerHTML = tooltip;
+		_tooltipTarget = target;
+		_tooltip.style.left = x - 17 + "px";
+		_tooltip.style.top = y + 20 + "px";
+	}
+
+	export function showTooltip(target: HTMLElement, tooltip: string) {
+		if (target === _tooltipTarget || target === _tooltip) {
+			return;
+		}
+		document.body.appendChild(_tooltip);
+		_tooltip.innerHTML = tooltip;
+		_tooltipTarget = target;
+		var pos = browser.getRectOfScreen(target);
+		if (target.offsetWidth < 20)
+			_tooltip.style.left = (pos.left + target.offsetWidth / 2 - 17) + "px";
+		else
+			_tooltip.style.left = pos.left + "px";
+		_tooltip.style.top = pos.top + 8 + target.offsetHeight + "px";
+	}
+
+	export function closeTooltip() {
+		if (_tooltip.parentNode)
+			_tooltip.parentNode.removeChild(_tooltip);
+		_tooltip.innerHTML = "";
+		_tooltipTarget = null;
+	}
+
+	export function whetherShowTooltip(target: HTMLElement, e:JQueryMouseEventObject) {
+		if (browser.isAncestry(target, _tooltip))
+			return;
+		var obj = target;
+		while (obj) {
+			if (typeof obj.getAttribute !== "function") {
+				obj = null;
+				break;
+			}
+			var tooltip = obj.getAttribute("data-tooltip");
+			if (tooltip) {
+				if (obj.getAttribute("data-cursor-tooltip") === "true")
+					showTooltipAtCursor(obj, tooltip, e.clientX, e.clientY);
+				else
+					showTooltip(obj, tooltip);
+				return;
+			} else {
+				obj = obj.parentElement;
+			}
+		}
+		if (!obj)
+			closeTooltip();
+	}
+
+	export function whetherCloseTooltip(target: HTMLElement) {
+		if (target !== _tooltipTarget && target !== _tooltip) {
+			closeTooltip();
+		}
+	}	
 
 	function parseValue(value: string): any {
 		if (value === null || value.length === 0)
@@ -56,12 +171,19 @@ module tui.widget {
 						}
 					}
 				}
+				var names: string[] = [];
 				for (let i = 0; i < elem.attributes.length; i++) {
 					let attr = elem.attributes[i];
+					if (/^(style|class)$/.test(attr.name.toLowerCase()))
+						continue;
 					let v = parseValue(attr.value);
 					if (v !== null)
 						this._set(text.toCamel(attr.name), v);
+					if (!/^(id|__widget__|jquery[\d]+)$/i.test(attr.name.toLowerCase()))
+						names.push(attr.name);
 				}
+				for (let name of names)
+					elem.attributes.removeNamedItem(name);
 			}
 		}
 
@@ -110,22 +232,22 @@ module tui.widget {
 		}
 		
 		/**
-		 * Only non-existing property will be set
+		 * Only non-existing property will be set, 
+		 * this method usually be called in init() method and will not cause the object redraw.
 		 */
 		setInit(data: any): WidgetBase;
 		setInit(key: string, value: any): WidgetBase;
 		setInit(p1: any, p2?: any): WidgetBase {
 			if (typeof p2 === UNDEFINED) {
 				if (p1 instanceof Object) {
-					for (var key in p1) {
+					for (let key in p1) {
 						if (p1.hasOwnProperty(key) && this.get(key) === null)
 							this._set(key, p1[key]);
 					}
-					this.refresh();
 				}
 			} else {
-				if (this.get(key) === null)
-					this.set(p1, p2);
+				if (this.get(p1) === null)
+					this._set(p1, p2);
 			}
 			return this;
 		}
@@ -283,7 +405,13 @@ module tui.widget {
 		}
 	}
 
-	export function get(id: string): Widget {
+	export function get(id: any): Widget {
+		if (typeof id === "object" && id.nodeName) {
+			if (id.__widget__)
+				return id.__widget__;
+			else
+				return null;
+		}
 		var elem: any = document.getElementById(id);
 		if (elem === null) {
 			if (namedWidgets[id])
@@ -297,7 +425,7 @@ module tui.widget {
 			return null;
 	}
 	
-	(<any>window)["get$"] = get;
+	(<any>window)["$get"] = get;
 
 	export function create(type: Function, initParam?: { [index: string]: any }): Widget;
 	export function create(type: string, initParam?: { [index: string]: any }): Widget;
@@ -319,7 +447,7 @@ module tui.widget {
 		return obj;
 	}
 	
-	(<any>window)["new$"] = create;
+	(<any>window)["$new"] = create;
 
 	export function getClassName(func: Function): string {
 		var results = /function\s+([^\s]+)\s*\(/.exec(func.toString());
@@ -411,6 +539,17 @@ module tui.widget {
 		searchElem(searchArea);
 		return result;
 	}
+	
+	
+	var _hoverElement: any;
+	$(window.document).mousemove(function (e: any) {
+		_hoverElement = e.target || e.toElement;
+		if (e.button === 0 && (e.which === 1 || e.which === 0)) {
+			whetherShowTooltip(_hoverElement, e);
+		}
+	});
+	$(window).scroll(() => { closeTooltip(); });
+	
 
 	$(window.document).ready(function() {
 		init(document.body);

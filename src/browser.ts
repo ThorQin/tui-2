@@ -52,13 +52,13 @@ module tui.browser {
 		}
 	}
 
-	export function toElement(html: string, parentNode: string = 'div'): Node {
-		var div = document.createElement(parentNode);
+	export function toElement(html: string, withParentDiv: boolean = false): HTMLElement {
+		var div = document.createElement("div");
 		div.innerHTML = $.trim(html);
-		// if (withParent)
-		// 	return div;
+		if (withParentDiv)
+			return div;
 		var el = div.firstChild;
-		return div.removeChild(el);
+		return <HTMLElement>div.removeChild(el);
 	}
 	
 	export function toHTML(node: NodeList): string;

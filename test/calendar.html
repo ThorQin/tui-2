@@ -13,9 +13,15 @@
 		<script type="text/javascript" src="es5-shim.js"></script>
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
-		
+		<script>
+			$(function(){
+				$get("myCal").on("click", function(e){
+					alert(JSON.stringify(e));
+				});
+			});
+		</script>
 	</head>
 	<body>
-		<tui:calendar time-bar="{true}"></tui:calendar>
+		<tui:calendar id="myCal" time-bar="{true}"></tui:calendar>
 	</body>
 </html>

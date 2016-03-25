@@ -160,6 +160,8 @@ module tui.widget {
 				var o$ = $(o);
 				var k = e.keyCode;
 				if (o.nodeName.toUpperCase() === "INPUT") {
+					if (k === KeyCode.TAB)
+						return;
 					e.preventDefault();
 					browser.cancelBubble(e);
 					var input = <HTMLInputElement>o;
@@ -216,9 +218,11 @@ module tui.widget {
 				this.set("time", newTime);
 				setTimeout(() => { this._.focus(); });
 				return browser.cancelBubble(e);
+			}).click((e) => {
+				this.fire("click", {"time": this.get("time"), "type": "refresh"});
 			});
 			
-			$(tb).on("mousedown", (e) => {
+			$(tb).mousedown((e) => {
 				if (tui.ffVer > 0) {
 					setTimeout(() => { this._.focus(); });
 				}
@@ -257,23 +261,22 @@ module tui.widget {
 						this.onPicked(y, m, d);
 					}
 				}
-			});
-			
-			$(tb).on("click", (e: JQueryEventObject) => {
+			}).click( (e: JQueryEventObject) => {
 				var cell = <any>(e.target || e.srcElement);
 				if (cell.nodeName.toLowerCase() !== "td")
 					return;
-				if (typeof cell["offsetMonth"] === "number")
-					this.fire("click", {"time": this.get("time")});
-			});
-			$(tb).on("dblclick", (e: JQueryEventObject) => {
+				if (typeof cell["offsetMonth"] === "number") 
+					this.fire("click", {"time": this.get("time"), "type": "pick"});
+				else if(/^(pm|py|nm|ny)$/.test(cell.className))
+					this.fire("click", {"time": this.get("time"), "type": "change"});
+			}).dblclick( (e: JQueryEventObject) => {
 				var cell = <any>(e.target || e.srcElement);
 				if (cell.nodeName.toLowerCase() !== "td")
 					return;
 				if (typeof cell["offsetMonth"] === "number")
 					this.fire("dblclick", {"time": this.get("time")});
 			});
-			$(this._).on("keydown", (e) => {
+			$(this._).keydown( (e) => {
 				var k = e.keyCode;
 				if ([13, 33, 34, 37, 38, 39, 40].indexOf(k) >= 0) {
 					if (k === 37) {

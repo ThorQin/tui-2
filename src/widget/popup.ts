@@ -41,7 +41,7 @@ module tui.widget {
 				for (let node of childNodes) {
 					div.appendChild(node);
 				}
-				this.set("content", div);
+				this._set("content", div);
 			}
 		}
 	
@@ -85,9 +85,8 @@ module tui.widget {
 			if (typeof direction !== "string" || !/^[lLrR][tTbB]$/.test(direction)) {
 				throw new SyntaxError("Invalid popup direction value");
 			}
-			this.set("autoRefresh", false);
 			if (typeof refer === "object" && refer.nodeName) {
-				this.set("referElement", refer);
+				this._set("referElement", refer);
 				findPopupToClose(refer);
 				this.referRect = browser.getRectOfScreen(refer);
 				this.checkInterval = setInterval(() => {
@@ -102,22 +101,28 @@ module tui.widget {
 				}, 50);
 				$(window).on("resize scroll", this.refProc);
 			} else if (typeof refer === "object" && typeof refer.left === "number" && typeof refer.top === "number") {
-				this.set("referPos", refer);
+				this._set("referPos", refer);
 				findPopupToClose();
 			} else
 				throw new SyntaxError("Invalid popup refer value, must be an element or position");
 
 			this.popIndex = popStack.push(this) - 1;
-			this.set("direction", direction);
-			this.set("opened", true);
+			this._set("direction", direction);
+			this._set("opened", true);
+			$(this._).css({
+				"display": "block",
+				"position": "fixed"
+			});
 			this.appendTo(document.body); // Will cause refresh
+			widget.init(this._); // refresh children
+			this.render(); // refresh self again
 			this._.focus();
 			this.fire("open");
 		}
 		
 		private closeSelf(): void {
 			browser.removeNode(this._);
-			this.set("opened", false);
+			this._set("opened", false);
 			if (this.checkInterval != null) {
 				clearInterval(this.checkInterval);
 				this.checkInterval = null;
@@ -140,11 +145,6 @@ module tui.widget {
 			if (!this.get("opened"))
 				return;		
 			var root = this._;
-			$(root).css({
-				"display": "block",
-				"position": "fixed"
-			});
-			widget.init(root); // refresh children
 			
 			var ww = $(window).width();
 			var wh = $(window).height();

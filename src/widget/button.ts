@@ -10,7 +10,7 @@ module tui.widget {
 
 		protected setChildNodes(childNodes: Node[]) {
 			if (childNodes && childNodes.length > 0)
-				this.set("text", browser.toHTML(childNodes));
+				this._set("text", browser.toHTML(childNodes));
 		}
 
 		protected preInit(): void {
@@ -125,13 +125,13 @@ module tui.widget {
 	export class Check extends Button {
 		init(): void {
 			super.init();
-			this.set("type", "toggle");
+			this._set("type", "toggle");
 		}
 	}
 	export class Radio extends Button {
 		init(): void {
 			super.init();
-			this.set("type", "radio");
+			this._set("type", "radio");
 		}
 	}
 

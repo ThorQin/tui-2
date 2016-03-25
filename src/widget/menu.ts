@@ -18,7 +18,7 @@ module tui.widget {
 	 * <menu>
 	 * Attributes: content, direction, referPos, referElement, opened
 	 * Method: open(), close()
-	 * Events: open, close
+	 * Events: open, close, click
 	 */
 	export class Menu extends Popup {
 		private activeItem: number = null;
@@ -83,7 +83,7 @@ module tui.widget {
 			}
 			addChildren(<NodeList><any>childNodes, data);
 			if (data.length > 0)
-				this.set("items", data);
+				this._set("items", data);
 		}
 		
 		open(refer: any, direction?: string): void {
