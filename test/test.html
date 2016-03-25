@@ -14,16 +14,10 @@
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
 		<script>
-			$(function(){
-				$("#test").mousedown(function(e){
-					console.log(e.which);
-				});
-			});
+		
 		</script>
 	</head>
 	<body>
-		<div id="test" onselectstart="function(){return false}">
-			a b c
-		</div>
+		<tui:check tristate={true}>三态按钮</tui:check>
 	</body>
 </html>

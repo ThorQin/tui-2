@@ -70,5 +70,10 @@
 				<tui:check>选项5</tui:check>
 			</tui:button-group>
 		</div>
+		
+		<tui:check id="triCheck" tristate={true}>三态选择框</tui:check>
+		<tui:button>设置为三态
+			<tui:init>this.on("click", function(){$get("triCheck").set("tristate", true)})</tui:init>
+		</tui:button>
 	</body>
 </html>

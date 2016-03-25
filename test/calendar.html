@@ -16,12 +16,13 @@
 		<script>
 			$(function(){
 				$get("myCal").on("click", function(e){
-					alert(JSON.stringify(e));
+					$("#disp").html(JSON.stringify(e));
 				});
 			});
 		</script>
 	</head>
 	<body>
 		<tui:calendar id="myCal" time-bar="{true}"></tui:calendar>
+		<div id="disp" style="padding:20px"></div>
 	</body>
 </html>

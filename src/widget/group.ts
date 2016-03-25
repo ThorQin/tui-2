@@ -9,13 +9,13 @@ module tui.widget {
 	 */
 	export class Group extends Widget {
 		
-		protected setChildNodes(childNodes: Node[]) {
+		protected initChildren(childNodes: Node[]) {
 			for (let node of childNodes) {
 				this._.appendChild(node);
 			}
 		}
 
-		init(): void {
+		protected init(): void {
 			widget.init(this._);
 		}
 		

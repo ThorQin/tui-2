@@ -15,32 +15,34 @@
         <script type="text/javascript" src="tui2.js"></script>
 		<script>
 			$(function(){
-				$get("myDialog").on("click-ok", function(){
-					alert("click ok!");
-					this.close();
+				
+				$get("myDialog").on("btnclick", function(e) {
+					disp.innerHTML = "button click: " + e.data.button;
 				}).on("close", function(){
-					alert("closed");
+					disp.innerHTML =("closed");
 				}).on("open", function(){
-					alert("open");
+					disp.innerHTML =("open");
 				});
-				$("#dlgBtn").click(function(){
-					alert("click");
-				});
-				$get("dlgBtn").on("click", function(e){
+				$get("btn1").on("click", function(e){
 					$get("myDialog").open();
+				});
+				$get("btn2").on("click", function(e){
+					$get("myDialog").open("ok#tui-primary,cancel");
 				});
 			});
 		</script>
 	</head>
 	<body>
-		<tui:button id="dlgBtn">对话框</tui:button>
+		<tui:button id="btn1">对话框</tui:button>
+		<tui:button id="btn2">带按钮的对话框</tui:button>
 		<tui:dialog id="myDialog" title="这是一个很长很长的标题这是一个很长很长的标题这是一个很长很长的标题这是一个很长很长的标题">
 			<div>
-			<tui:calendar></tui:calendar>
+				<tui:calendar></tui:calendar>
 			</div>
 			<div>
 				<tui:button>测试一下咯</tui:button>
 			</div>
 		</tui:dialog>
+		<div id="disp" style="padding:20px"></div>
 	</body>
 </html>

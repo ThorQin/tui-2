@@ -66,7 +66,7 @@ module tui.widget {
 		private _moved: boolean = false;
 		private _init: boolean = true;
 
-		protected setChildNodes(childNodes: Node[]) {
+		protected initChildren(childNodes: Node[]) {
 			if (childNodes.length > 0) {
 				var div = document.createElement("div");
 				for (let node of childNodes) {
@@ -76,16 +76,16 @@ module tui.widget {
 			}
 		}
 
-		init(): void {
+		protected init(): void {
 			var root$ = $(this._); 
 			root$.attr("tabIndex", "-1");
-			root$.html("<div class='title-bar' unselectable='on'><span class='text'></span><span class='close'></span></div>" +
-				"<div class='content'></div><div class='button-bar'></div>");
+			root$.html("<div class='tui-title-bar' unselectable='on'><span class='tui-text'></span><span class='tui-close'></span></div>" +
+				"<div class='tui-content'></div><div class='tui-button-bar'></div>");
 			
-			var titleBar = this._components["titleBar"] = root$.children(".title-bar")[0];
-			var contentDiv = this._components["content"] = root$.children(".content")[0];
-			var buttonBar = this._components["buttonBar"] = root$.children(".button-bar")[0];
-			var closeIcon = this._components["closeIcon"] = $(titleBar).children(".close")[0]; 
+			var titleBar = this._components["titleBar"] = root$.children(".tui-title-bar")[0];
+			var contentDiv = this._components["content"] = root$.children(".tui-content")[0];
+			var buttonBar = this._components["buttonBar"] = root$.children(".tui-button-bar")[0];
+			var closeIcon = this._components["closeIcon"] = $(titleBar).children(".tui-close")[0]; 
 			titleBar.onselectstart = disableSelect;
 			buttonBar.onselectstart = disableSelect;
 			
@@ -139,12 +139,15 @@ module tui.widget {
 			var buttonBar = this._components["buttonBar"];
 			
 			buttonBar.innerHTML = "";
-			if (typeof buttonDef === "string") {
+			if (typeof buttonDef === "string" && buttonDef.length > 0) {
 				var names = buttonDef.split(",");
 				for (let name of names) {
-					let btn = create(Button, { text:tui.str(name) })
+					let pair = name.split("#");
+					let btn = create(Button, { text:tui.str($.trim(pair[0])) })
+					if (pair.length > 1 && $.trim(pair[1]).length > 0)
+						btn._.className = pair[1];
 					btn.on("click", (e) => {
-						this.fire("click-" + name, { button: name});
+						this.fire("btnclick", { button: name});
 					});
 					btn.appendTo(buttonBar);
 				}
@@ -197,7 +200,7 @@ module tui.widget {
 				closeIcon.style.display = "inline-block";
 			} else
 				closeIcon.style.display = "none";
-			var titleText = $(titleBar).children(".text")[0];
+			var titleText = $(titleBar).children(".tui-text")[0];
 			titleText.innerHTML = this.get("title");
 			if (tui.ieVer >= 7 && tui.ieVer < 9) { // IE8 fixed
 				titleText.style.width = "";

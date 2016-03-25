@@ -35,7 +35,7 @@ module tui.widget {
 		private referRect: browser.Rect = null;
 		private checkInterval: number = null;
 	
-		protected setChildNodes(childNodes: Node[]) {
+		protected initChildren(childNodes: Node[]) {
 			if (childNodes.length > 0) {
 				var div = document.createElement("div");
 				for (let node of childNodes) {
@@ -45,7 +45,7 @@ module tui.widget {
 			}
 		}
 	
-		init(): void {
+		protected init(): void {
 			var $root = $(this._);
 			$root.attr("tabIndex", "-1");
 			$root.css("display", "none");

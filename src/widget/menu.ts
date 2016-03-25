@@ -22,7 +22,7 @@ module tui.widget {
 	 */
 	export class Menu extends Popup {
 		private activeItem: number = null;
-		protected setChildNodes(childNodes: Node[]) {
+		protected initChildren(childNodes: Node[]) {
 			var data: MenuItem[] = [];
 			function hasChildItem(node: HTMLElement): boolean {
 				for (var i =0; i < node.childNodes.length; i++) {
@@ -94,37 +94,37 @@ module tui.widget {
 			for (let item of data) {
 				let div: Node;
 				if (item.type !== "line") {
-					div = browser.toElement("<div tabIndex='-1' unselectable='on'><span class='icon'></span>" +
-						"<span class='arrow'></span><span class='label'></span><span class='shortcut'></span></div>");
+					div = browser.toElement("<div tabIndex='-1' unselectable='on'><span class='tui-icon'></span>" +
+						"<span class='tui-arrow'></span><span class='tui-label'></span><span class='tui-shortcut'></span></div>");
 					if (item.disable) {
 						$(div).addClass("disabled");
 					}
 					if (item.type === "check" || item.type === "radio") {
 						if (item.checked) {
-							$(div).children(".icon").addClass("fa-check");
+							$(div).children(".tui-icon").addClass("fa-check");
 						}
 					} else if (item.icon) {
-						$(div).children(".icon").addClass(item.icon);
+						$(div).children(".tui-icon").addClass(item.icon);
 					}
-					$(div).children(".label").html(item.text);
+					$(div).children(".tui-label").html(item.text);
 					if (typeof item.shortcut === "string")
-						$(div).children(".shortcut").html(item.shortcut);
+						$(div).children(".tui-shortcut").html(item.shortcut);
 					if (item.type === "menu")
-						$(div).children(".arrow").addClass("fa-caret-right");
+						$(div).children(".tui-arrow").addClass("fa-caret-right");
 					if (item.disable)
 						$(div).addClass("disabled");
 				} else
-					div = browser.toElement("<div class='line'></div>");
+					div = browser.toElement("<div class='tui-line'></div>");
 				this._.appendChild(div);
 			}
 			super.open(refer, direction);
 			if (this.activeItem != null) {
-				$(this._).children("div").removeClass("active");
+				$(this._).children("div").removeClass("tui-active");
 				this.activeItem = null;
 			}
 		}
 		
-		init(): void {
+		protected init(): void {
 			var $root = $(this._);
 			$root.attr("tabIndex", "-1");
 			$root.css("display", "none");
@@ -157,7 +157,7 @@ module tui.widget {
 				if (tui.ieVer >= 7 && tui.ieVer < 9) {
 					var data: MenuItem[] = this.get("items");
 					var item = data[index];
-					var icon = $(div).children(".icon")[0];
+					var icon = $(div).children(".tui-icon")[0];
 					if (item.type === "check" || item.type === "radio") {
 						if (item.checked) {
 							$(icon).removeClass("fa-check");
@@ -172,7 +172,7 @@ module tui.widget {
 						});
 					}
 					if (item.type === "menu") {
-						var arrow = $(div).children(".arrow")[0];
+						var arrow = $(div).children(".tui-arrow")[0];
 						$(arrow).removeClass("fa-caret-right");
 						setTimeout(function(){
 							$(arrow).addClass("fa-caret-right");
@@ -183,13 +183,13 @@ module tui.widget {
 			
 			function activeLine(index: number) {
 				var div = findMenuItemDiv(index);
-				$(div).addClass("actived");
+				$(div).addClass("tui-actived");
 				ie8hack(div, index);
 			};
 			
 			function deactiveLine(index: number) {
 				var div = findMenuItemDiv(index);
-				$(div).removeClass("actived");
+				$(div).removeClass("tui-actived");
 				ie8hack(div, index);
 			};
 			
@@ -202,7 +202,7 @@ module tui.widget {
 						if (this.activeItem !== null) {
 							deactiveLine(this.activeItem);
 						}
-						if ($(div).hasClass("disabled")) {
+						if ($(div).hasClass("tui-disabled")) {
 							clearTimeout(openSubMenuTimer);
 							this.activeItem = null;
 							this._.focus();
@@ -210,7 +210,7 @@ module tui.widget {
 						}
 						this.activeItem = found; 
 						activeLine(this.activeItem);
-						if (!$(div).hasClass("sub")) {
+						if (!$(div).hasClass("tui-sub")) {
 							this._.focus();
 							openSubMenu();
 						}
@@ -324,19 +324,19 @@ module tui.widget {
 					if (item.type !== "menu")
 						return;
 					let div = findMenuItemDiv(this.activeItem);
-					if ($(div).hasClass("sub"))
+					if ($(div).hasClass("tui-sub"))
 						return;
 					let itemIndex = this.activeItem;
 					openSubMenuTimer = setTimeout(() => {
 						let childItems = item.children;
 						let subMenu: Menu = <Menu>create(Menu, {"items": childItems});
-						if ($(this._).hasClass("big"))
-							$(subMenu._).addClass("big");
-						$(div).addClass("sub");
+						if ($(this._).hasClass("tui-big"))
+							$(subMenu._).addClass("tui-big");
+						$(div).addClass("tui-sub");
 						ie8hack(div, itemIndex);
 						subMenu.open(div, "rT");
 						subMenu.on("close", function(){
-							$(div).removeClass("sub");
+							$(div).removeClass("tui-sub");
 							ie8hack(div, itemIndex);
 						});
 						subMenu.on("click", (e) => {

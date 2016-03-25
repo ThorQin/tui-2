@@ -136,16 +136,22 @@ module tui.widget {
 
 	export abstract class WidgetBase extends EventObject {
 		protected _data: { [index: string]: any } = undefined;
-		protected _pcs: { [index: string]: PropertyControl } = {};
+		protected _rs: { [index: string]: PropertyControl } = {};
 		abstract getComponent(name?: string): HTMLElement;
 		abstract render(): void;
 		
 		//restrict
-		protected restrict(key: string, propCtrl: PropertyControl): void {
+		protected setRestriction(key: string, propCtrl: PropertyControl): void {
 			if (propCtrl === null)
-				delete this._pcs[key];
+				delete this._rs[key];
 			else
-				this._pcs[key] = propCtrl;
+				this._rs[key] = propCtrl;
+		}
+		
+		protected setRestrictions(restrictions: {[index:string]: PropertyControl}) {
+			for (var key in restrictions) {
+				this.setRestriction(key, restrictions[key]);
+			}
 		}
 		
 		refresh(): WidgetBase {
@@ -155,7 +161,7 @@ module tui.widget {
 			return this;
 		}
 		
-		private load() {
+		protected load() {
 			if (typeof this._data !== UNDEFINED) {
 				return;
 			}
@@ -188,12 +194,11 @@ module tui.widget {
 		}
 
 		get(key?: string): any {
-			this.load();
 			if (typeof key === UNDEFINED || key === null) {
 				return this._data;
 			} else if (typeof key === "string") {
-				if (this._pcs[key] && typeof this._pcs[key].get === "function") {
-					return this._pcs[key].get();
+				if (this._rs[key] && typeof this._rs[key].get === "function") {
+					return this._rs[key].get();
 				} else {
 					var value = this._data[key];
 					return (typeof value === UNDEFINED ? null : value);
@@ -209,18 +214,17 @@ module tui.widget {
 			return this;
 		}
 		
-		protected _set(data: any): WidgetBase;
-		protected _set(key: string, value: any): WidgetBase;
-		protected _set(p1: any, p2?: any): WidgetBase {
-			this.load();
+		_set(data: any): WidgetBase;
+		_set(key: string, value: any): WidgetBase;
+		_set(p1: any, p2?: any): WidgetBase {
 			if (typeof p2 === UNDEFINED && p1 instanceof Object) {
 				for (let key in p1) {
 					if (p1.hasOwnProperty(key))
 						this._set(key, p1[key]);
 				}
 			} else if (typeof p1 === "string" && typeof p2 !== UNDEFINED) {
-				if (this._pcs[p1] && typeof this._pcs[p1].set === "function") {
-					this._pcs[p1].set(p2);
+				if (this._rs[p1] && typeof this._rs[p1].set === "function") {
+					this._rs[p1].set(p2);
 				} else {
 					if (p2 === null)
 						delete this._data[p1];
@@ -260,7 +264,7 @@ module tui.widget {
 		protected _components: { [index: string]: HTMLElement } = {};
 		_: HTMLElement;
 
-		abstract init(): void;
+		protected abstract init(): void;
 		
 		appendTo(parent: HTMLElement): Widget
 		appendTo(parent: any): Widget {
@@ -278,47 +282,49 @@ module tui.widget {
 			browser.removeNode(this._);
 		}
 		
-		protected setChildNodes(childNodes: Node[]): void {
+		protected initChildren(childNodes: Node[]): void {
 			// Default do nothing ...
 		}
 		
-		protected preInit(): void {
-			this.restrict("id", {
-				"set": (value: any) => {
-					if (this._data["id"]) {
-						delete namedWidgets[this._data["id"]];
-					}
-					if (typeof value === "string" && value.length > 0) {
-						namedWidgets[value] = this;
-						this._data["id"] = value;
-					} else
-						delete this._data["id"];
-				}	
-			});
-			this.restrict("parent", {
-				"get": (): any => {
-					let elem = this._.parentNode;
-					while (elem) {
-						if ((<any>elem).__widget__) {
-							return (<any>elem).__widget__;
-						} else {
-							elem = elem.parentNode;
+		protected initRestriction(): void {
+			this.setRestrictions({
+				"id": {
+					"set": (value: any) => {
+						if (this._data["id"]) {
+							delete namedWidgets[this._data["id"]];
 						}
-					}
-					return null;
+						if (typeof value === "string" && value.length > 0) {
+							namedWidgets[value] = this;
+							this._data["id"] = value;
+						} else
+							delete this._data["id"];
+					}	
 				},
-				"set": (value: any) => {}
-			}); 
-			this.restrict("group", {
-				"get": (): any => {
-					if (this.get("inner") === true) // inner component cannot belong to a group
+				"parent": {
+					"get": (): any => {
+						let elem = this._.parentNode;
+						while (elem) {
+							if ((<any>elem).__widget__) {
+								return (<any>elem).__widget__;
+							} else {
+								elem = elem.parentNode;
+							}
+						}
 						return null;
-					if (this._data["group"])
-						return this._data["group"];
-					let parent = this.get("parent");
-					if (parent && parent instanceof Group && parent.get("name"))
-						return parent.get("name");
-					return null;
+					},
+					"set": (value: any) => {}
+				},
+				"group": {
+					"get": (): any => {
+						if (this.get("inner") === true) // inner component cannot belong to a group
+							return null;
+						if (this._data["group"])
+							return this._data["group"];
+						let parent = this.get("parent");
+						if (parent && parent instanceof Group && parent.get("name"))
+							return parent.get("name");
+						return null;
+					}
 				}
 			});
 		}
@@ -345,7 +351,8 @@ module tui.widget {
 			this._ = root;
 			(<any>root).__widget__ = this;
 			
-			this.preInit();
+			this.initRestriction(); // install restrictor
+			this.load(); // load initial properties
 			
 			// Obtain all child nodes
 			var childNodes: Node[] = [];
@@ -362,7 +369,7 @@ module tui.widget {
 			for (let removeNode of removed) {
 				browser.removeNode(removeNode);
 			}
-			this.setChildNodes(childNodes);
+			this.initChildren(childNodes);
 			if (typeof initParam !== UNDEFINED) {
 				this.setInit(initParam);
 			}
@@ -385,11 +392,11 @@ module tui.widget {
 	 * Any config element can extends from this class.
 	 */
 	export class Item extends Widget {
-		setChildNodes(childNodes: Node[]): void {
+		initChildren(childNodes: Node[]): void {
 			for (let node of childNodes)
 				this._.appendChild(node);
 		}
-		preInit(): void {};
+		initRestriction(): void {};
 		init(): void {}
 		render(): void {}
 	}  // End of ConfigNode

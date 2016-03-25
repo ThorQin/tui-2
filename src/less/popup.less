@@ -28,7 +28,7 @@ tui\:menu:before {
 	z-index: -1;
 }
 
-tui\:menu.big:before {
+tui\:menu.tui-big:before {
 	display:none;
 }
 
@@ -45,37 +45,37 @@ tui\:menu>div {
 		line-height: @itemHeight;
 		vertical-align: middle;
 	}
-	>.icon {
+	>.tui-icon {
 		.icon-base();
 		width:24px;
 		text-align: center;
 		margin-right:5px;
 		float:left;
 	}
-	>.label {
+	>.tui-label {
 		float:left;
 	}
-	>.shortcut {
+	>.tui-shortcut {
 		color: @disabledTextColor;
 		margin-left:10px;
 		float:right;
 	}
-	>.arrow {
+	>.tui-arrow {
 		.icon-base();
 		width:16px;
 		float:right;
 		text-align: center;
 	}
 	
-	&.line {
+	&.tui-line {
 		height: 0px;
 		border-top:1px solid @borderColor;
 		margin: 1px 0;
 	}
-	&.disabled {
+	&.tui-disabled {
 		color: @disabledTextColor;
 	}
-	&.actived,&.sub {
+	&.tui-actived,&.tui-sub {
 		background-color: @lineSelectFocusedBackgroundColor;
 		color: @lineSelectFocusedForeColor;
 	}
@@ -85,16 +85,16 @@ tui\:menu>div {
 		clear:both;
 	}
 }
-tui\:menu.big>div {
+tui\:menu.tui-big>div {
 	>* {
 		display: inline-block;
 		height:@itemHeight + 6px;
 		line-height: @itemHeight + 6px;
 	}
-	>.icon {
+	>.tui-icon {
 		margin-right:0px;
 	}
-	&.line {
+	&.tui-line {
 		height: 0px;
 	}
 }

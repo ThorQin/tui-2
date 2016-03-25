@@ -1,8 +1,8 @@
 @import 'commons.less';
 
-tui\:calendar, tui\:simple-calendar {
-	@activeBackColor: @panelColor;
-	@weekendBackColor:#fafafa;
+tui\:calendar {
+	@activeBackColor: @panelColor - #111;
+	@weekendBackColor:#f0f0f0;
 	@todayBackColor:@lineSelectFocusedBackgroundColor;
 	padding:2px;
 	border: 1px solid @borderColor;
@@ -21,70 +21,51 @@ tui\:calendar, tui\:simple-calendar {
 		&[colspan='3'] {
 			width:inherit;
 		}
-		&.before,&.after {
+		&.tui-before,&.tui-after {
 			color:#d0d0d0;
 		}
-		&.weekend {
+		&.tui-weekend {
 			background-color:@weekendBackColor;
 		}
-		&.today {
+		&.tui-today {
 			color:#f00;
 			border:1px solid @todayBackColor;
 		}
-		&.actived {
+		&.tui-actived {
 			background-color:@todayBackColor;
 			color:#fff;
 		}
-		&.pm {
+		&.tui-pm,&.tui-py,&.tui-nm,&.tui-ny {
 			cursor:pointer;
 			&:before {
 				.icon();
-				.fa-angle-left;
 			}
 			&:hover {
 				background-color:@activeBackColor;
 			}
 		}
-		&.py {
-			cursor:pointer;
-			&:before {
-				.icon();
-				.fa-angle-double-left;
-			}
-			&:hover {
-				background-color:@activeBackColor;
-			}
+		&.tui-pm:before {
+			.fa-angle-left;
 		}
-		&.nm {
-			cursor:pointer;
-			&:before {
-				.icon();
-				.fa-angle-right;
-			}
-			&:hover {
-				background-color:@activeBackColor;
-			}
+		&.tui-py:before {
+			.fa-angle-double-left;
 		}
-		&.ny {
-			cursor:pointer;
-			&:before {
-				.icon();
-				.fa-angle-double-right;
-			}
-			&:hover {
-				background-color:@activeBackColor;
-			}
+		&.tui-nm:before {
+			.fa-angle-right;
+		}
+		&.tui-ny:before {
+			.fa-angle-double-right;
 		}
 	}
-	tr.yearbar > td {
+	tr.tui-yearbar > td {
 		height:25px;
 	}
-	.week {
+	.tui-week {
 		background-color: @todayBackColor;
 		color:#fff;
 		font-size:12px;
 	}
-	.month {
+	.tui-month {
 		font-size:12px;
 	}
 	>div {

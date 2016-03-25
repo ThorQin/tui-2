@@ -8,33 +8,49 @@ module tui.widget {
 	 */
 	export class Button extends Widget {
 
-		protected setChildNodes(childNodes: Node[]) {
+		protected initChildren(childNodes: Node[]) {
 			if (childNodes && childNodes.length > 0)
 				this._set("text", browser.toHTML(childNodes));
 		}
 
-		protected preInit(): void {
-			super.preInit();
-			this.restrict("type", {
-				"get": (): any => {
-					if (this._data["type"])
-						return this._data["type"];
-					let parent = this.get("parent");
-					if (parent && parent instanceof Group && parent.get("type"))
-						return parent.get("type");
-					return null;
-				}
-			});
-			this.restrict("value", {
-				"get": (): any => {
-					if (this._data["value"])
-						return this._data["value"];
-					return this.get("text");
+		protected initRestriction(): void {
+			super.initRestriction();
+			this.setRestrictions({
+				"type": {
+					"get": (): any => {
+						if (this._data["type"])
+							return this._data["type"];
+						let parent = this.get("parent");
+						if (parent && parent instanceof Group && parent.get("type"))
+							return parent.get("type");
+						return null;
+					}
+				},
+				"value": {
+					"get": (): any => {
+						if (this._data["value"])
+							return this._data["value"];
+						return this.get("text");
+					}
+				},
+				"checked": {
+					"set": (value: any) => {
+						this._data["checked"] = !!value;
+						if (!value)
+							this._data["tristate"] = false;
+					}
+				},
+				"tristate": {
+					"set": (value: any) => {
+						this._data["tristate"] = !!value;
+						if (value)
+							this._data["checked"] = true;
+					}
 				}
 			});
 		}
 
-		init(): void {
+		protected init(): void {
 			var $root = $(this._);
 
 			$root.attr({
@@ -115,6 +131,10 @@ module tui.widget {
 				$root.removeClass("tui-disable");
 				$root.attr("tabIndex", "0");
 			}
+			if (this.get("checked") && this.get("tristate")) {
+				$root.addClass("tui-tristate");
+			} else
+				$root.removeClass("tui-tristate");
 			var text = this.get("text");
 			if (typeof text !== "string")
 				text = "";

@@ -25,85 +25,87 @@ module tui.widget {
 
 	export class Calendar extends Widget {
 		
-		protected preInit(): void {
-			super.preInit();
-			this.restrict("time", {
-				"set": (value: any): void => {
-					if (value instanceof Date)
-						this._data["time"] = value;
-					else if (typeof value === "string") {
-						value = time.parseDate(value);
-						this._data["time"] = value;
+		protected initRestriction(): void {
+			super.initRestriction();
+			this.setRestrictions({
+				"time": {
+					"set": (value: any): void => {
+						if (value instanceof Date)
+							this._data["time"] = value;
+						else if (typeof value === "string") {
+							value = time.parseDate(value);
+							this._data["time"] = value;
+						}
+					},
+					"get": (): any => {
+						var tm = this._data["time"];
+						if (typeof tm === UNDEFINED || tm === null) {
+							return this._data["time"] = time.today();
+						} else
+							return tm;
 					}
 				},
-				"get": (): any => {
-					var tm = this._data["time"];
-					if (typeof tm === UNDEFINED || tm === null) {
-						return this._data["time"] = time.today();
-					} else
-						return tm;
-				}
-			});
-			this.restrict("value", {
-				"set": (value: any): void => {
-					this._set("time", value);
+				"value": {
+					"set": (value: any): void => {
+						this._set("time", value);
+					},
+					"get": (): any => {
+						return this.get("time");
+					}
 				},
-				"get": (): any => {
-					return this.get("time");
-				}
-			});
-			this.restrict("year", {
-				"set": (value: any): void => {
-					if (typeof value === "number" && !isNaN(value))
-						(<Date>this.get("time")).setFullYear(value);
+				"year": {
+					"set": (value: any): void => {
+						if (typeof value === "number" && !isNaN(value))
+							(<Date>this.get("time")).setFullYear(value);
+					},
+					"get": (): any => {
+						return (<Date>this.get("time")).getFullYear();
+					}
 				},
-				"get": (): any => {
-					return (<Date>this.get("time")).getFullYear();
-				}
-			});
-			this.restrict("month", {
-				"set": (value: any): void => {
-					if (typeof value === "number" && !isNaN(value))
-						(<Date>this.get("time")).setMonth(value - 1);
+				"month": {
+					"set": (value: any): void => {
+						if (typeof value === "number" && !isNaN(value))
+							(<Date>this.get("time")).setMonth(value - 1);
+					},
+					"get": (): any => {
+						return (<Date>this.get("time")).getMonth() + 1;
+					}
 				},
-				"get": (): any => {
-					return (<Date>this.get("time")).getMonth() + 1;
-				}
-			});
-			this.restrict("day", {
-				"set": (value: any): void => {
-					if (typeof value === "number" && !isNaN(value))
-						(<Date>this.get("time")).setDate(value);
+				"day": {
+					"set": (value: any): void => {
+						if (typeof value === "number" && !isNaN(value))
+							(<Date>this.get("time")).setDate(value);
+					},
+					"get": (): any => {
+						return (<Date>this.get("time")).getDate();
+					}
 				},
-				"get": (): any => {
-					return (<Date>this.get("time")).getDate();
-				}
-			});
-			this.restrict("hour", {
-				"set": (value: any): void => {
-					if (typeof value === "number" && !isNaN(value))
-						(<Date>this.get("time")).setHours(value);
+				"hour": {
+					"set": (value: any): void => {
+						if (typeof value === "number" && !isNaN(value))
+							(<Date>this.get("time")).setHours(value);
+					},
+					"get": (): any => {
+						return (<Date>this.get("time")).getHours();
+					}
 				},
-				"get": (): any => {
-					return (<Date>this.get("time")).getHours();
-				}
-			});
-			this.restrict("minute", {
-				"set": (value: any): void => {
-					if (typeof value === "number" && !isNaN(value))
-						(<Date>this.get("time")).setMinutes(value);
+				"minute": {
+					"set": (value: any): void => {
+						if (typeof value === "number" && !isNaN(value))
+							(<Date>this.get("time")).setMinutes(value);
+					},
+					"get": (): any => {
+						return (<Date>this.get("time")).getMinutes();
+					}
 				},
-				"get": (): any => {
-					return (<Date>this.get("time")).getMinutes();
-				}
-			});
-			this.restrict("second", {
-				"set": (value: any): void => {
-					if (typeof value === "number" && !isNaN(value))
-						(<Date>this.get("time")).setSeconds(value);
-				},
-				"get": (): any => {
-					return (<Date>this.get("time")).getSeconds();
+				"second": {
+					"set": (value: any): void => {
+						if (typeof value === "number" && !isNaN(value))
+							(<Date>this.get("time")).setSeconds(value);
+					},
+					"get": (): any => {
+						return (<Date>this.get("time")).getSeconds();
+					}
 				}
 			});
 		}
@@ -112,9 +114,9 @@ module tui.widget {
 			$(this._).attr({ "tabIndex": "0", "unselectable": "on"});
 			var tb = this._components["table"] = <HTMLTableElement>browser.toElement(
 				"<table cellPadding='0' cellspacing='0' border='0'>" +
-				"<tr class='yearbar'><td class='pm'></td><td class='py'>" +
-				"</td><td colspan='3' class='ym'></td>" +
-				"<td class='ny'></td><td class='nm'></td></tr></table>");
+				"<tr class='tui-yearbar'><td class='tui-pm'></td><td class='tui-py'>" +
+				"</td><td colspan='3' class='tui-ym'></td>" +
+				"<td class='tui-ny'></td><td class='tui-nm'></td></tr></table>");
 			var yearLine = tb.rows[0];
 			
 			for (var i = 0; i < 7; i++) {
@@ -122,9 +124,9 @@ module tui.widget {
 				for (var j = 0; j < 7; j++) {
 					var cell: HTMLTableCellElement = <HTMLTableCellElement>line.insertCell(-1);
 					if (j === 0 || j === 6)
-						cell.className = "week-end";
+						cell.className = "tui-week-end";
 					if (i === 0) {
-						cell.className = "week";
+						cell.className = "tui-week";
 						setText(tb, i + 1, j, tui.str(time.shortWeeks[j]));
 					}
 				}
@@ -133,7 +135,7 @@ module tui.widget {
 			
 			var timebar = this._components["timeBar"] = <HTMLTableElement>browser.toElement(
 				"<div>" + tui.str("Choose Time") + ":<input name='hours' maxLength='2'>:<input name='minutes' maxLength='2'>:<input name='seconds' maxLength='2'>" +
-				"<a class='update'></a></div>");
+				"<a class='tui-update'></a></div>");
 			this._.appendChild(timebar);
 			
 			function getMaxValue(name: string): number {
@@ -229,13 +231,13 @@ module tui.widget {
 				var cell = <any>(e.target || e.srcElement);
 				if (cell.nodeName.toLowerCase() !== "td")
 					return;
-				if ($(cell).hasClass("pm")) {
+				if ($(cell).hasClass("tui-pm")) {
 					this.prevMonth();
-				} else if ($(cell).hasClass("py")) {
+				} else if ($(cell).hasClass("tui-py")) {
 					this.prevYear();
-				} else if ($(cell).hasClass("ny")) {
+				} else if ($(cell).hasClass("tui-ny")) {
 					this.nextYear();
-				} else if ($(cell).hasClass("nm")) {
+				} else if ($(cell).hasClass("tui-nm")) {
 					this.nextMonth();
 				} else if (typeof cell["offsetMonth"] === "number") {
 					var d = parseInt(cell.innerHTML, 10);
@@ -267,7 +269,7 @@ module tui.widget {
 					return;
 				if (typeof cell["offsetMonth"] === "number") 
 					this.fire("click", {"time": this.get("time"), "type": "pick"});
-				else if(/^(pm|py|nm|ny)$/.test(cell.className))
+				else if(/^(tui-pm|tui-py|tui-nm|tui-ny)$/.test(cell.className))
 					this.fire("click", {"time": this.get("time"), "type": "change"});
 			}).dblclick( (e: JQueryEventObject) => {
 				var cell = <any>(e.target || e.srcElement);
@@ -375,7 +377,7 @@ module tui.widget {
 							var preMonthDay = new Date(firstDay(tm).valueOf() - ((firstWeek - j) * 1000 * 24 * 60 * 60));
 							(<HTMLTableCellElement>cell).innerHTML = preMonthDay.getDate() + "";
 							(<any>cell).offsetMonth = -1;
-							$(cell).addClass("before");
+							$(cell).addClass("tui-before");
 						}
 					} else {
 						day++;
@@ -385,15 +387,15 @@ module tui.widget {
 						} else {
 							cell.innerHTML = (day - daysOfMonth) + "";
 							(<any>cell).offsetMonth = 1;
-							$(cell).addClass("after");
+							$(cell).addClass("tui-after");
 						}
 					}
 					if (day === this.get("day"))
-						$(cell).addClass("actived");
+						$(cell).addClass("tui-actived");
 					if (j === 0 || j === 6)
-						$(cell).addClass("weekend");
+						$(cell).addClass("tui-weekend");
 					if (this.get("year") === today.getFullYear() && this.get("month") === (today.getMonth() + 1) && day === today.getDate()) {
-						$(cell).addClass("today");
+						$(cell).addClass("tui-today");
 					}
 				}
 			}
