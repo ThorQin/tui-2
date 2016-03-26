@@ -29,6 +29,29 @@
 				$get("btn2").on("click", function(e){
 					$get("myDialog").open("ok#tui-primary,cancel");
 				});
+				
+				tui.get("btnMsg").on("click", function(){
+					tui.msgbox("一个普通测试消息。", "消息");
+				});
+				tui.get("btnInfo").on("click", function(){
+					tui.infobox("您还可以尝试使用不同的方法完成此操作。", "提示");
+				});
+				tui.get("btnOk").on("click", function(){
+					tui.okbox("保存操作成功！", "成功");
+				});
+				tui.get("btnWarn").on("click", function(){
+					tui.warnbox("股市有风险，请谨慎操作！", "警告");
+				});
+				tui.get("btnErr").on("click", function(){
+					tui.errbox("错误：服务器没有响应！", "错误");
+				});
+				tui.get("btnAsk").on("click", function(){
+					tui.askbox("是否真的要删除该记录？", "删除");
+				});
+				tui.get("btnWait").on("click", function(){
+					var dlg = tui.waitbox("正在查询请稍后...");
+					setTimeout(function(){dlg.close()}, 2000);
+				});
 			});
 		</script>
 	</head>
@@ -40,9 +63,18 @@
 				<tui:calendar></tui:calendar>
 			</div>
 			<div>
-				<tui:button>测试一下咯</tui:button>
+				<tui:button>测试一下咯<tui:init>this.on("click",function(){tui.infobox("测试消息")})</tui:init></tui:button>
 			</div>
 		</tui:dialog>
 		<div id="disp" style="padding:20px"></div>
+		<div>
+			<tui:button id="btnMsg">普通消息</tui:button>
+			<tui:button id="btnInfo">提示消息</tui:button>
+			<tui:button id="btnOk">成功消息</tui:button>
+			<tui:button id="btnWarn">警告消息</tui:button>
+			<tui:button id="btnErr">错误消息</tui:button>
+			<tui:button id="btnAsk">询问</tui:button>
+			<tui:button id="btnWait">等待</tui:button>
+		</div>
 	</body>
 </html>

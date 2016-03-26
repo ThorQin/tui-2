@@ -264,7 +264,7 @@ module tui.widget {
 		protected _components: { [index: string]: HTMLElement } = {};
 		_: HTMLElement;
 
-		protected abstract init(): void;
+		protected init(): void {};
 		
 		appendTo(parent: HTMLElement): Widget
 		appendTo(parent: any): Widget {
@@ -562,4 +562,10 @@ module tui.widget {
 		init(document.body);
 		tui.event.fire("initialized");
 	});
+}
+
+module tui {
+	export var get = tui.widget.get;
+	export var create = tui.widget.create;
+	export var search = tui.widget.search;
 }

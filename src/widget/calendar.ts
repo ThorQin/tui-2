@@ -110,7 +110,7 @@ module tui.widget {
 			});
 		}
 
-		init(): void {
+		protected init(): void {
 			$(this._).attr({ "tabIndex": "0", "unselectable": "on"});
 			var tb = this._components["table"] = <HTMLTableElement>browser.toElement(
 				"<table cellPadding='0' cellspacing='0' border='0'>" +

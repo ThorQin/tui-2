@@ -27,12 +27,7 @@ module tui.browser {
 	export function focusWithoutScroll(target: HTMLElement) {
 		setTimeout(function () {
 			if (tui.ieVer > 0) {
-				//if (tui.ieVer > 8)
-				//	target.setActive();
-				//else {
-				//	if (target !== document.activeElement)
-						target.setActive();
-				//}
+				target.setActive();
 			} else if (tui.ffVer > 0)
 				target.focus();
 			else {
@@ -289,7 +284,7 @@ module tui.browser {
 	 * Set cookie value
 	 * @param name
 	 * @param value
-	 * @param days valid days
+	 * @param expires valid days
 	 */
 	export function saveCookie (name: string, value: any, expires?: number, path?: string, domain?: string, secure: boolean = false) {
 		// set time, it's in milliseconds

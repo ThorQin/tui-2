@@ -16,8 +16,33 @@
 		<script>
 		
 		</script>
+		<style>
+			#testDiv {
+				white-space: nowrap;
+				word-break:keep-all;
+			}
+			#testDiv>span {
+				display: inline-block;
+				word-break:normal;
+				word-wrap:break-word;
+				border: 1px solid #ccc;
+				white-space: normal;
+				vertical-align: middle;
+				max-height: 200px;
+			}
+		</style>
 	</head>
 	<body>
 		<tui:check tristate={true}>三态按钮</tui:check>
+		
+		<div id="testDiv">
+			<span class="fa fa-warning" style="font-size:24px;height:24px;line-height:24px;text-align:center"></span>
+			<span style="max-width:300px;overflow:auto">一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字 
+				abcdefghigk abcdefghigk abcdefghigk abcdefghigk abcdefghigk 
+				abcdefghigk abcdefghigk abcdefghigk abcdefghigk一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字
+				一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字
+				一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文
+				字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字</span>
+		</div>
 	</body>
 </html>

@@ -196,15 +196,20 @@ module tui.widget {
 			var contentDiv = this._components["content"]; 
 			var closeIcon = this._components["closeIcon"];
 			// Adjust title bar
-			if (this.get("esc")) {
-				closeIcon.style.display = "inline-block";
-			} else
-				closeIcon.style.display = "none";
-			var titleText = $(titleBar).children(".tui-text")[0];
-			titleText.innerHTML = this.get("title");
-			if (tui.ieVer >= 7 && tui.ieVer < 9) { // IE8 fixed
-				titleText.style.width = "";
-				titleText.style.width = titleText.offsetWidth + "px";
+			if (this.get("title") === null && !this.get("esc")) {
+				titleBar.style.display = "none";
+			} else {
+				titleBar.style.display = "block";
+				if (this.get("esc")) {
+					closeIcon.style.display = "inline-block";
+				} else
+					closeIcon.style.display = "none";
+				var titleText = $(titleBar).children(".tui-text")[0];
+				titleText.innerHTML = this.get("title") !== null ? this.get("title") : "";
+				if (tui.ieVer >= 7 && tui.ieVer < 9) { // IE8 fixed
+					titleText.style.width = "";
+					titleText.style.width = titleText.offsetWidth + "px";
+				}
 			}
 			
 			// Change position
@@ -290,179 +295,55 @@ module tui.widget {
 			dialogStack[i].refresh();
 		}
 	});
-	
-	/*
-	
-	function makeWarp(className, message) {
-		var wrap = document.createElement("div");
-		wrap.className = className;
-		if (typeof message === null || message === undefined)
-			message = "";
-		else
-			message += "";
-		var testSpan = document.createElement("span");
-		testSpan.style.position = "absolute";
-		testSpan.style.visibility = "hidden";
-		testSpan.style.display = "inline-block";
-		testSpan.style.whiteSpace = "nowrap";
-		testSpan.innerHTML = message;
-		document.body.appendChild(testSpan);
-		var realWidth = testSpan.offsetWidth;
-		tui.removeNode(testSpan);
-		if (realWidth < 400)
-			wrap.innerHTML = message;
-		else {
-			var span = document.createElement("span");
-			span.className = "tui-textarea tui-inline";
-			var textarea = new tui.ctrl.TextArea(span);
-			textarea.addClass("tui-dlg-long-msg");
-			textarea.text(message);
-			textarea.readonly(true);
-			$(wrap).addClass("tui-dlg-long-warp");
-			wrap.appendChild(textarea[0]);
-		}
-		return wrap;
-	}
-
-	export function msgbox(message: string, title?: string): ctrl.Dialog {
-		var dlg = tui.ctrl.dialog();
-		dlg.showElement(makeWarp("tui-dlg-msg", message), title);
-		return dlg;
-	}
-
-	export function infobox(message: string, title?: string): ctrl.Dialog {
-		var dlg = tui.ctrl.dialog();
-		dlg.showElement(makeWarp("tui-dlg-warp tui-dlg-info", message), title);
-		return dlg;
-	}
-
-	export function okbox(message: string, title?: string): ctrl.Dialog {
-		var dlg = tui.ctrl.dialog();
-		dlg.showElement(makeWarp("tui-dlg-warp tui-dlg-ok", message), title);
-		return dlg;
-	}
-
-	export function errbox(message: string, title?: string): ctrl.Dialog {
-		var dlg = tui.ctrl.dialog();
-		dlg.showElement(makeWarp("tui-dlg-warp tui-dlg-err", message), title);
-		return dlg;
-	}
-
-	export function warnbox(message: string, title?: string): ctrl.Dialog {
-		var dlg = tui.ctrl.dialog();
-		dlg.showElement(makeWarp("tui-dlg-warp tui-dlg-warn", message), title);
-		return dlg;
-	}
-
-	export function askbox(message: string, title?: string, callback?: (result: boolean) => void): ctrl.Dialog {
-		var dlg = tui.ctrl.dialog();
-		var result = false;
-		dlg.showElement(makeWarp("tui-dlg-warp tui-dlg-ask", message), title, [
-			{
-				name: str("Ok"), func: () => {
-					result = true;
-					dlg.close();
-				}
-			},{
-				name: str("Cancel"), func: () => {
-					dlg.close();
-				}
-			}
-		]);
-		dlg.on("close", () => {
-			if (typeof callback === "function")
-				callback(result);
-		});
-		return dlg;
-	}
-
-	export function waitbox(message: string, cancelProc: () => {} = null): ctrl.Dialog {
-		var dlg = tui.ctrl.dialog();
-		var wrap = document.createElement("div");
-		wrap.className = "tui-dlg-warp tui-dlg-wait";
-		wrap.innerHTML = message;
-		if (typeof cancelProc === "function")
-			dlg.showElement(wrap, null, [{
-				name: str("Cancel"), func: function () {
-					dlg.close();
-					cancelProc();
-				}
-			}]);
-		else {
-			dlg.showElement(wrap, null, []);
-		}
-		dlg.useesc(false);
-		return dlg;
-	}
-	
-	export function progressbox(message: string, cancelProc: () => {} = null): ctrl.Dialog {
-		var dlg = tui.ctrl.dialog();
-		var outbox = document.createElement("div");
-		var wrap = document.createElement("div");
-		wrap.className = "tui-progress-title";
-		wrap.innerHTML = message;
-		outbox.appendChild(wrap);
-		outbox.className = "tui-progress-wrap";
-		var progressbar = document.createElement("div");
-		progressbar.className = "tui-progress-bar";
-		var progress = document.createElement("span");
-		progress.className = "tui-progress";
-		progressbar.appendChild(progress);
-		var block = document.createElement("span");
-		block.className = "tui-progress-block";
-		progress.appendChild(block);
-		var text = document.createElement("span");
-		text.className = "tui-progress-text";
-		text.innerHTML = "0%";
-		progressbar.appendChild(text);
-		outbox.appendChild(progressbar);
-		if (typeof cancelProc === "function")
-			dlg.showElement(outbox, null, [{
-				name: str("Cancel"), func: function () {
-					dlg.close();
-					cancelProc();
-				}
-			}]);
-		else {
-			dlg.showElement(outbox, null, []);
-		}
-		dlg.useesc(false);
-		dlg["text"] = function(value) {
-			wrap.innerHTML = value;
-		};
-		dlg["progress"] = function(value: number) {
-			if (typeof value !== "number" || isNaN(value))
-				return;
-			if (value < 0) value = 0;
-			if (value > 100) value = 100;
-			block.style.width = Math.floor(300 * (value / 100)) + "px";
-			text.innerHTML = value + "%";
-		};
-		return dlg;
-	}
-
-	
-	export function loadHTML(url: string, elem: HTMLElement, completeCallback?: (status: string, jqXHR: JQueryXHR) => any, async: boolean = true, method?: string, data?: any) {
-		loadURL(url, function (status: string, jqXHR: JQueryXHR) {
-			if (typeof completeCallback === "function" && completeCallback(status, jqXHR) === false) {
-				return;
-			}
-			if (status === "success") {
-				var matched = /<body[^>]*>((?:.|[\r\n])*)<\/body>/gim.exec(jqXHR.responseText);
-				if (matched != null)
-					elem.innerHTML = matched[1];
-				else
-					elem.innerHTML = jqXHR.responseText;
-				tui.ctrl.initCtrls(elem);
-			} else {
-				tui.errbox(tui.str(status) + " (" + jqXHR.status + ")", tui.str("Failed"));
-			}
-		}, async, method, data);
-	}
-	*/
 }
 
 module tui {
 	"use strict";
 	
+	function makeDialog(message: string, className: string, title?: string, btn: string = "ok", 
+		callback: (btnName:string) => void = null, esc: boolean = true): widget.Dialog {
+		var dlg = <widget.Dialog>tui.widget.create("dialog", {
+			"content": text.format( "<div class='tui-msg-container {1}'><span>{0}</span></div>", message, className),
+			"title": title,
+			"esc": esc
+		 });
+		dlg.on("btnclick", function (e: EventInfo) {
+			dlg.close();
+			if (callback)
+				callback(e.data.button);
+		});
+		dlg.open(btn);
+		return dlg;
+	}
+
+	export function msgbox(message: string, title?: string): widget.Dialog {
+		return makeDialog(message, "tui-msg-box", title);
+	}
+	export function infobox(message: string, title?: string): widget.Dialog {
+		return makeDialog(message, "tui-info-box", title);
+	}
+	export function okbox(message: string, title?: string): widget.Dialog {
+		return makeDialog(message, "tui-ok-box", title);
+	}
+	export function errbox(message: string, title?: string): widget.Dialog {
+		return makeDialog(message, "tui-err-box", title);
+	}
+	export function warnbox(message: string, title?: string): widget.Dialog {
+		return makeDialog(message, "tui-warn-box", title);
+	}
+	export function askbox(message: string, title?: string, callback?: (result: boolean) => void): widget.Dialog {
+		if (typeof title === "function")
+			callback = <(result:boolean)=>void><any>title;
+		return makeDialog(message, "tui-ask-box", title, "ok#tui-primary,cancel", function(buttonName: string){
+			if (typeof callback === "function")
+				callback(buttonName === "ok");
+		});
+	}
+	export function waitbox(message: string): widget.Dialog {
+		return makeDialog(message, "tui-wait-box", null, null, null, false);
+	}
+	export function progressbox(message: string, cancelProc: () => {} = null): widget.Dialog {
+		// TODO: NOT FINISHED
+		return null;
+	}
 }

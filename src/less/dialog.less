@@ -14,7 +14,7 @@ tui\:dialog {
 	position:fixed;
 	background-color:white;
 	.border-radius(@dialogBorderRadius);
-	min-width:340px;
+	min-width:300px;
 	border:1px solid @borderColor;
 	.shadow(0px, 1px, 30px, rgba(0,0,0,0.5));
 	z-index:@dialogLayer;
@@ -75,118 +75,63 @@ tui\:dialog {
 		white-space:nowrap;
 		tui\:button {
 			margin:2px 4px;
+			min-width: 40px;
 		}
 	}
+}
 
-	.tui-dlg-msg {
-		padding:30px 20px;
-		text-align:center;
+.tui-msg-container {
+	white-space: nowrap;
+	word-break:keep-all;
+	padding:30px;
+	
+	>span {
+		display: inline-box;
+		max-width: 400px;
+		max-height: 200px;
+		overflow: auto;
+		word-break:normal;
+		word-wrap:break-word;
+		white-space: normal;
+		vertical-align: middle;
 	}
-	.tui-dlg-long-msg {
-		width:400px;
-		max-height:140px;
-		vertical-align:top;
-		
-		border:0;
-		& > textarea {
-			color: black;
-			background-color:white;
-		}
-		&.tui-focus,&:focus {
-			border:0;
-			box-shadow:none;
-		}
+	
+	&:before {
+		.icon-base();
+		font-size:3em;
+		margin:-8px 0;
+		margin-right:20px;
+		vertical-align:middle;
 	}
-	.tui-dlg-warp {
-		padding:30px 20px;
-		text-align:center;
-		white-space:nowrap;		
-		&:before {
-			.icon-base();
-			font-size:3em;
-			margin:-8px 0;
-			margin-right:20px;
-			vertical-align:middle;
-		}
-		&.tui-dlg-long-warp {
-			&:before {
-				margin:8px;
-				vertical-align:top;			
-			}
-		}
-		&.tui-dlg-info:before {
-			.fa-info-circle();
-			color:@iconInfoColor;
-		}
-		&.tui-dlg-ok:before {
-			.fa-check-circle();
-			color:@iconSuccessColor;
-		}
-		&.tui-dlg-warn:before {
-			.fa-warning();
-			color:@iconWarnColor;
-		}
-		&.tui-dlg-err:before {
-			.fa-times-circle();
-			color:red;
-		}
-		&.tui-dlg-ask:before {
-			.fa-question-circle();
-			color:@iconInfoColor;
-		}
-		&.tui-dlg-wait:before {
-			.fa-gear();
-			color:#aaa;
-		}
+	&.tui-info-box:before {
+		display: inline-block;
+		.fa-info-circle();
+		color:@iconInfoColor;
 	}
-	.tui-progress-wrap {
-		padding:30px;
+	&.tui-ok-box:before {
+		display: inline-block;
+		.fa-check-circle();
+		color:@iconSuccessColor;
 	}
-	.tui-progress-title {
-		width:350px;
-		padding-bottom:10px;
+	&.tui-err-box:before {
+		display: inline-block;
+		.fa-times-circle();
+		color:red;
 	}
-	.tui-progress-bar {
-		height: 20px;
-		line-height: 20px;
-		width:350px;
-		padding:0;
-		margin:0;
-		overflow:hidden;
-		position:relative;
-		.tui-progress {
-			position: absolute;
-			left:0;
-			top:0;
-			padding:0;
-			margin:0;
-			display: block;
-			height: 20px;
-			width:300px;
-			.tui-progress-block {
-				position: absolute;
-				left:0;
-				top:0;
-				padding:0;
-				margin:0;
-				display: block;
-				height:20px;
-				width:0px;
-				.liner-color(#458afc, #000a9f);
-			}
-			background-color: #d0d0d0;
-		}
-		.tui-progress-text {
-			position: absolute;
-			top:0;
-			right:0;
-			display: block;
-			height: 20px;
-			line-height: 20px;
-			font-family: "sans-serif";
-			font-size:14px;
-			color: black;
-		}
+	&.tui-warn-box:before {
+		display: inline-block;
+		.fa-warning();
+		color:@iconWarnColor;
 	}
-
+	&.tui-ask-box:before {
+		display: inline-block;
+		.fa-question-circle();
+		color:@iconInfoColor;
+	}
+	&.tui-wait-box:before {
+		display: inline-block;
+		.fa-gear();
+		.tui-spin();
+		color:#aaa;
+	}
 }
