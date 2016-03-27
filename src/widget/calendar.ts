@@ -40,7 +40,7 @@ module tui.widget {
 					"get": (): any => {
 						var tm = this._data["time"];
 						if (typeof tm === UNDEFINED || tm === null) {
-							return this._data["time"] = time.today();
+							return this._data["time"] = time.now();
 						} else
 							return tm;
 					}
@@ -194,7 +194,7 @@ module tui.widget {
 					} else if (k >= KeyCode.KEY_0 && k <= KeyCode.KEY_9) {
 						let max = getMaxValue(o$.attr("name"));
 						let v = k - KeyCode.KEY_0;
-						let now = tui.time.today().getTime();
+						let now = tui.time.now().getTime();
 						if (o._lastInputTime && (now - o._lastInputTime) < 1000 )
 							o.value = formatNumber(parseInt(o.value.substr(1,1)) * 10 + v, max);
 						else
@@ -214,7 +214,7 @@ module tui.widget {
 				},0);
 			}).on("contextmenu", browser.cancelDefault);
 			timebar$.children("a").mousedown((e) => {
-				let now = time.today();
+				let now = time.now();
 				let newTime = new Date(this.get("year"), this.get("month") - 1, this.get("day"),
 					now.getHours(), now.getMinutes(), now.getSeconds());
 				this.set("time", newTime);
@@ -359,7 +359,7 @@ module tui.widget {
 			}
 			var tb = <HTMLTableElement>this._components["table"];
 			var tm = <Date>this.get("time");
-			var today = time.today();
+			var today = time.now();
 			var firstWeek = firstDay(tm).getDay();
 			var daysOfMonth = time.totalDaysOfMonth(tm);
 			var day = 0;

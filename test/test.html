@@ -14,7 +14,17 @@
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
 		<script>
-		
+			var memTable = [];
+			$(function(){
+				$get("test").on("click", function(){
+					var beginTime = tui.time.now();
+					for (var i = 0; i < 1000000; i++) {
+						memTable.push([i, false, i+1, false, 1]);
+					}
+					var endTime = tui.time.now();
+					tui.msgbox(endTime.getTime() - beginTime.getTime());
+				});
+			});
 		</script>
 		<style>
 			#testDiv {
@@ -33,16 +43,6 @@
 		</style>
 	</head>
 	<body>
-		<tui:check tristate={true}>三态按钮</tui:check>
-		
-		<div id="testDiv">
-			<span class="fa fa-warning" style="font-size:24px;height:24px;line-height:24px;text-align:center"></span>
-			<span style="max-width:300px;overflow:auto">一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字 
-				abcdefghigk abcdefghigk abcdefghigk abcdefghigk abcdefghigk 
-				abcdefghigk abcdefghigk abcdefghigk abcdefghigk一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字
-				一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字
-				一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文
-				字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字一段文字</span>
-		</div>
+		<tui:button id="test">测试</tui:button>
 	</body>
 </html>

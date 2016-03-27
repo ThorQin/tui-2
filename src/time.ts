@@ -9,7 +9,7 @@ module tui.time {
 	/**
 	 * Get today
 	 */
-	export function today(): Date {
+	export function now(): Date {
 		return new Date();
 	}
 
