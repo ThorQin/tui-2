@@ -1,0 +1,23 @@
+@import 'commons.less';
+
+tui\:grid {
+	display: block;
+	position: relative;
+	height: 300px;
+	overflow: auto;
+	.tui-grid-head {
+		display: block;
+		position: absolute;
+		left:0;
+		top:0;
+		right:0;
+		height: 40px;
+		background: #888;
+		z-index: 10;
+	}
+	.tui-content {
+		display: block;
+		width:1000px;
+		height:1000px;
+	}
+}
