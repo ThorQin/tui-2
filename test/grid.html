@@ -14,11 +14,19 @@
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
 		<script>
-			
+			$(function(){
+				$get("myScroll").on("scroll", function(e){
+					disp.innerHTML = e.data.value;
+					$get("vScroll").set("value", e.data.value);
+				});				
+			});
 		</script>
 		
 	</head>
 	<body>
-		<tui:grid id="test"></tui:grid>
+		<tui:scrollbar id="myScroll" style="width:200px;" total="{1000}" page="{40}" direction="horizontal"></tui:scrollbar>
+		<tui:scrollbar id="vScroll" style="height:200px;" total="{1000}" page="{40}"></tui:scrollbar>
+		
+		<div id="disp"></div>
 	</body>
 </html>

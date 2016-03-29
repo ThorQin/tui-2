@@ -168,7 +168,7 @@ module tui.widget {
 			this._data = {};
 			var elem: HTMLElement = this.getComponent();
 			if (elem != null) {
-				var dataStr = elem.getAttribute("data");
+				var dataStr = elem.getAttribute("_data");
 				var tmpData = eval("(" + dataStr + ")"); 
 				if (tmpData instanceof Object) {
 					for (let key in tmpData) {
@@ -266,14 +266,14 @@ module tui.widget {
 
 		protected init(): void {};
 		
-		appendTo(parent: HTMLElement): Widget
-		appendTo(parent: any): Widget {
+		appendTo(parent: HTMLElement, refresh?: boolean): Widget
+		appendTo(parent: any, refresh: boolean = true): Widget {
 			if (typeof parent === "string") {
 				parent = document.getElementById(parent);
 			} 
 			if (parent && typeof parent === "object" && parent.appendChild) {
 				(<HTMLElement>parent).appendChild(this._);
-				this.set("autoRefresh", true);				
+				refresh && this.set("autoRefresh", true);				
 			}
 			return this;
 		}

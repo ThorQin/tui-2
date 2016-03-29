@@ -98,7 +98,7 @@ module tui.widget {
 						this.referRect = newRect;
 						this.render();
 					}
-				}, 50);
+				}, 16);
 				$(window).on("resize scroll", this.refProc);
 			} else if (typeof refer === "object" && typeof refer.left === "number" && typeof refer.top === "number") {
 				this._set("referPos", refer);
