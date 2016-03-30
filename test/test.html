@@ -14,35 +14,20 @@
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
 		<script>
-			var memTable = [];
 			$(function(){
-				$get("test").on("click", function(){
-					var beginTime = tui.time.now();
-					for (var i = 0; i < 1000000; i++) {
-						memTable.push([i, false, i+1, false, 1]);
-					}
-					var endTime = tui.time.now();
-					tui.msgbox(endTime.getTime() - beginTime.getTime());
+				$get("s1").on("scroll", function(e){
+					$get("s2").set("page", e.data.value);
 				});
 			});
 		</script>
 		<style>
-			#testDiv {
-				white-space: nowrap;
-				word-break:keep-all;
-			}
-			#testDiv>span {
-				display: inline-block;
-				word-break:normal;
-				word-wrap:break-word;
-				border: 1px solid #ccc;
-				white-space: normal;
-				vertical-align: middle;
-				max-height: 200px;
+			tui\:scrollbar {
+				height: 300px;
 			}
 		</style>
 	</head>
 	<body>
-		<tui:button id="test">测试</tui:button>
+		<tui:scrollbar id="s1" total="{1500}" style="height:300px"></tui:scrollbar>
+		<tui:scrollbar id="s2" total="{1500}" direction="horizontal" style="width:300px"></tui:scrollbar>
 	</body>
 </html>

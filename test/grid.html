@@ -15,17 +15,45 @@
         <script type="text/javascript" src="tui2.js"></script>
 		<script>
 			$(function(){
-				$get("myScroll").on("scroll", function(e){
-					disp.innerHTML = e.data.value;
-					$get("vScroll").set("value", e.data.value);
-				});				
+				$get("grid").set("data", [
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4],
+					[1,2,3,4]
+				]);
 			});
 		</script>
 		
 	</head>
 	<body>
-		<tui:scrollbar id="myScroll" style="width:200px;" total="{1000}" page="{40}" direction="horizontal"></tui:scrollbar>
-		<tui:scrollbar id="vScroll" style="height:200px;" total="{1000}" page="{40}"></tui:scrollbar>
+		<tui:grid id="grid" style='position:absolute;left:20px;top:20px;right:20px;bottom:20px;'></tui:grid>
 		
 		<div id="disp"></div>
 	</body>

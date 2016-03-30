@@ -3,37 +3,67 @@
 tui\:grid {
 	display: block;
 	position: relative;
-	height: 300px;
-	border: 1px solid #555;
+	border: 1px solid @borderColor;
+	overflow: hidden;
+	background-color: @scrollBackColor;
 	.tui-grid-head {
 		display: block;
 		position: absolute;
 		left:0;
 		top:0;
 		right:0;
-		height: 40px;
+		height: @gridLineHeight;
+		line-height: @gridLineHeight;
 		background: #f0f0f0;
 		z-index: 10;
 	}
-	.tui-grid-container {
-		display: block;
-		position: relative;
-		width:100%;
-		background-color: #fff0f0; 
-		overflow: auto;
-		z-index: 9;
-	}
 	.tui-content {
 		display: block;
-		position: relative;
-		width:1000px;
-		height:500000000px;
-		&:after {
-			content:"test bottom message";
+		position: absolute;
+		top:0;
+		left:0;
+		background-color: @windowColor;
+	}
+	
+	tui\:scrollbar {
+		&.tui-horizontal {
 			display: block;
 			position: absolute;
-			left: 0;
-			bottom: 0;
+			left:0;
+			bottom:0;
+			z-index: 11;
+			&.tui-hidden {
+				display: none;
+			}
 		}
+	}
+	
+	tui\:scrollbar {
+		&.tui-vertical {
+			display: block;
+			position: absolute;
+			top:0;
+			right:0;
+			z-index: 11;
+			&.tui-hidden {
+				display: none;
+			}
+		}
+	}
+	
+	.tui-grid-line, .tui-grid-test {
+		height: @gridLineHeight;
+		line-height: @gridLineHeight;
+		border: 0;
+		padding: 0;
+		margin: 0;
+	}
+	
+	.tui-grid-test {
+		display: block;
+		position: absolute;
+		visibility: hidden;
+		top: 0px;
+		left: 0px;
 	}
 }

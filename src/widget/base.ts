@@ -261,6 +261,8 @@ module tui.widget {
 
 	export abstract class Widget extends WidgetBase {
 
+		private _lastWidth: number = null;
+		private _lastHeight: number = null;
 		protected _components: { [index: string]: HTMLElement } = {};
 		_: HTMLElement;
 
@@ -329,6 +331,18 @@ module tui.widget {
 			});
 		}
 		
+		testResize() {
+			if (!browser.isInDoc(this._))
+				return;
+			if (this._.offsetWidth != this._lastWidth) {
+				this._lastWidth = this._.offsetWidth;
+				this.fire("resize");
+			} else if (this._.offsetHeight != this._lastHeight) {
+				this._lastHeight = this._.offsetHeight;
+				this.fire("resize");
+			}
+		}
+		
 		getComponent(name?: string): HTMLElement {
 			if (arguments.length > 0) {
 				return this._components[name];
@@ -371,7 +385,7 @@ module tui.widget {
 			}
 			this.initChildren(childNodes);
 			if (typeof initParam !== UNDEFINED) {
-				this.setInit(initParam);
+				this._set(initParam);
 			}
 			this.init();
 			if (script.length > 0) {
@@ -492,7 +506,7 @@ module tui.widget {
 		for (let item of initSet) {
 			let elem = item[0];
 			let constructor = item[1];
-			try {
+			//try {
 				if (!(<any>elem).__widget__) {
 					let widget: Widget = new constructor(elem);
 					if (typeof initFunc === "function") {
@@ -504,9 +518,9 @@ module tui.widget {
 					let widget: Widget = (<any>elem).__widget__;
 					widget.refresh();
 				}
-			} catch (e) {
-				if (console) console.error(e.message);
-			}
+			//} catch (e) {
+			//	if (console) console.error(e.message);
+			//}
 		}
 	}
 	
@@ -558,9 +572,45 @@ module tui.widget {
 	$(window).scroll(() => { closeTooltip(); });
 	
 
+	// Detecting which widgets was resied.
+	var resizeRegistration: string[] = [];
+
+	export function registerResize(constructor: { new (elem: HTMLElement, initParam?: { [index: string]: any }): any; }) {
+		resizeRegistration.push("tui:" + text.toDashSplit(getClassName(constructor)));
+	}
+	
+	var detectResize: () => void;
 	$(window.document).ready(function() {
 		init(document.body);
 		tui.event.fire("initialized");
+		if (typeof (<any>document.body).scopeName === "string") {
+			detectResize = function(){
+				for (var i = 0; i < resizeRegistration.length; i++) {
+					let nodes = document.getElementsByTagName(resizeRegistration[i].substr(4));
+					for (var i = 0; i < nodes.length; i++) {
+						var node: any = nodes[i];
+						if (node.scopeName.toUpperCase() !== "TUI" && node.__widget__) {
+							(<Widget>node.__widget__).testResize();
+						}
+					}
+				}
+				requestAnimationFrame(detectResize);
+			};
+		} else {
+			detectResize = function(){
+				for (var i = 0; i < resizeRegistration.length; i++) {
+					let nodes = document.getElementsByTagName(resizeRegistration[i]);
+					for (var i = 0; i < nodes.length; i++) {
+						var node: any = nodes[i];
+						if (node.__widget__) {
+							(<Widget>node.__widget__).testResize();
+						}
+					}
+				}
+				requestAnimationFrame(detectResize);
+			};
+		}
+		requestAnimationFrame(detectResize);
 	});
 }
 
