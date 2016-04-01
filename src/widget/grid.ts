@@ -5,7 +5,10 @@ module tui.widget {
 
 	export class Grid extends Widget {
 		
-		private _lineHeight: number = 26;
+		private _lineHeight: number; // 26
+		private _setupHeadMoveListener: boolean = false;
+		private _vbar: Scrollbar;
+		private _hbar: Scrollbar;
 		
 		protected initRestriction(): void {
 			super.initRestriction();
@@ -20,8 +23,8 @@ module tui.widget {
 						else if (value instanceof Array) {
 							this._data["data"] = new ds.List(value);
 						}
-						get(this._components["vScroll"])._set("value", 0);
-						get(this._components["hScroll"])._set("value", 0);
+						this._vbar._set("value", 0);
+						this._hbar._set("value", 0);
 					},
 					"get": (): any => {
 						var data = this._data["data"];
@@ -39,8 +42,8 @@ module tui.widget {
 						else if (value instanceof Array) {
 							this._data["data"] = new ds.List(value);
 						}
-						get(this._components["vScroll"])._set("value", 0);
-						get(this._components["hScroll"])._set("value", 0);
+						this._vbar._set("value", 0);
+						this._hbar._set("value", 0);
 					},
 					"get": (): any => {}
 				},
@@ -52,27 +55,39 @@ module tui.widget {
 						else if (value instanceof Array) {
 							this._data["data"] = new ds.Tree(value);
 						}
-						get(this._components["vScroll"])._set("value", 0);
-						get(this._components["hScroll"])._set("value", 0);
+						this._vbar._set("value", 0);
+						this._hbar._set("value", 0);
 					},
 					"get": (): any => {}
 				},
 				"scrollTop": {
 					"set": (value: any) => {
-						get(this._components["vScroll"])._set("value", value);
+						this._vbar._set("value", value);
 					},
 					"get": (): any => {
-						return get(this._components["vScroll"]).get("value");
+						return this._vbar.get("value");
 					}
 				},
 				"scrollLeft": {
 					"set": (value: any) => {
-						get(this._components["hScroll"])._set("value", value);
+						this._hbar._set("value", value);
 					},
 					"get": (): any => {
-						return get(this._components["hScroll"]).get("value");
+						return this._hbar.get("value");
 					}
-				}
+				},
+				"autoHeight": {
+					"set": (value: any) => {
+						this._data["autoHeight"] = value;
+						this.setupHeaderMonitor();
+					}
+				},
+				"fixedTop": {
+					"set": (value: any) => {
+						this._data["fixedTop"] = value;
+						this.setupHeaderMonitor();
+					}
+				},
 			});
 		}
 
@@ -81,10 +96,10 @@ module tui.widget {
 			this._.innerHTML = "<div class='tui-grid-head'></div><div class='tui-content'></div>";
 			var head = this._components["head"] = $(this._).children(".tui-grid-head")[0];
 			var content = this._components["content"] = $(this._).children(".tui-content")[0];
-			var hbar = <Scrollbar>tui.create("scrollbar", {direction: "horizontal"});
-			this._components["hScroll"] = hbar.appendTo(this._, false)._;
-			var vbar = <Scrollbar>tui.create("scrollbar");
-			this._components["vScroll"] = vbar.appendTo(this._, false)._;
+			this._hbar = <Scrollbar>tui.create("scrollbar", {direction: "horizontal"});
+			this._components["hScroll"] = this._hbar.appendTo(this._, false)._;
+			this._vbar = <Scrollbar>tui.create("scrollbar");
+			this._components["vScroll"] = this._vbar.appendTo(this._, false)._;
 			
 			var testDiv = browser.toElement("<div class='tui-grid-test'>test</div>")
 			document.body.appendChild(testDiv);
@@ -92,9 +107,29 @@ module tui.widget {
 			document.body.removeChild(testDiv);
 			
 			this.setInit("header", true);
-			
 			this.on("resize", () => {
+				this.setupHeaderMonitor();
 				this.render();
+			});
+			this._vbar.on("scroll", () => {
+				this.drawContent();
+			});
+			this._hbar.on("scroll", () => {
+				this.drawContent();
+			});
+			var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
+			$(this._).on(mousewheelevt, (ev) => {
+				if (this.get("autoHeight"))
+					return;
+				var e = <any>ev.originalEvent;
+				var delta = e.detail ? e.detail * (-120) : e.wheelDelta;
+				var step = Math.round(this._vbar.get("page") / 2);
+				//delta returns +120 when wheel is scrolled up, -120 when scrolled down
+				var scrollSize = step > 1 ? step : 1;
+				ev.stopPropagation();
+				ev.preventDefault();
+				this._vbar.set("value", this._vbar.get("value") + (delta <= -120 ? scrollSize : -scrollSize));
+				this.drawContent();
 			});
 		}
 		
@@ -103,26 +138,31 @@ module tui.widget {
 		}
 		
 		private computeScroll() {
-			var vScroll = get(this._components["vScroll"]);
+			var vScroll = this._vbar;
 			$(vScroll._).addClass("tui-hidden");
 			var vEnable = false;
-			var hScroll = get(this._components["hScroll"]);
+			var hScroll = this._hbar;
 			$(hScroll._).addClass("tui-hidden");
 			var hEnable = false;
 			var clientWidth = this._.clientWidth;
 			var clientHeight = this._.clientHeight;
 			var data = <ds.DS>this.get("data");
-			var contentHeight = data.length() * this._lineHeight + (this.get("header") ? this._lineHeight : 0);
+			var contentHeight = (data.length() + (this.get("header") ? 1 : 0)) * this._lineHeight;
 			var contentWidth = this.get("autoWidth") ? 0 : this.computeWidth();
+			var head = this._components["head"];
+			var content = this._components["content"];
 			
 			var computeV = (first: boolean) => {
-				var shouldEnable = contentHeight > clientHeight;
+				var shouldEnable = (this.get("autoHeight") ? false : contentHeight > clientHeight);
 				if (shouldEnable) {
 					$(vScroll._).removeClass("tui-hidden");
 					var scrollHeight = hEnable ? clientHeight - hScroll._.offsetHeight : clientHeight;
 					vScroll._.style.height = scrollHeight + "px";
 					vScroll._set("total", contentHeight - clientHeight);
 					vScroll.set("page", clientHeight / contentHeight * (contentHeight - clientHeight));
+				} else if (this.get("autoHeight")) {
+					content.style.height = contentHeight + "px";
+					this._.style.height = contentHeight + "px";
 				}
 				if (vEnable !== shouldEnable) {
 					vEnable = shouldEnable;
@@ -148,8 +188,7 @@ module tui.widget {
 			
 			computeV(true);
 			computeH();
-			var head = this._components["head"];
-			var content = this._components["content"];
+			
 			if (this.get("header")) {
 				head.style.display = "block";
 				head.style.width = (vEnable ? clientWidth - vScroll._.offsetWidth : clientWidth) + "px";
@@ -160,8 +199,56 @@ module tui.widget {
 			content.style.height = (hEnable ? clientHeight - hScroll._.offsetHeight : clientHeight) + "px";
 		}
 		
+		private drawLine(line: number) {
+			
+		}
+		
 		private drawContent() {
 			
+		}
+		
+		private moveHeader = (() => {
+			var me = this;
+			return function() {
+				if (me.get("autoHeight")) {
+					var fixedTop = me.get("fixedTop");
+					if (typeof fixedTop === "number" && fixedTop >= 0) {
+						var header = me._components["head"];
+						//var scrollWindow = browser.getWindowScrollElement();
+						header.style.position = "absolute";
+						header.style.left = "0";
+						header.style.top = "0";
+						var rect = browser.getRectOfScreen(header);
+						if (rect.top < fixedTop) {
+							header.style.position = "fixed";
+							header.style.left = rect.left + "px";
+							header.style.top = fixedTop + "px";
+						}
+					} else {
+						me.setupHeaderMonitor();
+					}
+				} else {
+					me.setupHeaderMonitor();
+				}
+			}
+		})();
+		
+		private setupHeaderMonitor() {
+			if (this.get("autoHeight") && 
+				typeof this.get("fixedTop") === "number" && 
+				this.get("fixedTop") >= 0) {
+				if (!this._setupHeadMoveListener) {
+					$(window).on("scroll", this.moveHeader);
+					$(window).on("resize", this.moveHeader);
+					this._setupHeadMoveListener = true;
+				}
+			} else {
+				if (this._setupHeadMoveListener) {
+					$(window).off("scroll", this.moveHeader);
+					$(window).off("resize", this.moveHeader);
+					this._setupHeadMoveListener = false;
+				}
+			}
 		}
 		
 		render(): void {

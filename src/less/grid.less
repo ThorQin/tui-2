@@ -52,6 +52,7 @@ tui\:grid {
 	}
 	
 	.tui-grid-line, .tui-grid-test {
+		display: block;
 		height: @gridLineHeight;
 		line-height: @gridLineHeight;
 		border: 0;
@@ -59,11 +60,18 @@ tui\:grid {
 		margin: 0;
 	}
 	
-	.tui-grid-test {
-		display: block;
-		position: absolute;
-		visibility: hidden;
-		top: 0px;
-		left: 0px;
-	}
+	
+}
+
+.tui-grid-test {
+	display: block;
+	position: absolute;
+	visibility: hidden;
+	height: @gridLineHeight;
+	line-height: @gridLineHeight;
+	top: 0px;
+	left: 0px;
+	border: 0;
+	padding: 0;
+	margin: 0;
 }
