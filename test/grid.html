@@ -15,45 +15,28 @@
         <script type="text/javascript" src="tui2.js"></script>
 		<script>
 			$(function(){
-				$get("grid").set("data", [
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4],
-					[1,2,3,4]
+				var data = [];
+				for (var i = 0; i < 1000; i++) {
+					data.push({name: "name column: " + i, value: "value " + i});
+				}
+				
+				$get("grid").set("data", data);
+				$get("grid").set("columns", [
+					{name: "name column", key: "name"}, 
+					{name: "value column", key: "value"}
 				]);
+				
+				tui.browser.keepToTop($("#toolbar")[0]);
+				tui.browser.keepToTop($get("grid").getComponent("head"), 60);
 			});
 		</script>
 		
 	</head>
 	<body>
-		<tui:grid id="grid" auto-height="{true}" fixed-top="{0}" style='position:absolute;left:20px;top:20px;right:20px;bottom:20px;'></tui:grid>
+		<div style="height:60px;">
+			<div id="toolbar" style="background-color:#eee;height:60px;line-height:60px;text-align:center">一个工具栏</div>
+		</div>
+		<tui:grid id="grid" auto-height={false} style="height:300px;"></tui:grid>
 		
 		<div id="disp"></div>
 	</body>

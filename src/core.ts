@@ -105,7 +105,7 @@ module tui {
 		 * @param eventName
 		 * @param handler Which handler to be unregistered if don't specified then unregister all handler
 		 */
-		unbind(eventName: string, handler: EventHandler): EventObject {
+		unbind(eventName: string, handler?: EventHandler): EventObject {
 			if (!eventName)
 				return this;
 			var handlers = this._events[eventName];

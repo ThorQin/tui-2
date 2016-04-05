@@ -2,19 +2,56 @@
 
 module tui.widget {
 	"use strict";
+	
+	interface BufferInfo {
+		begin: number;
+		end: number;
+		lines: HTMLElement[];
+	}
+	
+	interface ColumnInfo {
+		name: string;
+		width?: number;
+		key?: string;
+		type?: string;
+		icon?: string;
+		sortable?: boolean;
+		checkable?: boolean;
+	}
 
 	export class Grid extends Widget {
 		
+		private _tuid: string;
 		private _lineHeight: number; // 26
 		private _setupHeadMoveListener: boolean = false;
 		private _vbar: Scrollbar;
 		private _hbar: Scrollbar;
+		private _dispLines: number;
+		private _buffer: BufferInfo;
+		private _contentWidth: number;
+		private _contentHeight: number;
 		
 		protected initRestriction(): void {
+			
+			// Register update callback routine
+			var updateCallback: (data: EventInfo) => any = (() => {
+				var me = this;
+				return function(data: EventInfo): any{
+					if (data.data["completely"]) {
+						me.render();
+					} else {
+						me.drawContent();
+					}
+				};
+			})();
+			
 			super.initRestriction();
 			this.setRestrictions({
 				"data": {
 					"set": (value: any) => {
+						if (this._data["data"] && typeof (<any>this._data["data"]).off === "function") {
+							(<any>this._data["data"]).off("update", updateCallback);
+						}
 						if (value instanceof ds.List ||
 							value instanceof ds.RemoteList ||
 							value instanceof ds.Tree ||
@@ -22,6 +59,9 @@ module tui.widget {
 							this._data["data"] = value;
 						else if (value instanceof Array) {
 							this._data["data"] = new ds.List(value);
+						}
+						if (this._data["data"] && typeof (<any>this._data["data"]).on === "function") {
+							(<any>this._data["data"]).on("update", updateCallback);
 						}
 						this._vbar._set("value", 0);
 						this._hbar._set("value", 0);
@@ -38,25 +78,35 @@ module tui.widget {
 					"set": (value: any) => {
 						if (value instanceof ds.List ||
 							value instanceof ds.RemoteList)
-							this._data["data"] = value;
+							this._set("data", value);
 						else if (value instanceof Array) {
-							this._data["data"] = new ds.List(value);
+							this._set("data", new ds.List(value));
 						}
-						this._vbar._set("value", 0);
-						this._hbar._set("value", 0);
 					},
 					"get": (): any => {}
+				},
+				"columns": {
+					"set": (value: any) => {
+						if (value instanceof Array) {
+							this._data["columns"] = value;
+							this.clearBuffer();
+						}
+					},
+					"get": (): any => {
+						if (this._data["columns"])
+							return this._data["columns"];
+						else
+							return [];
+					}
 				},
 				"tree": {
 					"set": (value: any) => {
 						if (value instanceof ds.Tree ||
 							value instanceof ds.RemoteTree)
-							this._data["data"] = value;
+							this._set("data", value);
 						else if (value instanceof Array) {
-							this._data["data"] = new ds.Tree(value);
+							this._set("data", new ds.Tree(value));
 						}
-						this._vbar._set("value", 0);
-						this._hbar._set("value", 0);
 					},
 					"get": (): any => {}
 				},
@@ -75,23 +125,12 @@ module tui.widget {
 					"get": (): any => {
 						return this._hbar.get("value");
 					}
-				},
-				"autoHeight": {
-					"set": (value: any) => {
-						this._data["autoHeight"] = value;
-						this.setupHeaderMonitor();
-					}
-				},
-				"fixedTop": {
-					"set": (value: any) => {
-						this._data["fixedTop"] = value;
-						this.setupHeaderMonitor();
-					}
-				},
+				}
 			});
 		}
 
 		protected init(): void {
+			this._tuid = tuid();
 			$(this._).attr({"tabIndex": 0, "unselectable": "on"});
 			this._.innerHTML = "<div class='tui-grid-head'></div><div class='tui-content'></div>";
 			var head = this._components["head"] = $(this._).children(".tui-grid-head")[0];
@@ -106,9 +145,10 @@ module tui.widget {
 			this._lineHeight = testDiv.offsetHeight;
 			document.body.removeChild(testDiv);
 			
+			this._buffer = { begin: 0, end: 0, lines: [] };
+			
 			this.setInit("header", true);
 			this.on("resize", () => {
-				this.setupHeaderMonitor();
 				this.render();
 			});
 			this._vbar.on("scroll", () => {
@@ -134,7 +174,12 @@ module tui.widget {
 		}
 		
 		private computeWidth(): number {
-			return 1000;
+			if (this.get("autoWidth")) {
+				return this._.clientWidth;
+			} else {
+				
+				return 1000;
+			}
 		}
 		
 		private computeScroll() {
@@ -147,22 +192,28 @@ module tui.widget {
 			var clientWidth = this._.clientWidth;
 			var clientHeight = this._.clientHeight;
 			var data = <ds.DS>this.get("data");
-			var contentHeight = (data.length() + (this.get("header") ? 1 : 0)) * this._lineHeight;
-			var contentWidth = this.get("autoWidth") ? 0 : this.computeWidth();
+			this._contentHeight = (data.length() + (this.get("header") ? 1 : 0)) * this._lineHeight;
+			this._contentWidth = this.computeWidth();
 			var head = this._components["head"];
 			var content = this._components["content"];
 			
 			var computeV = (first: boolean) => {
-				var shouldEnable = (this.get("autoHeight") ? false : contentHeight > clientHeight);
+				var shouldEnable = (this.get("autoHeight") ? false : this._contentHeight > clientHeight);
 				if (shouldEnable) {
 					$(vScroll._).removeClass("tui-hidden");
 					var scrollHeight = hEnable ? clientHeight - hScroll._.offsetHeight : clientHeight;
 					vScroll._.style.height = scrollHeight + "px";
-					vScroll._set("total", contentHeight - clientHeight);
-					vScroll.set("page", clientHeight / contentHeight * (contentHeight - clientHeight));
+					vScroll._set("total", this._contentHeight - clientHeight);
+					vScroll.set("page", clientHeight / this._contentHeight * (this._contentHeight - clientHeight));
 				} else if (this.get("autoHeight")) {
-					content.style.height = contentHeight + "px";
-					this._.style.height = contentHeight + "px";
+					vScroll._set("value", 0);
+					content.style.height = this._contentHeight + "px";
+					if (hEnable) {
+						this._.style.height = this._contentHeight + hScroll._.offsetHeight + "px";
+					} else {
+						this._.style.height = this._contentHeight + "px";
+					}
+					clientHeight = this._.clientHeight;
 				}
 				if (vEnable !== shouldEnable) {
 					vEnable = shouldEnable;
@@ -172,13 +223,13 @@ module tui.widget {
 			};
 			
 			var computeH = () => {
-				var shouldEnable = (this.get("autoWidth") ? false : contentWidth > clientWidth);
+				var shouldEnable = (this.get("autoWidth") ? false : this._contentWidth > clientWidth);
 				if (shouldEnable) {
 					$(hScroll._).removeClass("tui-hidden");
 					var scrollWidth = vEnable ? clientWidth - vScroll._.offsetWidth : clientWidth;
 					hScroll._.style.width = scrollWidth + "px";
-					hScroll._set("total", contentWidth - clientWidth);
-					hScroll.set("page", clientWidth / contentWidth * (contentWidth - clientWidth));
+					hScroll._set("total", this._contentWidth - clientWidth);
+					hScroll.set("page", clientWidth / this._contentWidth * (this._contentWidth - clientWidth));
 				}
 				if (hEnable !== shouldEnable) {
 					hEnable = shouldEnable;
@@ -196,59 +247,86 @@ module tui.widget {
 				head.style.display = "none";
 			}
 			content.style.width = (vEnable ? clientWidth - vScroll._.offsetWidth : clientWidth) + "px";
-			content.style.height = (hEnable ? clientHeight - hScroll._.offsetHeight : clientHeight) + "px";
+			var dispHeight = (hEnable ? clientHeight - hScroll._.offsetHeight : clientHeight);
+			content.style.height = dispHeight + "px";
+			this._dispLines = Math.ceil((dispHeight - (this.get("header") ? this._lineHeight : 0 )) / this._lineHeight);
 		}
 		
-		private drawLine(line: number) {
-			
+		private drawLine(line: HTMLElement, index: number, columns: ColumnInfo[], lineData: any) {
+			for (var i = 0; i < columns.length; i++) {
+				(<HTMLElement>line.childNodes[i].firstChild).innerHTML = lineData[columns[i].key];
+			}
+		}
+		
+		private moveLine(line: HTMLElement, index: number, base: number) {
+			line.style.top = (base + index * this._lineHeight) + "px";
+			line.style.width = this._contentWidth + "px";
+		}
+
+		private createLine(parent: HTMLElement): HTMLElement {
+			var columns = <ColumnInfo[]>this.get("columns");
+			var line = document.createElement("div");
+			line.className = "tui-grid-line";
+			for (var i = 0; i < columns.length; i++) {
+				var span = document.createElement("span");
+				var text = document.createElement("span");
+				var icon = document.createElement("i");
+				span.appendChild(text);
+				span.appendChild(icon);
+				span.className = this._tuid + "-col-" + i;
+				line.appendChild(span);
+			}
+			console.info("create a line");
+			return <HTMLElement>parent.appendChild(line);
+		}
+		
+		private clearBuffer() {
+			var content = this._components["content"];
+			for (var i = 0; i < this._buffer.lines.length; i++) {
+				content.removeChild(this._buffer.lines[i]);
+			}
+			this._buffer.begin = 0;
+			this._buffer.end = 0;
+			this._buffer.lines = [];
 		}
 		
 		private drawContent() {
-			
-		}
-		
-		private moveHeader = (() => {
-			var me = this;
-			return function() {
-				if (me.get("autoHeight")) {
-					var fixedTop = me.get("fixedTop");
-					if (typeof fixedTop === "number" && fixedTop >= 0) {
-						var header = me._components["head"];
-						//var scrollWindow = browser.getWindowScrollElement();
-						header.style.position = "absolute";
-						header.style.left = "0";
-						header.style.top = "0";
-						var rect = browser.getRectOfScreen(header);
-						if (rect.top < fixedTop) {
-							header.style.position = "fixed";
-							header.style.left = rect.left + "px";
-							header.style.top = fixedTop + "px";
-						}
-					} else {
-						me.setupHeaderMonitor();
-					}
+			var vbar = get(this._components["vScroll"]);
+			var content = this._components["content"];
+			var base = (this.get("header") ? this._lineHeight : 0) - vbar.get("value") % this._lineHeight;
+			var begin = Math.floor(vbar.get("value") / this._lineHeight);
+			var end = begin + this._dispLines + 1;
+			var data = <ds.DS>this.get("data");
+			var columns = <ColumnInfo[]>this.get("columns");
+			var length = data.length();
+			var newBuffer: HTMLElement[] = [];
+			var reusable: HTMLElement[] = [];
+			for (var i = this._buffer.begin; i < this._buffer.end; i++) {
+				if (i < begin || i >= end || i >= length) {
+					reusable.push(this._buffer.lines[i - this._buffer.begin]);
+				}
+			}
+			for (var i = begin; i < end && i < length; i++) {
+				var line: HTMLElement;
+				if (i >= this._buffer.begin && i < this._buffer.end) { // Is buffered.
+					line = this._buffer.lines[i - this._buffer.begin];
+				} else if (reusable.length > 0) { // has reusable
+					line = reusable.pop();
+					this.drawLine(line, i, columns, data.get(i));
 				} else {
-					me.setupHeaderMonitor();
+					line = this.createLine(content);
+					this.drawLine(line, i, columns, data.get(i));
 				}
+				
+				this.moveLine(line, i - begin, base);
+				newBuffer.push(line);
 			}
-		})();
-		
-		private setupHeaderMonitor() {
-			if (this.get("autoHeight") && 
-				typeof this.get("fixedTop") === "number" && 
-				this.get("fixedTop") >= 0) {
-				if (!this._setupHeadMoveListener) {
-					$(window).on("scroll", this.moveHeader);
-					$(window).on("resize", this.moveHeader);
-					this._setupHeadMoveListener = true;
-				}
-			} else {
-				if (this._setupHeadMoveListener) {
-					$(window).off("scroll", this.moveHeader);
-					$(window).off("resize", this.moveHeader);
-					this._setupHeadMoveListener = false;
-				}
+			for (var i = 0; i < reusable.length; i++) {
+				content.removeChild(reusable[i]);
 			}
+			this._buffer.lines = newBuffer;
+			this._buffer.begin = begin;
+			this._buffer.end = this._buffer.begin + this._buffer.lines.length;
 		}
 		
 		render(): void {

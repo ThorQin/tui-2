@@ -23,6 +23,7 @@ tui\:grid {
 		top:0;
 		left:0;
 		background-color: @windowColor;
+		overflow: hidden;
 	}
 	
 	tui\:scrollbar {
@@ -53,13 +54,21 @@ tui\:grid {
 	
 	.tui-grid-line, .tui-grid-test {
 		display: block;
+		position: absolute;
 		height: @gridLineHeight;
 		line-height: @gridLineHeight;
-		border: 0;
+		border: none;
+		border-bottom: 1px solid #ddd;
 		padding: 0;
 		margin: 0;
+		white-space: nowrap;
+		word-break: keep-all;
 	}
-	
+	.tui-grid-line > span {
+		display: inline-block;
+		height: @gridLineHeight;
+		line-height: @gridLineHeight;
+	}
 	
 }
 

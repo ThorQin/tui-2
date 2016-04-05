@@ -93,13 +93,14 @@ module tui.ds {
 		}
 		
 		update(result: QueryResult) {
+			var completely = this._length != result.length;
 			this._length = result.length;
 			if (this._fillCache === 1) {
 				this._cache1 = {page: this.getIndexPage(result.begin), data: result.data};
 			} else if (this._fillCache === 2) {
 				this._cache2 = {page: this.getIndexPage(result.begin), data: result.data};
 			}
-			this.fire("update");
+			this.fire("update", {"completely": completely});
 		}
 		
 		reset() {
@@ -272,7 +273,7 @@ module tui.ds {
 					this.expand(index);
 				}
 			}
-			this.fire("update");
+			this.fire("update", {"completely": true});
 		}
 	}
 }

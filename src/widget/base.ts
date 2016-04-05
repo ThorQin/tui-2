@@ -122,7 +122,7 @@ module tui.widget {
 	function parseValue(value: string): any {
 		if (value === null || value.length === 0)
 			return null;
-		if (/^\{.+\}$/.test(value)) {
+		if (/^\{(.|\r|\n)+\}$/m.test(value)) {
 			value = value.substring(1, value.length - 1);
 			return eval("(" + value + ")");
 		} else

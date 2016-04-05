@@ -209,7 +209,7 @@ module tui.widget {
 				scale = 0;
 			if (scale > 1)
 				scale = 1;
-			var pos = Math.round(scale * (len - thumbLen)) - 1;
+			var pos = Math.round(scale * (len - thumbLen));
 			return {
 				"pos": pos, "thumbLen": thumbLen
 			};

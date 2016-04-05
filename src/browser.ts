@@ -185,6 +185,73 @@ module tui.browser {
 			return window.document.body;
 		}
 	}
+	
+	interface KeepInfo {
+		keepTop: boolean;
+		elem: HTMLElement;
+		top: number; 
+		oldPosition?: string;
+		oldTop?: string;
+		oldLeft?: string;
+		oldWidth?: string;
+		oldZIndex?: string;
+		scrollTop?: number;
+		scrollLeft?: number;
+		itemLeft?:number;
+	}
+	
+	var keepTopList: KeepInfo[] = [];
+	function keepTopProc() {
+		var scrollWindow = browser.getWindowScrollElement();
+		for (var item of keepTopList) {
+			var rect = browser.getRectOfScreen(item.elem);
+			if (rect.top < item.top) {
+				item.oldPosition = item.elem.style.position;
+				item.oldTop = item.elem.style.top;
+				item.oldLeft = item.elem.style.left;
+				item.oldWidth = item.elem.style.width;
+				item.oldZIndex = item.elem.style.zIndex;
+				item.scrollTop = scrollWindow.scrollTop;
+				item.scrollLeft = scrollWindow.scrollLeft;
+				item.elem.style.zIndex = "1000";
+				item.elem.style.width = item.elem.clientWidth + "px";
+				item.elem.style.position = "fixed";
+				item.elem.style.top = item.top + "px";
+				item.elem.style.left = rect.left + "px";
+				item.itemLeft = rect.left;
+				item.keepTop = true;
+			} else if (scrollWindow.scrollTop < item.scrollTop) {
+				item.elem.style.position = item.oldPosition;
+				item.elem.style.top = item.oldTop;
+				item.elem.style.left = item.oldLeft;
+				item.elem.style.width = item.oldWidth;
+				item.keepTop = false;
+			} else if (item.keepTop) {
+				item.elem.style.left = (item.itemLeft - scrollWindow.scrollLeft + item.scrollLeft) + "px";
+			}
+		}
+	}
+	$(window).scroll(keepTopProc);
+		
+	export function keepToTop(elem: HTMLElement, top: number = 0) {
+		keepTopList.push({keepTop: false, elem: elem, top: top});
+	}
+	
+	export function cancelKeepToTop(elem: HTMLElement, top: number) {
+		var newList: KeepInfo[] = [];
+		for (var item of keepTopList) {
+			if (item.elem !== elem) {
+				newList.push(item);
+			} else {
+				item.elem.style.position = item.oldPosition;
+				item.elem.style.top = item.oldTop;
+				item.elem.style.left = item.oldLeft;
+				item.elem.style.width = item.oldWidth;
+				item.keepTop = false;
+			}
+		}
+		keepTopList = newList;
+	}
 
 	
 	/**
