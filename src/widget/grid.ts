@@ -198,13 +198,13 @@ module tui.widget {
 			var content = this._components["content"];
 			
 			var computeV = (first: boolean) => {
-				var shouldEnable = (this.get("autoHeight") ? false : this._contentHeight > clientHeight);
+				var realClientHeight = clientHeight - (hEnable ? hScroll._.offsetHeight : 0);
+				var shouldEnable = (this.get("autoHeight") ? false : this._contentHeight > realClientHeight);
 				if (shouldEnable) {
 					$(vScroll._).removeClass("tui-hidden");
-					var scrollHeight = hEnable ? clientHeight - hScroll._.offsetHeight : clientHeight;
-					vScroll._.style.height = scrollHeight + "px";
-					vScroll._set("total", this._contentHeight - clientHeight);
-					vScroll.set("page", clientHeight / this._contentHeight * (this._contentHeight - clientHeight));
+					vScroll._.style.height = realClientHeight + "px";
+					vScroll._set("total", this._contentHeight - realClientHeight);
+					vScroll.set("page", realClientHeight / this._contentHeight * (this._contentHeight - realClientHeight));
 				} else if (this.get("autoHeight")) {
 					vScroll._set("value", 0);
 					content.style.height = this._contentHeight + "px";
@@ -223,13 +223,13 @@ module tui.widget {
 			};
 			
 			var computeH = () => {
-				var shouldEnable = (this.get("autoWidth") ? false : this._contentWidth > clientWidth);
+				var realClientWidth = clientWidth - (vEnable ? vScroll._.offsetWidth : 0);
+				var shouldEnable = (this.get("autoWidth") ? false : this._contentWidth > realClientWidth);
 				if (shouldEnable) {
 					$(hScroll._).removeClass("tui-hidden");
-					var scrollWidth = vEnable ? clientWidth - vScroll._.offsetWidth : clientWidth;
-					hScroll._.style.width = scrollWidth + "px";
-					hScroll._set("total", this._contentWidth - clientWidth);
-					hScroll.set("page", clientWidth / this._contentWidth * (this._contentWidth - clientWidth));
+					hScroll._.style.width = realClientWidth + "px";
+					hScroll._set("total", this._contentWidth - realClientWidth);
+					hScroll.set("page", realClientWidth / this._contentWidth * (this._contentWidth - realClientWidth));
 				}
 				if (hEnable !== shouldEnable) {
 					hEnable = shouldEnable;
