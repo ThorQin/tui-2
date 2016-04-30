@@ -23,11 +23,18 @@
 				$get("grid").set("data", data);
 				$get("grid").set("columns", [
 					{name: "name column", key: "name"}, 
+					{name: "value column", key: "value"},
+					{name: "value column", key: "value"},
+					{name: "value column", key: "value"},
+					{name: "value column", key: "value"},
+					{name: "value column", key: "value"},
+					{name: "value column", key: "value"},
+					{name: "value column", key: "value"},
 					{name: "value column", key: "value"}
 				]);
 				
 				tui.browser.keepToTop($("#toolbar")[0]);
-				tui.browser.keepToTop($get("grid").getComponent("head"), 60);
+				//tui.browser.keepToTop($get("grid").getComponent("head"), 60);
 			});
 		</script>
 		
@@ -36,7 +43,7 @@
 		<div style="height:60px;">
 			<div id="toolbar" style="background-color:#eee;height:60px;line-height:60px;text-align:center">一个工具栏</div>
 		</div>
-		<tui:grid id="grid" auto-height={false} style="height:300px;"></tui:grid>
+		<tui:grid id="grid" auto-height={false} style="height:500px;" auto-width={false}></tui:grid>
 		
 		<div id="disp"></div>
 	</body>

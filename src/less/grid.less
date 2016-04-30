@@ -12,10 +12,20 @@ tui\:grid {
 		left:0;
 		top:0;
 		right:0;
+		border-bottom: 1px solid #ddd;
 		height: @gridLineHeight;
 		line-height: @gridLineHeight;
 		background: #f0f0f0;
 		z-index: 10;
+		white-space: nowrap;
+		word-break: keep-all;
+	}
+	.tui-grid-head>div {
+		position: absolute;
+		top:0;
+		left:0;
+		bottom:0;
+		right: 0;
 	}
 	.tui-content {
 		display: block;
@@ -32,7 +42,7 @@ tui\:grid {
 			position: absolute;
 			left:0;
 			bottom:0;
-			z-index: 11;
+			z-index: 20;
 			&.tui-hidden {
 				display: none;
 			}
@@ -45,13 +55,20 @@ tui\:grid {
 			position: absolute;
 			top:0;
 			right:0;
-			z-index: 11;
+			z-index: 20;
 			&.tui-hidden {
 				display: none;
 			}
 		}
 	}
-	
+	.tui-grid-vline {
+		display: block;
+		position: absolute;
+		top: 0px;
+		width: 0px;
+		border-right: 1px solid #ddd;
+		z-index: 15;
+	}
 	.tui-grid-line, .tui-grid-test {
 		display: block;
 		position: absolute;
@@ -64,10 +81,16 @@ tui\:grid {
 		white-space: nowrap;
 		word-break: keep-all;
 	}
-	.tui-grid-line > span {
+	.tui-grid-head>div>span, .tui-grid-line>span, .tui-grid-cell {
 		display: inline-block;
 		height: @gridLineHeight;
 		line-height: @gridLineHeight;
+		border: none;
+		white-space: nowrap;
+		word-break: keep-all;
+		padding: 0px 4px;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	
 }
