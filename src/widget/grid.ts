@@ -18,6 +18,7 @@ module tui.widget {
 		icon?: string;
 		sortable?: boolean;
 		checkable?: boolean;
+		arrow?: boolean;
 	}
 
 	export class Grid extends Widget {
@@ -36,6 +37,9 @@ module tui.widget {
 		private _columnWidths: number[] = [];
 		private _gridStyle: HTMLStyleElement;
 		private _vLines: HTMLElement[] = [];
+		private _handlers: HTMLElement[] = [];
+		private _activeLine: number = null;
+		private _activeColumn: number = null;
 		
 		protected initRestriction(): void {
 			
@@ -53,17 +57,23 @@ module tui.widget {
 			
 			super.initRestriction();
 			this.setRestrictions({
+				"dataType": {
+					"set": (value: any) => {}
+				},
 				"data": {
 					"set": (value: any) => {
 						if (this._data["data"] && typeof (<any>this._data["data"]).off === "function") {
 							(<any>this._data["data"]).off("update", updateCallback);
 						}
 						if (value instanceof ds.List ||
-							value instanceof ds.RemoteList ||
-							value instanceof ds.Tree ||
-							value instanceof ds.RemoteTree)
+							value instanceof ds.RemoteList) {
 							this._data["data"] = value;
-						else if (value instanceof Array) {
+							this._data["dataType"] = "list";
+						} else if (value instanceof ds.Tree ||
+							value instanceof ds.RemoteTree) {
+							this._data["data"] = value;
+							this._data["dataType"] = "tree";
+						} else if (value instanceof Array) {
 							this._data["data"] = new ds.List(value);
 						}
 						if (this._data["data"] && typeof (<any>this._data["data"]).on === "function") {
@@ -71,6 +81,7 @@ module tui.widget {
 						}
 						this._vbar._set("value", 0);
 						this._hbar._set("value", 0);
+						this._activeLine = null;
 					},
 					"get": (): any => {
 						var data = this._data["data"];
@@ -132,6 +143,21 @@ module tui.widget {
 					"get": (): any => {
 						return this._hbar.get("value");
 					}
+				},
+				"activeLine": {
+					"set": (value: any) => {
+						if (typeof value === "number" && !isNaN(value) || value === null) {
+							if (value < 0)
+								value = 0;
+							if (value > this._data["data"].length() - 1)
+								value = this._data["data"].length() - 1;
+							if (this._data["activeLine"] != null)
+								$(this._buffer.lines[this._data["activeLine"] - this._buffer.begin]).removeClass("tui-actived");
+							this._data["activeLine"] = value;
+							if (value != null)
+								$(this._buffer.lines[value - this._buffer.begin]).addClass("tui-actived");
+						}
+					}
 				}
 			});
 		}
@@ -169,7 +195,7 @@ module tui.widget {
 				this.drawContent();
 			});
 			this._hbar.on("scroll", () => {
-				this.drawContent();
+				//this.drawContent();
 				this.computeHOffset();
 			});
 			var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
@@ -229,6 +255,7 @@ module tui.widget {
 				lastTime = new Date().getMilliseconds();
 			});
 			$(this._).on("touchmove", function (ev) {
+				clearTimeout(hittestTimer);
 				if (!inTouched)
 					return;
 				var e = <any>ev.originalEvent;
@@ -265,16 +292,19 @@ module tui.widget {
 				
 			});
 			$(this._).on("touchend", function(ev) {
+				clearTimeout(hittestTimer);
 				requestAnimationFrame(function keepMove(timestamp:number) {
 					if (Math.abs(lastSpeed) > 0.1) {
 						if (direction === "x") {
-							scrollX(lastSpeed * 20);
-							lastSpeed *= 0.95;
-							requestAnimationFrame(keepMove); 
+							if (scrollX(lastSpeed * 20)) {
+								lastSpeed *= 0.95;
+								requestAnimationFrame(keepMove);
+							} 
 						} else if (direction === "y") {
-							scrollY(lastSpeed * 20);
-							lastSpeed *= 0.95;
-							requestAnimationFrame(keepMove); 
+							if (scrollY(lastSpeed * 20)) {
+								lastSpeed *= 0.95;
+								requestAnimationFrame(keepMove);
+							} 
 						} else {
 							lastSpeed = 0;
 						}
@@ -283,7 +313,137 @@ module tui.widget {
 				inTouched = false;
 				lastTime = null;
 			});
+			
+			$(this._).on("mousedown", (ev) => {
+				var obj = <HTMLElement>(ev.target || ev.srcElement);
+				if ($(obj).hasClass("tui-grid-handler")) { // Resizing
+					ev.stopPropagation();
+					ev.preventDefault();
+					var idx = this._handlers.indexOf(obj);
+					var columns = this.get("columns");
+					var l = obj.offsetLeft;
+					var srcX = ev.clientX;
+					obj.style.height = this._.clientHeight + "px";
+					$(obj).addClass("tui-handler-move");
+					var mask = widget.openDragMask((e) => {
+						obj.style.left = l + e.clientX - srcX + "px";
+					}, (e) => {
+						obj.style.height = "";
+						$(obj).removeClass("tui-handler-move");
+						columns[idx].width = columns[idx].width + e.clientX - srcX;
+						this._columnWidths = [];
+						this.initColumnWidth();
+						this.computeScroll();
+						this.computeColumnWidth();
+						this.drawHeader();
+						this.computeHOffset();
+					});
+					mask.style.cursor = "col-resize";
+				}
+			});
+			
+			var hittestTimer: number = null;
+			var testLine = (obj: HTMLElement) => {
+				while (obj) {
+					var parent = <HTMLElement>obj.parentNode;
+					if (parent && $(parent).hasClass("tui-grid-line")) {
+						var l = this._buffer.begin + this._buffer.lines.indexOf(parent);
+						//var c = parseInt(obj.getAttribute("col"));
+						this._set("activeLine", l);
+						//this.set("activeCol", c);
+						break;
+					}
+					obj = parent;
+				}
+			};
+			
+			$(this._).on("mousedown", (ev) => {
+				var obj = <HTMLElement>(ev.target || ev.srcElement);
+				testLine(obj);
+			});
+			$(this._).on("touchstart", (ev) => {
+				var obj = <HTMLElement>(ev.target || ev.srcElement);
+				hittestTimer = setTimeout(()=>{
+					testLine(obj)
+				}, 50);
+			});
+			
+			$(this._).keydown((e) => {
+				var k = e.keyCode;
+				if (k >= 33 && k <= 40) {
+					if (k === KeyCode.LEFT) {
+						if (!this.get("autoWidth")) {
+							this._hbar.set("value", this._hbar.get("value") - 30);
+							this.computeHOffset();
+						}
+					} else if (k === KeyCode.UP) {
+						if (this.get("activeLine") === null) {
+							this._set("activeLine", 0);
+							this.scrollTo(this.get("activeLine"));
+						} else {
+							this._set("activeLine", this.get("activeLine") - 1);
+							this.scrollTo(this.get("activeLine"));
+						}
+					} else if (k === KeyCode.RIGHT) {
+						if (!this.get("autoWidth")) {
+							this._hbar.set("value", this._hbar.get("value") + 30);
+							this.computeHOffset();
+						}
+					} else if (k === KeyCode.DOWN) {
+						if (this.get("activeLine") === null) {
+							this._set("activeLine", 0);
+							this.scrollTo(this.get("activeLine"));
+						} else {
+							this._set("activeLine", this.get("activeLine") + 1);
+							this.scrollTo(this.get("activeLine"));
+						}
+					} else if (k === KeyCode.PRIOR) {
+						if (this.get("activeLine") === null) {
+							this._set("activeLine", 0);
+							this.scrollTo(this.get("activeLine"));
+						} else {
+							this._set("activeLine", this.get("activeLine") - this._dispLines + 1);
+							this.scrollTo(this.get("activeLine"));
+						}
+					} else if (k === KeyCode.NEXT) {
+						if (this.get("activeLine") === null) {
+							this._set("activeLine", 0);
+							this.scrollTo(this.get("activeLine"));
+						} else {
+							this._set("activeLine", this.get("activeLine") + this._dispLines - 1);
+							this.scrollTo(this.get("activeLine"));
+						}
+					} else if (k === KeyCode.HOME) {
+						this._set("activeLine", 0);
+						this.scrollTo(this.get("activeLine"));
+					} else if (k === KeyCode.END) {
+						var data = this.get("data");
+						this._set("activeLine", data.length() - 1);
+						this.scrollTo(this.get("activeLine"));
+					}
+					e.preventDefault();
+					e.stopPropagation();
+				} 
+			});
 		}
+		
+		scrollTo(index: number) {
+			if (typeof index !== "number" || isNaN(index) || index < 0 || index >= this.get("data").length())
+				return;
+			var v = this._vbar.get("value");
+			if (v > index * this._lineHeight) {
+				this._vbar.set("value", index * this._lineHeight);
+				this.drawContent();
+			} else {
+				var h = (index - this._dispLines + 1) * this._lineHeight;
+				var diff = (this._.clientHeight - this.getComponent("head").offsetHeight - this._hbar._.offsetHeight - this._dispLines * this._lineHeight);
+				if (v < h - diff) {
+					this._vbar.set("value", h - diff);
+					this.drawContent();
+				}
+			}
+		}
+		
 		
 		private computeWidth(): number {
 			if (this.get("autoWidth")) {
@@ -329,7 +489,8 @@ module tui.widget {
 						this._.style.height = this._contentHeight + "px";
 					}
 					clientHeight = this._.clientHeight;
-				}
+				} else
+					vScroll._set("value", 0);
 				if (vEnable !== shouldEnable) {
 					vEnable = shouldEnable;
 					if (!first)
@@ -345,6 +506,9 @@ module tui.widget {
 					hScroll._.style.width = realClientWidth + "px";
 					hScroll._set("total", this._contentWidth - realClientWidth);
 					hScroll.set("page", realClientWidth / this._contentWidth * (this._contentWidth - realClientWidth));
+				} else {
+					hScroll._set("total", 0);
+					hScroll.set("value", 0);
 				}
 				if (hEnable !== shouldEnable) {
 					hEnable = shouldEnable;
@@ -372,12 +536,31 @@ module tui.widget {
 				line.innerHTML = "";
 				for (var i = 0; i < columns.length; i++) {
 					var span = document.createElement("span");
-					span.className = "tui-grid-" + this._tuid + "-" + i
+					span.className = "tui-grid-" + this._tuid + "-" + i;
+					(<any>span)["col"] = i;
 					line.appendChild(span);
 				}
 			}
+			var isTree = this.get("dataType") === "tree";
 			for (var i = 0; i < columns.length; i++) {
-				(<HTMLElement>line.childNodes[i]).innerHTML = lineData[columns[i].key];
+				let col = columns[i];
+				var prefix = "";
+				var item = isTree ? lineData.item : lineData;
+				if (col.arrow === true && isTree) { // draw a tree arrow 
+					for (var j = 0; j < lineData.level; j++) {
+						prefix += "<i class='tui-space'></i>";
+					}
+					if (lineData.hasChild) {
+						if (lineData.expand)
+							prefix += "<i class='tui-arrow-expand'></i>";
+						else
+							prefix += "<i class='tui-arrow-contract'></i>";
+					} else {
+						prefix += "<i class='tui-space'></i>";
+					}
+				}
+				
+				(<HTMLElement>line.childNodes[i]).innerHTML = prefix + item[columns[i].key];
 			}
 		}
 		
@@ -405,17 +588,17 @@ module tui.widget {
 		}
 		
 		private drawHeader() {
+			if (!this.get("header"))
+				return;
 			var head = this._components["head"];
 			head.innerHTML = "";
-			var headLine = document.createElement("div");
 			var columns = <ColumnInfo[]>this.get("columns");
 			for (var i = 0; i < columns.length; i++) {
 				var span = document.createElement("span");
 				span.className = "tui-grid-" + this._tuid + "-" + i
-				headLine.appendChild(span);
+				head.appendChild(span);
 				span.innerHTML = columns[i].name;
 			}
-			head.appendChild(headLine);
 		}
 		
 		private _drawTimer: number;
@@ -440,13 +623,18 @@ module tui.widget {
 				var line: HTMLElement;
 				if (i >= this._buffer.begin && i < this._buffer.end) { // Is buffered.
 					line = this._buffer.lines[i - this._buffer.begin];
-				} else if (reusable.length > 0) { // has reusable
-					line = reusable.pop();
-					line.innerHTML = "";
-					// for (let col = 0; col < columns.length; col++) 
-					// 	(<HTMLElement>line.childNodes[col]).innerHTML = "";
 				} else {
-					line = this.createLine(content);
+					if (reusable.length > 0) { // has reusable
+						line = reusable.pop();
+						line.innerHTML = "";
+					} else {
+						line = this.createLine(content);
+					}
+					if (i === this.get("activeLine")) {
+						$(line).addClass("tui-actived");
+					} else {
+						$(line).removeClass("tui-actived");
+					}
 				}
 				this.moveLine(line, i - begin, base);
 				newBuffer.push(line);
@@ -479,20 +667,37 @@ module tui.widget {
 					else
 						this._columnWidths[i] = 150;
 				}
+				if (this._columnWidths[i] < 0)
+					this._columnWidths[i] = 0;
 			}
 		}
 		
 		private computeHOffset() {
+			//var widths: number[] = [];
 			var head = this._components["head"];
 			var content = this._components["content"]; 
-			head.scrollLeft = this._hbar.get("value");
-			content.scrollLeft = this._hbar.get("value");
+			var scrollLeft: number = this._hbar.get("value");
+			var columns = <ColumnInfo[]>this.get("columns");
+			head.scrollLeft = scrollLeft;
+			content.scrollLeft = scrollLeft;
+			var used = 0;
+			for (var i = 0; i < columns.length; i++) {
+				this._vLines[i].style.left = used + columns[i].width +  (Grid.CELL_SPACE * 2) - scrollLeft + "px";
+				used += columns[i].width +  (Grid.CELL_SPACE * 2);
+			}
+			if (this.get("header")) {
+				used = 0;
+				for (var i = 0; i < columns.length; i++) {
+					this._handlers[i].style.left = used + columns[i].width +  (Grid.CELL_SPACE) - this._hbar.get("value") + "px";
+					used += columns[i].width +  (Grid.CELL_SPACE * 2);
+				}
+			}
 		}
 		
 		private computeColumnWidth() {
-			var widths: number[] = [];
+			//var widths: number[] = [];
+			var columns = <ColumnInfo[]>this.get("columns");
 			if (this.get("autoWidth")) {
-				var columns = <ColumnInfo[]>this.get("columns");
 				var total = this._contentWidth;
 				var totalNoBorder = total - (Grid.CELL_SPACE * 2) * columns.length;
 				var totalNoFixed = totalNoBorder;
@@ -511,44 +716,59 @@ module tui.widget {
 						this._columnWidths[i] = (this._columnWidths[i] * 1.0) / totalCompute * totalNoFixed;
 					}
 				}
-				for (var i = 0; i < this._columnWidths.length; i++) {
-					let val = Math.round(this._columnWidths[i]);
-					widths.push(val);
-				}
-				
-			} else {
-				
-				for (var i = 0; i < this._columnWidths.length; i++) {
-					widths.push(this._columnWidths[i]);
-				}
+			} 
+			for (var i = 0; i < this._columnWidths.length; i++) {
+				let val = Math.round(this._columnWidths[i]);
+				//widths.push(val);
+				columns[i].width = val;
 			}
+			// Add V lines
 			for (var i = 0; i < this._vLines.length; i++) {
 				if (this._vLines[i].parentNode)
 					this._.removeChild(this._vLines[i]);
 			}
-			
-			
 			var used = 0;
-			for (var i = 0; i < widths.length; i++) {
+			for (var i = 0; i < columns.length; i++) {
 				if (i >= this._vLines.length) {
 					this._vLines[i] = document.createElement("div");
 					this._vLines[i].className = "tui-grid-vline";
 				}
-				this._vLines[i].style.left = used + widths[i] +  (Grid.CELL_SPACE * 2) + "px";
-				used += widths[i] +  (Grid.CELL_SPACE * 2);
+				this._vLines[i].style.left = used + columns[i].width +  (Grid.CELL_SPACE * 2) - this._hbar.get("value") + "px";
+				used += columns[i].width +  (Grid.CELL_SPACE * 2);
 				this._vLines[i].style.height = Math.min(this._contentHeight, this._.clientHeight) + "px";  
 				this._.appendChild(this._vLines[i]);
 			}
+			// Add Handlers
+			for (var i = 0; i < this._handlers.length; i++) {
+				if (this._handlers[i].parentNode)
+					this._.removeChild(this._handlers[i]);
+			}
+			if (this.get("header")) {
+				used = 0;
+				for (var i = 0; i < columns.length; i++) {
+					if (i >= this._handlers.length) {
+						this._handlers[i] = document.createElement("div");
+						this._handlers[i].className = "tui-grid-handler";
+					}
+					this._handlers[i].style.left = used + columns[i].width +  (Grid.CELL_SPACE) - this._hbar.get("value") + "px";
+					used += columns[i].width +  (Grid.CELL_SPACE * 2);
+					this._.appendChild(this._handlers[i]);
+				}
+			}
 			
 			var cssText = "";
-			for (var i = 0; i < widths.length; i++) {
-				var wd = widths[i];
-				cssText += (".tui-grid-" + this._tuid + "-" + i + "{width:" + wd + "px}");
+			for (var i = 0; i < columns.length; i++) {
+				cssText += (".tui-grid-" + this._tuid + "-" + i + "{width:" + columns[i].width + "px}");
 			}
 			if ((<any>document).createStyleSheet) // IE
 				(<any>this._gridStyle).cssText = cssText;
 			else
 				this._gridStyle.innerHTML = cssText;
+				
+			for (var i = 0; i < this._buffer.lines.length; i++) {
+				var line: HTMLElement = this._buffer.lines[i];
+				line.style.width = this._contentWidth + "px";
+			}
 		}
 		
 		render(): void {
@@ -557,6 +777,7 @@ module tui.widget {
 			this.computeColumnWidth();
 			this.drawHeader();
 			this.drawContent();
+			this.computeHOffset();
 		}
 	}
 

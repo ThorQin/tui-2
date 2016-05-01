@@ -92,7 +92,7 @@
 					$get("myPopup").open(this._);
 				});
 				$get("myMenu").on("click", function(e){
-					
+					tui.infobox(JSON.stringify(e.data));
 				});
 				$get("menuButton").on("click", function(e) {
 					$get("myMenu").open(this._);

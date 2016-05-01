@@ -11,20 +11,13 @@ module tui.widget {
 		ev.stopPropagation();
 		ev.preventDefault();
 	});
-
-	var _tooltip: HTMLSpanElement = document.createElement("span");
-	_tooltip.className = "tui-tooltip";
-	_tooltip.setAttribute("unselectable", "on");
-
-	var _tooltipTarget: HTMLElement = null;
-	
-	var _maskCloseCallback: () => void = null;
-
 	/**
 	 * Show a mask layer to prevent user drag or select document elements which don't want to be affected.
 	 * It's very useful when user perform a dragging operation.
 	 */
-	export function openDragMask(onMove: (e: JQueryEventObject) => void, onClose: () => void = null) {
+	export function openDragMask(onMove: (e: JQueryEventObject) => void, onClose: (e: JQueryEventObject) => void = null) {
+		if (_maskOpened)
+			return null;
 		_mask.innerHTML = "";
 		_mask.className = "tui-mask";
 		_mask.style.cursor = "";
@@ -32,27 +25,38 @@ module tui.widget {
 		_mask.removeAttribute("data-tooltip");
 		_mask.removeAttribute("data-cursor-tooltip");
 		document.body.appendChild(_mask);
-		$(_mask).mousemove(onMove);
+		// _dragMoveFunc = onMove;
+		function closeDragMask(e: JQueryEventObject) {
+			_maskOpened = false;
+			if ((<any>_mask).setCapture)
+				$(_mask).off();
+			else {
+				$(document).off("mousemove", onMove);
+				$(document).off("mouseup", closeDragMask);
+			}
+			browser.removeNode(_mask);
+			if (typeof onClose === "function") {
+				onClose(e);
+			}
+		}
+		if ((<any>_mask).setCapture) {
+			(<any>_mask).setCapture();
+			$(_mask).on("mousemove", onMove);
+			$(_mask).on("mouseup", closeDragMask);
+		} else {
+			$(document).on("mousemove", onMove);
+			$(document).on("mouseup", closeDragMask);
+		}
 		_maskOpened = true;
-		_maskCloseCallback = onClose;
 		return _mask;
 	}
-	/**
-	 * Close a mask layer
-	 */
-	export function closeDragMask() {
-		if (!_maskOpened)
-			return;
-		$(_mask).off();
-		browser.removeNode(_mask);
-		if (typeof _maskCloseCallback === "function")
-			_maskCloseCallback();
-	}
 	
-	$(document).mouseup(function(e){
-		closeDragMask();
-	});
-
+	
+	var _tooltip: HTMLSpanElement = document.createElement("span");
+	_tooltip.className = "tui-tooltip";
+	_tooltip.setAttribute("unselectable", "on");
+	var _tooltipTarget: HTMLElement = null;
+	
 	export function showTooltipAtCursor(target: HTMLElement, tooltip: string, x: number, y: number) {
 		if (target === _tooltipTarget || target === _tooltip) {
 			_tooltip.style.left = x - 17 + "px";

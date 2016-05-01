@@ -8,6 +8,8 @@ tui\:button {
 	text-decoration: none;
 	color: @textColor;
     border: 1px solid @borderColor;
+	-webkit-tap-highlight-color: inherit;
+	-webkit-touch-callout: none;
 	.btn-color(@windowColor, @panelColor - #111, @borderColor, @borderColor);
 	&.tui-menu:after {
 		.icon-base();

@@ -97,7 +97,7 @@ module tui.widget {
 					div = browser.toElement("<div tabIndex='-1' unselectable='on'><span class='tui-icon'></span>" +
 						"<span class='tui-arrow'></span><span class='tui-label'></span><span class='tui-shortcut'></span></div>");
 					if (item.disable) {
-						$(div).addClass("disabled");
+						$(div).addClass("tui-disabled");
 					}
 					if (item.type === "check" || item.type === "radio") {
 						if (item.checked) {
@@ -112,7 +112,7 @@ module tui.widget {
 					if (item.type === "menu")
 						$(div).children(".tui-arrow").addClass("fa-caret-right");
 					if (item.disable)
-						$(div).addClass("disabled");
+						$(div).addClass("tui-disabled");
 				} else
 					div = browser.toElement("<div class='tui-line'></div>");
 				this._.appendChild(div);
@@ -213,6 +213,36 @@ module tui.widget {
 						if (!$(div).hasClass("tui-sub")) {
 							this._.focus();
 							openSubMenu();
+						}
+					}
+				}
+			});
+			
+			$root.on("touchstart", (e) => {
+				var elem = e.target || e.srcElement;
+				var div = findMenuItemDiv(elem);
+				if (div !== null) {
+					var found = findDivIndex(div);
+					if (found !== this.activeItem) {
+						if (this.activeItem !== null) {
+							deactiveLine(this.activeItem);
+						}
+						if ($(div).hasClass("tui-disabled")) {
+							clearTimeout(openSubMenuTimer);
+							this.activeItem = null;
+							this._.focus();
+							return;
+						}
+						this.activeItem = found; 
+						activeLine(this.activeItem);
+						if (this.activeItem !== null) {
+							var data: MenuItem[] = this.get("items");
+							var item = data[this.activeItem];
+							if (item.children && item.children.length > 0) {
+								this._.focus();
+								openSubMenu();
+								e.preventDefault();
+							}
 						}
 					}
 				}

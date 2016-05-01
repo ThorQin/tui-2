@@ -114,6 +114,8 @@ module tui.ds {
 		parent: TreeNode;
 		hasChild: boolean; // whether has child nodes
 		item: any;
+		level: number;
+		expand: boolean;
 	}
 	
 	export interface TreeConfig {
@@ -148,7 +150,7 @@ module tui.ds {
 			return -1;
 		}
 		
-		protected expandItems(parent: TreeNode, items: any[], index: TreeNode[], init: boolean = false) {
+		protected expandItems(parent: TreeNode, items: any[], index: TreeNode[], level: number, init: boolean = false) {
 			for (var item of items) {
 				var children = item[this._config.children];
 				var expand: boolean;
@@ -165,11 +167,13 @@ module tui.ds {
 				var node: TreeNode = {
 					parent: parent,
 					hasChild: hasChild,
-					item: item
+					item: item,
+					level: level,
+					expand: expand
 				}
 				index && index.push(node);
 				if (expand) {
-					this.expandItems(node, children, index);
+					this.expandItems(node, children, index, level + 1);
 				}
 			}
 		}
@@ -190,7 +194,7 @@ module tui.ds {
 				if ( node.hasChild && !node.item[this._config.expand]) {
 					node.item[this._config.expand] = true;
 					var appendNodes: TreeNode[] = [];
-					this.expandItems(node, node.item[this._config.children], appendNodes);
+					this.expandItems(node, node.item[this._config.children], appendNodes, node.level + 1);
 					this._index.splice(index + 1, 0, ...appendNodes);
 				}
 			}
@@ -218,7 +222,7 @@ module tui.ds {
 		update(data: any[]) {
 			var config = this._config;
 			this._index = [];
-			this.expandItems(null, data, this._index);
+			this.expandItems(null, data, this._index, 0);
 		}
 	}
 	
@@ -250,7 +254,7 @@ module tui.ds {
 					node.item[this._config.expand] = true;
 					if (node.item[this._config.children] !== null) {
 						var appendNodes: TreeNode[] = [];
-						this.expandItems(node, node.item[this._config.children], appendNodes);
+						this.expandItems(node, node.item[this._config.children], appendNodes, node.level + 1);
 						this._index.splice(index + 1, 0, ...appendNodes);
 					} else {
 						this.fire("query", {parent: node});
@@ -262,7 +266,7 @@ module tui.ds {
 		update(result: TreeQueryResult) {
 			if (result.parent === null) {
 				this._index = [];
-				this.expandItems(null, result.data, this._index, true);
+				this.expandItems(null, result.data, this._index, 0, true);
 			} else {
 				var index = this.findNodeIndex(result.parent);
 				if (index >= 0) {

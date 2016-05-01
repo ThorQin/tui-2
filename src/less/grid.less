@@ -6,6 +6,9 @@ tui\:grid {
 	border: 1px solid @borderColor;
 	overflow: hidden;
 	background-color: @scrollBackColor;
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+	-webkit-touch-callout: none;
 	.tui-grid-head {
 		display: block;
 		position: absolute;
@@ -19,13 +22,7 @@ tui\:grid {
 		z-index: 10;
 		white-space: nowrap;
 		word-break: keep-all;
-	}
-	.tui-grid-head>div {
-		position: absolute;
-		top:0;
-		left:0;
-		bottom:0;
-		right: 0;
+		overflow: hidden;
 	}
 	.tui-content {
 		display: block;
@@ -69,6 +66,20 @@ tui\:grid {
 		border-right: 1px solid #ddd;
 		z-index: 15;
 	}
+	.tui-grid-handler {
+		display: block;
+		position: absolute;
+		top: 0px;
+		width: 8px;
+		height: @gridLineHeight;
+		border: none;
+		z-index: 16;
+		cursor: col-resize;
+	}
+	.tui-handler-move {
+		background: #555;
+		opacity: 0.5;
+	}
 	.tui-grid-line, .tui-grid-test {
 		display: block;
 		position: absolute;
@@ -80,8 +91,13 @@ tui\:grid {
 		margin: 0;
 		white-space: nowrap;
 		word-break: keep-all;
+		cursor: default;
 	}
-	.tui-grid-head>div>span, .tui-grid-line>span, .tui-grid-cell {
+	.tui-grid-line.tui-actived {
+		background-color: @lineSelectFocusedBackgroundColor;
+		color: @lineSelectFocusedForeColor;
+	}
+	.tui-grid-head>span, .tui-grid-line>span, .tui-grid-cell {
 		display: inline-block;
 		height: @gridLineHeight;
 		line-height: @gridLineHeight;
@@ -92,7 +108,21 @@ tui\:grid {
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
-	
+	.tui-space,.tui-arrow-contract,.tui-arrow-expand {
+		display: inline-block;
+		height: @gridLineHeight;
+		line-height: @gridLineHeight;
+		width: 16px;
+		text-align: center;
+	}
+	.tui-arrow-contract::before {
+		.icon-base();
+		.fa-caret-right;
+	}
+	.tui-arrow-expand::before {
+		.icon-base();
+		.fa-caret-down;
+	}
 }
 
 .tui-grid-test {

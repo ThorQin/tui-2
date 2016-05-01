@@ -123,7 +123,7 @@ module tui.widget {
 					this._.style.left = l + "px";
 					this._.style.top = t + "px";
 					this._moved = true;
-				}, () => {
+				}, (e) => {
 					this.render();
 				});
 			});

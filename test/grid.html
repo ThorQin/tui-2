@@ -16,13 +16,22 @@
 		<script>
 			$(function(){
 				var data = [];
-				for (var i = 0; i < 1000; i++) {
-					data.push({name: "name column: " + i, value: "value " + i});
+				function build(list, level) {
+					for (var i = 0; i < 10; i++) {
+						var child = {name: "name column: " + level + "_" + i, value: "value " + level + "_" + i};
+						list.push(child);
+						if (level < 4) {
+							child.children = [];
+							build(child.children, level+1)
+						}
+					}
 				}
+				build(data, 0);
 				
-				$get("grid").set("data", data);
+				
+				$get("grid").set("tree", data);
 				$get("grid").set("columns", [
-					{name: "name column", key: "name"}, 
+					{name: "name column", key: "name", arrow: true}, 
 					{name: "value column", key: "value"},
 					{name: "value column", key: "value"},
 					{name: "value column", key: "value"},
@@ -35,15 +44,25 @@
 				
 				tui.browser.keepToTop($("#toolbar")[0]);
 				//tui.browser.keepToTop($get("grid").getComponent("head"), 60);
+				$get("titleBtn").on("click", function(e){
+					$get("grid").set("header", !$get("grid").get("header"));
+				});
+				$get("scrollBtn").on("click", function(e){
+					$get("grid").set("autoWidth", !$get("grid").get("autoWidth"));
+				});
 			});
 		</script>
 		
 	</head>
 	<body>
 		<div style="height:60px;">
-			<div id="toolbar" style="background-color:#eee;height:60px;line-height:60px;text-align:center">一个工具栏</div>
+			<div id="toolbar" style="background-color:#eee;height:60px;line-height:60px;text-align:center">
+				一个工具栏
+				<tui:button id="titleBtn" class="tui-primary">切换表头显示</tui:button>
+				<tui:button id="scrollBtn">切换水平滚动</tui:button>
+			</div>
 		</div>
-		<tui:grid id="grid" auto-height={false} style="height:500px;" auto-width={false}></tui:grid>
+		<tui:grid id="grid" auto-height={false} header={true} style="height:500px;" auto-width={false}></tui:grid>
 		
 		<div id="disp"></div>
 	</body>
