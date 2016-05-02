@@ -10,7 +10,7 @@ module tui.ds {
 	
 	export interface TreeDS extends DS {
 		expand(index: number): void;
-		contract(index: number): void;
+		collapse(index: number): void;
 	}
 	
 	export class List implements DS {
@@ -191,7 +191,8 @@ module tui.ds {
 		expand(index: number): void {
 			if (index >= 0 && index < this._index.length) {
 				var node = this._index[index];
-				if ( node.hasChild && !node.item[this._config.expand]) {
+				if ( node.hasChild && !node.expand) {
+					node.expand = true;
 					node.item[this._config.expand] = true;
 					var appendNodes: TreeNode[] = [];
 					this.expandItems(node, node.item[this._config.children], appendNodes, node.level + 1);
@@ -200,10 +201,11 @@ module tui.ds {
 			}
 		}
 		
-		contract(index: number): void {
+		collapse(index: number): void {
 			if (index >= 0 && index < this._index.length) {
 				var node = this._index[index];
-				if ( node.hasChild && node.item[this._config.expand]) {
+				if ( node.hasChild && node.expand) {
+					node.expand = false;
 					node.item[this._config.expand] = false;
 					var delCount = this.getExpandCount(node.item[this._config.children]);
 					this._index.splice(index + 1, delCount);
@@ -250,7 +252,8 @@ module tui.ds {
 		expand(index: number): void {
 			if (index >= 0 && index < this._index.length) {
 				var node = this._index[index];
-				if ( node.hasChild && !node.item[this._config.expand]) {
+				if ( node.hasChild && !node.expand) {
+					node.expand = true;
 					node.item[this._config.expand] = true;
 					if (node.item[this._config.children] !== null) {
 						var appendNodes: TreeNode[] = [];
@@ -270,7 +273,7 @@ module tui.ds {
 			} else {
 				var index = this.findNodeIndex(result.parent);
 				if (index >= 0) {
-					this.contract(index);
+					this.collapse(index);
 				}
 				result.parent.item[this._config.children] = result.data;
 				if (index >= 0) {

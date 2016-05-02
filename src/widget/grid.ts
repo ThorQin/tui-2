@@ -15,12 +15,18 @@ module tui.widget {
 		fixed?: boolean;
 		key?: string;
 		type?: string;
-		icon?: string;
-		sortable?: boolean;
-		checkable?: boolean;
 		arrow?: boolean;
+		sortable?: boolean;
+		iconKey?: string;
+		checkKey?: string;
 	}
 
+	/**
+	 * <gird>
+	 * Attributes: data, columns, sortColumn, sortType, scrollTop, scrollLeft, activeLine, activeColumn
+	 * Method: scrollTo, setSortFlag
+	 * Events: sort, rowclick, rowdblclick, rowcheck
+	 */
 	export class Grid extends Widget {
 		
 		static CELL_SPACE = 4; 
@@ -38,8 +44,6 @@ module tui.widget {
 		private _gridStyle: HTMLStyleElement;
 		private _vLines: HTMLElement[] = [];
 		private _handlers: HTMLElement[] = [];
-		private _activeLine: number = null;
-		private _activeColumn: number = null;
 		
 		protected initRestriction(): void {
 			
@@ -81,7 +85,7 @@ module tui.widget {
 						}
 						this._vbar._set("value", 0);
 						this._hbar._set("value", 0);
-						this._activeLine = null;
+						this._set("activeLine", null);
 					},
 					"get": (): any => {
 						var data = this._data["data"];
@@ -204,7 +208,7 @@ module tui.widget {
 					return;
 				var e = <any>ev.originalEvent;
 				var delta = e.detail ? e.detail * (-120) : e.wheelDelta;
-				var step = Math.round(this._vbar.get("page") / 2);
+				var step = this._lineHeight;
 				//delta returns +120 when wheel is scrolled up, -120 when scrolled down
 				var scrollSize = step > 1 ? step : 1;
 				ev.stopPropagation();
@@ -342,35 +346,79 @@ module tui.widget {
 				}
 			});
 			
-			var hittestTimer: number = null;
-			var testLine = (obj: HTMLElement) => {
+			var hittest = (obj: HTMLElement): {line: number, col: number} => {
+				var line: number = null;
+				var col: number = null;
+				var srcObj = obj;
 				while (obj) {
 					var parent = <HTMLElement>obj.parentNode;
 					if (parent && $(parent).hasClass("tui-grid-line")) {
-						var l = this._buffer.begin + this._buffer.lines.indexOf(parent);
-						//var c = parseInt(obj.getAttribute("col"));
-						this._set("activeLine", l);
-						//this.set("activeCol", c);
+						line = this._buffer.begin + this._buffer.lines.indexOf(parent);
+						col = (<any>obj).col;
+						this._set("activeLine", line);
+						this._set("activeColumn", col);
 						break;
 					}
 					obj = parent;
 				}
+				return {line: line, col: col};
+			}
+			
+			var hittestTimer: number = null;
+			var testLine = (ev: JQueryEventObject) => {
+				var obj = <HTMLElement>(ev.target || ev.srcElement);
+				var target = hittest(obj);
+				if (target.line === null) 
+					return;
+				var data = this.get("data");
+				if ($(obj).hasClass("tui-arrow-expand")) {
+					data.collapse(target.line);
+					this.render();
+				} else if ($(obj).hasClass("tui-arrow-collapse")) {
+					data.expand(target.line);
+					this.render();
+				} else if ($(obj).hasClass("tui-grid-check")) {
+					var column = this.get("columns")[target.col];
+					var checkKey = column.checkKey ? column.checkKey : "checked";
+					var checked: boolean;
+					if (this.get("dataType") === "tree") {
+						checked = data.get(target.line).item[checkKey] = !data.get(target.line).item[checkKey];
+					} else {
+						checked = data.get(target.line)[checkKey] = !data.get(target.line)[checkKey];
+					}
+					this.drawLine(this._buffer.lines[target.line - this._buffer.begin], 
+						target.line, this.get("columns"), data.get(target.line));
+						
+					this.fire("rowcheck", {e: ev, row: target.line, col: target.col, checked: checked });
+				}
 			};
 			
 			$(this._).on("mousedown", (ev) => {
-				var obj = <HTMLElement>(ev.target || ev.srcElement);
-				testLine(obj);
+				testLine(ev);
 			});
 			$(this._).on("touchstart", (ev) => {
-				var obj = <HTMLElement>(ev.target || ev.srcElement);
 				hittestTimer = setTimeout(()=>{
-					testLine(obj)
-				}, 50);
+					testLine(ev)
+				}, 64);
+			});
+			
+			$(content).click((ev)=>{
+				var obj = <HTMLElement>(ev.target || ev.srcElement);
+				var target = hittest(obj);
+				if (target.line != null)
+					this.fire("rowclick", {e: ev, row: this.get("activeLine"), col: this.get("activeColumn")});
+			});
+			
+			$(content).dblclick((ev)=>{
+				var obj = <HTMLElement>(ev.target || ev.srcElement);
+				var target = hittest(obj);
+				if (target.line != null)
+					this.fire("rowdblclick", {e: ev, row: this.get("activeLine"), col: this.get("activeColumn")});
 			});
 			
 			$(this._).keydown((e) => {
 				var k = e.keyCode;
-				if (k >= 33 && k <= 40) {
+				if (k >= 33 && k <= 40 || k == KeyCode.ENTER) {
 					if (k === KeyCode.LEFT) {
 						if (!this.get("autoWidth")) {
 							this._hbar.set("value", this._hbar.get("value") - 30);
@@ -420,11 +468,46 @@ module tui.widget {
 						var data = this.get("data");
 						this._set("activeLine", data.length() - 1);
 						this.scrollTo(this.get("activeLine"));
+					} else if (k === KeyCode.ENTER) {
+						if (this.get("activeLine") != null) {
+							this.fire("rowclick", {e: e, row: this.get("activeLine"), col: this.get("activeColumn")});
+						}
 					}
 					e.preventDefault();
 					e.stopPropagation();
 				} 
 			});
+			
+			$(head).click((ev) => { // header click: change sort flag 
+				var obj = <HTMLElement>(ev.target || ev.srcElement);
+				var columns = <ColumnInfo[]>this.get("columns");
+				while (obj) {
+					if (obj.parentNode === head) {
+						var col = (<any>obj).col;
+						if (columns[col].sortable) {
+							var sortType = "asc";
+							if (this.get("sortColumn") == col) {
+								if (this.get("sortType") === "asc")
+									sortType = "desc";
+								else {
+									sortType = null;
+									col = null;
+								}
+							}
+							this.setSortFlag(col, sortType);
+							this.drawHeader();
+							this.fire("sort", {e: ev, column: col === null ? null : columns[col], type: sortType});
+						}
+						return;
+					} else
+						obj = <HTMLElement>obj.parentNode;
+				}
+			});
+		}
+		
+		setSortFlag(col: number, type: string) {
+			this._set("sortColumn", col);
+			this._set("sortType", type);
 		}
 		
 		scrollTo(index: number) {
@@ -443,7 +526,6 @@ module tui.widget {
 				}
 			}
 		}
-		
 		
 		private computeWidth(): number {
 			if (this.get("autoWidth")) {
@@ -482,6 +564,7 @@ module tui.widget {
 					vScroll.set("page", realClientHeight / this._contentHeight * (this._contentHeight - realClientHeight));
 				} else if (this.get("autoHeight")) {
 					vScroll._set("value", 0);
+					vScroll._set("total", 0);
 					content.style.height = this._contentHeight + "px";
 					if (hEnable) {
 						this._.style.height = this._contentHeight + hScroll._.offsetHeight + "px";
@@ -489,8 +572,10 @@ module tui.widget {
 						this._.style.height = this._contentHeight + "px";
 					}
 					clientHeight = this._.clientHeight;
-				} else
+				} else {
 					vScroll._set("value", 0);
+					vScroll._set("total", 0);
+				}
 				if (vEnable !== shouldEnable) {
 					vEnable = shouldEnable;
 					if (!first)
@@ -537,7 +622,7 @@ module tui.widget {
 				for (var i = 0; i < columns.length; i++) {
 					var span = document.createElement("span");
 					span.className = "tui-grid-" + this._tuid + "-" + i;
-					(<any>span)["col"] = i;
+					(<any>span).col = i;
 					line.appendChild(span);
 				}
 			}
@@ -554,12 +639,35 @@ module tui.widget {
 						if (lineData.expand)
 							prefix += "<i class='tui-arrow-expand'></i>";
 						else
-							prefix += "<i class='tui-arrow-contract'></i>";
+							prefix += "<i class='tui-arrow-collapse'></i>";
 					} else {
-						prefix += "<i class='tui-space'></i>";
+						prefix += "<i class='tui-arrow'></i>";
 					}
 				}
+				if (col.type === "check") {
+					var k = (col.checkKey ? col.checkKey : "checked"); 
+					if (item[k] === true)
+						prefix += "<i class='fa fa-check-square-o tui-grid-check'></i>";
+					else if (item[k] === false)
+						prefix += "<i class='fa fa-square-o tui-grid-check'></i>";
+				} else if (col.type === "tristate") {
+					var k = (col.checkKey ? col.checkKey : "checked"); 
+					if (item[k] === true)
+						prefix += "<i class='fa-check-square-o tui-grid-check'></i>";
+					else if (item[k] === false)
+						prefix += "<i class='fa-square-o tui-grid-check'></i>";
+					else if (item[k] === "tristate")
+						prefix += "<i class='fa-check-square tui-grid-check'></i>";
+				} else if (col.type === "select") {
+					prefix += "<i class='fa fa-caret-down tui-grid-select'></i>";
+				} else if (col.type === "edit") {
+					prefix += "<i class='fa fa-edit tui-grid-edit'></i>";
+				}
 				
+				if (col.iconKey && item[col.iconKey]) {
+					prefix += "<i class='fa " + item[col.iconKey] + " tui-grid-icon'></i>";
+				}
+					
 				(<HTMLElement>line.childNodes[i]).innerHTML = prefix + item[columns[i].key];
 			}
 		}
@@ -594,10 +702,22 @@ module tui.widget {
 			head.innerHTML = "";
 			var columns = <ColumnInfo[]>this.get("columns");
 			for (var i = 0; i < columns.length; i++) {
+				var prefix = "";
+				if (columns[i].sortable && this.get("sortColumn") == i) {
+					if (this.get("sortType") === "desc") {
+						prefix = "<i class='tui-grid-desc'></i>";
+					} else {
+						prefix = "<i class='tui-grid-asc'></i>";
+					}
+				}
+				var sortClass = "";
+				if (columns[i].sortable)
+					sortClass = "tui-sortable";
 				var span = document.createElement("span");
-				span.className = "tui-grid-" + this._tuid + "-" + i
+				span.className = "tui-grid-" + this._tuid + "-" + i + " " + sortClass;
+				(<any>span).col = i;
 				head.appendChild(span);
-				span.innerHTML = columns[i].name;
+				span.innerHTML = prefix + columns[i].name;
 			}
 		}
 		
@@ -648,7 +768,7 @@ module tui.widget {
 					if (i >= begin && i < end)
 						this.drawLine(this._buffer.lines[i - this._buffer.begin], i, columns, data.get(i));
 				}
-			}, 96);
+			}, 32);
 			
 			for (var i = 0; i < reusable.length; i++) {
 				content.removeChild(reusable[i]);

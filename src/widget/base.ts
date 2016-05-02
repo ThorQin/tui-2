@@ -593,7 +593,7 @@ module tui.widget {
 					let nodes = document.getElementsByTagName(resizeRegistration[i].substr(4));
 					for (var i = 0; i < nodes.length; i++) {
 						var node: any = nodes[i];
-						if (node.scopeName.toUpperCase() !== "TUI" && node.__widget__) {
+						if (node.scopeName.toUpperCase() === "TUI" && node.__widget__) {
 							(<Widget>node.__widget__).testResize();
 						}
 					}

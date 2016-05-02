@@ -17,10 +17,16 @@
 			$(function(){
 				var data = [];
 				function build(list, level) {
-					for (var i = 0; i < 10; i++) {
-						var child = {name: "name column: " + level + "_" + i, value: "value " + level + "_" + i};
+					for (var i = 0; i < 3; i++) {
+						var child = {name: "name column: " + level + "_" + i, 
+							value: "value " + level + "_" + i,
+							expand: true, 
+							checked: false,
+							icon: "fa-user"
+						};
 						list.push(child);
-						if (level < 4) {
+						
+						if (level < 2 && Math.round(Math.random())) {
 							child.children = [];
 							build(child.children, level+1)
 						}
@@ -31,9 +37,9 @@
 				
 				$get("grid").set("tree", data);
 				$get("grid").set("columns", [
-					{name: "name column", key: "name", arrow: true}, 
-					{name: "value column", key: "value"},
-					{name: "value column", key: "value"},
+					{name: "name column", key: "name", arrow: true, type: "tristate", checkKey: "checked", iconKey: "icon", width: 300}, 
+					{name: "value column", key: "value", sortable: true},
+					{name: "value column", key: "value", sortable: true},
 					{name: "value column", key: "value"},
 					{name: "value column", key: "value"},
 					{name: "value column", key: "value"},
@@ -41,6 +47,17 @@
 					{name: "value column", key: "value"},
 					{name: "value column", key: "value"}
 				]);
+				
+				$get("grid").on("rowclick", function(e){
+					//tui.msgbox("rowclick: " + e.data);
+				});
+				$get("grid").on("rowdblclick", function(e){
+					tui.msgbox("rowdblclick: " + e.data);
+				});
+				$get("grid").on("rowcheck", function(e){
+					tui.msgbox(e.data.row + " - " + e.data.col + ": " + e.data.checked, "Row checked");
+				});
+
 				
 				tui.browser.keepToTop($("#toolbar")[0]);
 				//tui.browser.keepToTop($get("grid").getComponent("head"), 60);
@@ -62,7 +79,13 @@
 				<tui:button id="scrollBtn">切换水平滚动</tui:button>
 			</div>
 		</div>
-		<tui:grid id="grid" auto-height={false} header={true} style="height:500px;" auto-width={false}></tui:grid>
+		<tui:grid id="grid" style="height:500px;"
+			auto-height={false} 
+			header={true}  
+			auto-width={false}
+			sort-column={1}
+			sort-type="asc"
+			></tui:grid>
 		
 		<div id="disp"></div>
 	</body>
