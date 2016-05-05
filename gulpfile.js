@@ -73,6 +73,7 @@ gulp.task('clean', function (cb) {
 gulp.task('run', ['ts', 'less', 'watch'], function () {
 	connect.server({
 		root: ['test', 'dist', 'depends'],
+		port: 8000,
 		livereload: false
 	});
 });

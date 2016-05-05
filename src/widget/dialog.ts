@@ -131,6 +131,16 @@ module tui.widget {
 				ev.stopPropagation();
 			});
 		}
+		
+		setContent(content: any) {
+			var contentDiv = this._components["content"]
+			if (typeof content === "object" && content.nodeName)
+				contentDiv.appendChild(content);
+			else if (typeof content === "string") {
+				contentDiv.innerHTML = content;
+			}
+			this.render();
+		}
 
 		open(buttonDef: string = null): void {
 			if (this.get("opened"))
@@ -300,10 +310,14 @@ module tui.widget {
 module tui {
 	"use strict";
 	
+	function makeContent(message: string, className: string) {
+		return text.format( "<table class='tui-msg-container'><tr><td class='{1}'><span></span></td><td>{0}</td></tr></table>", message, className);
+	}
+	
 	function makeDialog(message: string, className: string, title?: string, btn: string = "ok", 
 		callback: (btnName:string) => void = null, esc: boolean = true): widget.Dialog {
 		var dlg = <widget.Dialog>tui.widget.create("dialog", {
-			"content": text.format( "<table class='tui-msg-container'><tr><td class='{1}'><span></span></td><td>{0}</td></tr></table>", message, className),
+			"content": makeContent(message, className),
 			"title": title,
 			"esc": esc
 		 });
@@ -339,8 +353,41 @@ module tui {
 				callback(buttonName === "ok");
 		});
 	}
-	export function waitbox(message: string): widget.Dialog {
-		return makeDialog(message, "tui-wait-box", null, null, null, false);
+	var refCount = 0;
+	var waitDlg: widget.Dialog = null;
+	var waitMsg: string[] = null;
+	export function waitbox(message: string): {close: () => void} {
+		if (waitDlg == null) {
+			refCount = 0;
+			waitMsg = [message];
+			waitDlg = makeDialog(message, "tui-wait-box", null, null, null, false);
+		} else {
+			waitMsg.push(message);
+			waitDlg.setContent(makeContent(message, "tui-wait-box"));
+		}
+		var index = waitMsg.length - 1;
+		refCount++;
+		var closed = false;
+		return {
+			close: function(){
+				if (!closed) {
+					refCount--;
+					closed = true;
+					waitMsg[index] = null;
+					for (var i = index - 1; i >= 0; i--) {
+						if (waitMsg[i] != null) {
+							waitDlg.setContent(makeContent(waitMsg[i], "tui-wait-box"));
+							break;
+						}
+					}
+					if (refCount === 0) {
+						waitDlg.close();
+						waitDlg = null;
+						waitMsg = null;
+					}
+				}
+			}
+		};
 	}
 	export function progressbox(message: string, cancelProc: () => {} = null): widget.Dialog {
 		// TODO: NOT FINISHED

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en-US" xmlns:tui>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv="content-type" content="text/html;charset=utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>Test</title>
+		
+		<link rel="stylesheet" href="font-awesome-4.3.0/css/font-awesome.css">
+		<link rel="stylesheet" href="css/tui2.css" />
+		
+		<script type="text/javascript" src="es5-shim.js"></script>
+		<script type="text/javascript" src="jquery-1.11.3.js"></script>
+        <script type="text/javascript" src="tui2.js"></script>
+		<script>
+			$(function(){
+				var data = [];
+				function build(list, level) {
+					for (var i = 0; i < 3; i++) {
+						var child = {name: "name column: " + level + "_" + i, 
+							value: "value " + level + "_" + i,
+							desc: "this is a desc: " + level + "_" + i,
+							expand: true, 
+							checked: false,
+							icon: "fa-user"
+						};
+						list.push(child);
+						
+						if (level < 2 && Math.round(Math.random())) {
+							child.children = [];
+							build(child.children, level+1)
+						}
+					}
+				}
+				build(data, 0);
+				
+				
+				$get("grid").set("tree", data);
+								
+				$get("grid").on("rowclick", function(e){
+					//tui.msgbox("rowclick: " + e.data);
+				});
+				$get("grid").on("rowdblclick", function(e){
+					tui.msgbox("rowdblclick: " + e.data);
+				});
+				$get("grid").on("rowcheck", function(e){
+					tui.msgbox(e.data.row + " - " + e.data.col + ": " + e.data.checked, "Row checked");
+				});
+			});
+		</script>
+		
+	</head>
+	<body>
+		<a alt="一个工具提示">ddd</a>
+		<tui:list id="grid" style="height:400px;" tooltip="一个工具提示" checkable={false} row-tooltip-key="desc"></tui:list>
+	</body>
+</html>

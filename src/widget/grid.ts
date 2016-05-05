@@ -527,7 +527,7 @@ module tui.widget {
 			}
 		}
 		
-		private computeWidth(): number {
+		protected computeWidth(): number {
 			if (this.get("autoWidth")) {
 				return this._.clientWidth;
 			} else {
@@ -539,7 +539,7 @@ module tui.widget {
 			}
 		}
 		
-		private computeScroll() {
+		protected computeScroll() {
 			var vScroll = this._vbar;
 			$(vScroll._).addClass("tui-hidden");
 			var vEnable = false;
@@ -616,7 +616,14 @@ module tui.widget {
 			this._dispLines = Math.ceil((dispHeight - (this.get("header") ? this._lineHeight : 0 )) / this._lineHeight);
 		}
 		
-		private drawLine(line: HTMLElement, index: number, columns: ColumnInfo[], lineData: any) {
+		protected drawLine(line: HTMLElement, index: number, columns: ColumnInfo[], lineData: any) {
+			var isTree = this.get("dataType") === "tree";
+			var item = isTree ? lineData.item : lineData;
+			var tipKey = this.get("rowTooltipKey");
+			if (item[tipKey]) {
+				line.setAttribute("tooltip", item[tipKey]);
+			}
+			lineData
 			if (line.childNodes.length != columns.length) {
 				line.innerHTML = "";
 				for (var i = 0; i < columns.length; i++) {
@@ -626,11 +633,9 @@ module tui.widget {
 					line.appendChild(span);
 				}
 			}
-			var isTree = this.get("dataType") === "tree";
 			for (var i = 0; i < columns.length; i++) {
 				let col = columns[i];
 				var prefix = "";
-				var item = isTree ? lineData.item : lineData;
 				if (col.arrow === true && isTree) { // draw a tree arrow 
 					for (var j = 0; j < lineData.level; j++) {
 						prefix += "<i class='tui-space'></i>";
@@ -685,7 +690,10 @@ module tui.widget {
 			return <HTMLElement>parent.appendChild(line);
 		}
 		
-		private clearBuffer() {
+		protected clearBuffer() {
+			if (!this._buffer) {
+				return;
+			}
 			var content = this._components["content"];
 			for (var i = 0; i < this._buffer.lines.length; i++) {
 				content.removeChild(this._buffer.lines[i]);
@@ -695,7 +703,7 @@ module tui.widget {
 			this._buffer.lines = [];
 		}
 		
-		private drawHeader() {
+		protected drawHeader() {
 			if (!this.get("header"))
 				return;
 			var head = this._components["head"];
@@ -722,7 +730,7 @@ module tui.widget {
 		}
 		
 		private _drawTimer: number;
-		private drawContent() {
+		protected drawContent() {
 			var vbar = get(this._components["vScroll"]);
 			var content = this._components["content"];
 			var base = (this.get("header") ? this._lineHeight : 0) - vbar.get("value") % this._lineHeight;
@@ -747,6 +755,7 @@ module tui.widget {
 					if (reusable.length > 0) { // has reusable
 						line = reusable.pop();
 						line.innerHTML = "";
+						line.removeAttribute("tooltip");
 					} else {
 						line = this.createLine(content);
 					}
@@ -778,7 +787,7 @@ module tui.widget {
 			this._buffer.end = this._buffer.begin + this._buffer.lines.length;
 		}
 		
-		private initColumnWidth() {
+		protected initColumnWidth() {
 			var columns = <ColumnInfo[]>this.get("columns");
 			for (var i = 0; i < columns.length; i++) {
 				if (typeof this._columnWidths[i] !== "number" || isNaN(this._columnWidths[i])) {
@@ -792,7 +801,7 @@ module tui.widget {
 			}
 		}
 		
-		private computeHOffset() {
+		protected computeHOffset() {
 			//var widths: number[] = [];
 			var head = this._components["head"];
 			var content = this._components["content"]; 
@@ -814,7 +823,7 @@ module tui.widget {
 			}
 		}
 		
-		private computeColumnWidth() {
+		protected computeColumnWidth() {
 			//var widths: number[] = [];
 			var columns = <ColumnInfo[]>this.get("columns");
 			if (this.get("autoWidth")) {
@@ -903,4 +912,72 @@ module tui.widget {
 
 	register(Grid);
 	registerResize(Grid);
+	
+	
+	/**
+	 * List control
+	 */
+	export class List extends Grid {
+		protected initRestriction(): void {
+			super.initRestriction();
+			
+			this.setRestrictions({
+				"columns": {
+					"set": (value: any) => {},
+					"get": (): any => {
+						var nameKey = this._data["nameKey"];
+						var checkKey = this._data["checkKey"];
+						var checkable = this._data["checkable"];
+						var iconKey = this._data["iconKey"];
+						return [{
+							name: "",
+							key: nameKey,
+							type: checkable ? "check" : null,
+							arrow: true,
+							iconKey: iconKey,
+							checkKey: checkKey
+						}];
+					}
+				},
+				"checkKey": {
+					"set": (value: any) => {
+						this._data["checkKey"] = value;
+						this.clearBuffer();
+					}
+				},
+				"nameKey": {
+					"set": (value: any) => {
+						this._data["nameKey"] = value;
+						this.clearBuffer();
+					}
+				},
+				"iconKey": {
+					"set": (value: any) => {
+						this._data["iconKey"] = value;
+						this.clearBuffer();
+					}
+				},
+				"checkable": {
+					"set": (value: any) => {
+						this._data["checkable"] = value;
+						this.clearBuffer();
+					}
+				}
+			});
+		}
+		
+		protected init(): void {
+			super.init();			
+			this.setInit("idKey", "id");
+			this._set("header", false);
+			this.setInit("autoWidth", true);
+			this.setInit("nameKey", "name");
+			this.setInit("checkKey", "check");
+			this.setInit("iconKey", "icon");
+			this.setInit("checkable", false);
+		}
+	}
+	
+	register(List);
+	registerResize(List);
 }

@@ -22,8 +22,8 @@ module tui.widget {
 		_mask.className = "tui-mask";
 		_mask.style.cursor = "";
 		_mask.removeAttribute("tabIndex");
-		_mask.removeAttribute("data-tooltip");
-		_mask.removeAttribute("data-cursor-tooltip");
+		_mask.removeAttribute("tooltip");
+		_mask.removeAttribute("fixed-tooltip");
 		document.body.appendChild(_mask);
 		// _dragMoveFunc = onMove;
 		function closeDragMask(e: JQueryEventObject) {
@@ -57,42 +57,43 @@ module tui.widget {
 	_tooltip.setAttribute("unselectable", "on");
 	var _tooltipTarget: HTMLElement = null;
 	
-	export function showTooltipAtCursor(target: HTMLElement, tooltip: string, x: number, y: number) {
+	export function showTooltip(target: HTMLElement, tooltip: string, pos: {x: number, y: number}, update: boolean) {
+		function show() {
+			if (pos.x + _tooltip.offsetWidth > $(window).width()) {
+				pos.x = $(window).width() - _tooltip.offsetWidth;
+			}
+			_tooltip.style.left = pos.x + "px";
+			_tooltip.style.top = pos.y + 25 + "px";
+			
+		}
 		if (target === _tooltipTarget || target === _tooltip) {
-			_tooltip.style.left = x - 17 + "px";
-			_tooltip.style.top = y + 20 + "px";
-			_tooltip.innerHTML = tooltip;
+			if (update) {
+				show();
+			}
 			return;
 		}
-		document.body.appendChild(_tooltip);
+		_tooltip.style.width = "";
+		_tooltip.style.whiteSpace = "nowrap";
 		_tooltip.innerHTML = tooltip;
-		_tooltipTarget = target;
-		_tooltip.style.left = x - 17 + "px";
-		_tooltip.style.top = y + 20 + "px";
-	}
-
-	export function showTooltip(target: HTMLElement, tooltip: string) {
-		if (target === _tooltipTarget || target === _tooltip) {
-			return;
-		}
 		document.body.appendChild(_tooltip);
-		_tooltip.innerHTML = tooltip;
 		_tooltipTarget = target;
-		var pos = browser.getRectOfScreen(target);
-		if (target.offsetWidth < 20)
-			_tooltip.style.left = (pos.left + target.offsetWidth / 2 - 17) + "px";
-		else
-			_tooltip.style.left = pos.left + "px";
-		_tooltip.style.top = pos.top + 8 + target.offsetHeight + "px";
+		if (_tooltip.scrollWidth > _tooltip.clientWidth) {
+			_tooltip.style.whiteSpace = "normal";
+		} else
+			_tooltip.style.whiteSpace = "nowrap";
+		_tooltip.style.width = $(_tooltip).width() + "px";
+		show();
 	}
 
 	export function closeTooltip() {
 		if (_tooltip.parentNode)
 			_tooltip.parentNode.removeChild(_tooltip);
 		_tooltip.innerHTML = "";
+		_tooltip.style.width = "";
 		_tooltipTarget = null;
 	}
 
+	var _tooltipTimer: number = null;
 	export function whetherShowTooltip(target: HTMLElement, e:JQueryMouseEventObject) {
 		if (browser.isAncestry(target, _tooltip))
 			return;
@@ -102,15 +103,20 @@ module tui.widget {
 				obj = null;
 				break;
 			}
-			var tooltip = obj.getAttribute("data-tooltip");
+			var tooltip = obj.getAttribute("tooltip");
 			if (tooltip) {
-				if (obj.getAttribute("data-cursor-tooltip") === "true")
-					showTooltipAtCursor(obj, tooltip, e.clientX, e.clientY);
-				else
-					showTooltip(obj, tooltip);
+				closeTooltip();
+				_tooltipTimer = setTimeout(function() {
+					showTooltip(obj, tooltip, {x: e.clientX, y: e.clientY}, false);
+				}, 500);
 				return;
 			} else {
-				obj = obj.parentElement;
+				tooltip = obj.getAttribute("follow-tooltip");
+				if (tooltip) {
+					showTooltip(obj, tooltip, {x: e.clientX, y: e.clientY}, true);
+					return;
+				} else
+					obj = obj.parentElement;
 			}
 		}
 		if (!obj)
@@ -118,6 +124,7 @@ module tui.widget {
 	}
 
 	export function whetherCloseTooltip(target: HTMLElement) {
+		
 		if (target !== _tooltipTarget && target !== _tooltip) {
 			closeTooltip();
 		}
@@ -184,12 +191,12 @@ module tui.widget {
 				var names: string[] = [];
 				for (let i = 0; i < elem.attributes.length; i++) {
 					let attr = elem.attributes[i];
-					if (/^(style|class)$/.test(attr.name.toLowerCase()))
+					if (/^(style|class|tooltip|follow-tooltip|__widget__|jquery[\d]+)$/.test(attr.name.toLowerCase()))
 						continue;
 					let v = parseValue(attr.value);
 					if (v !== null)
 						this._set(text.toCamel(attr.name), v);
-					if (!/^(id|__widget__|jquery[\d]+)$/i.test(attr.name.toLowerCase()))
+					if (!/^(id)$/i.test(attr.name.toLowerCase()))
 						names.push(attr.name);
 				}
 				for (let name of names)
@@ -510,7 +517,7 @@ module tui.widget {
 		for (let item of initSet) {
 			let elem = item[0];
 			let constructor = item[1];
-			//try {
+			try {
 				if (!(<any>elem).__widget__) {
 					let widget: Widget = new constructor(elem);
 					if (typeof initFunc === "function") {
@@ -522,9 +529,9 @@ module tui.widget {
 					let widget: Widget = (<any>elem).__widget__;
 					widget.refresh();
 				}
-			//} catch (e) {
-			//	if (console) console.error(e.message);
-			//}
+			// } catch (e) {
+			// 	if (console) console.error(e.message);
+			} finally {}
 		}
 	}
 	
@@ -568,6 +575,7 @@ module tui.widget {
 	
 	var _hoverElement: any;
 	$(window.document).mousemove(function (e: any) {
+		clearTimeout(_tooltipTimer);
 		_hoverElement = e.target || e.toElement;
 		if (e.button === 0 && (e.which === 1 || e.which === 0)) {
 			whetherShowTooltip(_hoverElement, e);
@@ -591,8 +599,8 @@ module tui.widget {
 			detectResize = function(){
 				for (var i = 0; i < resizeRegistration.length; i++) {
 					let nodes = document.getElementsByTagName(resizeRegistration[i].substr(4));
-					for (var i = 0; i < nodes.length; i++) {
-						var node: any = nodes[i];
+					for (let j = 0; j < nodes.length; j++) {
+						var node: any = nodes[j];
 						if (node.scopeName.toUpperCase() === "TUI" && node.__widget__) {
 							(<Widget>node.__widget__).testResize();
 						}
@@ -604,8 +612,8 @@ module tui.widget {
 			detectResize = function(){
 				for (var i = 0; i < resizeRegistration.length; i++) {
 					let nodes = document.getElementsByTagName(resizeRegistration[i]);
-					for (var i = 0; i < nodes.length; i++) {
-						var node: any = nodes[i];
+					for (let j = 0; j < nodes.length; j++) {
+						var node: any = nodes[j];
 						if (node.__widget__) {
 							(<Widget>node.__widget__).testResize();
 						}

@@ -1,6 +1,6 @@
 @import 'commons.less';
 
-tui\:grid {
+tui\:grid,tui\:list {
 	display: block;
 	position: relative;
 	border: 1px solid @borderColor;
@@ -18,7 +18,7 @@ tui\:grid {
 		border-bottom: 1px solid #ddd;
 		height: @gridLineHeight;
 		line-height: @gridLineHeight;
-		background: #f0f0f0;
+		background: #f5f5f5;
 		z-index: 10;
 		white-space: nowrap;
 		word-break: keep-all;
@@ -37,6 +37,7 @@ tui\:grid {
 				overflow: hidden;
 				color: @lineSelectFocusedBackgroundColor;
 				//color: #ee7755
+				//.liner-color(#e0e0e0, #f0f0f0);
 			}
 			.tui-grid-desc::before {
 				.icon-base();
@@ -52,7 +53,7 @@ tui\:grid {
 				cursor: pointer;
 				&:hover {
 					// .tui-grid-asc,.tui-grid-desc {
-					// 	background-color: #ddd;
+					// 	.liner-color(rgba(180,240,255,1), #ddd);
 					// }
 					background-color: #ddd;
 				}
@@ -128,6 +129,9 @@ tui\:grid {
 		word-break: keep-all;
 		cursor: default;
 	}
+	.tui-grid-line:hover {
+		background-color: #f8f8f8;
+	}
 	.tui-grid-line.tui-actived {
 		background-color: @lineSelectFocusedBackgroundColor;
 		color: @lineSelectFocusedForeColor;
@@ -187,6 +191,11 @@ tui\:grid {
 	}
 	.tui-space {
 		width: 10px;
+	}
+}
+tui\:list {
+	.tui-grid-line, .tui-grid-test {
+		border-bottom: 0px;
 	}
 }
 
