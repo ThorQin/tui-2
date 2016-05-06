@@ -203,7 +203,7 @@ module tui.widget {
 						getInputTime();
 						o.select();
 					} else if (k == 13) 
-						this.fire("click", { "time": this.get("time") });
+						this.fire("click", {e:e,  "time": this.get("time") });
 				} 
 			});
 			
@@ -221,7 +221,7 @@ module tui.widget {
 				setTimeout(() => { this._.focus(); });
 				return browser.cancelBubble(e);
 			}).click((e) => {
-				this.fire("click", {"time": this.get("time"), "type": "refresh"});
+				this.fire("click", {e:e, "time": this.get("time"), "type": "refresh"});
 			});
 			
 			$(tb).mousedown((e) => {
@@ -268,15 +268,15 @@ module tui.widget {
 				if (cell.nodeName.toLowerCase() !== "td")
 					return;
 				if (typeof cell["offsetMonth"] === "number") 
-					this.fire("click", {"time": this.get("time"), "type": "pick"});
+					this.fire("click", {e:e, "time": this.get("time"), "type": "pick"});
 				else if(/^(tui-pm|tui-py|tui-nm|tui-ny)$/.test(cell.className))
-					this.fire("click", {"time": this.get("time"), "type": "change"});
+					this.fire("click", {e:e, "time": this.get("time"), "type": "change"});
 			}).dblclick( (e: JQueryEventObject) => {
 				var cell = <any>(e.target || e.srcElement);
 				if (cell.nodeName.toLowerCase() !== "td")
 					return;
 				if (typeof cell["offsetMonth"] === "number")
-					this.fire("dblclick", {"time": this.get("time")});
+					this.fire("dblclick", {e:e, "time": this.get("time")});
 			});
 			$(this._).keydown( (e) => {
 				var k = e.keyCode;
@@ -298,7 +298,7 @@ module tui.widget {
 					} else if (k === 34) {
 						this.nextMonth();
 					} else if (k === 13) {
-						this.fire("click", {"time": this.get("time")});
+						this.fire("click", {e:e, "time": this.get("time")});
 					}
 					return e.preventDefault();
 				}

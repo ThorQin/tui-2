@@ -208,12 +208,13 @@ module tui.widget {
 			if (typeof key === UNDEFINED || key === null) {
 				return this._data;
 			} else if (typeof key === "string") {
+				var value: any;
 				if (this._rs[key] && typeof this._rs[key].get === "function") {
-					return this._rs[key].get();
+					value = this._rs[key].get(); 
 				} else {
-					var value = this._data[key];
-					return (typeof value === UNDEFINED ? null : value);
+					value = this._data[key];
 				}
+				return (typeof value === UNDEFINED ? null : value);
 			}
 		}
 

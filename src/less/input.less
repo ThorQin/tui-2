@@ -1,0 +1,93 @@
+@import 'commons.less';
+
+tui\:input {
+	display: inline-block;
+	position: relative;
+	height: @buttonHeight;
+	line-height: @buttonHeight;
+	margin:2px;
+	border: 1px solid @borderColor;
+	width: 200px;
+	background-color: @windowColor;
+	overflow: hidden;
+	white-space: nowrap;
+	word-break: keep-all;
+	.border-radius(@buttonBorderRadius);
+	&.tui-active {
+		border: 1px solid @borderFocusColor;
+		.shadow(0px, 0px, 4px, @borderFocusedShadowColor);
+	}
+	&.tui-disable {
+		border: 1px solid @borderColor;
+		box-shadow: none;
+		background-color: #f0f0f0;
+		color: #ccc;
+	}
+	.tui-placeholder {
+		display: block;
+		position: absolute;
+		height: @buttonHeight;
+		line-height: @buttonHeight;
+		top: 0;
+		color: #ccc;
+		cursor: text;
+		z-index: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.tui-invalid-icon {
+		display: inline-block;
+		position: absolute;
+		width:30px;
+		height: @buttonHeight;
+		line-height: @buttonHeight;
+		text-align: center;
+		cursor: default;
+		color: red;
+		&::before {
+			.icon-base();
+			.fa-times;
+		}
+	}
+	&.tui-invalid {
+		border: 1px solid red;
+		&.tui-active {
+			.shadow(0px, 0px, 4px, #f88);
+		}
+	}
+}
+
+tui\:input {
+	>input {
+		position: absolute;
+		border: none;
+		margin: 0px;
+		height: @buttonHeight;
+		line-height: @buttonHeight;
+		overflow: hidden;
+		background: transparent;
+		z-index: 1;
+	}
+	&.tui-invalid>input {
+		color: red;
+	}
+	&.tui-disable>input {
+		color: #ccc;
+	}
+	i {
+		display: inline-block;
+		position: absolute;
+		width:30px;
+		height: @buttonHeight;
+		line-height: @buttonHeight;
+		text-align: center;
+		cursor: default;
+		background-color: @windowColor;
+	}
+	&.tui-disable > i {
+		background-color: #f0f0f0;
+	}
+	i::before {
+		.icon-base();
+	}
+}

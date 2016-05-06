@@ -110,7 +110,7 @@ module tui.widget {
 				}
 				var v = this.posToValue(pos - thumbLen / 2);
 				this.set("value", v);
-				this.fire("scroll", { value: this.get("value"), type: "mousedown"});
+				this.fire("scroll", {e:e, value: this.get("value"), type: "mousedown"});
 				return false;
 			});
 
@@ -128,7 +128,7 @@ module tui.widget {
 					this.set("value", oldValue - scrollSize);
 				}
 				if (oldValue !== this.get("value"))
-					this.fire("scroll", { value: this.get("value"), type: "mousewheel"});
+					this.fire("scroll", {e:e,  value: this.get("value"), type: "mousewheel"});
 				e.stopPropagation();
 				e.preventDefault();
 			});
@@ -147,13 +147,13 @@ module tui.widget {
 				}
 				this.set("value", this.posToValue(pos));
 				if (oldValue !== this.get("value")) {
-					this.fire("scroll", { value: this.get("value"), type: "drag" });
+					this.fire("scroll", {e:e, value: this.get("value"), type: "drag" });
 				}
 			}
 
-			var dragEnd = () => {
+			var dragEnd = (e: JQueryEventObject) => {
 				$(this._).removeClass("tui-actived");
-				this.fire("dragend", { value: this.get("value") });
+				this.fire("dragend", {e:e, value: this.get("value") });
 			}
 
 			$(btnThumb).mousedown((e) => {
@@ -165,7 +165,7 @@ module tui.widget {
 				beginTop = btnThumb.offsetTop;
 				$(this._).addClass("tui-actived");
 				openDragMask(dragThumb, dragEnd);
-				this.fire("dragstart", { value: this.get("value") });
+				this.fire("dragstart", {e:e, value: this.get("value") });
 			});
 
 			this.refresh();

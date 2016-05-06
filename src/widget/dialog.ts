@@ -157,7 +157,7 @@ module tui.widget {
 					if (pair.length > 1 && $.trim(pair[1]).length > 0)
 						btn._.className = pair[1];
 					btn.on("click", (e) => {
-						this.fire("btnclick", { button: $.trim(pair[0])});
+						this.fire("btnclick", {e:e,  button: $.trim(pair[0])});
 					});
 					btn.appendTo(buttonBar);
 				}

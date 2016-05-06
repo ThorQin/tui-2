@@ -272,7 +272,7 @@ module tui.widget {
 						}
 						item.checked = true;
 					}
-					this.fire("click", item);
+					this.fire("click", {e:e, item:item});
 					this.close();
 				}
 			});
@@ -339,7 +339,7 @@ module tui.widget {
 					stopEvent();
 					if (this.activeItem !== null) {
 						var item = data[this.activeItem];
-						this.fire("click", item);
+						this.fire("click", {e:e, item:item});
 						this.close();
 					}
 				}

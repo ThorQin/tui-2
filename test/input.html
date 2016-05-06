@@ -16,10 +16,18 @@
 		<script>
 			
 		</script>
-		
+		<style>
+			tui\:input {
+				display: block;
+				width: inherit;
+			}
+		</style>
 	</head>
 	<body>
-		
-		
+		<tui:input icon-left="fa-search" icon-right="fa-edit" placeholder="请输入文字" text="This is a test" auto-validate={true} >
+			<tui:verify format="*email">请输入有效的邮件地址</tui:verify>
+		</tui:input><br>
+		<tui:input icon-left="fa-search" type="password" placeholder="请输入密码"></tui:input><br>
+		<tui:input icon-right="fa-search" disable={true} value="this is a test" ></tui:input>
 	</body>
 </html>
