@@ -99,21 +99,21 @@ module tui.widget {
 			return;
 		var obj = target;
 		while (obj) {
-			if (typeof obj.getAttribute !== "function") {
+			if (!obj.getAttribute) {
 				obj = null;
 				break;
 			}
-			var tooltip = obj.getAttribute("tooltip");
+			var tooltip = obj.getAttribute("follow-tooltip"); // high priority
 			if (tooltip) {
-				closeTooltip();
-				_tooltipTimer = setTimeout(function() {
-					showTooltip(obj, tooltip, {x: e.clientX, y: e.clientY}, false);
-				}, 500);
+				showTooltip(obj, tooltip, {x: e.clientX, y: e.clientY}, true);
 				return;
 			} else {
-				tooltip = obj.getAttribute("follow-tooltip");
+				tooltip = obj.getAttribute("tooltip");
 				if (tooltip) {
-					showTooltip(obj, tooltip, {x: e.clientX, y: e.clientY}, true);
+					closeTooltip();
+					_tooltipTimer = setTimeout(function() {
+						showTooltip(obj, tooltip, {x: e.clientX, y: e.clientY}, false);
+					}, 500);
 					return;
 				} else
 					obj = obj.parentElement;
@@ -339,6 +339,28 @@ module tui.widget {
 							return parent.get("name");
 						return null;
 					}
+				},
+				"tooltip": {
+					"set": (value: any) => {
+						if (value)
+							this._.setAttribute("tooltip", value);
+						else
+							this._.removeAttribute("tooltip");
+					},
+					"get": (): any => {
+						return this._.getAttribute("tooltip");
+					}
+				},
+				"follow-tooltip": {
+					"set": (value: any) => {
+						if (value)
+							this._.setAttribute("follow-tooltip", value);
+						else
+							this._.removeAttribute("follow-tooltip");
+					},
+					"get": (): any => {
+						return this._.getAttribute("follow-tooltip");
+					}
 				}
 			});
 		}
@@ -518,7 +540,7 @@ module tui.widget {
 		for (let item of initSet) {
 			let elem = item[0];
 			let constructor = item[1];
-			try {
+			// try {
 				if (!(<any>elem).__widget__) {
 					let widget: Widget = new constructor(elem);
 					if (typeof initFunc === "function") {
@@ -532,7 +554,7 @@ module tui.widget {
 				}
 			// } catch (e) {
 			// 	if (console) console.error(e.message);
-			} finally {}
+			// } finally {}
 		}
 	}
 	

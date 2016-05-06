@@ -314,7 +314,7 @@ module tui {
 		return text.format( "<table class='tui-msg-container'><tr><td class='{1}'><span></span></td><td>{0}</td></tr></table>", message, className);
 	}
 	
-	function makeDialog(message: string, className: string, title?: string, btn: string = "ok", 
+	function makeDialog(message: string, className: string, title?: string, btn: string = "ok#tui-primary", 
 		callback: (btnName:string) => void = null, esc: boolean = true): widget.Dialog {
 		var dlg = <widget.Dialog>tui.widget.create("dialog", {
 			"content": makeContent(message, className),

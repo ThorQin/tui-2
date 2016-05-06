@@ -46,14 +46,14 @@ module tui.widget {
 							return;
 						var textbox = <HTMLInputElement>this._components["textbox"];
 						if (textbox) {
-							textbox.type = value;
+							textbox.setAttribute("type", value);
 						}
 						this._data["type"] = value;
 					},
 					"get": (): any => {
 						var textbox = <HTMLInputElement>this._components["textbox"];
 						if (textbox) {
-							return textbox.type;
+							return textbox.getAttribute("type");
 						}
 						var value = this._data["type"];
 						return (value ? value : "text");
@@ -80,7 +80,7 @@ module tui.widget {
 			this._.appendChild(iconInvalid);
 			this._.appendChild(iconRight);
 			textbox.value = (value !== null ? value : "");
-			textbox.type = type;
+			textbox.setAttribute("type", value);
 			
 			$(textbox).focus(() => {
 				$root.addClass("tui-active");
@@ -216,10 +216,11 @@ module tui.widget {
 			}
 			
 			if (!this._valid && this._invalidMessage) {
-				textbox.setAttribute("follow-tooltip", this._invalidMessage);
+				this._set("follow-tooltip", this._invalidMessage);
 			} else {
-				textbox.removeAttribute("follow-tooltip");
+				this._set("follow-tooltip", null);
 			}
+			this._set("tooltip", "test tooltip");
 		}
 	}
 	

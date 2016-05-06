@@ -629,6 +629,7 @@ module tui.widget {
 				for (var i = 0; i < columns.length; i++) {
 					var span = document.createElement("span");
 					span.className = "tui-grid-" + this._tuid + "-" + i;
+					span.setAttribute("unselectable", "on");
 					(<any>span).col = i;
 					line.appendChild(span);
 				}
@@ -686,7 +687,7 @@ module tui.widget {
 			var columns = <ColumnInfo[]>this.get("columns");
 			var line = document.createElement("div");
 			line.className = "tui-grid-line";
-			
+			line.setAttribute("unselectable", "on");
 			return <HTMLElement>parent.appendChild(line);
 		}
 		
@@ -918,49 +919,59 @@ module tui.widget {
 	 * List control
 	 */
 	export class List extends Grid {
+		
+		private _column: ColumnInfo;
+		
 		protected initRestriction(): void {
 			super.initRestriction();
-			
+			this._column = {
+				name: "",
+				key: "name",
+				checkKey: "check",
+				iconKey: "icon",
+				arrow: true
+			};
 			this.setRestrictions({
 				"columns": {
 					"set": (value: any) => {},
 					"get": (): any => {
-						var nameKey = this._data["nameKey"];
-						var checkKey = this._data["checkKey"];
-						var checkable = this._data["checkable"];
-						var iconKey = this._data["iconKey"];
-						return [{
-							name: "",
-							key: nameKey,
-							type: checkable ? "check" : null,
-							arrow: true,
-							iconKey: iconKey,
-							checkKey: checkKey
-						}];
+						return [this._column];
 					}
 				},
 				"checkKey": {
 					"set": (value: any) => {
-						this._data["checkKey"] = value;
+						this._column.checkKey = value;
 						this.clearBuffer();
+					},
+					"get": () => {
+						return this._column.checkKey;
 					}
 				},
 				"nameKey": {
 					"set": (value: any) => {
-						this._data["nameKey"] = value;
+						this._column.key = value;
 						this.clearBuffer();
+					},
+					"get": () => {
+						return this._column.key;
 					}
 				},
 				"iconKey": {
 					"set": (value: any) => {
-						this._data["iconKey"] = value;
+						this._column.iconKey = value;
 						this.clearBuffer();
+					},
+					"get": () => {
+						return this._column.iconKey;
 					}
 				},
 				"checkable": {
 					"set": (value: any) => {
-						this._data["checkable"] = value;
+						this._column.type = value ? "check" : null;
 						this.clearBuffer();
+					},
+					"get": () => {
+						return this._column.type === "check";
 					}
 				}
 			});
@@ -971,10 +982,6 @@ module tui.widget {
 			this.setInit("idKey", "id");
 			this._set("header", false);
 			this.setInit("autoWidth", true);
-			this.setInit("nameKey", "name");
-			this.setInit("checkKey", "check");
-			this.setInit("iconKey", "icon");
-			this.setInit("checkable", false);
 		}
 	}
 	

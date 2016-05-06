@@ -39,20 +39,21 @@ tui\:input {
 		display: inline-block;
 		position: absolute;
 		width:30px;
-		height: @buttonHeight;
-		line-height: @buttonHeight;
+		top: 1px;
+		height: @buttonHeight - 2px;
+		line-height: @buttonHeight - 2px;
 		text-align: center;
 		cursor: default;
 		color: red;
 		&::before {
 			.icon-base();
-			.fa-times;
+			.fa-exclamation-triangle;
 		}
 	}
 	&.tui-invalid {
 		border: 1px solid red;
 		&.tui-active {
-			.shadow(0px, 0px, 4px, #f88);
+			.shadow(0px, 0px, 4px, red);
 		}
 	}
 }
@@ -62,8 +63,9 @@ tui\:input {
 		position: absolute;
 		border: none;
 		margin: 0px;
-		height: @buttonHeight;
-		line-height: @buttonHeight;
+		top: 2px;
+		height: @buttonHeight - 4px;
+		line-height: @buttonHeight - 4px;
 		overflow: hidden;
 		background: transparent;
 		z-index: 1;
@@ -77,9 +79,10 @@ tui\:input {
 	i {
 		display: inline-block;
 		position: absolute;
+		top: 1px;
 		width:30px;
-		height: @buttonHeight;
-		line-height: @buttonHeight;
+		height: @buttonHeight - 2px;
+		line-height: @buttonHeight - 2px;
 		text-align: center;
 		cursor: default;
 		background-color: @windowColor;
