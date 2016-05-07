@@ -34,6 +34,21 @@ module tui.widget {
 		private popIndex: number = null;
 		private referRect: browser.Rect = null;
 		private checkInterval: number = null;
+		
+		protected initRestriction(): void {
+			super.initRestriction();
+			this.setRestrictions({
+				"content": {
+					"set": (value: any): void => {
+						this._data["content"] = value;
+						if (typeof value === "string")
+							this._.innerHTML = value;
+						else if (value && value.nodeName)
+							this._.appendChild(value);
+					}
+				}
+			});
+		}
 	
 		protected initChildren(childNodes: Node[]) {
 			if (childNodes.length > 0) {
@@ -52,7 +67,7 @@ module tui.widget {
 			var content = this.get("content");
 			if (typeof content === "string")
 				$root.html(content);
-			else	
+			else if (content && content.nodeName)
 				$root.append(content);
 			widget.init(this._);
 			browser.removeNode(this._);

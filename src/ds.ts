@@ -110,7 +110,7 @@ module tui.ds {
 		}
 	} // End of RemoteListSource
 	
-	interface TreeNode {
+	export interface TreeNode {
 		parent: TreeNode;
 		hasChild: boolean; // whether has child nodes
 		item: any;
@@ -124,9 +124,13 @@ module tui.ds {
 		hasChild?: string;
 	}
 	
-	abstract class TreeBase extends EventObject  implements TreeDS {
+	export abstract class TreeBase extends EventObject  implements TreeDS {
 		protected _config: TreeConfig;
 		protected _index: TreeNode[] = null;
+		
+		getConfig() {
+			return this._config;
+		}
 
 		length(): number {
 			if (this._index)

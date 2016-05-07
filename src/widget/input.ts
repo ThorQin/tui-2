@@ -98,16 +98,12 @@ module tui.widget {
 				$(textbox).on("propertychange", (e: any) => {
 					if (e.originalEvent.propertyName !== 'value')
 						return;
-					this._valid = true;
-					this._invalidMessage = null;
-					this.render();
+					this.reset();
 					this.fire("input", e);
 				});
 			} else {
 				$(textbox).on("input", (e) => {
-					this._valid = true;
-					this._invalidMessage = null;
-					this.render();
+					this.reset();
 					this.fire("input", e);
 				});
 			}
@@ -220,7 +216,6 @@ module tui.widget {
 			} else {
 				this._set("follow-tooltip", null);
 			}
-			this._set("tooltip", "test tooltip");
 		}
 	}
 	

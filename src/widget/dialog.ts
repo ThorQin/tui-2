@@ -174,6 +174,7 @@ module tui.widget {
 			this._set("opened", true);
 			push(this);
 			this.render();
+			this._.focus();
 			this.fire("open");
 			this._sizeTimer = setInterval( () => {
 				if (this._contentSize == null)

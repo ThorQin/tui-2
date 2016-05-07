@@ -1,6 +1,6 @@
 @import 'commons.less';
 
-tui\:input {
+tui\:input,tui\:select {
 	display: inline-block;
 	position: relative;
 	height: @buttonHeight;
@@ -12,28 +12,15 @@ tui\:input {
 	overflow: hidden;
 	white-space: nowrap;
 	word-break: keep-all;
+	outline: none;
 	.border-radius(@buttonBorderRadius);
 	&.tui-active {
 		border: 1px solid @borderFocusColor;
-		.shadow(0px, 0px, 4px, @borderFocusedShadowColor);
+		.shadow(0px, 0px, 4px, #88ccff);
 	}
 	&.tui-disable {
-		border: 1px solid @borderColor;
-		box-shadow: none;
 		background-color: #f0f0f0;
 		color: #ccc;
-	}
-	.tui-placeholder {
-		display: block;
-		position: absolute;
-		height: @buttonHeight;
-		line-height: @buttonHeight;
-		top: 0;
-		color: #ccc;
-		cursor: text;
-		z-index: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
 	}
 	.tui-invalid-icon {
 		display: inline-block;
@@ -51,30 +38,11 @@ tui\:input {
 		}
 	}
 	&.tui-invalid {
+		color: red;
 		border: 1px solid red;
 		&.tui-active {
-			.shadow(0px, 0px, 4px, red);
+			.shadow(0px, 0px, 4px, #ff8888);
 		}
-	}
-}
-
-tui\:input {
-	>input {
-		position: absolute;
-		border: none;
-		margin: 0px;
-		top: 2px;
-		height: @buttonHeight - 4px;
-		line-height: @buttonHeight - 4px;
-		overflow: hidden;
-		background: transparent;
-		z-index: 1;
-	}
-	&.tui-invalid>input {
-		color: red;
-	}
-	&.tui-disable>input {
-		color: #ccc;
 	}
 	i {
 		display: inline-block;
@@ -87,10 +55,68 @@ tui\:input {
 		cursor: default;
 		background-color: @windowColor;
 	}
+	i::before {
+		.icon-base();
+	}
 	&.tui-disable > i {
 		background-color: #f0f0f0;
 	}
-	i::before {
-		.icon-base();
+	.tui-placeholder {
+		display: block;
+		position: absolute;
+		height: @buttonHeight;
+		line-height: @buttonHeight;
+		top: 0;
+		color: #ccc;
+		cursor: text;
+		z-index: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+}
+
+tui\:input {
+	
+	>input {
+		position: absolute;
+		border: none;
+		margin: 0px;
+		padding: 0px;
+		top: 2px;
+		height: @buttonHeight - 4px;
+		line-height: @buttonHeight - 4px;
+		overflow: hidden;
+		background: transparent;
+		z-index: 1;
+		-webkit-tap-highlight-color: transparent;
+		-webkit-touch-callout: none;
+	}
+	&.tui-invalid>input {
+		color: red;
+	}
+	&.tui-disable>input {
+		color: #ccc;
+	}
+	
+	
+}
+
+tui\:select {
+	cursor: pointer;
+	.tui-input-label {
+		display: block;
+		position: absolute;
+		padding: 0px 6px;
+		height: @buttonHeight;
+		line-height: @buttonHeight;
+		top: 0;
+		left: 0;
+		right: 30px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		cursor: pointer;
+	}
+	i {
+		cursor: pointer;
 	}
 }

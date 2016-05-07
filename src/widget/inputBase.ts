@@ -35,6 +35,12 @@ module tui.widget {
 			this._set("validate", validators);
 		}
 		
+		reset() {
+			this._valid = true;
+			this._invalidMessage = null;
+			this.render();
+		}
+		
 		validate(e?: JQueryEventObject): boolean {
 			var text = this.get("text");
 			if (text === null)

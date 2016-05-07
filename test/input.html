@@ -13,21 +13,51 @@
 		<script type="text/javascript" src="es5-shim.js"></script>
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
-		<script>
-			
-		</script>
+		
 		<style>
-			tui\:input {
+			tui\:input, tui\:select {
 				display: block;
 				width: inherit;
+				margin: 20px 0;
 			}
 		</style>
 	</head>
 	<body>
-		<tui:input icon-left="fa-search" icon-right="fa-edit" placeholder="请输入文字" text="This is a test" auto-validate={true} >
+		<tui:input placeholder="请输入文字" text="This is a test" auto-validate={true} >
 			<tui:verify format="*email">请输入有效的邮件地址</tui:verify>
-		</tui:input><br>
-		<tui:input icon-left="fa-search" type="password" placeholder="请输入密码"></tui:input><br>
+		</tui:input>
+		<tui:input icon-left="fa-search" type="password" placeholder="请输入密码"></tui:input>
 		<tui:input icon-right="fa-search" disable={true} value="this is a test" ></tui:input>
+		<tui:select id="sel" value="value 2_3_4" placeholder="请选择..." auto-validate={true} >
+			<tui:verify format="*any">随便输入点东西</tui:verify>
+		</tui:select>
+		
+		<script>
+			$(function() {
+				var data = [];
+				var path = [];
+				function build(list, level) {
+					for (var i = 0; i < 5; i++) {
+						path.push(i);
+						var child = {name: "name column: " + path.join("_"), 
+							value: "value " + path.join("_"),
+							expand: false, 
+							checked: false,
+							icon: "fa-user"
+						};
+						
+						list.push(child);
+						
+						if (level < 2) {
+							child.children = [];
+							build(child.children, level+1)
+						}
+						path.pop();
+					}
+				}
+				build(data, 0);
+				$get("sel").set("tree", data);
+			});
+		</script>
 	</body>
 </html>

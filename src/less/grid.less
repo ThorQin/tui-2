@@ -116,7 +116,7 @@ tui\:grid,tui\:list {
 		background: #555;
 		opacity: 0.5;
 	}
-	.tui-grid-line, .tui-grid-test {
+	.tui-grid-line,.tui-grid-test {
 		display: block;
 		position: absolute;
 		height: @gridLineHeight;
@@ -129,9 +129,12 @@ tui\:grid,tui\:list {
 		word-break: keep-all;
 		cursor: default;
 	}
-	.tui-grid-line:hover {
-		background-color: #f8f8f8;
+	.tui-grid-test {
+		visibility: hidden;
 	}
+	// .tui-grid-line:hover {
+	// 	background-color: #eee;
+	// }
 	.tui-grid-line.tui-actived {
 		background-color: @lineSelectFocusedBackgroundColor;
 		color: @lineSelectFocusedForeColor;
@@ -193,21 +196,9 @@ tui\:grid,tui\:list {
 		width: 10px;
 	}
 }
+
 tui\:list {
 	.tui-grid-line, .tui-grid-test {
 		border-bottom: 0px;
 	}
-}
-
-.tui-grid-test {
-	display: block;
-	position: absolute;
-	visibility: hidden;
-	height: @gridLineHeight;
-	line-height: @gridLineHeight;
-	top: 0px;
-	left: 0px;
-	border: 0;
-	padding: 0;
-	margin: 0;
 }
