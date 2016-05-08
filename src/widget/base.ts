@@ -52,7 +52,7 @@ module tui.widget {
 			this._data = {};
 			var elem: HTMLElement = this.getComponent();
 			if (elem != null) {
-				var dataStr = elem.getAttribute("_data");
+				var dataStr = elem.getAttribute("props");
 				var tmpData = eval("(" + dataStr + ")"); 
 				if (tmpData instanceof Object) {
 					for (let key in tmpData) {

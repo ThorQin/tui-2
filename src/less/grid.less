@@ -150,9 +150,9 @@ tui\:grid,tui\:list {
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
-	.tui-space,.tui-arrow-collapse,.tui-arrow-expand,.tui-arrow,.tui-grid-check { //  .tui-grid-checked, .tui-grid-unchecked
+	.tui-space,.tui-arrow-collapse,.tui-arrow-expand,.tui-arrow,.tui-grid-check,.tui-grid-no-check { //  .tui-grid-checked, .tui-grid-unchecked
 		display: inline-block;
-		width: 18px;
+		width: 22px;
 		text-align: center;
 	}
 	.tui-arrow-collapse::before {
@@ -165,7 +165,12 @@ tui\:grid,tui\:list {
 	}
 	.tui-grid-check {
 		//color: @uncheckColor;
-		text-align: left;
+		text-align: center;
+	}
+	.tui-grid-no-check {
+		//color: @uncheckColor;
+		font-family: arial;
+		text-align: center;
 	}
 	.tui-grid-check::before {
 		.icon-base();
@@ -193,7 +198,7 @@ tui\:grid,tui\:list {
 		}
 	}
 	.tui-space {
-		width: 10px;
+		width: 14px;
 	}
 }
 

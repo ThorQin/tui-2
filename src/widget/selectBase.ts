@@ -51,6 +51,17 @@ module tui.widget {
 					this.openSelect();
 				}, 0);
 			});
+			$root.keypress((e)=> {
+				if (this.get("disable"))
+					return;
+				if (e.charCode === KeyCode.SPACE) {
+					this.reset();
+					setTimeout(() => {
+						this._inSelection = true;
+						this.openSelect();
+					}, 0);
+				}
+			});
 			
 			popup.on("close", () => {
 				this._inSelection = false;
@@ -75,7 +86,7 @@ module tui.widget {
 			}
 			
 			var text = this.get("text");
-			if (text === null) {
+			if (text === null || text === "") {
 				text = this.get("placeholder");
 				$(label).addClass("tui-placeholder");
 			} else {

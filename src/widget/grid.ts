@@ -22,10 +22,12 @@ module tui.widget {
 	}
 
 	/**
-	 * <gird>
-	 * Attributes: data, columns, sortColumn, sortType, scrollTop, scrollLeft, activeRow, activeColumn
+	 * <tui:gird>
+	 * Attributes: data, list(array type data), tree(tree type data), 
+	 * columns, sortColumn, sortType, scrollTop, scrollLeft, activeRow, 
+	 * activeColumn
 	 * Method: scrollTo, setSortFlag
-	 * Events: sort, rowclick, rowdblclick, rowcheck
+	 * Events: sort, rowclick, rowdblclick, rowcheck, keyselect
 	 */
 	export class Grid extends Widget {
 		
@@ -388,10 +390,12 @@ module tui.widget {
 				if ($(obj).hasClass("tui-arrow-expand")) {
 					data.collapse(target.line);
 					this.render();
+					ev.preventDefault();
 					this.fire("collapse", {e:ev, line:target.line});
 				} else if ($(obj).hasClass("tui-arrow-collapse")) {
 					data.expand(target.line);
 					this.render();
+					ev.preventDefault();
 					this.fire("expand", {e:ev, line:target.line});
 				} else if ($(obj).hasClass("tui-grid-check")) {
 					var column = this.get("columns")[target.col];
@@ -404,7 +408,7 @@ module tui.widget {
 					}
 					this.drawLine(this._buffer.lines[target.line - this._buffer.begin], 
 						target.line, this.get("columns"), data.get(target.line));
-						
+					ev.preventDefault();
 					this.fire("rowcheck", {e: ev, row: target.line, col: target.col, checked: checked });
 				}
 			};
@@ -412,14 +416,16 @@ module tui.widget {
 			$(this._).on("mousedown", (ev) => {
 				testLine(ev);
 			});
-			$(this._).on("touchstart", (ev) => {
-				hittestTimer = setTimeout(()=>{
-					testLine(ev)
-				}, 64);
-			});
 			
 			$(content).click((ev)=>{
 				var obj = <HTMLElement>(ev.target || ev.srcElement);
+				if ($(obj).hasClass("tui-arrow-expand")) {
+					return;
+				} else if ($(obj).hasClass("tui-arrow-collapse")) {
+					return;
+				} else if ($(obj).hasClass("tui-grid-check")) {
+					return;
+				}
 				var target = hittest(obj);
 				if (target.line != null)
 					this.fire("rowclick", {e: ev, row: this.get("activeRow"), col: this.get("activeColumn")});
@@ -427,6 +433,13 @@ module tui.widget {
 			
 			$(content).dblclick((ev)=>{
 				var obj = <HTMLElement>(ev.target || ev.srcElement);
+				if ($(obj).hasClass("tui-arrow-expand")) {
+					return;
+				} else if ($(obj).hasClass("tui-arrow-collapse")) {
+					return;
+				} else if ($(obj).hasClass("tui-grid-check")) {
+					return;
+				}
 				var target = hittest(obj);
 				if (target.line != null)
 					this.fire("rowdblclick", {e: ev, row: this.get("activeRow"), col: this.get("activeColumn")});
@@ -436,6 +449,18 @@ module tui.widget {
 				var k = e.keyCode;
 				if (k >= 33 && k <= 40 || k == KeyCode.ENTER) {
 					if (k === KeyCode.LEFT) {
+						if (this.get("dataType") === "tree") {
+							var activeRow = this.get("activeRow");
+							if (activeRow !== null) {
+								let node = <ds.TreeNode>this.get("data").get(activeRow);
+								if (node.hasChild && node.expand) {
+									this.get("data").collapse(activeRow);
+									this.render();
+									this.fire("collapse", {e:e, line:activeRow});
+									return;
+								}
+							}
+						}
 						if (!this.get("autoWidth")) {
 							this._hbar.set("value", this._hbar.get("value") - 30);
 							this.computeHOffset();
@@ -443,12 +468,24 @@ module tui.widget {
 					} else if (k === KeyCode.UP) {
 						if (this.get("activeRow") === null) {
 							this._set("activeRow", 0);
-							this.scrollTo(this.get("activeRow"));
 						} else {
 							this._set("activeRow", this.get("activeRow") - 1);
-							this.scrollTo(this.get("activeRow"));
 						}
+						this.scrollTo(this.get("activeRow"));
+						this.fire("keyselect", {e:e, row:this.get("activeRow")});
 					} else if (k === KeyCode.RIGHT) {
+						if (this.get("dataType") === "tree") {
+							var activeRow = this.get("activeRow");
+							if (activeRow !== null) {
+								let node = <ds.TreeNode>this.get("data").get(activeRow);
+								if (node.hasChild && !node.expand) {
+									this.get("data").expand(activeRow);
+									this.render();
+									this.fire("collapse", {e:e, line:activeRow});
+									return;
+								}
+							}
+						}
 						if (!this.get("autoWidth")) {
 							this._hbar.set("value", this._hbar.get("value") + 30);
 							this.computeHOffset();
@@ -456,34 +493,36 @@ module tui.widget {
 					} else if (k === KeyCode.DOWN) {
 						if (this.get("activeRow") === null) {
 							this._set("activeRow", 0);
-							this.scrollTo(this.get("activeRow"));
 						} else {
 							this._set("activeRow", this.get("activeRow") + 1);
-							this.scrollTo(this.get("activeRow"));
 						}
+						this.scrollTo(this.get("activeRow"));
+						this.fire("keyselect", {e:e, row:this.get("activeRow")});
 					} else if (k === KeyCode.PRIOR) {
 						if (this.get("activeRow") === null) {
 							this._set("activeRow", 0);
-							this.scrollTo(this.get("activeRow"));
 						} else {
 							this._set("activeRow", this.get("activeRow") - this._dispLines + 1);
-							this.scrollTo(this.get("activeRow"));
 						}
+						this.scrollTo(this.get("activeRow"));
+						this.fire("keyselect", {e:e, row:this.get("activeRow")});
 					} else if (k === KeyCode.NEXT) {
 						if (this.get("activeRow") === null) {
 							this._set("activeRow", 0);
-							this.scrollTo(this.get("activeRow"));
 						} else {
 							this._set("activeRow", this.get("activeRow") + this._dispLines - 1);
-							this.scrollTo(this.get("activeRow"));
 						}
+						this.scrollTo(this.get("activeRow"));
+						this.fire("keyselect", {e:e, row:this.get("activeRow")});
 					} else if (k === KeyCode.HOME) {
 						this._set("activeRow", 0);
 						this.scrollTo(this.get("activeRow"));
+						this.fire("keyselect", {e:e, row:this.get("activeRow")});
 					} else if (k === KeyCode.END) {
 						var data = this.get("data");
 						this._set("activeRow", data.length() - 1);
 						this.scrollTo(this.get("activeRow"));
+						this.fire("keyselect", {e:e, row:this.get("activeRow")});
 					} else if (k === KeyCode.ENTER) {
 						if (this.get("activeRow") != null) {
 							this.fire("rowclick", {e: e, row: this.get("activeRow"), col: this.get("activeColumn")});
@@ -543,56 +582,106 @@ module tui.widget {
 			}
 		}
 		
+		iterate(func: (item: any, path: number[]) => boolean) {
+			var data = this.get("data");
+			var dataType = this.get("dataType");
+			function iterateItem(treeItem: any, path: number[]): boolean {
+				if (func(treeItem, path) === false)
+					return false;
+				var children = treeItem[childrenKey];
+				if (children) {
+					for (let i = 0; i < children.length; i++) {
+						if (iterateItem(children[i], path.concat(i)) === false)
+							return false;
+					}
+				}
+			}
+			if (dataType === "tree") {
+				var tree = <ds.TreeBase>data;
+				var childrenKey: string = tree.getConfig().children;
+				var rawData = tree.getRawData();
+				if (!rawData)
+					return;
+				for (let i = 0; i < rawData.length; i++) {
+					if (iterateItem(rawData[i], [i]) === false)
+						break;
+				}
+			} else {
+				var list = <ds.DS>data;
+				for (let i = 0; i < list.length(); i++) {
+					if (func(list.get(i), [i]) === false)
+						break;
+				}
+			}
+		}
+		
 		/**
 		 * Search a row by condition, get field value by 'dataKey' and compare to value, if match then active it.
 		 * Should only used in local data type, e.g. List or Tree, if used in RemoteList or RemoteTree may not work correctly.
 		 */
-		activeRowBy(dataKey: string, value: any) {
+		activeTo(dataKey: string, value: any) {
 			var data = this.get("data");
 			var dataType = this.get("dataType");
 			var path: number[] = [];
 			var childrenKey: string;
-			function matchItem(treeItem: any): boolean {
-				if (treeItem[dataKey] === value)
-					return true;
-				if (!treeItem[childrenKey])
-					return false;
-				var children = treeItem[childrenKey];
-				for (let i = 0; i < children.length; i++) {
-					path.push(i);
-					if (matchItem(children[i]))
-						return true;
-					else
-						path.pop();
+			
+			// If is a subset return 1, if equals return 2, otherwise return 0
+			function matchPath(p1: number[], p2: number[]): number {
+				for (var i = 0; i < p1.length; i++) {
+					if (i >= p2.length)
+						return 0;
+					else if (p1[i] !== p2[i])
+						return 0;
 				}
-				return false;
+				return p1.length === p2.length ? 2 : 1;
 			}
 			
 			if (dataType === "tree") {
-				// var tree = <ds.TreeBase>data;
-				// childrenKey = tree.getConfig().children;
-				// for (let i = 0; i < tree.length(); i++) {
-				// 	path.push(i);
-				// 	if (matchItem(tree.get(i).item))
-				// 		break;
-				// 	path.pop();
-				// }
-				// if (path.length > 0) {
-				// 	var pos = 0;
-				// 	for (let i = 0; i < path.length; i++) {
-				// 		pos += path[i];
-				// 		if (i < path.length - 1) {
-				// 			tree.expand(pos);
-				// 			pos++;
-				// 		}
-				// 	}
-				// 	this.set("activeRow", pos);
-				// }
+				var tree = <ds.TreeBase>data;
+				this.iterate(function(item: any, p: number[]): boolean {
+					if (item[dataKey] === value) {
+						path = p;
+						return false;
+					}
+				});
+				
+				if (path && path.length > 0) {
+					var searchPath: number[] = [];
+					var searchLevel = -1;
+					var found = false;
+					for (var i = 0; i < tree.length(); i++) {
+						var node = tree.get(i);
+						if (node.level === searchLevel) {
+							searchPath[searchLevel]++;
+						} else if (node.level < searchLevel) {
+							for (var j = node.level; j < searchLevel; j++)
+								searchPath.pop();
+							searchLevel = node.level;
+							searchPath[searchLevel]++;
+						} else {
+							searchPath.push(0);
+							searchLevel++;
+						}
+						var state = matchPath(searchPath, path);
+						if (state === 2) {
+							found = true;
+							break;
+						} else if (state === 1) {
+							tree.expand(i);
+						}
+					}
+					if (found) {
+						this._set("activeRow", i);
+						this.computeScroll();
+						this.scrollTo(i);
+					}
+				}
 			} else {
 				var list = <ds.DS>data;
 				for (let i = 0; i < list.length(); i++) {
 					if (list.get(i)[dataKey] === value) {
-						this.set("activeRow", i);
+						this._set("activeRow", i);
+						this.scrollTo(i);
 						break;
 					}
 				}
@@ -728,6 +817,8 @@ module tui.widget {
 						prefix += "<i class='fa fa-check-square-o tui-grid-check'></i>";
 					else if (item[k] === false)
 						prefix += "<i class='fa fa-square-o tui-grid-check'></i>";
+					else
+						prefix += "<i class='tui-grid-no-check'>&bull;</i>";
 				} else if (col.type === "tristate") {
 					var k = (col.checkKey ? col.checkKey : "checked"); 
 					if (item[k] === true)
@@ -736,6 +827,8 @@ module tui.widget {
 						prefix += "<i class='fa-square-o tui-grid-check'></i>";
 					else if (item[k] === "tristate")
 						prefix += "<i class='fa-check-square tui-grid-check'></i>";
+					else
+						prefix += "<i class='tui-grid-no-check'>&bull;</i>";
 				} else if (col.type === "select") {
 					prefix += "<i class='fa fa-caret-down tui-grid-select'></i>";
 				} else if (col.type === "edit") {
@@ -988,7 +1081,7 @@ module tui.widget {
 	
 	
 	/**
-	 * List control
+	 * <tui:list>
 	 */
 	export class List extends Grid {
 		
@@ -1046,7 +1139,52 @@ module tui.widget {
 					"get": () => {
 						return this._column.type === "check";
 					}
+				},
+				"checkedValues": {
+					"set": (value: any) => {
+						var valueKey = this.get("valueKey");
+						var checkKey = this.get("checkKey");
+						if (value === null)
+							value = [];
+						if (!(value instanceof Array))
+							value = [value];
+						this.iterate(function(item: any, path: number[]): boolean {
+							if (typeof item[checkKey] === "boolean") {
+								if (value.indexOf(item[valueKey]) >= 0)
+									item[checkKey] = true;
+								else
+									item[checkKey] = false;
+							}
+							return true;
+						});
+					},
+					"get": () => {
+						var value: any[] = [];
+						var valueKey = this.get("valueKey");
+						var checkKey = this.get("checkKey");
+						this.iterate(function(item: any, path: number[]): boolean {
+							if (item[checkKey] === true)
+								value.push(item[valueKey]);
+							return true;
+						});
+						return value;
+					}
+				},
+				"checkedNames": {
+					"set": (value: any) => {},
+					"get": () => {
+						var names: any[] = [];
+						var nameKey = this.get("nameKey");
+						var checkKey = this.get("checkKey");
+						this.iterate(function(item: any, path: number[]): boolean {
+							if (item[checkKey] === true)
+								names.push(item[nameKey]);
+							return true;
+						});
+						return names;
+					}
 				}
+				
 			});
 		}
 		
@@ -1055,6 +1193,29 @@ module tui.widget {
 			this._lineHeight = List.LINE_HEIGHT;	
 			this._set("header", false);
 			this.setInit("autoWidth", true);
+			this.setInit("valueKey", "value");
+		}
+		
+		selectAll() {
+			var checkKey = this.get("checkKey");
+			this.iterate(function(item: any, path: number[]): boolean {
+				if (typeof item[checkKey] === "boolean") {
+					item[checkKey] = true;
+				}
+				return true;
+			});
+			this.render();
+		}
+		
+		deselectAll() {
+			var checkKey = this.get("checkKey");
+			this.iterate(function(item: any, path: number[]): boolean {
+				if (typeof item[checkKey] === "boolean") {
+					item[checkKey] = false;
+				}
+				return true;
+			});
+			this.render();
 		}
 	}
 	

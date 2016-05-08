@@ -127,6 +127,7 @@ module tui.ds {
 	export abstract class TreeBase extends EventObject  implements TreeDS {
 		protected _config: TreeConfig;
 		protected _index: TreeNode[] = null;
+		protected _rawData: any[] = null;
 		
 		getConfig() {
 			return this._config;
@@ -137,6 +138,10 @@ module tui.ds {
 				return this._index.length;
 			else
 				return 0;
+		}
+		
+		getRawData(): any[] {
+			return this._rawData;
 		}
 		
 		get(index: number): TreeNode {
@@ -228,6 +233,7 @@ module tui.ds {
 		update(data: any[]) {
 			var config = this._config;
 			this._index = [];
+			this._rawData = data;
 			this.expandItems(null, data, this._index, 0);
 		}
 	}
@@ -273,6 +279,7 @@ module tui.ds {
 		update(result: TreeQueryResult) {
 			if (result.parent === null) {
 				this._index = [];
+				this._rawData = result.data;
 				this.expandItems(null, result.data, this._index, 0, true);
 			} else {
 				var index = this.findNodeIndex(result.parent);

@@ -21,7 +21,7 @@
 						var child = {name: "name column: " + level + "_" + i, 
 							value: "value " + level + "_" + i,
 							expand: true, 
-							checked: false,
+							checked: i === 0 ? null : false,
 							icon: "fa-user"
 						};
 						list.push(child);
@@ -37,7 +37,7 @@
 				
 				$get("grid").set("tree", data);
 				$get("grid").set("columns", [
-					{name: "name column", key: "name", arrow: true, type: "tristate", checkKey: "checked", iconKey: "icon", width: 300}, 
+					{name: "name column", key: "name", arrow: true, type: "check", checkKey: "checked", iconKey: "icon", width: 300}, 
 					{name: "value column", key: "value", sortable: true},
 					{name: "value column", key: "value", sortable: true},
 					{name: "value column", key: "value"},
@@ -52,10 +52,9 @@
 					//tui.msgbox("rowclick: " + e.data);
 				});
 				$get("grid").on("rowdblclick", function(e){
-					tui.msgbox("rowdblclick: " + e.data);
+				
 				});
 				$get("grid").on("rowcheck", function(e){
-					tui.msgbox(e.data.row + " - " + e.data.col + ": " + e.data.checked, "Row checked");
 				});
 
 				

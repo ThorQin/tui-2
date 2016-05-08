@@ -21,6 +21,30 @@
 				margin: 20px 0;
 			}
 		</style>
+		<script>
+			var data = [];
+			var path = [];
+			function build(list, level) {
+				for (var i = 0; i < 5; i++) {
+					path.push(i);
+					var child = {name: "name column: " + path.join("_"), 
+						value: "value " + path.join("_"),
+						expand: false, 
+						checked: false,
+						icon: "fa-user"
+					};
+					
+					list.push(child);
+					
+					if (level < 2) {
+						child.children = [];
+						build(child.children, level+1)
+					}
+					path.pop();
+				}
+			}
+			build(data, 0);
+		</script>
 	</head>
 	<body>
 		<tui:input placeholder="请输入文字" text="This is a test" auto-validate={true} >
@@ -28,34 +52,17 @@
 		</tui:input>
 		<tui:input icon-left="fa-search" type="password" placeholder="请输入密码"></tui:input>
 		<tui:input icon-right="fa-search" disable={true} value="this is a test" ></tui:input>
-		<tui:select id="sel" value="value 2_3_4" placeholder="请选择..." auto-validate={true} >
+		<tui:select id="sel" value="value 2_3_4" clearable={true}  placeholder="请选择..." auto-validate={true} >
+			<tui:verify format="*any">随便输入点东西</tui:verify>
+		</tui:select>
+		
+		<tui:select id="sel1" placeholder="请选择..." check-key="checked" tree={data} auto-validate={true} multi-select={true}>
 			<tui:verify format="*any">随便输入点东西</tui:verify>
 		</tui:select>
 		
 		<script>
 			$(function() {
-				var data = [];
-				var path = [];
-				function build(list, level) {
-					for (var i = 0; i < 5; i++) {
-						path.push(i);
-						var child = {name: "name column: " + path.join("_"), 
-							value: "value " + path.join("_"),
-							expand: false, 
-							checked: false,
-							icon: "fa-user"
-						};
-						
-						list.push(child);
-						
-						if (level < 2) {
-							child.children = [];
-							build(child.children, level+1)
-						}
-						path.pop();
-					}
-				}
-				build(data, 0);
+				
 				$get("sel").set("tree", data);
 			});
 		</script>
