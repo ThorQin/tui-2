@@ -357,7 +357,7 @@ module tui {
 	var refCount = 0;
 	var waitDlg: widget.Dialog = null;
 	var waitMsg: string[] = null;
-	export function waitbox(message: string): {close: () => void} {
+	export function waitbox(message: string): {close: () => void, setMessage: (message: string) => void} {
 		if (waitDlg == null) {
 			refCount = 0;
 			waitMsg = [message];
@@ -386,6 +386,13 @@ module tui {
 						waitDlg = null;
 						waitMsg = null;
 					}
+				}
+			},
+			setMessage: function(message: string) {
+				if (!closed) {
+					waitMsg[index] = message;
+					if (index === waitMsg.length - 1)
+						waitDlg.setContent(makeContent(message, "tui-wait-box"));
 				}
 			}
 		};

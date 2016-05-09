@@ -203,7 +203,7 @@ module tui.widget {
 						getInputTime();
 						o.select();
 					} else if (k == 13) 
-						this.fire("click", {e:e,  "time": this.get("time") });
+						this.fire("click", {e:e,  "time": this.get("time"), "type": "pick" });
 				} 
 			});
 			
@@ -298,7 +298,7 @@ module tui.widget {
 					} else if (k === 34) {
 						this.nextMonth();
 					} else if (k === 13) {
-						this.fire("click", {e:e, "time": this.get("time")});
+						this.fire("click", {e:e, "time": this.get("time"), "type": "pick"});
 					}
 					return e.preventDefault();
 				}

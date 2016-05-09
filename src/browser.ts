@@ -252,6 +252,15 @@ module tui.browser {
 		}
 		keepTopList = newList;
 	}
+	
+	export function getCurrentStyle(elem: HTMLElement): {[index: string]: any} {
+		if ((<any>elem).currentStyle)
+			return (<any>elem).currentStyle;
+		else if (window.getComputedStyle) {
+			return window.getComputedStyle(elem);
+		} else
+			return elem.style;
+	}
 
 	
 	/**

@@ -15,7 +15,7 @@
         <script type="text/javascript" src="tui2.js"></script>
 		
 		<style>
-			tui\:input, tui\:select {
+			tui\:input, tui\:select, tui\:date-picker {
 				display: block;
 				width: inherit;
 				margin: 20px 0;
@@ -59,6 +59,10 @@
 		<tui:select id="sel1" placeholder="请选择..." check-key="checked" tree={data} auto-validate={true} multi-select={true}>
 			<tui:verify format="*any">随便输入点东西</tui:verify>
 		</tui:select>
+		
+		<tui:date-picker id="date1" placeholder="请选择日期..." format="yyyy / MM / dd HH:mm:ss zz" time-bar={true} clearable={true} ></tui:date-picker>
+		
+		<tui:file placeholder="请选择文件..." accept="image/*" action="uploadFile.do"></tui:file>
 		
 		<script>
 			$(function() {
