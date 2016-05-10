@@ -52,6 +52,11 @@
 			$new("button", {"text": "脚本创建的对象"}).appendTo("newArea");
 		</script>
 		
+		<tui:check id="triCheck" tristate={true}>三态选择框</tui:check>
+		<tui:button>设置为三态
+			<tui:init>this.on("click", function(){$get("triCheck").set("tristate", true)})</tui:init>
+		</tui:button>
+		
 		<div>
 			<tui:group name="radio-group">
 				<tui:radio>选项1</tui:radio>
@@ -72,9 +77,16 @@
 			</tui:button-group>
 		</div>
 		
-		<tui:check id="triCheck" tristate={true}>三态选择框</tui:check>
-		<tui:button>设置为三态
-			<tui:init>this.on("click", function(){$get("triCheck").set("tristate", true)})</tui:init>
-		</tui:button>
+		<div>
+			<tui:button-group name="tab" class="tui-tab" style="border-bottom:1px solid #ccc">
+				<tui:radio checked={true}>页签1</tui:radio>
+				<tui:radio>页签2</tui:radio>
+				<tui:radio>页签3</tui:radio>
+				<tui:radio>页签4</tui:radio>
+				<tui:radio>页签5</tui:radio>
+			</tui:button-group>
+		</div>
+		
+		
 	</body>
 </html>

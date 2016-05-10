@@ -7,13 +7,13 @@ module tui.widget {
 	 * Attributes: value, text, type, iconLeft, iconRight, autoValidate
 	 * Events: input, change, left-icon-mousedown, right-icon-mousedown, left-icon-click, right-icon-click
 	 */
-	export class Input extends InputBase {
+	export class Textarea extends InputBase {
 		
-		static PADDING = 6;
+		protected _lastTextHeight: number;
 		
 		protected initRestriction(): void {
 			super.initRestriction();
-			var textbox = this._components["textbox"] = document.createElement("input");
+			var textbox = this._components["textbox"] = document.createElement("textarea");
 			this.setRestrictions({
 				"value": {
 					"set": (value: any) => {
@@ -30,17 +30,6 @@ module tui.widget {
 					"get": (): any => {
 						return this.get("value");
 					}
-				},
-				"type": {
-					"set": (value: any) => {
-						value = value.toLowerCase();
-						if (value !== "text" && value !== "password")
-							return;
-						textbox.setAttribute("type", value);
-					},
-					"get": (): any => {
-						return textbox.getAttribute("type");
-					}
 				}
 			});
 		}
@@ -48,18 +37,14 @@ module tui.widget {
 		protected init(): void {
 			var $root = $(this._);
 			var placeholder = this._components["placeholder"] = document.createElement("span");
-			var textbox = <HTMLInputElement>this._components["textbox"];
-			var iconLeft = this._components["iconLeft"] = document.createElement("i");
-			var iconRight = this._components["iconRight"] = document.createElement("i");
+			var textbox = <HTMLTextAreaElement>this._components["textbox"];
 			var iconInvalid = this._components["iconInvalid"] = document.createElement("i");
 			iconInvalid.className = "tui-invalid-icon";
 			placeholder.className = "tui-placeholder";
 			placeholder.setAttribute("unselectable","on");
 			this._.appendChild(placeholder);
-			this._.appendChild(iconLeft);
 			this._.appendChild(textbox);
 			this._.appendChild(iconInvalid);
-			this._.appendChild(iconRight);
 			
 			$(textbox).focus(() => {
 				$root.addClass("tui-active");
@@ -78,12 +63,24 @@ module tui.widget {
 					if (e.originalEvent.propertyName !== 'value')
 						return;
 					this.updateEmptyState(textbox.value === "");
+					var oldHeight = browser.getCurrentStyle(textbox).height;
+					textbox.style.height = "";
+					if (this._valid && textbox.scrollHeight !== this._lastTextHeight)
+						this.render();
+					else
+						textbox.style.height = oldHeight;
 					this.reset();
 					this.fire("input", e);
 				});
 			} else {
 				$(textbox).on("input", (e) => {
 					this.updateEmptyState(textbox.value === "");
+					var oldHeight = browser.getCurrentStyle(textbox).height;
+					textbox.style.height = "";
+					if (this._valid && textbox.scrollHeight !== this._lastTextHeight)
+						this.render();
+					else
+						textbox.style.height = oldHeight;
 					this.reset();
 					this.fire("input", e);
 				});
@@ -101,12 +98,6 @@ module tui.widget {
 				}
 				setTimeout(() => {
 					textbox.focus();
-					if (obj === iconLeft) {
-						this.fire("left-icon-mousedown", e);
-					}
-					if (obj === iconRight) {
-						this.fire("right-icon-mousedown", e);
-					}
 				}, 0);
 			});
 			$root.click((e)=>{
@@ -115,12 +106,6 @@ module tui.widget {
 				var obj = e.target || e.srcElement;
 				if (obj === textbox) {
 					return;
-				}
-				if (obj === iconLeft) {
-					this.fire("left-icon-click", e);
-				}
-				if (obj === iconRight) {
-					this.fire("right-icon-click", e);
 				}
 			});
 			
@@ -134,8 +119,6 @@ module tui.widget {
 			var $root = $(this._);
             
 			var textbox = this._components["textbox"];
-			var iconLeft = this._components["iconLeft"];
-			var iconRight = this._components["iconRight"];
 			var iconInvalid = this._components["iconInvalid"];
 			var placeholder = this._components["placeholder"];
 			if (this.get("disable")) {
@@ -145,47 +128,30 @@ module tui.widget {
 				$root.removeClass("tui-disable");
 				textbox.removeAttribute("readonly");
 			}
-			var marginLeft = 0;
-			if (this.get("iconLeft")) {
-				iconLeft.className = this.get("iconLeft"); 
-				iconLeft.style.display = "";
-				iconLeft.style.left = "0";
-			} else {
-				iconLeft.className = "";
-				iconLeft.style.display = "none";
-				marginLeft = Input.PADDING;
-			}
-			
-			var marginRight = 0;
-			if (this.get("iconRight")) {
-				iconRight.className = this.get("iconRight"); 
-				iconRight.style.display = "";
-				iconRight.style.right = "0";
-			} else {
-				iconRight.className = "";
-				iconRight.style.display = "none";
-				marginRight = Input.PADDING;
-			}
+			var marginLeft = Input.PADDING;
+			var marginRight = Input.PADDING;
 			
 			if (!this._valid) {
 				$root.addClass("tui-invalid");
 				iconInvalid.style.display = "";
-				iconInvalid.style.right = iconRight.offsetWidth + "px";
+				iconInvalid.style.right = "0px";
 			} else {
 				$root.removeClass("tui-invalid");
 				iconInvalid.style.display = "none";
-				if (marginRight === 0)
-					marginRight = Input.PADDING;
 			}
+			textbox.style.height = "";
+			this._lastTextHeight = textbox.scrollHeight;
+			textbox.style.height = textbox.scrollHeight + 2 + "px";
+			this._.style.height = textbox.scrollHeight + 4 + "px";
 			
-			textbox.style.left = iconLeft.offsetWidth + marginLeft + "px";
-			textbox.style.width = this._.clientWidth - iconLeft.offsetWidth - iconInvalid.offsetWidth - iconRight.offsetWidth - marginLeft - marginRight + "px";
+			textbox.style.left = marginLeft + "px";
+			textbox.style.width = this._.clientWidth - iconInvalid.offsetWidth - marginLeft - marginRight + "px";
 			
 			var phText = this.get("placeholder");
 			var showPh = phText && !this.get("value"); 
 			if (showPh) {
 				placeholder.innerHTML = phText;
-				placeholder.style.left = iconLeft.offsetWidth + marginLeft + "px";
+				placeholder.style.left = marginLeft + "px";
 				placeholder.style.width = textbox.style.width;
 				placeholder.style.display = "";
 			} else {
@@ -200,6 +166,6 @@ module tui.widget {
 		}
 	}
 	
-	register(Input);
-	registerResize(Input);
+	register(Textarea);
+	registerResize(Textarea);
 }

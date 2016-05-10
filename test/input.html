@@ -15,7 +15,7 @@
         <script type="text/javascript" src="tui2.js"></script>
 		
 		<style>
-			tui\:input, tui\:select, tui\:date-picker {
+			tui\:input, tui\:select, tui\:date-picker, tui\:file, tui\:textarea {
 				display: block;
 				width: inherit;
 				margin: 20px 0;
@@ -63,6 +63,10 @@
 		<tui:date-picker id="date1" placeholder="请选择日期..." format="yyyy / MM / dd HH:mm:ss zz" time-bar={true} clearable={true} ></tui:date-picker>
 		
 		<tui:file placeholder="请选择文件..." accept="image/*" action="uploadFile.do"></tui:file>
+		
+		<tui:textarea placeholder="请输入文字..." style="max-height:100px" auto-validate={true} allow-empty={true}>
+			<tui:verify format="*email">随便输入点邮件</tui:verify>
+		</tui:textarea>
 		
 		<script>
 			$(function() {

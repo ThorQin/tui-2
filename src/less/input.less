@@ -1,6 +1,6 @@
 @import 'commons.less';
 
-tui\:input,tui\:select,tui\:date-picker,tui\:file {
+tui\:input,tui\:select,tui\:date-picker,tui\:file,tui\:textarea {
 	display: inline-block;
 	position: relative;
 	height: @buttonHeight;
@@ -98,8 +98,32 @@ tui\:input {
 	&.tui-disable>input {
 		color: #ccc;
 	}
-	
-	
+}
+
+tui\:textarea {
+	overflow-y: auto;
+	>textarea {
+		position: absolute;
+		border: none;
+		margin: 0px;
+		padding: 0px;
+		top: 2px;
+		min-height: @buttonHeight - 4px;
+		line-height: 22px;
+		overflow: hidden;
+		background: transparent;
+		z-index: 1;
+		outline: none;
+		-webkit-tap-highlight-color: transparent;
+		-webkit-touch-callout: none;
+		resize: none;
+	}
+	&.tui-invalid>textarea {
+		color: red;
+	}
+	&.tui-disable>textarea {
+		color: #ccc;
+	}
 }
 
 tui\:select,tui\:date-picker,tui\:file {

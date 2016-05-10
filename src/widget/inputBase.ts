@@ -20,6 +20,7 @@ module tui.widget {
 	export abstract class InputBase extends Widget {
 		protected _valid: boolean = true;
 		protected _invalidMessage: string = null;
+		protected _isEmpty: boolean;
 		
 		protected initChildren(childNodes: Node[]) {
 			var validators: any[] = [];
@@ -36,9 +37,19 @@ module tui.widget {
 		}
 		
 		reset() {
-			this._valid = true;
-			this._invalidMessage = null;
-			this.render();
+			if (this._valid !== true) {
+				this._valid = true;
+				this._invalidMessage = null;
+				this.render();
+			}
+		}
+		
+		updateEmptyState(empty: boolean) {
+			if (this._isEmpty !== empty) {
+				this._isEmpty = empty;
+				if (this._valid === true)
+					this.render();
+			}
 		}
 		
 		validate(e?: JQueryEventObject): boolean {
@@ -47,6 +58,10 @@ module tui.widget {
 				text = "";
 			this._valid = true;
 			var validator = this.get("validate");
+			
+			if (text === "" && this.get("allowEmpty")) {
+				return true;
+			}
 			
 			if (!(validator instanceof Array))
 				return true;
@@ -72,7 +87,7 @@ module tui.widget {
 				} else if (k.substr(0, 8) === "*minlen:") {
 					let iminLen = parseFloat(k.substr(8));
 					if (isNaN(iminLen))
-						throw new Error("Invalid validator: '*iminLen:...' must follow a number");
+						throw new Error("Invalid validator: '*minLen:...' must follow a number");
 					let ival = text.length;
 					if (ival < iminLen) {
 						this._valid = false;

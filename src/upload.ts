@@ -122,8 +122,7 @@ module tui {
 				'filter': 'alpha(opacity=0)',
 				'fontSize': '10000px',
 				'fontFamily': 'sans-serif',
-				'cursor': 'pointer',
-				'zIndex': 2147483600
+				'cursor': 'pointer'
 			});
 			
 			$(input).on('change', (e) => {

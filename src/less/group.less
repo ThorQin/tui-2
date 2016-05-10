@@ -9,3 +9,61 @@ tui\:button-group,.tui-group {
 	vertical-align: middle;
 	display: inline-block;
 }
+
+tui\:button-group.tui-tab {
+	tui\:check {
+		margin-bottom: 0px;
+		margin-top: 0px;
+		outline:none;
+		padding: 0px 10px;
+		border-bottom: 4px solid transparent;
+		&:before {
+			display:none;
+			content:none;
+		}
+		&.tui-checked:before {
+			display:none;
+			content:none;
+		}
+		&.tui-tristate:before {
+			display:none;
+			content:none;
+		}
+		&.tui-checked {
+			color: @checkedColor;
+			border-bottom-color: @checkedColor;
+		}
+		&:hover {
+			color:@checkedColor;
+		}
+		&:focus {
+			color:@checkedColor;
+		}
+	}
+
+	tui\:radio {
+		margin-bottom: 0px;
+		margin-top: 0px;		
+		outline:none;
+		padding: 0px 10px;
+		border-bottom: 4px solid transparent;
+		&:before {
+			display:none;
+			content:none;
+		}
+		&.tui-checked:before {
+			display:none;
+			content:none;
+		}
+		&.tui-checked {
+			color: @checkedColor;
+			border-bottom-color: @checkedColor;
+		}
+		&:hover {
+			color:@checkedColor;
+		}
+		&:focus {
+			color:@checkedColor;
+		}
+	}
+}

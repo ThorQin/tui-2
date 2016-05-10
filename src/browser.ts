@@ -253,7 +253,7 @@ module tui.browser {
 		keepTopList = newList;
 	}
 	
-	export function getCurrentStyle(elem: HTMLElement): {[index: string]: any} {
+	export function getCurrentStyle(elem: HTMLElement): CSSStyleDeclaration {
 		if ((<any>elem).currentStyle)
 			return (<any>elem).currentStyle;
 		else if (window.getComputedStyle) {

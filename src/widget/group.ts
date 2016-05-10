@@ -32,4 +32,5 @@ module tui.widget {
 	
 	register(Group);
 	register(ButtonGroup);
+
 }

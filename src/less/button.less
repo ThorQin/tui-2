@@ -10,6 +10,7 @@ tui\:button {
     border: 1px solid @borderColor;
 	-webkit-tap-highlight-color: inherit;
 	-webkit-touch-callout: none;
+	outline: none;
 	.btn-color(@windowColor, @panelColor - #111, @borderColor, @borderColor);
 	&.tui-menu:after {
 		.icon-base();
@@ -19,6 +20,9 @@ tui\:button {
 	}
 	&:hover {
 		color: #000;
+	}
+	&:active {
+		.inset-shadow();
 	}
 	
 	&.tui-dropdown {
