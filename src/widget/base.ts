@@ -1,4 +1,5 @@
 /// <reference path="../core.ts" />
+/// <reference path="../text.ts" />
 /// <reference path="mask.ts" />
 module tui.widget {
 	"use strict";
