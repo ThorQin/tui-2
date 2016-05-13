@@ -14,6 +14,7 @@ module tui.widget {
 		protected initRestriction(): void {
 			super.initRestriction();
 			var textbox = this._components["textbox"] = document.createElement("textarea");
+			textbox.setAttribute("wrap", "physical");
 			this.setRestrictions({
 				"value": {
 					"set": (value: any) => {

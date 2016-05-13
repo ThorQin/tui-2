@@ -64,8 +64,8 @@ module tui.ajax {
 	}
 	
 	(<any>window).$ajax = send;
-	(<any>window).$post = post;
-	(<any>window).$post_ = post_;
-	(<any>window).$get = get;
-	(<any>window).$get_ = get_;
+	(<any>window).$httpPost = post;
+	(<any>window).$httpPost_ = post_;
+	(<any>window).$httpGet = get;
+	(<any>window).$$httpGet_ = get_;
 }

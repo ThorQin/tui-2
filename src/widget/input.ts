@@ -33,8 +33,8 @@ module tui.widget {
 				},
 				"type": {
 					"set": (value: any) => {
-						value = value.toLowerCase();
-						if (value !== "text" && value !== "password")
+						value = value.toLowerCase();						
+						if (["text", "password", "email", "url", "number"].indexOf(value) < 0)
 							return;
 						textbox.setAttribute("type", value);
 					},

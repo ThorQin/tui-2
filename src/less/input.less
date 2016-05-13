@@ -14,6 +14,8 @@ tui\:input,tui\:select,tui\:date-picker,tui\:file,tui\:textarea {
 	word-break: keep-all;
 	outline: none;
 	.border-radius(@buttonBorderRadius);
+	-webkit-tap-highlight-color: transparent;
+	
 	&.tui-active {
 		border: 1px solid @borderFocusColor;
 		.shadow(0px, 0px, 4px, #88ccff);
@@ -91,6 +93,10 @@ tui\:input {
 		outline: none;
 		-webkit-tap-highlight-color: transparent;
 		-webkit-touch-callout: none;
+		&:focus {
+			-webkit-tap-highlight-color: transparent;
+    		-webkit-user-modify:read-write-plaintext-only; 
+		}
 	}
 	&.tui-invalid>input {
 		color: red;
@@ -114,9 +120,15 @@ tui\:textarea {
 		background: transparent;
 		z-index: 1;
 		outline: none;
+		word-break:break-all;
+		word-wrap: break-word;
 		-webkit-tap-highlight-color: transparent;
 		-webkit-touch-callout: none;
 		resize: none;
+		&:focus {
+			-webkit-tap-highlight-color: transparent;
+    		-webkit-user-modify:read-write-plaintext-only; 
+		}
 	}
 	&.tui-invalid>textarea {
 		color: red;

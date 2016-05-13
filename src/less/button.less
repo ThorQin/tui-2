@@ -66,6 +66,9 @@ tui\:button {
 		cursor:default;
 		.btn-color(@panelColor, @panelColor, @borderColor, @borderColor);
 		color: @panelColor - #333;
+		&:active {
+			box-shadow: none;
+		}
 	}
 }
 

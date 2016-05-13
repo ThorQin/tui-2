@@ -50,6 +50,14 @@
 		<div id="newArea"></div>		
 		<script>
 			$new("button", {"text": "脚本创建的对象"}).appendTo("newArea");
+			$(function(){
+				$get("getGroupValue").on("click", function(){
+					tui.msgbox($get("testGroup").get("value"));
+				});
+				$get("setGroupValue").on("click", function(){
+					$get("testGroup").set("value", "选项2");
+				});
+			});
 		</script>
 		
 		<tui:check id="triCheck" tristate={true}>三态选择框</tui:check>
@@ -58,7 +66,7 @@
 		</tui:button>
 		
 		<div>
-			<tui:group name="radio-group">
+			<tui:group id="testGroup" name="radio-group" type="radio">
 				<tui:radio>选项1</tui:radio>
 				<tui:radio>选项2</tui:radio>
 				<tui:radio>选项3</tui:radio>
@@ -68,7 +76,7 @@
 		</div>
 		
 		<div>
-			<tui:button-group name="check-group">
+			<tui:button-group id="testGroup1" name="check-group">
 				<tui:check>选项1</tui:check>
 				<tui:check>选项2</tui:check>
 				<tui:check>选项3</tui:check>
@@ -76,6 +84,11 @@
 				<tui:check>选项5</tui:check>
 			</tui:button-group>
 		</div>
+		
+		<p>
+			<tui:button id="getGroupValue">获取组值</tui:button>
+			<tui:button id="setGroupValue">设置组值</tui:button>
+		</p>
 		
 		<div>
 			<tui:button-group name="tab" class="tui-tab" style="border-bottom:1px solid #ccc">
