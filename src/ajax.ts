@@ -29,6 +29,8 @@ module tui.ajax {
 						respText = tui.str(jqXHR.responseText);
 					else
 						respText = tui.str(status) + " (" + jqXHR.status + ")";
+					if (!options || !options["silent"])
+						tui.errbox(respText);
 					deffered.reject(jqXHR, status, respText);
 				}
 			},
@@ -64,8 +66,8 @@ module tui.ajax {
 	}
 	
 	(<any>window).$ajax = send;
-	(<any>window).$httpPost = post;
-	(<any>window).$httpPost_ = post_;
-	(<any>window).$httpGet = get;
-	(<any>window).$$httpGet_ = get_;
+	(<any>window).$post = post;
+	(<any>window).$post_ = post_; // silent mode
+	(<any>window).$get = get;
+	(<any>window).$get_ = get_; // silent mode
 }

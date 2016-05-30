@@ -88,18 +88,18 @@
 			}
 			$(function(){
 				
-				$get("myButton").on("click", function(e) {
-					$get("myPopup").open(this._);
+				$$("myButton").on("click", function(e) {
+					$$("myPopup").open(this._);
 				});
-				$get("myMenu").on("click", function(e){
+				$$("myMenu").on("click", function(e){
 					tui.infobox(JSON.stringify(e.data));
 				});
-				$get("menuButton").on("click", function(e) {
-					$get("myMenu").open(this._);
+				$$("menuButton").on("click", function(e) {
+					$$("myMenu").open(this._);
 					
 				});
-				$get("winStyleMenuButton").on("click", function(e) {
-					$get("winMenu").open(this._);
+				$$("winStyleMenuButton").on("click", function(e) {
+					$$("winMenu").open(this._);
 				});
 			});
 		</script>

@@ -35,8 +35,8 @@
 				build(data, 0);
 				
 				
-				$get("grid").set("tree", data);
-				$get("grid").set("columns", [
+				$$("grid").set("tree", data);
+				$$("grid").set("columns", [
 					{name: "name column", key: "name", arrow: true, type: "check", checkKey: "checked", iconKey: "icon", width: 300}, 
 					{name: "value column", key: "value", sortable: true},
 					{name: "value column", key: "value", sortable: true},
@@ -48,23 +48,23 @@
 					{name: "value column", key: "value"}
 				]);
 				
-				$get("grid").on("rowclick", function(e){
+				$$("grid").on("rowclick", function(e){
 					//tui.msgbox("rowclick: " + e.data);
 				});
-				$get("grid").on("rowdblclick", function(e){
+				$$("grid").on("rowdblclick", function(e){
 				
 				});
-				$get("grid").on("rowcheck", function(e){
+				$$("grid").on("rowcheck", function(e){
 				});
 
 				
 				tui.browser.keepToTop($("#toolbar")[0]);
-				//tui.browser.keepToTop($get("grid").getComponent("head"), 60);
-				$get("titleBtn").on("click", function(e){
-					$get("grid").set("header", !$get("grid").get("header"));
+				//tui.browser.keepToTop($$("grid").getComponent("head"), 60);
+				$$("titleBtn").on("click", function(e){
+					$$("grid").set("header", !$$("grid").get("header"));
 				});
-				$get("scrollBtn").on("click", function(e){
-					$get("grid").set("autoWidth", !$get("grid").get("autoWidth"));
+				$$("scrollBtn").on("click", function(e){
+					$$("grid").set("autoWidth", !$$("grid").get("autoWidth"));
 				});
 			});
 		</script>

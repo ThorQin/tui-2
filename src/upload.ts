@@ -271,7 +271,9 @@ module tui {
             xhr.addEventListener("load", (e: any) => {
 				waitbox.close();
 				if (e.target.status != 200) {
-					this.fire("error", { "file": file, "ext": getExt(file), "response": { error: tui.str(e.target.statusText || e.target.status) } });
+					this.fire("error", { "file": file, "ext": getExt(file), "response": { 
+						error: tui.str(e.target.response || e.target.statusText || e.target.status) 
+					} });
 				} else {
 					try {
 						var result = JSON.parse(e.target.responseText)

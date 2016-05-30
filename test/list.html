@@ -36,15 +36,15 @@
 				build(data, 0);
 				
 				
-				$get("grid").set("tree", data);
+				$$("grid").set("tree", data);
 								
-				$get("grid").on("rowclick", function(e){
+				$$("grid").on("rowclick", function(e){
 					//tui.msgbox("rowclick: " + e.data);
 				});
-				$get("grid").on("rowdblclick", function(e){
+				$$("grid").on("rowdblclick", function(e){
 					tui.msgbox("rowdblclick: " + e.data);
 				});
-				$get("grid").on("rowcheck", function(e){
+				$$("grid").on("rowcheck", function(e){
 					tui.msgbox(e.data.row + " - " + e.data.col + ": " + e.data.checked, "Row checked");
 				});
 			});

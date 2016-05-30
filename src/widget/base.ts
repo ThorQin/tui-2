@@ -354,7 +354,7 @@ module tui.widget {
 			return null;
 	}
 	
-	(<any>window)["$get"] = get;
+	(<any>window)["$$"] = get;
 
 	export function create(type: Function, initParam?: { [index: string]: any }): Widget;
 	export function create(type: string, initParam?: { [index: string]: any }): Widget;
@@ -414,7 +414,7 @@ module tui.widget {
 		for (let item of initSet) {
 			let elem = item[0];
 			let constructor = item[1];
-			// try {
+			try {
 				if (!(<any>elem).__widget__) {
 					let widget: Widget = new constructor(elem);
 					if (typeof initFunc === "function") {
@@ -426,9 +426,9 @@ module tui.widget {
 					let widget: Widget = (<any>elem).__widget__;
 					widget.refresh();
 				}
-			// } catch (e) {
-			// 	if (console) console.error(e.message);
-			// }
+			} catch (e) {
+				if (console) console.error(e.message);
+			}
 		}
 	}
 	

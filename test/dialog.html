@@ -16,18 +16,18 @@
 		<script>
 			$(function(){
 				
-				$get("myDialog").on("btnclick", function(e) {
+				$$("myDialog").on("btnclick", function(e) {
 					disp.innerHTML = "button click: " + e.data.button;
 				}).on("close", function(){
 					disp.innerHTML =("closed");
 				}).on("open", function(){
 					disp.innerHTML =("open");
 				});
-				$get("btn1").on("click", function(e){
-					$get("myDialog").open();
+				$$("btn1").on("click", function(e){
+					$$("myDialog").open();
 				});
-				$get("btn2").on("click", function(e){
-					$get("myDialog").open("ok#tui-primary,cancel");
+				$$("btn2").on("click", function(e){
+					$$("myDialog").open("ok#tui-primary,cancel");
 				});
 				
 				tui.get("btnMsg").on("click", function(){

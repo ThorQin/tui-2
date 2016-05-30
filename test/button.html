@@ -51,18 +51,18 @@
 		<script>
 			$new("button", {"text": "脚本创建的对象"}).appendTo("newArea");
 			$(function(){
-				$get("getGroupValue").on("click", function(){
-					tui.msgbox($get("testGroup").get("value"));
+				$$("getGroupValue").on("click", function(){
+					tui.msgbox($$("testGroup").get("value"));
 				});
-				$get("setGroupValue").on("click", function(){
-					$get("testGroup").set("value", "选项2");
+				$$("setGroupValue").on("click", function(){
+					$$("testGroup").set("value", "选项2");
 				});
 			});
 		</script>
 		
 		<tui:check id="triCheck" tristate={true}>三态选择框</tui:check>
 		<tui:button>设置为三态
-			<tui:init>this.on("click", function(){$get("triCheck").set("tristate", true)})</tui:init>
+			<tui:init>this.on("click", function(){$$("triCheck").set("tristate", true)})</tui:init>
 		</tui:button>
 		
 		<div>
