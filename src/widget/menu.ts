@@ -65,7 +65,7 @@ module tui.widget {
 						menuItem.group = "";
 				} 
 				let value = item.get("value");	
-				if (value !== null && typeof value === UNDEFINED)
+				if (value !== null && typeof value !== UNDEFINED)
 					menuItem.value = value;
 				if (menuItem.type === "menu") {
 					menuItem.children = [];

@@ -516,4 +516,12 @@ module tui.browser {
 		}
 	}
 	$(document).keydown(accelerate);
+	
+	export function getUrlParam(key: string): string {
+		var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
+		var r = window.location.search.substr(1).match(reg);
+		if (r != null) 
+			return decodeURIComponent(r[2]); 
+		return null;
+	}
 }

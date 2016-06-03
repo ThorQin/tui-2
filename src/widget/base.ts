@@ -73,8 +73,11 @@ module tui.widget {
 					if (!/^(id)$/i.test(attr.name.toLowerCase()))
 						names.push(attr.name);
 				}
-				for (let name of names)
+				for (let name of names) {
 					elem.attributes.removeNamedItem(name);
+					if (/^(onclick|onmousedown|onmouseup|onmousemove|ondblclick|onkeydown|onkeyup|onkeypress)$/i.test(name))
+						(<any>elem)[name.toLowerCase()] = null; 
+				}
 			}
 		}
 

@@ -105,6 +105,10 @@ module tui.widget {
 						elem.set("checked", false);
 					}
 				}
+				var onclick = this.get("onclick");
+				if (onclick) {
+					eval.call(window, onclick);
+				}
 				this.fire("click", e);
 			};
 

@@ -45,6 +45,8 @@ tui\:menu>div {
 		height:@itemHeight;
 		line-height: @itemHeight;
 		vertical-align: middle;
+		white-space: nowrap;
+		word-break: keep-all;
 	}
 	>.tui-icon {
 		.icon-base();
@@ -63,7 +65,7 @@ tui\:menu>div {
 	}
 	>.tui-arrow {
 		.icon-base();
-		width:16px;
+		width:30px;
 		float:right;
 		text-align: center;
 	}
@@ -89,11 +91,11 @@ tui\:menu>div {
 tui\:menu.tui-big>div {
 	>* {
 		display: inline-block;
-		height:@itemHeight + 6px;
-		line-height: @itemHeight + 6px;
+		height:@itemHeight + 10px;
+		line-height: @itemHeight + 10px;
 	}
 	>.tui-icon {
-		margin-right:0px;
+		margin: 0 6px;
 	}
 	&.tui-line {
 		height: 0px;

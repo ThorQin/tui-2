@@ -13,10 +13,14 @@
 		<script type="text/javascript" src="es5-shim.js"></script>
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
-		
+		<script>
+			function testFunc(obj) {
+				alert("inline click");
+			}
+		</script>
 	</head>
 	<body>
-		<tui:button class="tui-menu" >
+		<tui:button class="tui-menu" onclick="testFunc(this);">
 			<i class="fa fa-pencil"></i> 按钮
 			<tui:init>
 				this.on("click", function(){this.set("checked", !this.get("checked"))});
