@@ -94,10 +94,12 @@ module tui.widget {
 		
 		private changeSize() {
 			var list = <List>get(this._components["list"]);
+			var popup = <Popup>get(this._components["popup"]);
 			var count = <number>list.get("data").length();
 			if (count > 8)
 				count = 8;
 			list._.style.height = count * 30 + "px";
+			popup.render();
 		};
 		
 		private updateTextByValue(list: List) {

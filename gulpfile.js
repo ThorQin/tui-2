@@ -52,7 +52,7 @@ gulp.task('less', function () {
 			.pipe(sourcemaps.init())
 			.pipe(less())
 			.pipe(autoprefixer({browsers: ["last 2 versions", "ie >= 8"]}))
-			.pipe(cssnano())
+			.pipe(cssnano({ safe:true }))
 			.pipe(sourcemaps.write('.', { sourceRoot: '../src/less' }))
 			.pipe(gulp.dest('dist/css'))
 			.on('end', cb);
@@ -84,6 +84,11 @@ gulp.task('package', ['ts', 'less'], function (cb) {
 		function (cb) {
 			gulp.src('depends/**')
 			.pipe(gulp.dest('dist/depends'))
+			.on('end', cb);
+		}, 
+		function (cb) {
+			gulp.src('lang/**')
+			.pipe(gulp.dest('dist'))
 			.on('end', cb);
 		}, 
 		function (cb) {

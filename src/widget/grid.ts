@@ -162,20 +162,29 @@ module tui.widget {
 						if (typeof value === "number" && !isNaN(value) || value === null) {
 							if (value < 0)
 								value = 0;
-							if (value > this._data["data"].length() - 1)
-								value = this._data["data"].length() - 1;
+							if (value > this.get("data").length() - 1)
+								value = this.get("data").length() - 1;
 							if (this._data["activeRow"] != null)
 								$(this._buffer.lines[this._data["activeRow"] - this._buffer.begin]).removeClass("tui-actived");
 							this._data["activeRow"] = value;
 							if (value != null)
 								$(this._buffer.lines[value - this._buffer.begin]).addClass("tui-actived");
 						}
+					},
+					"get": (): any => {
+						var row = this._data["activeRow"];
+						if (row === null)
+							return null;
+						if (row >= 0 && row < this.get("data").length())
+							return row;
+						else
+							return null;
 					}
 				},
 				"activeRowData": {
 					"set": (value: any) => {},
 					"get": () :any => {
-						var r = this._data["activeRow"];
+						var r = this.get("activeRow");
 						if (r != null) {
 							return this.get("data").get(r);
 						} else
@@ -784,7 +793,6 @@ module tui.widget {
 			if (item[tipKey]) {
 				line.setAttribute("tooltip", item[tipKey]);
 			}
-			lineData
 			if (line.childNodes.length != columns.length) {
 				line.innerHTML = "";
 				for (var i = 0; i < columns.length; i++) {

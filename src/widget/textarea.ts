@@ -19,6 +19,7 @@ module tui.widget {
 				"value": {
 					"set": (value: any) => {
 						textbox.value = value;
+						this._isEmpty = (textbox.value === "");
 					},
 					"get": (): any => {
 						return textbox.value;

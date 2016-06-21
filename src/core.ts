@@ -39,7 +39,7 @@ module tui {
 			if (!tui.lang)
 				lang = "en-us";
 			else
-				lang = tui.lang;
+				lang = tui.lang.toLowerCase();
 		}
 		var func = _dict[lang];
 		if (typeof func === "function") {

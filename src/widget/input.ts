@@ -18,6 +18,7 @@ module tui.widget {
 				"value": {
 					"set": (value: any) => {
 						textbox.value = value;
+						this._isEmpty = (textbox.value === "");
 					},
 					"get": (): any => {
 						return textbox.value;
@@ -88,6 +89,11 @@ module tui.widget {
 					this.fire("input", e);
 				});
 			}
+			$(textbox).on("keydown", (e) => {
+				if (e.keyCode === KeyCode.ENTER) {
+					this.fire("enter", e);
+				}
+			});
 			$(textbox).on("change", (e) => {
 				this.fire("change", e);
 			});

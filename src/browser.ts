@@ -75,6 +75,19 @@ module tui.browser {
 		node.parentNode && node.parentNode.removeChild(node);
 	}
     
+	export function toSafeText(text: string): string {
+		return text.replace(/<|>|&/g, function(str: string, ...args: any[]): string {
+			if (str === "<")
+				return "&lt;";
+			else if (str === "<")
+				return "&gt;";
+			else if (str === "&")
+				return "&amp;"
+			else
+				return str;
+		});
+	}
+	
 	/**
 	 * Get or set a HTMLElement's text content, return Element's text content.
 	 * @param elem {HTMLElement or ID of the element} Objective element
@@ -524,4 +537,7 @@ module tui.browser {
 			return decodeURIComponent(r[2]); 
 		return null;
 	}
+	
+	
+	(<any>window).$text = toSafeText;
 }

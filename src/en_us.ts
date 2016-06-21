@@ -5,5 +5,12 @@ tui.dict("en-us", {
     "error": "Occurred an internal error!",
     "timeout": "Request timeout!",
     "abort": "Operating has been aborted!",
-    "parsererror": "Server response invalid content!"
+    "parsererror": "Server response invalid content!",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "accept": "Accept",
+    "agree": "Agree",
+    "reject": "Reject",
+    "yes": "Yes",
+    "no": "No"
 });
