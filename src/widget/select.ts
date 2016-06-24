@@ -7,7 +7,7 @@ module tui.widget {
 	 * Attributes: data, list, tree, multiSelect, checkKey, nameKey, 
 	 * iconKey, valueKey
 	 * Method: openSelect
-	 * Events: change
+	 * Events: change, click
 	 */
 	export class Select extends SelectBase {
 		
@@ -167,6 +167,7 @@ module tui.widget {
 					if (e.event === "rowclick") {
 						this.closeSelect();
 						this._.focus();
+						this.fire("click", {e:e, value: this.get("value"), text: this.get("text")});
 					}
 				}
 			});
@@ -183,12 +184,14 @@ module tui.widget {
 					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this.closeSelect();
 					this._.focus();
+					this.fire("click", {e:e, value: this.get("value"), text: this.get("text")});
 				} else if (name === "clear") {
 					// this._set("text", null);
 					this.set("value", null);
 					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this.closeSelect();
 					this._.focus();
+					this.fire("click", {e:e, value: this.get("value"), text: this.get("text")});
 				}
 			});
 			

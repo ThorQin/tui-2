@@ -273,6 +273,10 @@ module tui.widget {
 			$(this._).on("touchstart", function (ev) {
 				if (inTouched)
 					return;
+				var obj = <HTMLElement>(ev.target || ev.srcElement);
+				if ($(obj).hasClass("tui-grid-handler")) {
+					return;
+				}
 				direction = null;
 				inTouched = true;
 				lastSpeed = 0;
@@ -343,7 +347,7 @@ module tui.widget {
 				lastTime = null;
 			});
 			
-			$(this._).on("mousedown", (ev) => {
+			$(this._).on("mousedown touchstart", (ev) => {
 				var obj = <HTMLElement>(ev.target || ev.srcElement);
 				if ($(obj).hasClass("tui-grid-handler")) { // Resizing
 					ev.stopPropagation();
@@ -351,15 +355,18 @@ module tui.widget {
 					var idx = this._handlers.indexOf(obj);
 					var columns = this.get("columns");
 					var l = obj.offsetLeft;
-					var srcX = ev.clientX;
+					var positions = browser.getEventPosition(ev);
+					var srcX = positions[0].x;
 					obj.style.height = this._.clientHeight + "px";
 					$(obj).addClass("tui-handler-move");
 					var mask = widget.openDragMask((e) => {
-						obj.style.left = l + e.clientX - srcX + "px";
+						var positions = browser.getEventPosition(e);
+						obj.style.left = l + positions[0].x - srcX + "px";
 					}, (e) => {
+						var positions = browser.getEventPosition(e);
 						obj.style.height = "";
 						$(obj).removeClass("tui-handler-move");
-						columns[idx].width = columns[idx].width + e.clientX - srcX;
+						columns[idx].width = columns[idx].width + positions[0].x - srcX;
 						this._columnWidths = [];
 						this.initColumnWidth();
 						this.computeScroll();

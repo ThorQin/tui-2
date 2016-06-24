@@ -11,11 +11,28 @@ module tui.widget {
 		ev.stopPropagation();
 		ev.preventDefault();
 	});
+	
+	export function getEventPosition(e: JQueryEventObject): {x: number, y: number}[] {
+		var positions: {x: number, y: number}[] = [];
+		var event: any = e.originalEvent || e;
+		if (event.changedTouches) {
+			for (var i = 0; i < event.changedTouches.length; i++) {
+				var touch = event.changedTouches[i];
+				positions.push({x: touch.clientX, y: touch.clientY});
+			}
+		} else {
+			positions.push({x: event.clientX, y: event.clientY});
+		}
+		return positions;
+	}
+	
 	/**
 	 * Show a mask layer to prevent user drag or select document elements which don't want to be affected.
 	 * It's very useful when user perform a dragging operation.
 	 */
-	export function openDragMask(onMove: (e: JQueryEventObject) => void, onClose: (e: JQueryEventObject) => void = null) {
+	export function openDragMask(
+		onMove: (e: JQueryEventObject) => void, 
+		onClose: (e: JQueryEventObject) => void = null) {
 		if (_maskOpened)
 			return null;
 		_mask.innerHTML = "";
@@ -31,21 +48,22 @@ module tui.widget {
 			if ((<any>_mask).setCapture)
 				$(_mask).off();
 			else {
-				$(document).off("mousemove", onMove);
-				$(document).off("mouseup", closeDragMask);
+				$(document).off("mousemove touchmove", onMove);
+				$(document).off("mouseup touchend", closeDragMask);
 			}
 			browser.removeNode(_mask);
 			if (typeof onClose === "function") {
 				onClose(e);
 			}
+			e.preventDefault();
 		}
 		if ((<any>_mask).setCapture) {
 			(<any>_mask).setCapture();
-			$(_mask).on("mousemove", onMove);
-			$(_mask).on("mouseup", closeDragMask);
+			$(_mask).on("mousemove touchmove", onMove);
+			$(_mask).on("mouseup touchend", closeDragMask);
 		} else {
-			$(document).on("mousemove", onMove);
-			$(document).on("mouseup", closeDragMask);
+			$(document).on("mousemove touchmove", onMove);
+			$(document).on("mouseup touchend", closeDragMask);
 		}
 		_maskOpened = true;
 		return _mask;

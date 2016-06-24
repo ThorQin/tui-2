@@ -138,11 +138,12 @@ module tui.widget {
 				var diff = 0;
 				var oldValue = this.get("value");
 				var pos: number;
+				var positions = browser.getEventPosition(e);
 				if (this.get("direction") === "vertical") {
-					diff = e.clientY - beginY;
+					diff = positions[0].y - beginY;
 					pos = beginTop + diff;
 				} else {
-					diff = e.clientX - beginX;
+					diff = positions[0].x - beginX;
 					pos = beginLeft + diff;
 				}
 				this.set("value", this.posToValue(pos));
@@ -156,11 +157,15 @@ module tui.widget {
 				this.fire("dragend", {e:e, value: this.get("value") });
 			}
 
-			$(btnThumb).mousedown((e) => {
-				if (e.which !== 1)
+			$(btnThumb).on("mousedown touchstart", (e) => {
+				if (e.which !== 1 && e.type !== "touchstart")
 					return;
-				beginX = e.clientX;
-				beginY = e.clientY;
+				var positions = browser.getEventPosition(e);
+				if (positions.length > 1)
+					return;
+				e.preventDefault();
+				beginX = positions[0].x;
+				beginY = positions[0].y;
 				beginLeft = btnThumb.offsetLeft;
 				beginTop = btnThumb.offsetTop;
 				$(this._).addClass("tui-actived");

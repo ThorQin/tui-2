@@ -538,6 +538,19 @@ module tui.browser {
 		return null;
 	}
 	
+	export function getEventPosition(e: JQueryEventObject): {x: number, y: number}[] {
+		var positions: {x: number, y: number}[] = [];
+		var event: any = e.originalEvent || e;
+		if (event.changedTouches) {
+			for (var i = 0; i < event.changedTouches.length; i++) {
+				var touch = event.changedTouches[i];
+				positions.push({x: touch.clientX, y: touch.clientY});
+			}
+		} else {
+			positions.push({x: event.clientX, y: event.clientY});
+		}
+		return positions;
+	}
 	
 	(<any>window).$text = toSafeText;
 }
