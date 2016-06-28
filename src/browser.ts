@@ -538,13 +538,14 @@ module tui.browser {
 		return null;
 	}
 	
-	export function getEventPosition(e: JQueryEventObject): {x: number, y: number}[] {
-		var positions: {x: number, y: number}[] = [];
+	export function getEventPosition(e: JQueryEventObject, allFingers: boolean = false): {x: number, y: number, id?: any}[] {
+		var positions: {x: number, y: number, id?: any}[] = [];
 		var event: any = e.originalEvent || e;
-		if (event.changedTouches) {
-			for (var i = 0; i < event.changedTouches.length; i++) {
-				var touch = event.changedTouches[i];
-				positions.push({x: touch.clientX, y: touch.clientY});
+		if (event.touches) {
+			var touchList = (allFingers ? event.touches : event.changedTouches);
+			for (var i = 0; i < touchList.length; i++) {
+				var touch = touchList[i];
+				positions.push({x: touch.clientX, y: touch.clientY, id: touch.identifier});
 			}
 		} else {
 			positions.push({x: event.clientX, y: event.clientY});
