@@ -190,7 +190,7 @@ module tui.widget {
 			var phText = this.get("placeholder");
 			var showPh = phText && !this.get("value"); 
 			if (showPh) {
-				placeholder.innerHTML = phText;
+				$(placeholder).text(phText);
 				placeholder.style.left = iconLeft.offsetWidth + marginLeft + "px";
 				placeholder.style.width = textbox.style.width;
 				placeholder.style.display = "";

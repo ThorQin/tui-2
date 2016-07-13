@@ -7,6 +7,7 @@ tui.dict("en-us", {
     "abort": "Operating has been aborted!",
     "parsererror": "Server response invalid content!",
     "ok": "OK",
+    "close": "Close",
     "cancel": "Cancel",
     "accept": "Accept",
     "agree": "Agree",

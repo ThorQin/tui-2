@@ -88,6 +88,15 @@ module tui.widget {
 					"get": () => {
 						return list.get("valueKey");
 					}
+				},
+				"showCount": {
+					"get": () => {
+						var count = this._data["showCount"];
+						if (typeof count === "number" && !isNaN(count))
+							return count;
+						else
+							return 8;
+					}
 				}
 			});
 		}
@@ -96,8 +105,8 @@ module tui.widget {
 			var list = <List>get(this._components["list"]);
 			var popup = <Popup>get(this._components["popup"]);
 			var count = <number>list.get("data").length();
-			if (count > 8)
-				count = 8;
+			if (count > <number>this.get("showCount"))
+				count = <number>this.get("showCount");
 			list._.style.height = count * 30 + "px";
 			popup.render();
 		};

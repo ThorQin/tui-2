@@ -113,7 +113,7 @@ module tui.widget {
 			}
 			if (text === null)
 				text = "";
-			label.innerHTML = text
+			$(label).text(text);
 			iconRight.className = this.get("iconRight"); 
 			iconRight.style.display = "";
 			iconRight.style.right = "0";

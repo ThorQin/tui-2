@@ -6,6 +6,7 @@ tui.dict("zh-cn", {
     "abort": "操作被终止！",
     "parsererror": "服务器返回无效内容！",
     "ok": "确定",
+    "close": "关闭",
     "cancel": "取消",
     "accept": "接受",
     "agree": "同意",

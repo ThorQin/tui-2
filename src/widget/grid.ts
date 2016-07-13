@@ -33,7 +33,7 @@ module tui.widget {
 		
 		static CELL_SPACE = 4; 
 		static LINE_HEIGHT = 31;
-		protected _lineHeight: number; // 31
+		//protected _lineHeight: number; // 31
 		
 		private _tuid: string;
 		private _setupHeadMoveListener: boolean = false;
@@ -64,6 +64,24 @@ module tui.widget {
 			
 			super.initRestriction();
 			this.setRestrictions({
+				"selectable": {
+					"get": (): any => {
+						var val = this._data["selectable"];
+						if (typeof val === UNDEFINED || val === null)
+							return true;
+						else
+							return !!val;
+					}
+				},
+				"lineHeight": {
+					"get": (): any => {
+						var val = this._data["lineHeight"];
+						if (typeof val !== "number" || isNaN(val))
+							return Grid.LINE_HEIGHT;
+						else
+							return val;
+					}
+				},
 				"dataType": {
 					"set": (value: any) => {}
 				},
@@ -205,7 +223,7 @@ module tui.widget {
 			this._vbar = <Scrollbar>tui.create("scrollbar");
 			this._components["vScroll"] = this._vbar.appendTo(this._, false)._;
 			
-			this._lineHeight = Grid.LINE_HEIGHT;
+			//this._lineHeight = Grid.LINE_HEIGHT;
 			
 			if ((<any>document).createStyleSheet) {
 				this._gridStyle = (<any>document).createStyleSheet();
@@ -233,7 +251,7 @@ module tui.widget {
 					return;
 				var e = <any>ev.originalEvent;
 				var delta = e.detail ? e.detail * (-120) : e.wheelDelta;
-				var step = this._lineHeight;
+				var step = this.get("lineHeight");
 				//delta returns +120 when wheel is scrolled up, -120 when scrolled down
 				var scrollSize = step > 1 ? step : 1;
 				ev.stopPropagation();
@@ -386,9 +404,11 @@ module tui.widget {
 					var parent = <HTMLElement>obj.parentNode;
 					if (parent && $(parent).hasClass("tui-grid-line")) {
 						line = this._buffer.begin + this._buffer.lines.indexOf(parent);
-						col = (<any>obj).col;
-						this._set("activeRow", line);
-						this._set("activeColumn", col);
+						if (this.get("selectable") === true) {
+							col = (<any>obj).col;
+							this._set("activeRow", line);
+							this._set("activeColumn", col);
+						}
 						break;
 					}
 					obj = parent;
@@ -444,7 +464,7 @@ module tui.widget {
 				}
 				var target = hittest(obj);
 				if (target.line != null)
-					this.fire("rowclick", {e: ev, row: this.get("activeRow"), col: this.get("activeColumn")});
+					this.fire("rowclick", {e: ev, row: target.line, col: target.col});
 			});
 			
 			$(content).dblclick((ev)=>{
@@ -458,7 +478,7 @@ module tui.widget {
 				}
 				var target = hittest(obj);
 				if (target.line != null)
-					this.fire("rowdblclick", {e: ev, row: this.get("activeRow"), col: this.get("activeColumn")});
+					this.fire("rowdblclick", {e: ev, row: target.line, col: target.col});
 			});
 			
 			$(this._).keydown((e) => {
@@ -482,13 +502,19 @@ module tui.widget {
 							this.computeHOffset();
 						}
 					} else if (k === KeyCode.UP) {
-						if (this.get("activeRow") === null) {
-							this._set("activeRow", 0);
+						if (!this.get("selectable")) {
+							var t = this.get("scrollTop");
+							this._vbar.set("value", t - 10);
+							this.drawContent();
 						} else {
-							this._set("activeRow", this.get("activeRow") - 1);
+							if (this.get("activeRow") === null) {
+								this._set("activeRow", 0);
+							} else {
+								this._set("activeRow", this.get("activeRow") - 1);
+							}
+							this.scrollTo(this.get("activeRow"));
+							this.fire("keyselect", {e:e, row:this.get("activeRow")});
 						}
-						this.scrollTo(this.get("activeRow"));
-						this.fire("keyselect", {e:e, row:this.get("activeRow")});
 					} else if (k === KeyCode.RIGHT) {
 						if (this.get("dataType") === "tree") {
 							var activeRow = this.get("activeRow");
@@ -507,41 +533,71 @@ module tui.widget {
 							this.computeHOffset();
 						}
 					} else if (k === KeyCode.DOWN) {
-						if (this.get("activeRow") === null) {
-							this._set("activeRow", 0);
+						if (!this.get("selectable")) {
+							var t = this.get("scrollTop");
+							this._vbar.set("value", t + 10);
+							this.drawContent();
 						} else {
-							this._set("activeRow", this.get("activeRow") + 1);
+							if (this.get("activeRow") === null) {
+								this._set("activeRow", 0);
+							} else {
+								this._set("activeRow", this.get("activeRow") + 1);
+							}
+							this.scrollTo(this.get("activeRow"));
+							this.fire("keyselect", {e:e, row:this.get("activeRow")});
 						}
-						this.scrollTo(this.get("activeRow"));
-						this.fire("keyselect", {e:e, row:this.get("activeRow")});
 					} else if (k === KeyCode.PRIOR) {
-						if (this.get("activeRow") === null) {
-							this._set("activeRow", 0);
+						if (!this.get("selectable")) {
+							var t = this.get("scrollTop");
+							this._vbar.set("value", t - this._vbar.get("page"));
+							this.drawContent();
 						} else {
-							this._set("activeRow", this.get("activeRow") - this._dispLines + 1);
+							if (this.get("activeRow") === null) {
+								this._set("activeRow", 0);
+							} else {
+								this._set("activeRow", this.get("activeRow") - this._dispLines + 1);
+							}
+							this.scrollTo(this.get("activeRow"));
+							this.fire("keyselect", {e:e, row:this.get("activeRow")});
 						}
-						this.scrollTo(this.get("activeRow"));
-						this.fire("keyselect", {e:e, row:this.get("activeRow")});
 					} else if (k === KeyCode.NEXT) {
-						if (this.get("activeRow") === null) {
-							this._set("activeRow", 0);
+						if (!this.get("selectable")) {
+							var t = this.get("scrollTop");
+							this._vbar.set("value", t + this._vbar.get("page"));
+							this.drawContent();
 						} else {
-							this._set("activeRow", this.get("activeRow") + this._dispLines - 1);
+							if (this.get("activeRow") === null) {
+								this._set("activeRow", 0);
+							} else {
+								this._set("activeRow", this.get("activeRow") + this._dispLines - 1);
+							}
+							this.scrollTo(this.get("activeRow"));
+							this.fire("keyselect", {e:e, row:this.get("activeRow")});
 						}
-						this.scrollTo(this.get("activeRow"));
-						this.fire("keyselect", {e:e, row:this.get("activeRow")});
 					} else if (k === KeyCode.HOME) {
-						this._set("activeRow", 0);
-						this.scrollTo(this.get("activeRow"));
-						this.fire("keyselect", {e:e, row:this.get("activeRow")});
+						if (!this.get("selectable")) {
+							this._vbar.set("value", 0);
+							this.drawContent();
+						} else {
+							this._set("activeRow", 0);
+							this.scrollTo(this.get("activeRow"));
+							this.fire("keyselect", {e:e, row:this.get("activeRow")});
+						}
 					} else if (k === KeyCode.END) {
-						var data = this.get("data");
-						this._set("activeRow", data.length() - 1);
-						this.scrollTo(this.get("activeRow"));
-						this.fire("keyselect", {e:e, row:this.get("activeRow")});
+						if (!this.get("selectable")) {
+							this._vbar.set("value", this._vbar.get("total"));
+							this.drawContent();
+						} else {
+							var data = this.get("data");
+							this._set("activeRow", data.length() - 1);
+							this.scrollTo(this.get("activeRow"));
+							this.fire("keyselect", {e:e, row:this.get("activeRow")});
+						}
 					} else if (k === KeyCode.ENTER) {
-						if (this.get("activeRow") != null) {
-							this.fire("rowclick", {e: e, row: this.get("activeRow"), col: this.get("activeColumn")});
+						if (this.get("selectable")) {
+							if (this.get("activeRow") != null) {
+								this.fire("rowclick", {e: e, row: this.get("activeRow"), col: this.get("activeColumn")});
+							}
 						}
 					}
 					e.preventDefault();
@@ -585,12 +641,14 @@ module tui.widget {
 			if (typeof index !== "number" || isNaN(index) || index < 0 || index >= this.get("data").length())
 				return;
 			var v = this._vbar.get("value");
-			if (v > index * this._lineHeight) {
-				this._vbar.set("value", index * this._lineHeight);
+			var lineHeight = this.get("lineHeight");
+			if (v > index * lineHeight) {
+				this._vbar.set("value", index * lineHeight);
 				this.drawContent();
 			} else {
-				var h = (index - this._dispLines + 1) * this._lineHeight;
-				var diff = (this._.clientHeight - this.getComponent("head").offsetHeight - this._hbar._.offsetHeight - this._dispLines * this._lineHeight);
+				var h = (index - this._dispLines + 1) * lineHeight;
+				var diff = (this._.clientHeight - this.getComponent("head").offsetHeight 
+					- this._hbar._.offsetHeight - this._dispLines * lineHeight);
 				if (v < h - diff) {
 					this._vbar.set("value", h - diff);
 					this.drawContent();
@@ -726,7 +784,8 @@ module tui.widget {
 			var clientWidth = this._.clientWidth;
 			var clientHeight = this._.clientHeight;
 			var data = <ds.DS>this.get("data");
-			this._contentHeight = (data.length() + (this.get("header") ? 1 : 0)) * this._lineHeight;
+			var lineHeight = this.get("lineHeight");
+			this._contentHeight = (data.length() + (this.get("header") ? 1 : 0)) * lineHeight;
 			this._contentWidth = this.computeWidth();
 			var head = this._components["head"];
 			var content = this._components["content"];
@@ -790,7 +849,7 @@ module tui.widget {
 			content.style.width = (vEnable ? clientWidth - vScroll._.offsetWidth : clientWidth) + "px";
 			var dispHeight = (hEnable ? clientHeight - hScroll._.offsetHeight : clientHeight);
 			content.style.height = dispHeight + "px";
-			this._dispLines = Math.ceil((dispHeight - (this.get("header") ? this._lineHeight : 0 )) / this._lineHeight);
+			this._dispLines = Math.ceil((dispHeight - (this.get("header") ? lineHeight : 0 )) / lineHeight);
 		}
 		
 		protected drawLine(line: HTMLElement, index: number, columns: ColumnInfo[], lineData: any) {
@@ -853,13 +912,15 @@ module tui.widget {
 				if (col.iconKey && item[col.iconKey]) {
 					prefix += "<i class='fa " + item[col.iconKey] + " tui-grid-icon'></i>";
 				}
-					
-				(<HTMLElement>line.childNodes[i]).innerHTML = prefix + item[columns[i].key];
+				
+				var cell = (<HTMLElement>line.childNodes[i]);	
+				cell.innerHTML = prefix;
+				cell.appendChild(document.createTextNode(item[columns[i].key]));
 			}
 		}
 		
-		private moveLine(line: HTMLElement, index: number, base: number) {
-			line.style.top = (base + index * this._lineHeight) + "px";
+		private moveLine(line: HTMLElement, index: number, base: number, lineHeight: number) {
+			line.style.top = (base + index * lineHeight) + "px";
 			line.style.width = this._contentWidth + "px";
 		}
 
@@ -906,7 +967,8 @@ module tui.widget {
 				span.className = "tui-grid-" + this._tuid + "-" + i + " " + sortClass;
 				(<any>span).col = i;
 				head.appendChild(span);
-				span.innerHTML = prefix + columns[i].name;
+				span.innerHTML = prefix;
+				span.appendChild(document.createTextNode(columns[i].name));
 			}
 		}
 		
@@ -914,8 +976,9 @@ module tui.widget {
 		protected drawContent() {
 			var vbar = get(this._components["vScroll"]);
 			var content = this._components["content"];
-			var base = (this.get("header") ? this._lineHeight : 0) - vbar.get("value") % this._lineHeight;
-			var begin = Math.floor(vbar.get("value") / this._lineHeight);
+			var lineHeight = this.get("lineHeight");
+			var base = (this.get("header") ? lineHeight : 0) - vbar.get("value") % lineHeight;
+			var begin = Math.floor(vbar.get("value") / lineHeight);
 			var end = begin + this._dispLines + 1;
 			var data = <ds.DS>this.get("data");
 			var columns = <ColumnInfo[]>this.get("columns");
@@ -946,13 +1009,13 @@ module tui.widget {
 						$(line).removeClass("tui-actived");
 					}
 				}
-				this.moveLine(line, i - begin, base);
+				this.moveLine(line, i - begin, base, lineHeight);
 				newBuffer.push(line);
 			}
 			
 			clearTimeout(this._drawTimer);
 			this._drawTimer = setTimeout(() => {
-				var begin = Math.floor(vbar.get("value") / this._lineHeight);
+				var begin = Math.floor(vbar.get("value") / lineHeight);
 				var end = begin + this._dispLines + 1;
 				for (var i = this._buffer.begin; i < this._buffer.end; i++) {
 					if (i >= begin && i < end)
@@ -1113,6 +1176,15 @@ module tui.widget {
 				arrow: true
 			};
 			this.setRestrictions({
+				"lineHeight": {
+					"get": (): any => {
+						var val = this._data["lineHeight"];
+						if (typeof val !== "number" || isNaN(val))
+							return List.LINE_HEIGHT;
+						else
+							return val;
+					}
+				},
 				"columns": {
 					"set": (value: any) => {},
 					"get": (): any => {
@@ -1205,7 +1277,6 @@ module tui.widget {
 		
 		protected init(): void {
 			super.init();
-			this._lineHeight = List.LINE_HEIGHT;	
 			this._set("header", false);
 			this.setInit("autoWidth", true);
 			this.setInit("valueKey", "value");

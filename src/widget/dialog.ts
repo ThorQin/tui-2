@@ -312,7 +312,7 @@ module tui {
 	"use strict";
 	
 	function makeContent(message: string, className: string) {
-		return text.format( "<table class='tui-msg-container'><tr><td class='{1}'><span></span></td><td>{0}</td></tr></table>", message, className);
+		return text.format( "<table align='center' class='tui-msg-container'><tr><td class='{1}'><span></span></td><td>{0}</td></tr></table>", message, className);
 	}
 	
 	function makeDialog(message: string, className: string, title?: string, btn: string = "ok#tui-primary", 
