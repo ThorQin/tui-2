@@ -65,10 +65,12 @@ module tui.widget {
 			
 			popup.on("close", () => {
 				this._inSelection = false;
-				setTimeout(() => {
-					if (document.activeElement !== this._)
-						this.validate();
-				});
+				if (this.get("autoValidate")) {
+					setTimeout(() => {
+						if (document.activeElement !== this._)
+							this.validate();
+					});
+				}
 			});
 		}
 		

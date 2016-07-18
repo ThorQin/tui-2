@@ -110,6 +110,9 @@ module tui.widget {
 					eval.call(window, onclick);
 				}
 				this.fire("click", e);
+				let parent = this.get("parent");
+				if (parent && parent instanceof Group)
+					parent.fire("click", {e: e, button: this});
 			};
 
 			$root.click(onClick);

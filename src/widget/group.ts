@@ -20,6 +20,50 @@ module tui.widget {
 			this.setRestrictions({
 				"value": {
 					"set": (value: any) => {
+						if (typeof value === "object" && value !== null) {
+							var children = search(this._);
+							for (let item of children) {
+								var key = item.get("name");
+								if (key !== null) {
+									item.set("value", value[key]);
+								}
+							}
+						}
+					},
+					"get": (): any => {
+						var value: any = {};
+						var children = search(this._);
+						for (let item of children) {
+							var key = item.get("name");
+							if (key !== null) {
+								value[key] = item.get("value");
+							}
+						}
+						return value;
+					}
+				}
+			});
+		}
+
+		protected init(): void {
+			widget.init(this._);
+		}
+		
+		render(): void {
+			var root = this._;
+			var result = search(root);
+			for (let child of result) {
+				child.render();
+			}
+		}
+	}
+	
+	export class ButtonGroup extends Group {
+		protected initRestriction(): void {
+			super.initRestriction();
+			this.setRestrictions({
+				"value": {
+					"set": (value: any) => {
 						var children = search(this._, (elem: Widget): boolean => {
 							if (elem.get("parent") === this && elem instanceof Button)
 								return true;
@@ -60,24 +104,27 @@ module tui.widget {
 						} else
 							return values;
 					}
+				},
+				"text": {
+					"get": (): any => {
+						var values: any[] = [];
+						var children = search(this._, (elem: Widget): boolean => {
+							if (elem.get("parent") === this && elem instanceof Button)
+								return true;
+							else
+								return false;
+						});
+						for (let button of children) {
+							if (button.get("checked"))
+								values.push(button.get("text"));
+						}
+						return values.join(",");
+					}
 				}
 			});
 		}
-
-		protected init(): void {
-			widget.init(this._);
-		}
 		
-		render(): void {
-			var root = this._;
-			var result = search(root);
-			for (let child of result) {
-				child.render();
-			}
-		}
 	}
-	
-	export class ButtonGroup extends Group {}
 	
 	register(Group);
 	register(ButtonGroup);

@@ -49,6 +49,21 @@ module tui.widget {
 						return list.get("tree");
 					}
 				},
+				"activeRow": {
+					"set": (value: any) => {
+						list.set("activeRow", value);
+						this.updateTextByValue(<List>list);
+					},
+					"get": (): any => {
+						return list.get("activeRow");
+					}
+				},
+				"activeRowData": {
+					"set": (value: any) => {},
+					"get": (): any => {
+						return list.get("activeRowData");
+					}
+				},
 				"multiSelect": {
 					"set": (value: any) => {
 						list._set("checkable", value);
@@ -112,7 +127,9 @@ module tui.widget {
 		};
 		
 		private updateTextByValue(list: List) {
-			var nameKey = this.get("nameKey");
+			var textKey = this.get("textKey");
+			if (textKey === null)
+				textKey = this.get("nameKey");
 			var valueKey = this.get("valueKey");
 			var val = this.get("value");
 			if (val === null)
@@ -121,7 +138,7 @@ module tui.widget {
 				let text: string = null;
 				list.iterate(function(item: any, path: number[]): boolean {
 					if (item[valueKey] === val) {
-						text = item[nameKey];
+						text = item[textKey];
 						return false;
 					}
 					return true;
@@ -133,7 +150,7 @@ module tui.widget {
 				let text: string[] = [];
 				list.iterate(function(item: any, path: number[]): boolean {
 					if (val.indexOf(item[valueKey]) >= 0) {
-						text.push(item[nameKey]);
+						text.push(item[textKey]);
 					}
 					return true;
 				});
