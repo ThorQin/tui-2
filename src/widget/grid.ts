@@ -19,6 +19,8 @@ module tui.widget {
 		sortable?: boolean;
 		iconKey?: string;
 		checkKey?: string;
+		prefixKey?: string;
+		suffixKey?: string;
 	}
 
 	/**
@@ -915,7 +917,19 @@ module tui.widget {
 				
 				var cell = (<HTMLElement>line.childNodes[i]);	
 				cell.innerHTML = prefix;
+				var prefixContent = columns[i].prefixKey !== null ? item[columns[i].prefixKey] : null;
+				if (prefixContent) {
+					var prefixSpan = document.createElement("span");
+					prefixSpan.innerHTML = prefixContent;
+					cell.appendChild(prefixSpan);
+				}
 				cell.appendChild(document.createTextNode(item[columns[i].key]));
+				var suffixContent = columns[i].suffixKey !== null ? item[columns[i].suffixKey] : null;
+				if (suffixContent) {
+					var suffixSpan = document.createElement("span");
+					suffixSpan.innerHTML = suffixContent;
+					cell.appendChild(suffixSpan);
+				}
 			}
 		}
 		
@@ -1173,6 +1187,8 @@ module tui.widget {
 				key: "name",
 				checkKey: "check",
 				iconKey: "icon",
+				prefixKey: "prefix",
+				suffixKey: "suffix",
 				arrow: true
 			};
 			this.setRestrictions({
@@ -1216,6 +1232,24 @@ module tui.widget {
 					},
 					"get": () => {
 						return this._column.iconKey;
+					}
+				},
+				"prefixKey": {
+					"set": (value: any) => {
+						this._column.prefixKey = value;
+						this.clearBuffer();
+					},
+					"get": () => {
+						return this._column.prefixKey;
+					}
+				},
+				"suffixKey": {
+					"set": (value: any) => {
+						this._column.suffixKey = value;
+						this.clearBuffer();
+					},
+					"get": () => {
+						return this._column.suffixKey;
 					}
 				},
 				"checkable": {
