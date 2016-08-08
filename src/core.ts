@@ -24,7 +24,7 @@ module tui {
 			_dict[lang] = translator;
 		else if (typeof translator === "object" && translator !== null) {
 			_dict[lang] = function(str: string) {
-				return translator[str] || str;
+				return translator[(str + "").toLowerCase()] || str;
 			};
 		}
 	}

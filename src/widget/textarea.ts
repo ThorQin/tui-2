@@ -115,6 +115,11 @@ module tui.widget {
 				this.render();
 			});
 		}
+
+		focus() {
+			var textbox = this._components["textbox"];
+			textbox.focus();
+		}
 		
 		render(): void {
 			this._.scrollLeft = 0;

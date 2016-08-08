@@ -26,7 +26,7 @@
 	margin-left:2px;
 	margin-right:2px;
 	white-space:nowrap;
-	> *, > *.tui-focus, > *:focus {
+	> *, > *.tui-focus, > *.tui-active, > *:focus {
 		vertical-align:middle;
 
 		float:left;
@@ -38,7 +38,7 @@
 			min-width:0px;
 		}
 	}
-	> *:first-child, > *.tui-focus:first-child, > *:first-child:focus {
+	> *:first-child, > *.tui-active:first-child, > *.tui-focus:first-child, > *:first-child:focus {
 		.left-radius(@buttonBorderRadius);
 		border-left-width:1px;
 	}

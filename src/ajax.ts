@@ -3,7 +3,7 @@
 module tui.ajax {
 	
 	$.ajaxSetup({
-		"timeout": 15000,
+		"timeout": 30000,
 	});
 	
 	export function send(url: string, method: string, data?: any, options?: {[index: string]: any}): JQueryDeferred<JQueryXHR> {
@@ -49,20 +49,28 @@ module tui.ajax {
 		return deffered;
 	}
 	
-	export function post(url: string, data: any) {
-		return send(url, "post", data);
+	export function post(url: string, data: any, options?: {[index: string]: any}) {
+		return send(url, "post", data, options);
 	}
 	
-	export function post_(url: string, data: any) {
-		return send(url, "post", data, {"silent": true});
+	export function post_(url: string, data: any, options?: {[index: string]: any}) {
+		if (!options)
+			options = {"silent": true};
+		else
+			options["silent"] = true;
+		return send(url, "post", data, options);
 	}
 	
-	export function get(url: string) {
-		return send(url, "get");
+	export function get(url: string, options?: {[index: string]: any}) {
+		return send(url, "get", null, options);
 	}
 	
-	export function get_(url: string) {
-		return send(url, "get", null, {"silent": true});
+	export function get_(url: string, options?: {[index: string]: any}) {
+		if (!options)
+			options = {"silent": true};
+		else
+			options["silent"] = true;
+		return send(url, "get", null, options);
 	}
 	
 	(<any>window).$ajax = send;

@@ -141,13 +141,9 @@ module tui.widget {
 			}
 			this.render();
 		}
-
-		open(buttonDef: string = null): void {
-			if (this.get("opened"))
-				return;
-			var contentDiv = this._components["content"];
+		
+		setButtons(buttonDef: string = null): void {
 			var buttonBar = this._components["buttonBar"];
-			
 			buttonBar.innerHTML = "";
 			if (typeof buttonDef === "string" && buttonDef.length > 0) {
 				var names = buttonDef.split(",");
@@ -165,6 +161,14 @@ module tui.widget {
 			} else {
 				buttonBar.style.display = "none";
 			}
+			this.render();
+		}
+
+		open(buttonDef: string = null): void {
+			if (this.get("opened"))
+				return;
+			var contentDiv = this._components["content"];
+			
 			this._init = true;
 			this._moved = false;
 			$(this._).css({
@@ -173,7 +177,7 @@ module tui.widget {
 			});
 			this._set("opened", true);
 			push(this);
-			this.render();
+			this.setButtons(buttonDef);
 			this._.focus();
 			this.fire("open");
 			this._sizeTimer = setInterval( () => {

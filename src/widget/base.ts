@@ -266,6 +266,10 @@ module tui.widget {
 			return text.toDashSplit(getClassName(this.constructor));
 		}
 
+		focus() {
+			this._.focus();
+		}
+
 		constructor(root: HTMLElement, initParam?: { [index: string]: any }) {
 			super();
 

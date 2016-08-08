@@ -31,6 +31,14 @@ module tui.widget {
 					"get": (): any => {
 						return this._uploader.getOptions().accept;
 					}
+				},
+				"value": {
+					"set": (value: any) => {
+						this._data["value"] = value;
+						if (value === null || typeof value === tui.UNDEFINED) {
+							this._set("text", "");
+						}
+					}
 				}
 			});
 		}
