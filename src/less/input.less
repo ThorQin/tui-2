@@ -1,6 +1,6 @@
 @import 'commons.less';
 
-tui\:input,tui\:select,tui\:date-picker,tui\:file,tui\:textarea {
+tui\:input,tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file,tui\:textarea {
 	display: inline-block;
 	position: relative;
 	height: @buttonHeight;
@@ -140,7 +140,7 @@ tui\:textarea {
 	}
 }
 
-tui\:select,tui\:date-picker,tui\:file {
+tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file {
 	cursor: pointer;
 	.tui-input-label {
 		display: block;
@@ -168,4 +168,27 @@ tui\:select,tui\:date-picker,tui\:file {
 		cursor: pointer;
 	}
 	border-top: 1px dotted #ccc;
+}
+
+tui\:frame {
+	display:block;
+	padding: 3px 2px 10px 2px;
+	&>* {
+		display: block;
+		width:inherit;
+	}
+	&>label {
+		display: block;
+		color: block;
+		font-weight: bold;
+		margin: 0px 2px;
+		padding:1px 0px;
+		&[desc]:after {
+			display: inline;
+			vertical-align: baseline;
+			content: attr(desc);
+			margin: 0 4px;
+			color: red;
+		}
+	}
 }

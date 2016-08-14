@@ -15,11 +15,7 @@
         <script type="text/javascript" src="tui2.js"></script>
 		
 		<style>
-			tui\:input, tui\:select, tui\:date-picker, tui\:file, tui\:textarea {
-				display: block;
-				width: inherit;
-				margin: 20px 0;
-			}
+			
 		</style>
 		<script>
 			var data = [];
@@ -47,31 +43,81 @@
 		</script>
 	</head>
 	<body>
-		<tui:input placeholder="请输入文字" text="This is a test" auto-validate={true} >
-			<tui:verify format="*email">请输入有效的邮件地址</tui:verify>
-		</tui:input>
-		<tui:input icon-left="fa-search" type="password" placeholder="请输入密码"></tui:input>
-		<tui:input icon-right="fa-search" disable={true} value="this is a test" ></tui:input>
-		<tui:select id="sel" value="value 2_3_4" clearable={true}  placeholder="请选择..." auto-validate={true} >
-			<tui:verify format="*any">随便输入点东西</tui:verify>
-		</tui:select>
-		
-		<tui:select id="sel1" placeholder="请选择..." check-key="checked" tree={data} auto-validate={true} multi-select={true}>
-			<tui:verify format="*any">随便输入点东西</tui:verify>
-		</tui:select>
-		
-		<tui:date-picker id="date1" placeholder="请选择日期..." format="yyyy / MM / dd HH:mm:ss zz" time-bar={true} clearable={true} ></tui:date-picker>
-		
-		<tui:file placeholder="请选择文件..." accept="image/*" action="uploadFile.do"></tui:file>
-		
-		<tui:textarea placeholder="请输入文字..." style="max-height:100px" auto-validate={true} allow-empty={true}>
-			<tui:verify format="*email">随便输入点邮件</tui:verify>
-		</tui:textarea>
-		
+		<div style="max-width:400px;margin:0 auto;">
+			<tui:frame>
+				<label desc="*">帐号</label>
+				<tui:input placeholder="请输入文字" icon-left="fa-user" auto-validate={true} >
+					<tui:verify format="*email">请输入有效的邮件地址</tui:verify>
+				</tui:input>
+			</tui:frame>
+			<tui:frame>
+				<label>账户口令</label>
+				<tui:input icon-left="fa-key" type="password" placeholder="请输入密码"></tui:input>
+			</tui:frame>
+			<hr>
+			<tui:frame>
+				<label>搜索示例</label>
+				<tui:input icon-right="fa-search" disable={true} value="this is a test" ></tui:input>
+			</tui:frame>
+			<tui:frame>
+				<label desc="[必选]">单选框</label>
+				<tui:select id="sel" value="value 2_3_4" clearable={true}  placeholder="请选择..." auto-validate={true} >
+					<tui:verify format="*any">随便输入点东西</tui:verify>
+				</tui:select>
+			</tui:frame>
+			<tui:frame>
+				<label desc="[必选]">多选框</label>
+				<tui:select id="sel1" placeholder="请选择..." check-key="checked" tree={data} auto-validate={true} multi-select={true}>
+					<tui:verify format="*any">随便输入点东西</tui:verify>
+				</tui:select>
+			</tui:frame>
+			<tui:frame>
+				<label>选择日期</label>
+				<tui:date-picker id="date1" placeholder="请选择日期..." format="yyyy / MM / dd HH:mm:ss zz" time-bar={true} clearable={true} ></tui:date-picker>
+			</tui:frame>
+			<tui:frame>
+				<label>上传文件</label>
+				<tui:file placeholder="请选择文件..." accept="image/*" action="uploadFile.do"></tui:file>
+			</tui:frame>
+			<tui:frame>
+				<label desc="[必选]">定制选择</label>
+				<tui:dialog-select id="customSelect" class="form-input" auto-validate={true} placeholder="定制选择框...">
+					<tui:verify format="*any">随便选择点什么</tui:verify>
+				</tui:dialog-select>
+			</tui:frame>
+			<tui:frame>
+				<label desc="[必填]">多行文本录入</label>
+				<tui:textarea placeholder="请输入文字..." style="max-height:100px" auto-validate={true} allow-empty={true}>
+					<tui:verify format="*email">随便输入点邮件</tui:verify>
+				</tui:textarea>
+			</tui:frame>
+		</div>
+		<div id="hiddenResource" style="display:none">
+			<div>
+				<p>选择一个类型</p>
+				<tui:button-group id="g1" name="group1" type="radio">
+					<tui:radio value="abc">测试选项1</tui:radio>
+					<tui:radio value="def">测试选项2</tui:radio>
+				</tui:button-group>
+			</div>
+		</div>
 		<script>
 			$(function() {
 				
 				$$("sel").set("tree", data);
+				$$("customSelect").on("popup", function(data){
+					var selectBox = this;
+					var dlg = data.data;
+					var content = $("#hiddenResource>div")[0];
+					dlg.setContent(content);
+					dlg.once("btnclick", function(e){
+						selectBox._set("value", $$("g1").get("value"));
+						selectBox.set("text", $$("g1").get("text"));
+						this.close();
+					}).once("close", function(){
+						$("#hiddenResource").append(content);
+					}).open("ok#tui-primary");
+				})
 			});
 		</script>
 	</body>

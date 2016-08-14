@@ -57,6 +57,8 @@ module tui.widget {
 			}
 		}
 	}
+
+
 	
 	export class ButtonGroup extends Group {
 		protected initRestriction(): void {

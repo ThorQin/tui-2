@@ -90,7 +90,7 @@ module tui.widget {
 			buttonBar.onselectstart = disableSelect;
 			
 			var content = this.get("content");
-			if (typeof content === "object" && content.nodeName)
+			if (typeof content === "object" && content && content.nodeName)
 				contentDiv.appendChild(content);
 			else if (typeof content === "string") {
 				contentDiv.innerHTML = content;
@@ -133,7 +133,8 @@ module tui.widget {
 		}
 		
 		setContent(content: any) {
-			var contentDiv = this._components["content"]
+			var contentDiv = this._components["content"];
+			contentDiv.innerHTML = "";
 			if (typeof content === "object" && content.nodeName)
 				contentDiv.appendChild(content);
 			else if (typeof content === "string") {

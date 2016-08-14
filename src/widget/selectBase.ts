@@ -6,17 +6,19 @@ module tui.widget {
 		private static PADDING = 6;
 		
 		abstract openSelect(): void; 
+		protected abstract createPopup(): any;
 		
 		protected _inSelection: boolean = false;
 		
 		closeSelect() {
 			var popup = <Popup>get(this._components["popup"]);
-			popup.close();
+			popup && popup.close();
 		}
-	
+
 		protected init(): void {
 			var $root = $(this._);
-			var popup = <Popup>create(Popup);
+			//var popup = <Popup>create(Popup);
+			var popup = this.createPopup();
 			this._components["popup"] = popup._;
 			var label = this._components["label"] = document.createElement("span");
 			var iconRight = this._components["iconRight"] = document.createElement("i");
@@ -118,4 +120,10 @@ module tui.widget {
 		}
 	}
 	
+	export abstract class SelectPopupBase extends SelectBase {
+		protected createPopup(): any {
+			return <Popup>create(Popup);
+		}
+	}
+
 }

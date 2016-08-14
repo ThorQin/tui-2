@@ -445,7 +445,7 @@ module tui.widget {
 						checked = data.get(target.line)[checkKey] = !data.get(target.line)[checkKey];
 					}
 					this.drawLine(this._buffer.lines[target.line - this._buffer.begin], 
-						target.line, this.get("columns"), data.get(target.line));
+						target.line, this.get("lineHeight"), this.get("columns"), data.get(target.line));
 					ev.preventDefault();
 					this.fire("rowcheck", {e: ev, row: target.line, col: target.col, checked: checked });
 				}
@@ -854,13 +854,15 @@ module tui.widget {
 			this._dispLines = Math.ceil((dispHeight - (this.get("header") ? lineHeight : 0 )) / lineHeight);
 		}
 		
-		protected drawLine(line: HTMLElement, index: number, columns: ColumnInfo[], lineData: any) {
+		protected drawLine(line: HTMLElement, index: number, lineHeight: number, columns: ColumnInfo[], lineData: any) {
 			var isTree = this.get("dataType") === "tree";
 			var item = isTree ? lineData.item : lineData;
 			var tipKey = this.get("rowTooltipKey");
 			if (item[tipKey]) {
 				line.setAttribute("tooltip", item[tipKey]);
 			}
+			line.style.height = lineHeight + "px";
+			line.style.lineHeight = lineHeight + "px";
 			if (line.childNodes.length != columns.length) {
 				line.innerHTML = "";
 				for (var i = 0; i < columns.length; i++) {
@@ -915,7 +917,9 @@ module tui.widget {
 					prefix += "<i class='fa " + item[col.iconKey] + " tui-grid-icon'></i>";
 				}
 				
-				var cell = (<HTMLElement>line.childNodes[i]);	
+				var cell = (<HTMLElement>line.childNodes[i]);
+				cell.style.height = lineHeight + "px";
+				cell.style.lineHeight = lineHeight + "px";
 				cell.innerHTML = prefix;
 				var prefixContent = columns[i].prefixKey !== null ? item[columns[i].prefixKey] : null;
 				if (prefixContent) {
@@ -1033,7 +1037,8 @@ module tui.widget {
 				var end = begin + this._dispLines + 1;
 				for (var i = this._buffer.begin; i < this._buffer.end; i++) {
 					if (i >= begin && i < end)
-						this.drawLine(this._buffer.lines[i - this._buffer.begin], i, columns, data.get(i));
+						this.drawLine(this._buffer.lines[i - this._buffer.begin], i, 
+							this.get("lineHeight"), columns, data.get(i));
 				}
 			}, 32);
 			

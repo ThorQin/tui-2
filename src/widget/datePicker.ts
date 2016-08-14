@@ -8,7 +8,7 @@ module tui.widget {
 	 * Method: openSelect
 	 * Events: change
 	 */
-	export class DatePicker extends SelectBase {
+	export class DatePicker extends SelectPopupBase {
 		
 		protected initRestriction(): void {
 			var calendar = create(Calendar);

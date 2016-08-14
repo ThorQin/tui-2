@@ -25,17 +25,19 @@ tui\:grid,tui\:list {
 		word-break: keep-all;
 		overflow: hidden;
 		> span {
+			cursor:default;
 			position: relative;
 			.tui-grid-asc,.tui-grid-desc {
-				display: block;
-				position: absolute;
-				left:0;
-				top:0;
-				right: 0;
-				height: 8px;
-				line-height: 8px;
-				text-align: center;
-				overflow: hidden;
+				// display: block;
+				// position: absolute;
+				// left:0;
+				// top:0;
+				// right: 0;
+				// height: 8px;
+				// line-height: 8px;
+				// text-align: center;
+				// overflow: hidden;
+				padding: 0 5px;
 				color: @lineSelectFocusedBackgroundColor;
 				//color: #ee7755
 				//.liner-color(#e0e0e0, #f0f0f0);
@@ -43,15 +45,16 @@ tui\:grid,tui\:list {
 			.tui-grid-desc::before {
 				.icon-base();
 				//.fa-chevron-down;
-				.fa-angle-down;
+				.fa-chevron-circle-down;
 			}
 			.tui-grid-asc::before {
 				.icon-base();
 				//.fa-chevron-up;
-				.fa-angle-up;
+				.fa-chevron-circle-up;
 			}
 			&.tui-sortable {
 				cursor: pointer;
+				color: @lineSelectFocusedBackgroundColor;
 				&:hover {
 					// .tui-grid-asc,.tui-grid-desc {
 					// 	.liner-color(rgba(180,240,255,1), #ddd);

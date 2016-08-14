@@ -1,4 +1,5 @@
 /// <reference path="selectBase.ts" />
+/// <reference path="dialog.ts" />
 module tui.widget {
 	"use strict";
 	
@@ -9,10 +10,13 @@ module tui.widget {
 	 * Method: openSelect
 	 * Events: change, click
 	 */
-	export class Select extends SelectBase {
+	export class Select extends SelectPopupBase {
+
+		private static LIST_LINE_HEIGHT = 28;
 		
 		protected initRestriction(): void {
 			var list = create(List);
+			list.set("lineHeight", Select.LIST_LINE_HEIGHT);
 			this._components["list"] = list._;
 			super.initRestriction();
 			this.setRestrictions({
@@ -122,7 +126,7 @@ module tui.widget {
 			var count = <number>list.get("data").length();
 			if (count > <number>this.get("showCount"))
 				count = <number>this.get("showCount");
-			list._.style.height = count * 30 + "px";
+			list._.style.height = count * Select.LIST_LINE_HEIGHT + "px";
 			popup.render();
 		};
 		
@@ -270,6 +274,22 @@ module tui.widget {
 		}
 	}
 	
-	
 	register(Select);
+
+	export class DialogSelect extends SelectBase {
+		private dialog: Dialog;
+		openSelect(): void {
+			this.fire("popup", this.dialog);
+		} 
+		protected createPopup(): any {
+			return this.dialog;
+		}
+		protected init(): void {
+			this.dialog = <Dialog>create(Dialog);
+			super.init();
+			this.setInit("iconRight", "fa-pencil");
+		}
+	}
+	register(DialogSelect);
+
 }
