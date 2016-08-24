@@ -224,8 +224,12 @@ module tui {
 						}
 						if (response) {
 							var responseObj = eval("(" + response + ")");
-							if (responseObj.fileId && responseObj.fileName)
-								this.fire("success", { "file": file, "ext": getExt(file), "response": response });
+							if (!responseObj) {
+								this.fireError();
+							} else if (responseObj.error) {
+								this.fireError(responseObj.error);
+							} else if (responseObj.fileId && responseObj.fileName)
+								this.fire("success", { "file": file, "ext": getExt(file), "response": responseObj });
 							else
 								this.fireError();
 						} else {
@@ -252,8 +256,10 @@ module tui {
 			this.fire("error", { "response": { error: tui.str("Upload failed: invalid response content!") } });
 		}
 		
-		private fireError() {
-			this.fire("error", { "response": { error: tui.str("Upload failed!") } });
+		private fireError(errorMessage?: string) {
+			this.fire("error", { "response": { 
+				error: tui.str("Upload failed!") + (errorMessage ? errorMessage : "") 
+			} });
 		}
 		
 		private submitV5(file: string, extraData?: {[index: string]: string}) {

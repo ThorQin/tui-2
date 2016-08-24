@@ -23,6 +23,13 @@ module tui.widget {
 		suffixKey?: string;
 	}
 
+	function vval(v: number): number {
+		if (isNaN(v))
+			return 0;
+		else
+			return v;
+	}
+
 	/**
 	 * <tui:gird>
 	 * Attributes: data, list(array type data), tree(tree type data), 
@@ -318,6 +325,8 @@ module tui.widget {
 				var moveY = movePos.y - lastPos.y;
 				var currentTime = new Date().getMilliseconds();
 				var spanTime = currentTime - lastTime;
+				if (spanTime <= 0)
+					return;
 				lastPos = movePos;
 				lastTime = currentTime;
 				if (direction == null) {
@@ -799,7 +808,10 @@ module tui.widget {
 					$(vScroll._).removeClass("tui-hidden");
 					vScroll._.style.height = realClientHeight + "px";
 					vScroll._set("total", this._contentHeight - realClientHeight);
-					vScroll.set("page", realClientHeight / this._contentHeight * (this._contentHeight - realClientHeight));
+					if (this._contentHeight > 0) {
+						vScroll.set("page", realClientHeight / this._contentHeight * (this._contentHeight - realClientHeight));
+					} else
+						vScroll.set("page", 1);
 				} else if (this.get("autoHeight")) {
 					vScroll._set("value", 0);
 					vScroll._set("total", 0);
@@ -828,7 +840,10 @@ module tui.widget {
 					$(hScroll._).removeClass("tui-hidden");
 					hScroll._.style.width = realClientWidth + "px";
 					hScroll._set("total", this._contentWidth - realClientWidth);
-					hScroll.set("page", realClientWidth / this._contentWidth * (this._contentWidth - realClientWidth));
+					if (this._contentWidth > 0)
+						hScroll.set("page", realClientWidth / this._contentWidth * (this._contentWidth - realClientWidth));
+					else
+						hScroll.set("page", 1);
 				} else {
 					hScroll._set("total", 0);
 					hScroll.set("value", 0);
@@ -844,12 +859,17 @@ module tui.widget {
 			
 			if (this.get("header")) {
 				head.style.display = "block";
-				head.style.width = (vEnable ? clientWidth - vScroll._.offsetWidth : clientWidth) + "px";
+				var width = (vEnable ? clientWidth - vScroll._.offsetWidth : clientWidth);
+				width = (width >= 0 ? width : 0);
+				head.style.width = width + "px";
 			} else {
 				head.style.display = "none";
 			}
-			content.style.width = (vEnable ? clientWidth - vScroll._.offsetWidth : clientWidth) + "px";
+			var width = (vEnable ? clientWidth - vScroll._.offsetWidth : clientWidth);
+			width = (width >= 0 ? width : 0);
+			content.style.width = width + "px";
 			var dispHeight = (hEnable ? clientHeight - hScroll._.offsetHeight : clientHeight);
+			dispHeight = (dispHeight >= 0 ? dispHeight : 0);
 			content.style.height = dispHeight + "px";
 			this._dispLines = Math.ceil((dispHeight - (this.get("header") ? lineHeight : 0 )) / lineHeight);
 		}
@@ -1074,14 +1094,16 @@ module tui.widget {
 			content.scrollLeft = scrollLeft;
 			var used = 0;
 			for (var i = 0; i < columns.length; i++) {
-				this._vLines[i].style.left = used + columns[i].width +  (Grid.CELL_SPACE * 2) - scrollLeft + "px";
-				used += columns[i].width +  (Grid.CELL_SPACE * 2);
+				this._vLines[i].style.left = used + vval(columns[i].width) + 
+					(Grid.CELL_SPACE * 2) - scrollLeft + "px";
+				used += vval(columns[i].width) +  (Grid.CELL_SPACE * 2);
 			}
 			if (this.get("header")) {
 				used = 0;
 				for (var i = 0; i < columns.length; i++) {
-					this._handlers[i].style.left = used + columns[i].width +  (Grid.CELL_SPACE) - this._hbar.get("value") + "px";
-					used += columns[i].width +  (Grid.CELL_SPACE * 2);
+					this._handlers[i].style.left = used + vval(columns[i].width) + 
+						(Grid.CELL_SPACE) - this._hbar.get("value") + "px";
+					used += vval(columns[i].width) +  (Grid.CELL_SPACE * 2);
 				}
 			}
 		}
@@ -1105,7 +1127,10 @@ module tui.widget {
 				
 				for (var i = 0; i < columns.length; i++) {
 					if (!columns[i].fixed) {
-						this._columnWidths[i] = (this._columnWidths[i] * 1.0) / totalCompute * totalNoFixed;
+						if (totalCompute <= 0)
+							this._columnWidths[i] = NaN;
+						else
+							this._columnWidths[i] = (this._columnWidths[i] * 1.0) / totalCompute * totalNoFixed;
 					}
 				}
 			} 
@@ -1114,6 +1139,7 @@ module tui.widget {
 				//widths.push(val);
 				columns[i].width = val;
 			}
+			
 			// Add V lines
 			for (var i = 0; i < this._vLines.length; i++) {
 				if (this._vLines[i].parentNode)
@@ -1125,8 +1151,8 @@ module tui.widget {
 					this._vLines[i] = document.createElement("div");
 					this._vLines[i].className = "tui-grid-vline";
 				}
-				this._vLines[i].style.left = used + columns[i].width +  (Grid.CELL_SPACE * 2) - this._hbar.get("value") + "px";
-				used += columns[i].width +  (Grid.CELL_SPACE * 2);
+				this._vLines[i].style.left = used + vval(columns[i].width) +  (Grid.CELL_SPACE * 2) - this._hbar.get("value") + "px";
+				used += vval(columns[i].width) +  (Grid.CELL_SPACE * 2);
 				this._vLines[i].style.height = Math.min(this._contentHeight, this._.clientHeight) + "px";  
 				this._.appendChild(this._vLines[i]);
 			}
@@ -1142,15 +1168,15 @@ module tui.widget {
 						this._handlers[i] = document.createElement("div");
 						this._handlers[i].className = "tui-grid-handler";
 					}
-					this._handlers[i].style.left = used + columns[i].width +  (Grid.CELL_SPACE) - this._hbar.get("value") + "px";
-					used += columns[i].width +  (Grid.CELL_SPACE * 2);
+					this._handlers[i].style.left = used + vval(columns[i].width) +  (Grid.CELL_SPACE) - this._hbar.get("value") + "px";
+					used += vval(columns[i].width) +  (Grid.CELL_SPACE * 2);
 					this._.appendChild(this._handlers[i]);
 				}
 			}
 			
 			var cssText = "";
 			for (var i = 0; i < columns.length; i++) {
-				cssText += (".tui-grid-" + this._tuid + "-" + i + "{width:" + columns[i].width + "px}");
+				cssText += (".tui-grid-" + this._tuid + "-" + i + "{width:" + vval(columns[i].width) + "px}");
 			}
 			if ((<any>document).createStyleSheet) // IE
 				(<any>this._gridStyle).cssText = cssText;

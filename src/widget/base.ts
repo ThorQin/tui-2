@@ -89,7 +89,10 @@ module tui.widget {
 				if (this._rs[key] && typeof this._rs[key].get === "function") {
 					value = this._rs[key].get(); 
 				} else {
-					value = this._data[key];
+					if (typeof this._data === "object")
+						value = this._data[key];
+					else
+						value = null;
 				}
 				return (typeof value === UNDEFINED ? null : value);
 			}
@@ -115,10 +118,12 @@ module tui.widget {
 				if (this._rs[p1] && typeof this._rs[p1].set === "function") {
 					this._rs[p1].set(p2);
 				} else {
-					if (p2 === null)
-						delete this._data[p1];
-					else 
-						this._data[p1] = p2;
+					if (p2 === null) {
+						this._data && delete this._data[p1];
+					} else { 
+						if (typeof this._data === "object")
+							this._data[p1] = p2;
+					}
 				}
 			}
 			return this;
@@ -421,7 +426,7 @@ module tui.widget {
 		for (let item of initSet) {
 			let elem = item[0];
 			let constructor = item[1];
-			try {
+			// try {
 				if (!(<any>elem).__widget__) {
 					let widget: Widget = new constructor(elem);
 					if (typeof initFunc === "function") {
@@ -433,9 +438,9 @@ module tui.widget {
 					let widget: Widget = (<any>elem).__widget__;
 					widget.refresh();
 				}
-			} catch (e) {
-				if (console) console.error(e.message);
-			}
+			// } catch (e) {
+			// 	if (console) console.error(e.message);
+			// }
 		}
 	}
 	

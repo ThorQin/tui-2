@@ -186,10 +186,16 @@ module tui.widget {
 			var val = 0;
 			if (this.get("direction") === "vertical") {
 				len = this._.clientHeight - btnThumb.offsetHeight;
-				val = pos / len * total;
+				if (len <= 0)
+					val = 0;
+				else
+					val = pos / len * total;
 			} else {
 				len = this._.clientWidth - btnThumb.offsetWidth;
-				val = pos / len * total;
+				if (len <= 0)
+					val = 0;
+				else
+					val = pos / len * total;
 			}
 			val = Math.round(val);
 			return val;

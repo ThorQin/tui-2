@@ -152,7 +152,10 @@ module tui.widget {
 			this._.style.height = textbox.scrollHeight + 4 + "px";
 			
 			textbox.style.left = marginLeft + "px";
-			textbox.style.width = this._.clientWidth - iconInvalid.offsetWidth - marginLeft - marginRight + "px";
+			var width = this._.clientWidth - iconInvalid.offsetWidth - marginLeft - marginRight;
+			if (width < 0)
+				width = 0;
+			textbox.style.width = width + "px";
 			
 			var phText = this.get("placeholder");
 			var showPh = phText && !this.get("value"); 

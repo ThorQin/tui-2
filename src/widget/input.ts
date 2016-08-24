@@ -190,7 +190,10 @@ module tui.widget {
 			}
 			
 			textbox.style.left = iconLeft.offsetWidth + marginLeft + "px";
-			textbox.style.width = this._.clientWidth - iconLeft.offsetWidth - iconInvalid.offsetWidth - iconRight.offsetWidth - marginLeft - marginRight + "px";
+			var width = this._.clientWidth - iconLeft.offsetWidth - iconInvalid.offsetWidth - iconRight.offsetWidth - marginLeft - marginRight;
+			if (width < 0)
+				width = 0;
+			textbox.style.width = width + "px";
 			
 			var phText = this.get("placeholder");
 			var showPh = phText && !this.get("value"); 
