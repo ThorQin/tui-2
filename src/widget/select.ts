@@ -16,6 +16,7 @@ module tui.widget {
 		
 		protected initRestriction(): void {
 			var list = create(List);
+			list._set("noMouseWheel", true);
 			list.set("lineHeight", Select.LIST_LINE_HEIGHT);
 			this._components["list"] = list._;
 			super.initRestriction();

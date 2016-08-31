@@ -263,10 +263,28 @@ module tui.widget {
 				var step = this.get("lineHeight");
 				//delta returns +120 when wheel is scrolled up, -120 when scrolled down
 				var scrollSize = step > 1 ? step : 1;
-				ev.stopPropagation();
-				ev.preventDefault();
-				this._vbar.set("value", this._vbar.get("value") + (delta <= -120 ? scrollSize : -scrollSize));
-				this.drawContent();
+				if (delta <= -120) {
+					console.log(this._vbar.get("value") + " : " + this._vbar.get("totle"));
+					if (this._vbar.get("value") < this._vbar.get("total")) {
+						ev.stopPropagation();
+						ev.preventDefault();
+						this._vbar.set("value", this._vbar.get("value") + scrollSize);
+						this.drawContent();
+					} else if (this.get("noMouseWheel")) {
+						ev.stopPropagation();
+						ev.preventDefault();
+					}
+				} else {
+					if (this._vbar.get("value") > 0) {
+						ev.stopPropagation();
+						ev.preventDefault();
+						this._vbar.set("value", this._vbar.get("value") - scrollSize);
+						this.drawContent();
+					} else if (this.get("noMouseWheel")) {
+						ev.stopPropagation();
+						ev.preventDefault();
+					}
+				}
 			});
 			
 			var scrollX = (distance: number) => {
