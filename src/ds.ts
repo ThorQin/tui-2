@@ -160,6 +160,8 @@ module tui.ds {
 		}
 		
 		protected expandItems(parent: TreeNode, items: any[], index: TreeNode[], level: number, init: boolean = false) {
+			if (typeof items === tui.UNDEFINED || items === null)
+				items = [];
 			for (var item of items) {
 				var children = item[this._config.children];
 				var expand: boolean;
@@ -188,6 +190,8 @@ module tui.ds {
 		}
 		
 		protected getExpandCount(children: any[]): number {
+			if (!children)
+				return 0;
 			var delCount = children.length;
 			for (var child of children) {
 				if (child.children && child.children.length > 0 && child[this._config.expand]) {
@@ -245,6 +249,8 @@ module tui.ds {
 	
 	export class RemoteTree extends TreeBase  {
 		
+		private _querying: boolean = false;
+		
 		constructor(config: TreeConfig = {children: "children", expand: "expand", hasChild: "hasChild"}) {
 			super();
 			this._config = config;
@@ -254,7 +260,10 @@ module tui.ds {
 			if (this._index)
 				return this._index.length;
 			else {
-				this.fire("query", {parent: null});
+				if (!this._querying) {
+					this._querying = true;
+					this.fire("query", {parent: null});
+				}
 				return 0;
 			}
 		}
@@ -265,18 +274,21 @@ module tui.ds {
 				if ( node.hasChild && !node.expand) {
 					node.expand = true;
 					node.item[this._config.expand] = true;
-					if (node.item[this._config.children] !== null) {
+					var children = node.item[this._config.children];
+					if (children) {
 						var appendNodes: TreeNode[] = [];
-						this.expandItems(node, node.item[this._config.children], appendNodes, node.level + 1);
+						this.expandItems(node, children, appendNodes, node.level + 1);
 						this._index.splice(index + 1, 0, ...appendNodes);
 					} else {
 						this.fire("query", {parent: node});
+						this._querying = true;
 					}
 				}
 			}
 		}
 		
 		update(result: TreeQueryResult) {
+			this._querying = false;
 			if (result.parent === null) {
 				this._index = [];
 				this._rawData = result.data;
