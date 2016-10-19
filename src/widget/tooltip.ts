@@ -24,7 +24,10 @@ module tui.widget {
 		}
 		_tooltip.style.width = "";
 		_tooltip.style.whiteSpace = "nowrap";
-		_tooltip.innerHTML = tooltip;
+		if (target.hasAttribute("html-tooltip"))
+			_tooltip.innerHTML = tooltip;
+		else
+			$(_tooltip).text(tooltip);
 		document.body.appendChild(_tooltip);
 		_tooltipTarget = target;
 		if (_tooltip.scrollWidth > _tooltip.clientWidth) {

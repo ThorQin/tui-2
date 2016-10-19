@@ -27,9 +27,13 @@ module tui.ajax {
 					var respText: string;
 					if (plainType && jqXHR.responseText)
 						respText = tui.str(jqXHR.responseText);
-					else
-						respText = tui.str(status) + " (" + jqXHR.status + ")";
-					if (!options || !options["silent"])
+					else {
+						if (jqXHR.status != 0)
+							respText = tui.str(status) + " (" + jqXHR.status + ")";
+						else
+							respText = "Operation was canceled!";
+					}
+					if ((!options || !options["silent"]) && jqXHR.status != 0)
 						tui.errbox(respText);
 					deffered.reject(jqXHR, status, respText);
 				}
