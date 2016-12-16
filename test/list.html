@@ -52,7 +52,32 @@
 		
 	</head>
 	<body>
-		<a alt="一个工具提示">ddd</a>
-		<tui:list id="grid" style="height:400px;" tooltip="一个工具提示" checkable={false} row-tooltip-key="desc"></tui:list>
+		<p>演示了三个列表，左侧数据动态创建，使用树状结构，右侧是静态数据。</p>
+		<hr>
+		<tui:list id="grid" style="height:400px;float:left;width:300px;margin:20px" 
+			tooltip="一个工具提示" checkable={false} row-tooltip-key="desc">
+		</tui:list>
+		<tui:list style="height:400px;float:left;width:300px;margin:20px" 
+			checkable={true} row-tooltip-key="desc" data="{[
+				{name: '列表内容1(不可选)', value: 'value1', desc: '这是一个很长的描述信息1'},
+				{name: '列表内容2', check:false,  value: 'value2', desc: '这是一个很长的描述信息2'},
+				{name: '列表内容3', check:false, value: 'value3', desc: '这是一个很长的描述信息3'},
+				{name: '列表内容4', check:true, value: 'value4', desc: '这是一个很长的描述信息4'},
+				{name: '列表内容5', check:false, value: 'value5', desc: '这是一个很长的描述信息5'},
+				{name: '列表内容6(不可选)', value: 'value6', desc: '这是一个很长的描述信息6'},
+				{name: '列表内容7(不可选)', value: 'value7', desc: '这是一个很长的描述信息7'}
+			]}">
+		</tui:list>
+		<tui:list style="height:400px;float:left;width:300px;margin:20px" 
+			data="{[
+				{name: '列表内容1'},
+				{name: '列表内容2'},
+				{name: '列表内容3'},
+				{name: '列表内容4'},
+				{name: '列表内容5'},
+				{name: '列表内容6'},
+				{name: '列表内容7'}
+			]}">
+		</tui:list>
 	</body>
 </html>

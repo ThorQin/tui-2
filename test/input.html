@@ -44,53 +44,53 @@
 	</head>
 	<body>
 		<div style="max-width:400px;margin:0 auto;">
-			<tui:frame>
+			<tui:input-group>
 				<label desc="*">帐号</label>
-				<tui:input placeholder="请输入文字" icon-left="fa-user" auto-validate={true} >
+				<tui:input placeholder="请输入文字" icon-left="fa-user" clearable={true} auto-validate={true} >
 					<tui:verify format="*email">请输入有效的邮件地址</tui:verify>
 				</tui:input>
-			</tui:frame>
-			<tui:frame>
+			</tui:input-group>
+			<tui:input-group>
 				<label>账户口令</label>
 				<tui:input icon-left="fa-key" type="password" placeholder="请输入密码"></tui:input>
-			</tui:frame>
+			</tui:input-group>
 			<hr>
-			<tui:frame>
+			<tui:input-group>
 				<label>搜索示例</label>
 				<tui:input icon-right="fa-search" disable={true} value="this is a test" ></tui:input>
-			</tui:frame>
-			<tui:frame>
+			</tui:input-group>
+			<tui:input-group>
 				<label desc="[必选]">单选框</label>
-				<tui:select id="sel" value="value 2_3_4" clearable={true}  placeholder="请选择..." auto-validate={true} >
+				<tui:select id="sel" value="value 2_3_4" can-search={true} clearable={true}  placeholder="请选择..." auto-validate={true} >
 					<tui:verify format="*any">随便输入点东西</tui:verify>
 				</tui:select>
-			</tui:frame>
-			<tui:frame>
+			</tui:input-group>
+			<tui:input-group>
 				<label desc="[必选]">多选框</label>
-				<tui:select id="sel1" placeholder="请选择..." check-key="checked" tree={data} auto-validate={true} multi-select={true}>
+				<tui:select id="sel1" placeholder="请选择..." can-search={true} clearable={true}  check-key="checked" tree={data} auto-validate={true} multi-select={true}>
 					<tui:verify format="*any">随便输入点东西</tui:verify>
 				</tui:select>
-			</tui:frame>
-			<tui:frame>
+			</tui:input-group>
+			<tui:input-group>
 				<label>选择日期</label>
 				<tui:date-picker id="date1" placeholder="请选择日期..." format="yyyy / MM / dd HH:mm:ss zz" time-bar={true} clearable={true} ></tui:date-picker>
-			</tui:frame>
-			<tui:frame>
+			</tui:input-group>
+			<tui:input-group>
 				<label>上传文件</label>
-				<tui:file placeholder="请选择文件..." accept="image/*" action="uploadFile.do"></tui:file>
-			</tui:frame>
-			<tui:frame>
+				<tui:file placeholder="请选择文件..." accept="image/*" clearable={true}  action="uploadFile.do"></tui:file>
+			</tui:input-group>
+			<tui:input-group>
 				<label desc="[必选]">定制选择</label>
-				<tui:dialog-select id="customSelect" class="form-input" auto-validate={true} placeholder="定制选择框...">
+				<tui:dialog-select id="customSelect" class="form-input" clearable={true} auto-validate={true} placeholder="定制选择框...">
 					<tui:verify format="*any">随便选择点什么</tui:verify>
 				</tui:dialog-select>
-			</tui:frame>
-			<tui:frame>
+			</tui:input-group>
+			<tui:input-group>
 				<label desc="[必填]">多行文本录入</label>
 				<tui:textarea placeholder="请输入文字..." style="max-height:100px" auto-validate={true} allow-empty={true}>
 					<tui:verify format="*email">随便输入点邮件</tui:verify>
 				</tui:textarea>
-			</tui:frame>
+			</tui:input-group>
 		</div>
 		<div id="hiddenResource" style="display:none">
 			<div>

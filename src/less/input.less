@@ -26,21 +26,7 @@ tui\:input,tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file,tui\:textar
 		background-color: #f0f0f0;
 		color: #ccc;
 	}
-	.tui-invalid-icon {
-		display: inline-block;
-		position: absolute;
-		width:30px;
-		top: 1px;
-		height: @buttonHeight - 2px;
-		line-height: @buttonHeight - 2px;
-		text-align: center;
-		cursor: default;
-		color: red;
-		&::before {
-			.icon-base();
-			.fa-exclamation-triangle;
-		}
-	}
+	
 	&.tui-invalid {
 		color: red;
 		border: 1px solid red;
@@ -58,6 +44,19 @@ tui\:input,tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file,tui\:textar
 		text-align: center;
 		cursor: default;
 		background-color: @windowColor;
+	}
+	.tui-invalid-icon {
+		&::before {
+			.icon-base();
+			.fa-exclamation-triangle;
+		}
+	}
+	.tui-input-clear-button {
+		color: #555;
+		&::before {
+			.icon-base();
+			.fa-times;
+		}
 	}
 	i::before {
 		.icon-base();
@@ -98,6 +97,9 @@ tui\:input {
 		&:focus {
 			-webkit-tap-highlight-color: transparent;
     		-webkit-user-modify:read-write-plaintext-only; 
+		}
+		&::-ms-clear {
+			display: none;
 		}
 	}
 	&.tui-invalid>input {
@@ -169,8 +171,18 @@ tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file {
 	}
 	border-top: 1px dotted #ccc;
 }
+.tui-select-searchbar {
+	padding: 4px 4px;
+	border-bottom: 1px dotted #ccc;
+	tui\:input {
+		display: block;
+		width:inherit;
+		border: 1px solid #ccc;
+		.shadow(0px, 0px, 0px, #88ccff);
+	}
+}
 
-tui\:frame {
+tui\:input-group {
 	display:block;
 	padding: 3px 2px 10px 2px;
 	&>* {
@@ -182,7 +194,7 @@ tui\:frame {
 		color: block;
 		font-weight: bold;
 		margin: 0px 2px;
-		padding:1px 0px;
+		padding:3px 0px;
 		&[desc]:after {
 			display: inline;
 			vertical-align: baseline;

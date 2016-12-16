@@ -42,6 +42,9 @@ tui\:grid,tui\:list {
 				//color: #ee7755
 				//.liner-color(#e0e0e0, #f0f0f0);
 			}
+			.tui-grid-no-sort {
+				padding: 0 2px;
+			}
 			.tui-grid-desc::before {
 				.icon-base();
 				//.fa-chevron-down;
@@ -136,7 +139,11 @@ tui\:grid,tui\:list {
 	.tui-grid-test {
 		visibility: hidden;
 	}
-
+	.tui-grid-line > span:before {
+		content: " ";
+		display: inline-block;
+		width: 4px;
+	}
 	.tui-grid-line.tui-actived {
 		background-color: @lineSelectFocusedBackgroundColor;
 		color: @lineSelectFocusedForeColor;
@@ -168,12 +175,18 @@ tui\:grid,tui\:list {
 	.tui-grid-check {
 		//color: @uncheckColor;
 		text-align: center;
+		color: @checkedColor;
 	}
 	.tui-grid-no-check {
 		//color: @uncheckColor;
 		font-family: arial;
 		text-align: center;
 	}
+	// .tui-grid-no-check::before {
+	// 	color: #666;
+	// 	.icon-base();
+	// 	.fa-square;
+	// }
 	.tui-grid-check::before {
 		.icon-base();
 	}

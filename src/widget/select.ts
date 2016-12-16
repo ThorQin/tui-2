@@ -5,7 +5,7 @@ module tui.widget {
 	
 	/**
 	 * <tui:select>
-	 * Attributes: data, list, tree, multiSelect, checkKey, nameKey, 
+	 * Attributes: data, list, tree, multiSelect, checkKey, nameKey, canSearch, search 
 	 * iconKey, valueKey
 	 * Method: openSelect
 	 * Events: change, click
@@ -63,6 +63,12 @@ module tui.widget {
 						return list.get("activeRow");
 					}
 				},
+				"selection": {
+					"set": (value: any) => {},
+					"get": (): any => {
+						return this.getSelection(<List>list);
+					}
+				},
 				"activeRowData": {
 					"set": (value: any) => {},
 					"get": (): any => {
@@ -117,6 +123,18 @@ module tui.widget {
 						else
 							return 8;
 					}
+				},
+				"canSearch": {
+					"get": () => {
+						var value = this._data["canSearch"];
+						if (typeof value === tui.UNDEFINED || value === null)
+							return false;
+						else
+							return !!value;
+					},
+					"set": (value: any) => {
+						this._data["canSearch"] = !!value;
+					}
 				}
 			});
 		}
@@ -130,37 +148,56 @@ module tui.widget {
 			list._.style.height = count * Select.LIST_LINE_HEIGHT + "px";
 			popup.render();
 		};
-		
-		private updateTextByValue(list: List) {
+
+		private getSelection(list: List): any {
 			var textKey = this.get("textKey");
 			if (textKey === null)
 				textKey = this.get("nameKey");
 			var valueKey = this.get("valueKey");
 			var val = this.get("value");
 			if (val === null)
-				this._set("text", null);
+				return null;
 			if (!this.get("multiSelect")) {
-				let text: string = null;
-				list.iterate(function(item: any, path: number[]): boolean {
-					if (item[valueKey] === val) {
-						text = item[textKey];
+				let selectedItem: any = null;
+				list.iterate(function(item: any, path: number[], treeNode: boolean): boolean {
+					let nodeValue = item[valueKey]; 
+					if (nodeValue === val) {
+						selectedItem = item;
 						return false;
 					}
 					return true;
 				});
-				this._set("text", text);
+				return selectedItem;
 			} else {
 				if (!(val instanceof Array))
 					val = [val];
-				let text: string[] = [];
-				list.iterate(function(item: any, path: number[]): boolean {
-					if (val.indexOf(item[valueKey]) >= 0) {
-						text.push(item[textKey]);
+				let selectedItems: any[] = [];
+				list.iterate(function(item: any, path: number[], treeNode: boolean): boolean {
+					let nodeValue = item[valueKey]; 
+					if (val.indexOf(nodeValue) >= 0) {
+						selectedItems.push(item);
 					}
 					return true;
 				});
-				this._set("text", text.join(", "));
+				return selectedItems;
 			}
+		}
+		
+		private updateTextByValue(list: List) {
+			var textKey = this.get("textKey");
+			if (textKey === null)
+				textKey = this.get("nameKey");
+			var selected = this.getSelection(list);
+			if (selected == null)
+				this._set("text", null);
+			else if (selected instanceof Array)
+				this._set("text", selected.reduce(
+					function(s: string, v: any, i: number){ 
+						return i > 0 ? s + ", " + v[textKey] : v[textKey]; 
+					}, "")
+				);
+			else
+				this._set("text", selected[textKey]);
 		}
 		
 		protected init(): void {
@@ -169,19 +206,26 @@ module tui.widget {
 			var list = <List>get(this._components["list"]);
 			
 			var container = document.createElement("div"); 
+			var searchbar = <HTMLElement>container.appendChild(document.createElement("div"));
+			searchbar.className = "tui-select-searchbar";
+			var searchBox = create(Input);
+			searchBox._set("clearable", true);
+			searchBox._set("iconLeft", "fa-search");
+			searchbar.appendChild(searchBox._);
+			container.appendChild(list._);
 			var toolbar = <HTMLElement>container.appendChild(document.createElement("div"));
 			toolbar.className = "tui-select-toolbar";
-			container.insertBefore(list._, container.firstChild);
-			
 			
 			var popup = <Popup>get(this._components["popup"]);
 			popup._set("content", container);
 			
+			this._components["searchbar"] = <HTMLElement>searchbar;
 			this._components["toolbar"] = <HTMLElement>toolbar;
+			this._components["searchBox"] = searchBox._;
 			list._.style.width = "inherit";
 			list._.style.display = "block";
 			list._.style.borderWidth = "0";
-			list.on("expand collapse", () => {
+			list.on("expand collapse update", () => {
 				this.changeSize();
 			});
 			list.on("rowclick keyselect", (e) => {
@@ -200,6 +244,22 @@ module tui.widget {
 						this._.focus();
 						this.fire("click", {e:e, value: this.get("value"), text: this.get("text")});
 					}
+				}
+			});
+			searchBox.on("enter change", (e) => {
+				let searchValue = searchBox.get("value");
+				if (searchValue == null || searchValue.length == 0) {
+					list.get("data").setFilter(null);
+				} else {
+					list.get("data").setFilter([{
+						key: this.get("nameKey"),
+						value: searchValue
+					}]);
+				}
+				list._set("activeRow", null);
+				list.scrollTo(0);
+				if (!this.get("multiSelect") && this.get("value") !== null) {
+					list.activeTo(this.get("valueKey"), this.get("value"));
 				}
 			});
 			$(toolbar).click((e)=>{
@@ -238,6 +298,12 @@ module tui.widget {
 			popup._.style.minWidth = minWidth + "px";
 			//popup._set("content", list._);
 			var toolbar = this._components["toolbar"];
+			var searchbar = this._components["searchbar"];
+			var searchBox = get(this._components["searchBox"]);
+			if (this.get("canSearch")) {
+				searchbar.style.display = "block";
+			} else
+				searchbar.style.display = "none";
 			var checkButtons = "<a name='selectAll'>" + tui.str("Select all") + "</a> | " +
 				"<a name='deselectAll'>" + tui.str("Deselect all") + 
 				"</a> | <a name='ok'><i class='fa fa-check'></i> " + tui.str("OK") + "</a>";
@@ -256,6 +322,8 @@ module tui.widget {
 			popup.open(this._);
 			
 			setTimeout(() => {
+				if (this.get("canSearch"))
+					searchBox.render();
 				list._.focus();
 				list.render();
 				if (!this.get("multiSelect")) {

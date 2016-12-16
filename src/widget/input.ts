@@ -53,7 +53,9 @@ module tui.widget {
 			var iconLeft = this._components["iconLeft"] = document.createElement("i");
 			var iconRight = this._components["iconRight"] = document.createElement("i");
 			var iconInvalid = this._components["iconInvalid"] = document.createElement("i");
+			var clearButton = this._components["clearButton"] = document.createElement("i");
 			iconInvalid.className = "tui-invalid-icon";
+			clearButton.className = "tui-input-clear-button";
 			placeholder.className = "tui-placeholder";
 			placeholder.setAttribute("unselectable","on");
 			this._.appendChild(placeholder);
@@ -61,6 +63,7 @@ module tui.widget {
 			this._.appendChild(textbox);
 			this._.appendChild(iconInvalid);
 			this._.appendChild(iconRight);
+			this._.appendChild(clearButton);
 			
 			$(textbox).focus(() => {
 				$root.addClass("tui-active");
@@ -96,6 +99,12 @@ module tui.widget {
 			});
 			$(textbox).on("change", (e) => {
 				this.fire("change", e);
+			});
+			$(clearButton).on("mousedown", (e) => {
+				this.set("value", "");
+				this.reset();
+				this.fire("change", e);
+				e.stopPropagation();
 			});
 			
 			$root.mousedown((e)=>{
@@ -149,6 +158,7 @@ module tui.widget {
 			var iconRight = this._components["iconRight"];
 			var iconInvalid = this._components["iconInvalid"];
 			var placeholder = this._components["placeholder"];
+			var clearButton = this._components["clearButton"];
 			if (this.get("disable")) {
 				$root.addClass("tui-disable");
 				textbox.setAttribute("readonly", "readonly"); 
@@ -188,9 +198,21 @@ module tui.widget {
 				if (marginRight === 0)
 					marginRight = Input.PADDING;
 			}
+
+			if (this.get("clearable") && this.get("value").length > 0) {
+				clearButton.style.display = "";
+				clearButton.style.right = iconRight.offsetWidth + iconInvalid.offsetWidth + "px";  
+			} else {
+				clearButton.style.display = "none";
+			}
 			
 			textbox.style.left = iconLeft.offsetWidth + marginLeft + "px";
-			var width = this._.clientWidth - iconLeft.offsetWidth - iconInvalid.offsetWidth - iconRight.offsetWidth - marginLeft - marginRight;
+			var width = this._.clientWidth - 
+				iconLeft.offsetWidth - 
+				iconInvalid.offsetWidth - 
+				iconRight.offsetWidth - 
+				clearButton.offsetWidth -
+				marginLeft - marginRight;
 			if (width < 0)
 				width = 0;
 			textbox.style.width = width + "px";

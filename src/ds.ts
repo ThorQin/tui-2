@@ -3,26 +3,131 @@
 module tui.ds {
 	"use strict";
 
+	export interface Order {
+		key: string;
+		desc: boolean;
+	}
+
+	export interface Filter {
+		key: string;
+		value: string;
+	}
+
 	export interface DS {
 		length(): number;
 		get(index: number): any;
+		setOrder(order: Order[]): void;
+		getOrder(): Order[];
+		setFilter(filter: Filter[]): void;
+		getFilter(): Filter[];
 	}
 	
 	export interface TreeDS extends DS {
 		expand(index: number): void;
 		collapse(index: number): void;
 	}
+
+	export abstract class DSBase extends EventObject {
+		protected _finalData: any[] = null;
+		protected _order: Order[] = null;
+		protected _filter: Filter[] = null;
+
+		setOrder(order: Order[]): void {
+			this._order = order;
+			this.build();
+		}
+		getOrder(): Order[] {
+			return this._order;
+		}
+		setFilter(filter: Filter[]): void {
+			this._filter = filter;
+			this.build();
+		}
+		getFilter(): Filter[] {
+			return this._filter;
+		}
+		protected abstract build(): void;
+	}
+
+	function filter(value: any, filter: Filter[]): boolean {
+		if (filter) {
+			for (let f of filter) {
+				let v = value[f.key];
+				if (v == null) {
+					if (f.value == null)
+						continue;
+					else
+						return false;
+				}
+				try {
+					let regex = new RegExp(f.value);
+					if (v.toString().match(regex) == null)
+						return false;
+				} catch (e) {
+					if (v.indexOf(f.value) < 0)
+						return false;
+				}
+			}
+		} 
+		return true;
+	}
+
+	function sort(data: any[], order: Order[], treeData: boolean) {
+		if (order && order.length > 0) {
+			data.sort((a: any, b: any): number => {
+				for (let s of order) {
+					let aVal = treeData ? a.item[s.key] : a[s.key];
+					let bVal = treeData ? b.item[s.key] : b[s.key];
+					if (aVal == bVal)
+						continue;
+					if (s.desc) {
+						return aVal > bVal ? -1 : 1;
+					} else
+						return aVal < bVal ? -1 : 1;
+				}
+				return 0;
+			});
+		}
+	}
 	
-	export class List implements DS {
+	export class List extends DSBase implements DS {
 		private _data: any[];
-		constructor(data: any[]) {
+
+		constructor(data: any[], filter: Filter[] = null, order: Order[] = null) {
+			super();
 			this._data = data;
+			this._filter = filter;
+			this._order = order;
+			this.build();
 		}
 		length(): number {
-			return this._data.length;
+			if (this._finalData == null)
+				return this._data.length;
+			else
+				return this._finalData.length;
 		}
 		get(index: number): any {
-			return this._data[index];
+			if (this._finalData == null)
+				return this._data[index];
+			else
+				return this._finalData[index];
+		}
+		
+		protected build(): void {
+			if (this._data == null) {
+				this._finalData = null;
+				return;
+			}
+			if ((this._filter == null || this._filter.length == 0) && 
+				(this._order == null || this._order.length == 0))
+				this._finalData = null;
+			else {
+				this._finalData = this._data.filter((value: any, index: number, array: any[]) => {
+					return filter(value, this._filter);
+				});
+				sort(this._finalData, this._order, false);
+			}
+			this.fire("update", {"completely": true});
 		}
 	}
 	
@@ -37,22 +142,29 @@ module tui.ds {
 		data: any[];
 	}
 	
-	export class RemoteList extends EventObject implements DS {
+	export class RemoteList extends DSBase implements DS {
 		private _cache1: CachePage = null;
 		private _cache2: CachePage = null;
 		private _length: number = null;
 		private _cacheSize: number;
 		private _fillCache: number;
 		
-		constructor(cacheSize: number = 50) {
+		constructor(cacheSize: number = 50, filter: Filter[] = null, order: Order[] = null) {
 			super();
 			this._cacheSize = cacheSize;
 			this.reset();
+			this._filter = filter;
+			this._order = order;
 		}
 
 		length(): number {
 			if (this._length === null) {
-				this.fire("query", { begin: 0, size: this._cacheSize});
+				this.fire("query", { 
+					begin: 0, 
+					size: this._cacheSize, 
+					filter: this._filter, 
+					order: this._order
+				});
 				return 0;
 			} else
 				return this._length;
@@ -72,7 +184,12 @@ module tui.ds {
 					else {
 						this._fillCache = Math.abs(page - this._cache1.page) > Math.abs(page - this._cache2.page) ? 1 : 2; 
 					}
-					this.fire("query", { begin: page * this._cacheSize, size: this._cacheSize});
+					this.fire("query", { 
+						begin: page * this._cacheSize, 
+						size: this._cacheSize,
+						filter: this._filter, 
+						rder: this._order
+					});
 				}
 			} else
 				return null;
@@ -108,6 +225,16 @@ module tui.ds {
 			this._cache1 = this._cache2 = null;
 			this._fillCache = 1;
 		}
+
+		protected build(): void {
+			this.reset();
+			this.fire("query", { 
+				begin: 0, 
+				size: this._cacheSize, 
+				filter: this._filter, 
+				order: this._order
+			});
+		}
 	} // End of RemoteListSource
 	
 	export interface TreeNode {
@@ -124,7 +251,7 @@ module tui.ds {
 		hasChild?: string;
 	}
 	
-	export abstract class TreeBase extends EventObject  implements TreeDS {
+	export abstract class TreeBase extends DSBase implements TreeDS {
 		protected _config: TreeConfig;
 		protected _index: TreeNode[] = null;
 		protected _rawData: any[] = null;
@@ -134,7 +261,9 @@ module tui.ds {
 		}
 
 		length(): number {
-			if (this._index)
+			if (this._finalData)
+				return this._finalData.length;
+			else if (this._index)
 				return this._index.length;
 			else
 				return 0;
@@ -145,7 +274,12 @@ module tui.ds {
 		}
 		
 		get(index: number): TreeNode {
-			if (index >= 0 && index < this.length()) {
+			if (this._finalData) {
+				if (index >= 0 && index < this._finalData.length)
+					return this._finalData[index];
+				else
+					return null;
+			} else if (index >= 0 && index < this.length()) {
 				return this._index[index];
 			} else
 				return null;
@@ -162,20 +296,20 @@ module tui.ds {
 		protected expandItems(parent: TreeNode, items: any[], index: TreeNode[], level: number, init: boolean = false) {
 			if (typeof items === tui.UNDEFINED || items === null)
 				items = [];
-			for (var item of items) {
-				var children = item[this._config.children];
-				var expand: boolean;
+			for (let item of items) {
+				let children = item[this._config.children];
+				let expand: boolean;
 				if (init) {
 					expand = false;
 					item[this._config.expand] = false;
 				} else
 					expand = item[this._config.expand] && children && children.length > 0;
-				var hasChild: boolean;
+				let hasChild: boolean;
 				if (children && children.length > 0)
 					hasChild = true;
 				else
 					hasChild = !!item[this._config.hasChild];
-				var node: TreeNode = {
+				let node: TreeNode = {
 					parent: parent,
 					hasChild: hasChild,
 					item: item,
@@ -228,9 +362,13 @@ module tui.ds {
 	}
 	
 	export class Tree extends TreeBase {
-		constructor(data: any[], config: TreeConfig = {children: "children", expand: "expand"}) {
+		constructor(data: any[], 
+			config: TreeConfig = {children: "children", expand: "expand"},
+			filter: Filter[] = null, order: Order[] = null) {
 			super();
 			this._config = config;
+			this._filter = filter;
+			this._order = order;
 			this.update(data);
 		}
 		
@@ -239,6 +377,41 @@ module tui.ds {
 			this._index = [];
 			this._rawData = data;
 			this.expandItems(null, data, this._index, 0);
+			this.build();
+		}
+
+		protected build(): void {
+			if (this._rawData == null) {
+				this._finalData = null;
+				return;
+			}
+			if ((this._filter == null || this._filter.length == 0) && 
+				(this._order == null || this._order.length == 0))
+				this._finalData = null;
+			else {
+				this._finalData = [];
+				let iterate = (items: any[]) => {
+					if (typeof items === tui.UNDEFINED || items === null)
+						items = [];
+					for (let item of items) {
+						if (filter(item, this._filter)) {
+							let node: TreeNode = {
+								parent: null,
+								hasChild: false,
+								item: item,
+								level: 0,
+								expand: false
+							}
+							this._finalData.push(node);
+						}
+						let children = item[this._config.children];
+						children && iterate(children);
+					}
+				};
+				iterate(this._rawData);
+				sort(this._finalData, this._order, true);
+			}
+			this.fire("update", {"completely": true});
 		}
 	}
 	
@@ -251,9 +424,12 @@ module tui.ds {
 		
 		private _querying: boolean = false;
 		
-		constructor(config: TreeConfig = {children: "children", expand: "expand", hasChild: "hasChild"}) {
+		constructor(config: TreeConfig = {children: "children", expand: "expand", hasChild: "hasChild"},
+			filter: Filter[] = null, order: Order[] = null) {
 			super();
 			this._config = config;
+			this._filter = filter;
+			this._order = order;
 		}
 		
 		length(): number {
@@ -262,7 +438,7 @@ module tui.ds {
 			else {
 				if (!this._querying) {
 					this._querying = true;
-					this.fire("query", {parent: null});
+					this.fire("query", {parent: null, filter: this._filter, order: this._order});
 				}
 				return 0;
 			}
@@ -280,7 +456,7 @@ module tui.ds {
 						this.expandItems(node, children, appendNodes, node.level + 1);
 						this._index.splice(index + 1, 0, ...appendNodes);
 					} else {
-						this.fire("query", {parent: node});
+						this.fire("query", {parent: node, filter: this._filter, order: this._order});
 						this._querying = true;
 					}
 				}
@@ -304,6 +480,13 @@ module tui.ds {
 				}
 			}
 			this.fire("update", {"completely": true});
+		}
+
+		protected build(): void {
+			this._index = null;
+			this._rawData = null;
+			this._finalData = null;
+			this.fire("query", {parent: null, filter: this._filter, order: this._order});
 		}
 	}
 }

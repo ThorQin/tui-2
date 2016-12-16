@@ -65,8 +65,10 @@ module tui.widget {
 				return function(data: EventInfo): any{
 					if (data.data["completely"]) {
 						me.render();
+						me.fire("update");
 					} else {
 						me.drawContent();
+						me.fire("update");
 					}
 				};
 			})();
@@ -115,8 +117,8 @@ module tui.widget {
 						if (this._data["data"] && typeof (<any>this._data["data"]).on === "function") {
 							(<any>this._data["data"]).on("update", updateCallback);
 						}
-						this._vbar._set("value", 0);
-						this._hbar._set("value", 0);
+						this._vbar && this._vbar._set("value", 0);
+						this._vbar && this._hbar._set("value", 0);
 						this._set("activeRow", null);
 					},
 					"get": (): any => {
@@ -264,7 +266,7 @@ module tui.widget {
 				//delta returns +120 when wheel is scrolled up, -120 when scrolled down
 				var scrollSize = step > 1 ? step : 1;
 				if (delta <= -120) {
-					console.log(this._vbar.get("value") + " : " + this._vbar.get("totle"));
+					// console.log(this._vbar.get("value") + " : " + this._vbar.get("totle"));
 					if (this._vbar.get("value") < this._vbar.get("total")) {
 						ev.stopPropagation();
 						ev.preventDefault();
@@ -650,9 +652,9 @@ module tui.widget {
 									col = null;
 								}
 							}
-							this.setSortFlag(col, sortType);
+							if (this.fire("sort", {e: ev, column: col === null ? null : columns[col], type: sortType}))
+								this.setSortFlag(col, sortType);
 							this.drawHeader();
-							this.fire("sort", {e: ev, column: col === null ? null : columns[col], type: sortType});
 						}
 						return;
 					} else
@@ -664,6 +666,19 @@ module tui.widget {
 		setSortFlag(col: number, type: string) {
 			this._set("sortColumn", col);
 			this._set("sortType", type);
+			var columns = <ColumnInfo[]>this.get("columns");
+			var column = columns[col];
+			var ds = <tui.ds.DS>this.get("data");
+			if (col === null || type === null)
+				ds.setOrder(null);
+			else {
+				ds.setOrder([
+					{
+						key: column.key,
+						desc: (type === "desc")
+					}
+				]);
+			}
 		}
 		
 		scrollTo(index: number) {
@@ -685,11 +700,11 @@ module tui.widget {
 			}
 		}
 		
-		iterate(func: (item: any, path: number[]) => boolean) {
+		iterate(func: (item: any, path: number[], treeNode: boolean) => boolean) {
 			var data = this.get("data");
 			var dataType = this.get("dataType");
 			function iterateItem(treeItem: any, path: number[]): boolean {
-				if (func(treeItem, path) === false)
+				if (func(treeItem, path, true) === false)
 					return false;
 				var children = treeItem[childrenKey];
 				if (children) {
@@ -699,7 +714,7 @@ module tui.widget {
 					}
 				}
 			}
-			if (dataType === "tree") {
+			if (dataType === "tree" && data._finalData == null) {
 				var tree = <ds.TreeBase>data;
 				var childrenKey: string = tree.getConfig().children;
 				var rawData = tree.getRawData();
@@ -712,7 +727,8 @@ module tui.widget {
 			} else {
 				var list = <ds.DS>data;
 				for (let i = 0; i < list.length(); i++) {
-					if (func(list.get(i), [i]) === false)
+					let listItem = dataType === "tree" ? list.get(i).item : list.get(i); 
+					if (func(listItem, [i], dataType === "tree") === false)
 						break;
 				}
 			}
@@ -739,9 +755,9 @@ module tui.widget {
 				return p1.length === p2.length ? 2 : 1;
 			}
 			
-			if (dataType === "tree") {
+			if (dataType === "tree" && data._finalData == null) {
 				var tree = <ds.TreeBase>data;
-				this.iterate(function(item: any, p: number[]): boolean {
+				this.iterate(function(item: any, p: number[], treeNode: boolean): boolean {
 					if (item[dataKey] === value) {
 						path = p;
 						return false;
@@ -777,6 +793,15 @@ module tui.widget {
 						this._set("activeRow", i);
 						this.computeScroll();
 						this.scrollTo(i);
+					}
+				}
+			} else if (dataType === "tree" && data._finalData) {
+				var list = <ds.DS>data;
+				for (let i = 0; i < list.length(); i++) {
+					if (list.get(i).item[dataKey] === value) {
+						this._set("activeRow", i);
+						this.scrollTo(i);
+						break;
 					}
 				}
 			} else {
@@ -934,7 +959,7 @@ module tui.widget {
 					else if (item[k] === false)
 						prefix += "<i class='fa fa-square-o tui-grid-check'></i>";
 					else
-						prefix += "<i class='tui-grid-no-check'>&bull;</i>";
+						prefix += "<i class='tui-grid-no-check'></i>";
 				} else if (col.type === "tristate") {
 					var k = (col.checkKey ? col.checkKey : "checked"); 
 					if (item[k] === true)
@@ -944,7 +969,7 @@ module tui.widget {
 					else if (item[k] === "tristate")
 						prefix += "<i class='fa-check-square tui-grid-check'></i>";
 					else
-						prefix += "<i class='tui-grid-no-check'>&bull;</i>";
+						prefix += "<i class='tui-grid-no-check'></i>";
 				} else if (col.type === "select") {
 					prefix += "<i class='fa fa-caret-down tui-grid-select'></i>";
 				} else if (col.type === "edit") {
@@ -1008,7 +1033,7 @@ module tui.widget {
 			head.innerHTML = "";
 			var columns = <ColumnInfo[]>this.get("columns");
 			for (var i = 0; i < columns.length; i++) {
-				var prefix = "";
+				var prefix = "<i class='tui-grid-no-sort'></i>";
 				if (columns[i].sortable && this.get("sortColumn") == i) {
 					if (this.get("sortType") === "desc") {
 						prefix = "<i class='tui-grid-desc'></i>";
@@ -1194,7 +1219,7 @@ module tui.widget {
 			
 			var cssText = "";
 			for (var i = 0; i < columns.length; i++) {
-				cssText += (".tui-grid-" + this._tuid + "-" + i + "{width:" + vval(columns[i].width) + "px}");
+				cssText += (".tui-grid-" + this._tuid + "-" + i + "{width:" + vval(columns[i].width) + "px;}");
 			}
 			if ((<any>document).createStyleSheet) // IE
 				(<any>this._gridStyle).cssText = cssText;
@@ -1318,7 +1343,7 @@ module tui.widget {
 							value = [];
 						if (!(value instanceof Array))
 							value = [value];
-						this.iterate(function(item: any, path: number[]): boolean {
+						this.iterate(function(item: any, path: number[], treeNode: boolean): boolean {
 							if (typeof item[checkKey] === "boolean") {
 								if (value.indexOf(item[valueKey]) >= 0)
 									item[checkKey] = true;

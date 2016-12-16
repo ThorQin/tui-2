@@ -210,6 +210,18 @@ module tui.widget {
 					},
 					"set": (value: any) => {}
 				},
+				"disable": {
+					"get": (): any => {
+						let v = this._data["disable"];
+						if (v === null || typeof v === tui.UNDEFINED) {
+							let parent = this.get("parent");
+							if (parent)
+								v = parent.get("disable");
+							return v === null ? false : !!v; 
+						} else
+							return v;
+					}
+				},
 				"group": {
 					"get": (): any => {
 						if (this.get("inner") === true) // inner component cannot belong to a group
