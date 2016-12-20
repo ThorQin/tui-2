@@ -1,5 +1,6 @@
 /// <reference path="../core.ts" />
 /// <reference path="../text.ts" />
+/// <reference path="../ajax.ts" />
 /// <reference path="mask.ts" />
 module tui.widget {
 	"use strict";
@@ -302,17 +303,11 @@ module tui.widget {
 			
 			// Obtain all child nodes
 			var childNodes: Node[] = [];
-			var script: string = "";
-			var removed: Node[] = [];
 			for (let i = 0; i < root.childNodes.length; i++) {
 				let node = root.childNodes[i];
-				removed.push(node);
-				if (getFullName(node) === "tui:init") {
-					script += (browser.getNodeText(node) + "\n");
-				} else
-					childNodes.push(node);
+				childNodes.push(node);
 			}
-			for (let removeNode of removed) {
+			for (let removeNode of childNodes) {
 				browser.removeNode(removeNode);
 			}
 			this.initChildren(childNodes);
@@ -320,10 +315,11 @@ module tui.widget {
 				this._set(initParam);
 			}
 			this.init();
-			if (script.length > 0) {
-				// Will not cause refresh, because initialization is not finished yet.
-				var fn: Function = eval("(0,function(){\n" + script + "})");
-				fn.call(this);
+			var script = this.get("script");
+			if (typeof script === "string" && script.trim().length > 0) {
+				ajax.getFunction(script.trim()).done((result) => {
+					result.call(this);
+				});
 			}
 			// Any widget which has ID property will be registered in namedWidgets
 			let id = this.get("id"); 

@@ -9,7 +9,7 @@ module tui {
     
     // Used to decide which language should be used to display UI control
     export var lang = ((): string => {
-		return (navigator.language || navigator.browserLanguage || navigator.userLanguage).toLowerCase();
+		return (navigator.language || (<any>navigator).browserLanguage || (<any>navigator).userLanguage).toLowerCase();
 	})();
 
     var _dict: any = {};
@@ -160,6 +160,12 @@ module tui {
 				this.unbind(v, callback);
 			}
 			return this;
+		}
+
+		offAll() {
+			for (var key in this._events) {
+				this.off(key);
+			}
 		}
 
 		/**

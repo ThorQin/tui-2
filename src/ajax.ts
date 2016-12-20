@@ -4,10 +4,13 @@ module tui.ajax {
 	
 	$.ajaxSetup({
 		"timeout": 30000,
+		"xhrFields": {
+			'withCredentials': true
+		}
 	});
 	
-	export function send(url: string, method: string, data?: any, options?: {[index: string]: any}): JQueryDeferred<JQueryXHR> {
-		var deffered = $.Deferred<JQueryXHR>();
+	export function send(url: string, method: string, data?: any, options?: {[index: string]: any}): JQueryDeferred<any> {
+		var deffered = $.Deferred<any>();
 		var waitbox: {close: ()=>void} = null;
 		if (!options || !options["silent"])
 			waitbox = tui.waitbox(tui.str("Processing..."));
@@ -21,7 +24,7 @@ module tui.ajax {
 				if (status === "success") {
 					var respJson = /^\s*application\/json\s*(;.+)?/i.test(jqXHR.getResponseHeader("content-type"));
 					var respVal = (respJson ? (<any>jqXHR).responseJSON : jqXHR.responseText);
-					deffered.resolve(jqXHR, respVal);
+					deffered.resolve(respVal, jqXHR);
 				} else {
 					var plainType = /^\s*text\/plain\s*(;.+)?/i.test(jqXHR.getResponseHeader("content-type"));
 					var respText: string;
@@ -35,10 +38,10 @@ module tui.ajax {
 					}
 					if ((!options || !options["silent"]) && jqXHR.status != 0)
 						tui.errbox(respText);
-					deffered.reject(jqXHR, status, respText);
+					deffered.reject(jqXHR.status, respText, jqXHR);
 				}
 			},
-			"processData": (method.toUpperCase() === "GET" ? true : false)
+			"processData": false
 		};
 		
 		if (options) {
@@ -75,6 +78,46 @@ module tui.ajax {
 		else
 			options["silent"] = true;
 		return send(url, "get", null, options);
+	}
+
+	export function getScript(url: string): JQueryDeferred<any> {
+		var deffered = $.Deferred<any>(); 
+		var xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = function(){
+			if (xhr.readyState == 4) {
+				if (xhr.status == 200)
+					deffered.resolve(xhr.responseText, xhr);
+				else
+					deffered.reject(xhr.status, xhr.responseText, xhr);
+			}
+		};
+		xhr.open("GET", url, true);
+		xhr.send(null);
+		return deffered;
+	}
+
+	var bufferWnd = document.createElement("iframe");
+	export function getBody(url: string): JQueryDeferred<any> {
+		var deffered = $.Deferred<any>();
+		getScript(url).done(function(result){
+			bufferWnd.contentDocument.write(result);
+			deffered.resolve(bufferWnd.contentDocument.body.innerHTML);
+		}).fail(function(status, responseText, xhr){
+			deffered.reject(status, responseText, xhr);
+		});
+		return deffered;
+	}
+
+	export function getFunction(url: string): JQueryDeferred<any> {
+		var deffered = $.Deferred<any>();
+		getScript(url).done(function(result){
+			var fn: Function = eval("(function(){\n" + result + "})"
+				+ "\n//# sourceURL=" + url);
+			deffered.resolve(fn);
+		}).fail(function(status, responseText, xhr){
+			deffered.reject(status, responseText, xhr);
+		});
+		return deffered;
 	}
 	
 	(<any>window).$ajax = send;
