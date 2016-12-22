@@ -15,8 +15,6 @@ module tui.widget {
 		"*any": "\\S+"
 	};
 	
-	export class Verify extends Item {}
-	
 	export abstract class InputBase extends Widget {
 		protected _valid: boolean = true;
 		protected _invalidMessage: string = null;

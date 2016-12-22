@@ -82,11 +82,11 @@ module tui.widget {
 			}
 		}
 
-		get(key?: string): any {
+		get(key?: string, defaultValue?:any): any {
+			var value: any; 
 			if (typeof key === UNDEFINED || key === null) {
-				return this._data;
+				value = this._data;
 			} else if (typeof key === "string") {
-				var value: any;
 				if (this._rs[key] && typeof this._rs[key].get === "function") {
 					value = this._rs[key].get(); 
 				} else {
@@ -95,8 +95,13 @@ module tui.widget {
 					else
 						value = null;
 				}
-				return (typeof value === UNDEFINED ? null : value);
 			}
+			if (typeof value === UNDEFINED)
+				value = null;
+			if (value === null && typeof defaultValue !== UNDEFINED)
+				return defaultValue;
+			else
+				return value;
 		}
 
 		set(data: any): WidgetBase;
@@ -315,12 +320,6 @@ module tui.widget {
 				this._set(initParam);
 			}
 			this.init();
-			var script = this.get("script");
-			if (typeof script === "string" && script.trim().length > 0) {
-				ajax.getFunction(script.trim()).done((result) => {
-					result.call(this);
-				});
-			}
 			// Any widget which has ID property will be registered in namedWidgets
 			let id = this.get("id"); 
 			if (typeof id === "string" && id.length > 0)
@@ -333,13 +332,20 @@ module tui.widget {
 	/**
 	 * Any config element can extends from this class.
 	 */
-	export class Item extends Widget {
-		initChildren(childNodes: Node[]): void {
-			for (let node of childNodes)
-				this._.appendChild(node);
+	export class Item extends WidgetBase {
+		_: HTMLElement;
+		constructor(root: HTMLElement) {
+			super();
+			this._ = root;
+			this.load();
 		}
-		initRestriction(): void {};
-		init(): void {}
+		getComponent(name?: string): HTMLElement {
+			if (arguments.length > 0) {
+				return null;
+			} else {
+				return this._;
+			}
+		}
 		render(): void {}
 	}  // End of ConfigNode
 	

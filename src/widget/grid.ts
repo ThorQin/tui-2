@@ -193,10 +193,10 @@ module tui.widget {
 								value = 0;
 							if (value > this.get("data").length() - 1)
 								value = this.get("data").length() - 1;
-							if (this._data["activeRow"] != null)
+							if (this._data["activeRow"] != null && this._buffer)
 								$(this._buffer.lines[this._data["activeRow"] - this._buffer.begin]).removeClass("tui-actived");
 							this._data["activeRow"] = value;
-							if (value != null)
+							if (value != null && this._buffer)
 								$(this._buffer.lines[value - this._buffer.begin]).addClass("tui-actived");
 						}
 					},

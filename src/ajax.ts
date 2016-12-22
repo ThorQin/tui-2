@@ -96,12 +96,12 @@ module tui.ajax {
 		return deffered;
 	}
 
-	var bufferWnd = document.createElement("iframe");
 	export function getBody(url: string): JQueryDeferred<any> {
 		var deffered = $.Deferred<any>();
 		getScript(url).done(function(result){
-			bufferWnd.contentDocument.write(result);
-			deffered.resolve(bufferWnd.contentDocument.body.innerHTML);
+			var html = document.createElement("html");
+			html.innerHTML = result;
+			deffered.resolve(html.getElementsByTagName("body")[0].innerHTML);
 		}).fail(function(status, responseText, xhr){
 			deffered.reject(status, responseText, xhr);
 		});
