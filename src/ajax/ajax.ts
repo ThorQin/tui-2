@@ -1,5 +1,5 @@
-/// <reference path="core.ts" />
-/// <reference path="widget/dialog.ts" />
+/// <reference path="../core.ts" />
+/// <reference path="../widget/dialog.ts" />
 module tui.ajax {
 	
 	$.ajaxSetup({

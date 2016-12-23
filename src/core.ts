@@ -1,6 +1,6 @@
 /// <reference path="jquery.d.ts" />
 /// <reference path="json.ts" />
-/// <reference path="keyboard.ts" />
+/// <reference path="animation.ts" />
 module tui {
     "use strict";
     export const UNDEFINED = ((undefined?: any): string => {

@@ -1,4 +1,4 @@
-/// <reference path="core.ts" />
+/// <reference path="../core.ts" />
 module tui.text {
 	"use strict";
 	/**

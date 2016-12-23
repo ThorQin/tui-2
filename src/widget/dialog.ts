@@ -295,9 +295,9 @@ module tui.widget {
 		if (dialogStack.length <= 0)
 			return;
 		var dlg = dialogStack[dialogStack.length - 1];
-		if (k === KeyCode.ESCAPE) {
+		if (k === browser.KeyCode.ESCAPE) {
 			dlg.get("esc") && dlg.close();
-		} else if (k === KeyCode.TAB) {
+		} else if (k === browser.KeyCode.TAB) {
 			setTimeout(function () {
 				if (!browser.isPosterity(dlg._, document.activeElement)) {
 					dlg._.focus();

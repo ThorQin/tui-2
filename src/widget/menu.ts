@@ -1,4 +1,6 @@
 /// <reference path="popup.ts" />
+/// <reference path="../browser/keyboard.ts" />
+
 module tui.widget {
 	"use strict";
 	
@@ -294,13 +296,13 @@ module tui.widget {
 					e.stopPropagation();
 					e.preventDefault();					
 				}
-				if (c === KeyCode.ESCAPE) {
+				if (c === browser.KeyCode.ESCAPE) {
 					stopEvent();
 					this.close();
 					if (this.get("referElement")) {
 						this.get("referElement").focus();
 					}					
-				} else if (c === KeyCode.LEFT) {
+				} else if (c === browser.KeyCode.LEFT) {
 					stopEvent();
 					if (popStack.length < 2 || !(popStack[popStack.length - 2] instanceof Menu))
 						return;
@@ -310,7 +312,7 @@ module tui.widget {
 					this.activeItem = null;
 					return;
 				}
-				if (c === KeyCode.DOWN || c === KeyCode.TAB) {
+				if (c === browser.KeyCode.DOWN || c === browser.KeyCode.TAB) {
 					stopEvent();
 					if (this.activeItem === null) {
 						this.activeItem = findItem(0, 1);
@@ -321,7 +323,7 @@ module tui.widget {
 							this.activeItem = 0;
 					}
 					activeLine(this.activeItem);
-				} else if (c === KeyCode.UP) {
+				} else if (c === browser.KeyCode.UP) {
 					stopEvent();
 					if (this.activeItem === null) {
 						this.activeItem = findItem(data.length - 1, -1);
@@ -332,10 +334,10 @@ module tui.widget {
 							this.activeItem = data.length - 1;
 					}
 					activeLine(this.activeItem);
-				} else if (c === KeyCode.RIGHT) {
+				} else if (c === browser.KeyCode.RIGHT) {
 					stopEvent();
 					openSubMenu();
-				} else if (c === KeyCode.ENTER) {
+				} else if (c === browser.KeyCode.ENTER) {
 					stopEvent();
 					if (this.activeItem !== null) {
 						var item = data[this.activeItem];

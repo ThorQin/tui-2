@@ -1,6 +1,6 @@
 /// <reference path="../core.ts" />
-/// <reference path="../text.ts" />
-/// <reference path="../ajax.ts" />
+/// <reference path="../text/text.ts" />
+/// <reference path="../ajax/ajax.ts" />
 /// <reference path="mask.ts" />
 module tui.widget {
 	"use strict";

@@ -1,4 +1,5 @@
 /// <reference path="base.ts" />
+/// <reference path="../browser/keyboard.ts" />
 module tui.widget {
 	"use strict";
 	
@@ -74,7 +75,7 @@ module tui.widget {
 			
 			$root.keydown((e) => {
 				var c = e.keyCode;
-				if (c === KeyCode.ESCAPE) {
+				if (c === browser.KeyCode.ESCAPE) {
 					this.close();
 					if (this.get("referElement")) {
 						this.get("referElement").focus();

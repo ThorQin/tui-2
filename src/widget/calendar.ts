@@ -1,5 +1,5 @@
 /// <reference path="base.ts" />
-/// <reference path="../time.ts" />
+/// <reference path="../time/time.ts" />
 
 module tui.widget {
 	"use strict";
@@ -162,38 +162,38 @@ module tui.widget {
 				var o$ = $(o);
 				var k = e.keyCode;
 				if (o.nodeName.toUpperCase() === "INPUT") {
-					if (k === KeyCode.TAB)
+					if (k === browser.KeyCode.TAB)
 						return;
 					e.preventDefault();
 					browser.cancelBubble(e);
 					var input = <HTMLInputElement>o;
-					if (k === KeyCode.LEFT) {
+					if (k === browser.KeyCode.LEFT) {
 						if (o$.attr("name") === "seconds")
 							timebar$.children("input[name=minutes]").focus();
 						else if (o$.attr("name") === "minutes")
 							timebar$.children("input[name=hours]").focus();
-					} else if (k === KeyCode.RIGHT) {
+					} else if (k === browser.KeyCode.RIGHT) {
 						if (o$.attr("name") === "hours")
 							timebar$.children("input[name=minutes]").focus();
 						else if (o$.attr("name") === "minutes")
 							timebar$.children("input[name=seconds]").focus();
-					} else if (k === KeyCode.UP) {
+					} else if (k === browser.KeyCode.UP) {
 						let max = getMaxValue(o$.attr("name"));
 						let v = parseInt(input.value) + 1;
 						if (v > max) v = 0;
 						input.value = formatNumber(v, max);
 						getInputTime();
 						input.select();
-					} else if (k === KeyCode.DOWN) {
+					} else if (k === browser.KeyCode.DOWN) {
 						let max = getMaxValue(o$.attr("name"));
 						let v = parseInt(input.value) - 1;
 						if (v < 0) v = max;
 						input.value = formatNumber(v, max);
 						getInputTime();
 						input.select();
-					} else if (k >= KeyCode.KEY_0 && k <= KeyCode.KEY_9) {
+					} else if (k >= browser.KeyCode.KEY_0 && k <= browser.KeyCode.KEY_9) {
 						let max = getMaxValue(o$.attr("name"));
-						let v = k - KeyCode.KEY_0;
+						let v = k - browser.KeyCode.KEY_0;
 						let now = tui.time.now().getTime();
 						if (o._lastInputTime && (now - o._lastInputTime) < 1000 )
 							o.value = formatNumber(parseInt(o.value.substr(1,1)) * 10 + v, max);

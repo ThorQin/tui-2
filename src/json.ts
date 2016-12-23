@@ -1,7 +1,7 @@
 // Embedded JSON2
 var JSON: JSON;
 if (!JSON) {
-	JSON = <JSON>{};
+	var JSON = <JSON>{};
 }
 (function () {
 	"use strict";

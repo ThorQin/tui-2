@@ -1,4 +1,5 @@
 /// <reference path="base.ts" />
+/// <reference path="../browser/keyboard.ts" />
 
 module tui.widget {
 	"use strict";
@@ -514,8 +515,8 @@ module tui.widget {
 			
 			$(this._).keydown((e) => {
 				var k = e.keyCode;
-				if (k >= 33 && k <= 40 || k == KeyCode.ENTER) {
-					if (k === KeyCode.LEFT) {
+				if (k >= 33 && k <= 40 || k == browser.KeyCode.ENTER) {
+					if (k === browser.KeyCode.LEFT) {
 						if (this.get("dataType") === "tree") {
 							var activeRow = this.get("activeRow");
 							if (activeRow !== null) {
@@ -532,7 +533,7 @@ module tui.widget {
 							this._hbar.set("value", this._hbar.get("value") - 30);
 							this.computeHOffset();
 						}
-					} else if (k === KeyCode.UP) {
+					} else if (k === browser.KeyCode.UP) {
 						if (!this.get("selectable")) {
 							var t = this.get("scrollTop");
 							this._vbar.set("value", t - 10);
@@ -546,7 +547,7 @@ module tui.widget {
 							this.scrollTo(this.get("activeRow"));
 							this.fire("keyselect", {e:e, row:this.get("activeRow")});
 						}
-					} else if (k === KeyCode.RIGHT) {
+					} else if (k === browser.KeyCode.RIGHT) {
 						if (this.get("dataType") === "tree") {
 							var activeRow = this.get("activeRow");
 							if (activeRow !== null) {
@@ -563,7 +564,7 @@ module tui.widget {
 							this._hbar.set("value", this._hbar.get("value") + 30);
 							this.computeHOffset();
 						}
-					} else if (k === KeyCode.DOWN) {
+					} else if (k === browser.KeyCode.DOWN) {
 						if (!this.get("selectable")) {
 							var t = this.get("scrollTop");
 							this._vbar.set("value", t + 10);
@@ -577,7 +578,7 @@ module tui.widget {
 							this.scrollTo(this.get("activeRow"));
 							this.fire("keyselect", {e:e, row:this.get("activeRow")});
 						}
-					} else if (k === KeyCode.PRIOR) {
+					} else if (k === browser.KeyCode.PRIOR) {
 						if (!this.get("selectable")) {
 							var t = this.get("scrollTop");
 							this._vbar.set("value", t - this._vbar.get("page"));
@@ -591,7 +592,7 @@ module tui.widget {
 							this.scrollTo(this.get("activeRow"));
 							this.fire("keyselect", {e:e, row:this.get("activeRow")});
 						}
-					} else if (k === KeyCode.NEXT) {
+					} else if (k === browser.KeyCode.NEXT) {
 						if (!this.get("selectable")) {
 							var t = this.get("scrollTop");
 							this._vbar.set("value", t + this._vbar.get("page"));
@@ -605,7 +606,7 @@ module tui.widget {
 							this.scrollTo(this.get("activeRow"));
 							this.fire("keyselect", {e:e, row:this.get("activeRow")});
 						}
-					} else if (k === KeyCode.HOME) {
+					} else if (k === browser.KeyCode.HOME) {
 						if (!this.get("selectable")) {
 							this._vbar.set("value", 0);
 							this.drawContent();
@@ -614,7 +615,7 @@ module tui.widget {
 							this.scrollTo(this.get("activeRow"));
 							this.fire("keyselect", {e:e, row:this.get("activeRow")});
 						}
-					} else if (k === KeyCode.END) {
+					} else if (k === browser.KeyCode.END) {
 						if (!this.get("selectable")) {
 							this._vbar.set("value", this._vbar.get("total"));
 							this.drawContent();
@@ -624,7 +625,7 @@ module tui.widget {
 							this.scrollTo(this.get("activeRow"));
 							this.fire("keyselect", {e:e, row:this.get("activeRow")});
 						}
-					} else if (k === KeyCode.ENTER) {
+					} else if (k === browser.KeyCode.ENTER) {
 						if (this.get("selectable")) {
 							if (this.get("activeRow") != null) {
 								this.fire("rowclick", {e: e, row: this.get("activeRow"), col: this.get("activeColumn")});

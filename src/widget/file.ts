@@ -1,16 +1,16 @@
 /// <reference path="inputBase.ts" />
-/// <reference path="../upload.ts" />
+/// <reference path="../browser/upload.ts" />
 module tui.widget {
 	"use strict";
 
 	export class File extends InputBase {
 		private static PADDING = 6;
 
-		private _uploader: Uploader;
+		private _uploader: browser.Uploader;
 		
 		protected initRestriction(): void {
 			super.initRestriction();
-			this._uploader = createUploader(this._);
+			this._uploader = browser.createUploader(this._);
 			this.setRestrictions({
 				"action": {
 					"set":  (value: any) => {

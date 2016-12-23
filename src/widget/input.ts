@@ -1,4 +1,5 @@
 /// <reference path="inputBase.ts" />
+/// <reference path="../browser/keyboard.ts" />
 module tui.widget {
 	"use strict";
 	
@@ -93,7 +94,7 @@ module tui.widget {
 				});
 			}
 			$(textbox).on("keydown", (e) => {
-				if (e.keyCode === KeyCode.ENTER) {
+				if (e.keyCode === browser.KeyCode.ENTER) {
 					this.fire("enter", e);
 				}
 			});

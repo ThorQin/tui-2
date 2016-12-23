@@ -1,4 +1,6 @@
 /// <reference path="inputBase.ts" />
+/// <reference path="../browser/keyboard.ts" />
+
 module tui.widget {
 	"use strict";
 
@@ -59,7 +61,7 @@ module tui.widget {
 			$root.keypress((e)=> {
 				if (this.get("disable"))
 					return;
-				if (e.charCode === KeyCode.SPACE) {
+				if (e.charCode === browser.KeyCode.SPACE) {
 					this.reset();
 					setTimeout(() => {
 						this._inSelection = true;

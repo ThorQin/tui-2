@@ -1,6 +1,6 @@
-﻿/// <reference path="core.ts" />
+﻿/// <reference path="../core.ts" />
 /// <reference path="browser.ts" />
-module tui {
+module tui.browser {
 	"use strict";
 
 	function fileFromPath(file: string): string {

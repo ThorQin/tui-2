@@ -5,15 +5,15 @@ module tui.widget {
 
 	export class Frame extends Widget {
 
-		private _cache: {[index: string]: HTMLElement} = {};
-		private _initialized: boolean = false;
+		private _cache: {[index: string]: HTMLCollection};
 
 		protected initRestriction(): void {
+			this._cache = {};
 			super.initRestriction();
 			this.setRestrictions({
 				"src": {
 					"set": (value: any) => {
-						this.go(value);
+						this._go(value);
 					}
 				}
 			});
@@ -25,14 +25,18 @@ module tui.widget {
 				name = "";
 			}
 			var key = name + ":" + src;
-			this._.innerHTML = "";
 			if (cache && this._cache.hasOwnProperty(key)) {
-				this._.appendChild(this._cache[key]);
+				this._.innerHTML = "";
+				var children: HTMLCollection = this._cache[key];
+				for (let i = 0; i < children.length; i++) {
+					this._.appendChild(children[i]);
+				}
 			} else {
-				this._initialized = false;
 				ajax.getBody(src).done((content) => {
-					var elem = browser.toElement(content, true);
-					this._.appendChild(elem);
+					this._.innerHTML = content;
+					if (cache) {
+						this._cache[key] = this._.children;
+					}
 					this.render();
 				});
 			}
@@ -45,10 +49,6 @@ module tui.widget {
 
 		render(): void {
 			init(this._);
-			if (!this._initialized) {
-				this._initialized = true;
-				this.fire("load");
-			}
 		}
 	}
 	register(Frame);

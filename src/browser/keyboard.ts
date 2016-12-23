@@ -1,4 +1,4 @@
-module tui {
+module tui.browser {
 	"use strict";
 	export enum KeyCode {
 		BACK = 8,

@@ -1,4 +1,4 @@
-/// <reference path="core.ts" />
+/// <reference path="../core.ts" />
 module tui.time {
 
 	export var shortWeeks = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

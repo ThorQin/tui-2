@@ -1,4 +1,4 @@
-/// <reference path="core.ts" />
+/// <reference path="../core.ts" />
 module tui.browser {
     "use strict";
 	export class BackupedScrollPosition {
