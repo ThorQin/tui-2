@@ -5,7 +5,7 @@ module tui.widget {
 
 	export class Frame extends Widget {
 
-		private _cache: {[index: string]: HTMLCollection};
+		private _cache: {[index: string]: HTMLElement};
 
 		protected initRestriction(): void {
 			this._cache = {};
@@ -27,15 +27,15 @@ module tui.widget {
 			var key = name + ":" + src;
 			if (cache && this._cache.hasOwnProperty(key)) {
 				this._.innerHTML = "";
-				var children: HTMLCollection = this._cache[key];
-				for (let i = 0; i < children.length; i++) {
-					this._.appendChild(children[i]);
-				}
+				let page: HTMLElement = this._cache[key];
+				this._.appendChild(page);
 			} else {
 				ajax.getBody(src).done((content) => {
-					this._.innerHTML = content;
+					let page = browser.toElement(content, true);
+					this._.innerHTML = "";
+					this._.appendChild(page);
 					if (cache) {
-						this._cache[key] = this._.children;
+						this._cache[key] = page;
 					}
 					this.render();
 				});

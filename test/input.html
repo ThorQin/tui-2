@@ -17,33 +17,10 @@
 		<style>
 			
 		</style>
-		<script>
-			var data = [];
-			var path = [];
-			function build(list, level) {
-				for (var i = 0; i < 5; i++) {
-					path.push(i);
-					var child = {name: "name column: " + path.join("_"), 
-						value: "value " + path.join("_"),
-						expand: false, 
-						checked: false,
-						icon: "fa-user"
-					};
-					
-					list.push(child);
-					
-					if (level < 2) {
-						child.children = [];
-						build(child.children, level+1)
-					}
-					path.pop();
-				}
-			}
-			build(data, 0);
-		</script>
+		
 	</head>
 	<body>
-		<div style="max-width:400px;margin:0 auto;">
+		<tui:component controller="input.js" style="max-width:400px;margin:0 auto;">
 			<tui:input-group>
 				<label desc="*">帐号</label>
 				<tui:input placeholder="请输入文字" icon-left="fa-user" clearable={true} auto-validate={true} >
@@ -61,13 +38,13 @@
 			</tui:input-group>
 			<tui:input-group>
 				<label desc="[必选]">单选框</label>
-				<tui:select id="sel" value="value 2_3_4" can-search={true} clearable={true}  placeholder="请选择..." auto-validate={true} >
+				<tui:select name="sel" value="value 2_3_4" can-search={true} clearable={true}  placeholder="请选择..." auto-validate={true} >
 					<tui:verify format="*any">随便输入点东西</tui:verify>
 				</tui:select>
 			</tui:input-group>
 			<tui:input-group>
 				<label desc="[必选]">多选框</label>
-				<tui:select id="sel1" placeholder="请选择..." can-search={true} clearable={true}  check-key="checked" tree={data} auto-validate={true} multi-select={true}>
+				<tui:select name="sel1" placeholder="请选择..." can-search={true} clearable={true}  check-key="checked" tree={data} auto-validate={true} multi-select={true}>
 					<tui:verify format="*any">随便输入点东西</tui:verify>
 				</tui:select>
 			</tui:input-group>
@@ -77,11 +54,11 @@
 			</tui:input-group>
 			<tui:input-group>
 				<label>上传文件</label>
-				<tui:file placeholder="请选择文件..." accept="image/*" clearable={true}  action="uploadFile.do"></tui:file>
+				<tui:file placeholder="请选择文件..." accept="text/plain" clearable={true}  action="uploadFile.do"></tui:file>
 			</tui:input-group>
 			<tui:input-group>
 				<label desc="[必选]">定制选择</label>
-				<tui:dialog-select id="customSelect" class="form-input" clearable={true} auto-validate={true} placeholder="定制选择框...">
+				<tui:dialog-select name="customSelect" class="form-input" clearable={true} auto-validate={true} placeholder="定制选择框...">
 					<tui:verify format="*any">随便选择点什么</tui:verify>
 				</tui:dialog-select>
 			</tui:input-group>
@@ -91,34 +68,14 @@
 					<tui:verify format="*email">随便输入点邮件</tui:verify>
 				</tui:textarea>
 			</tui:input-group>
-		</div>
-		<div id="hiddenResource" style="display:none">
-			<div>
+		
+			<div name="hiddenResource" style="display:none">
 				<p>选择一个类型</p>
-				<tui:button-group id="g1" name="group1" type="radio">
+				<tui:button-group name="g1" name="group1" type="radio">
 					<tui:radio value="abc">测试选项1</tui:radio>
 					<tui:radio value="def">测试选项2</tui:radio>
 				</tui:button-group>
 			</div>
 		</div>
-		<script>
-			$(function() {
-				
-				$$("sel").set("tree", data);
-				$$("customSelect").on("popup", function(data){
-					var selectBox = this;
-					var dlg = data.data;
-					var content = $("#hiddenResource>div")[0];
-					dlg.setContent(content);
-					dlg.once("btnclick", function(e){
-						selectBox._set("value", $$("g1").get("value"));
-						selectBox.set("text", $$("g1").get("text"));
-						this.close();
-					}).once("close", function(){
-						$("#hiddenResource").append(content);
-					}).open("ok#tui-primary");
-				})
-			});
-		</script>
 	</body>
 </html>

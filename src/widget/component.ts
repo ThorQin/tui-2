@@ -133,7 +133,7 @@ module tui.widget {
 						name = elem.getAttribute("name");
 						if (typeof name === "string" && name.trim().length > 0)
 							this._components[name] = elem;
-						if (!fullName.match(/^tui:/i))
+						if (!fullName.match(/^tui:/i) || fullName.match(/^tui:(input-group|group|button-group)$/))
 							searchElem(<HTMLElement>node);
 					}
 				}
@@ -159,7 +159,7 @@ module tui.widget {
 				if (desc)
 					params = desc + "";
 				else {
-					var matched = fn.toString().match(/^\s*function\s*[a-zA-Z0-9_]*\s*\(([\sa-zA-Z0-9,_\$]*)\)/m);
+					var matched = fn.toString().match(/^\s*function\s*[a-zA-Z0-9_]*\s*\(([\sa-zA-Z0-9,_\$]*)\)/);
 					if (matched) {
 						params = matched[1];
 					} else {

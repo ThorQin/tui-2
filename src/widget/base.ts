@@ -10,7 +10,12 @@ module tui.widget {
 			return null;
 		if (/^\{(.|\r|\n)+\}$/m.test(value)) {
 			value = value.substring(1, value.length - 1);
-			return eval("(" + value + ")");
+			try {
+				return eval("(" + value + ")");
+			} catch(e) {
+				console && console.error("Bad attribute: " + e);
+				return null;
+			}
 		} else
 			return value;
 	}
@@ -55,13 +60,17 @@ module tui.widget {
 			var elem: HTMLElement = this.getComponent();
 			if (elem != null) {
 				var dataStr = elem.getAttribute("props");
-				var tmpData = eval("(" + dataStr + ")"); 
-				if (tmpData instanceof Object) {
-					for (let key in tmpData) {
-						if (tmpData.hasOwnProperty(key)) {
-							this._set(key, tmpData[key]);
+				try {
+					let tmpData = eval("(" + dataStr + ")"); 
+					if (tmpData instanceof Object) {
+						for (let key in tmpData) {
+							if (tmpData.hasOwnProperty(key)) {
+								this._set(key, tmpData[key]);
+							}
 						}
 					}
+				} catch (e) {
+					console && console.error("Bad props: " + e);
 				}
 				var names: string[] = [];
 				for (let i = 0; i < elem.attributes.length; i++) {
