@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en-US" xmlns:tui>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv="content-type" content="text/html;charset=utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>Test</title>
+		
+		<link rel="stylesheet" href="font-awesome-4.7.0/css/font-awesome.css">
+		<link rel="stylesheet" href="css/tui2.css" />
+		<style>
+		#navi {
+			position: fixed;
+			left:0;
+			top:71px;
+			bottom:0;
+			width: 250px;
+			height: inherit;
+		}
+		#banner {
+			position:fixed;
+			top:0;
+			left:0;
+			width:250px;
+			height:70px;
+			line-height: 70px;
+			font-size: 40px;
+			text-align: center;
+			background: #555;
+			border-bottom:1px solid #666;
+			color: white;
+			font-family: Arial, Helvetica, sans-serif;
+		}
+		h1 {
+			font-family: "Microsoft Yahei";
+			font-size: 48px;
+			border-bottom: 1px solid #9716bc;
+			color: #9716bc;
+			font-weight: normal;
+		}
+		h2 {
+			font-family: "Microsoft Yahei";
+			font-size: 32px;
+			border-bottom: 1px solid #ddd;
+			color: #127af1;
+			font-weight: normal;
+		}
+		body {
+			padding-left: 260px;
+			font-size: 16px;
+		}
+		</style>
+		
+		<script type="text/javascript" src="es5-shim.js"></script>
+		<script type="text/javascript" src="jquery-1.11.3.js"></script>
+        <script type="text/javascript" src="tui2.js"></script>
+	</head>
+	<body>
+		<div id="banner">
+			TUI.JS v2
+		</div>
+		<tui:navigator id="navi">
+			<tui:item path="#introduce">框架介绍</tui:item>
+			<tui:item path="#tui2">迁移到 TUI v2</tui:item>
+			<tui:item expand="{true}">
+				组件列表
+				<tui:item icon="fa-th-large" path="#button">按钮</tui:item>
+				<tui:item icon="fa-check-square-o" path="#radio">单选</tui:item>
+				<tui:item icon="fa-dot-circle-o" path="#check">多选</tui:item>
+				<tui:item icon="fa-columns" path="#tab">页签</tui:item>
+				<tui:item icon="fa-th" path="#group">按钮组</tui:item>
+				<tui:item icon="fa-i-cursor" path="#input">输入框</tui:item>
+				<tui:item icon="fa-edit" path="#text">多行输入</tui:item>
+				<tui:item icon="fa-toggle-down" path="#select">下拉单选</tui:item>
+				<tui:item icon="fa-toggle-down" path="#multiSelect">下拉多选</tui:item>
+				<tui:item icon="fa-file" path="#file">文件选择</tui:item>
+				<tui:item icon="fa-calendar-o" path="#datePicker">日期选择</tui:item>
+				<tui:item icon="fa-toggle-down" path="#customSelect">自定义选择</tui:item>
+				<tui:item icon="fa-calendar" path="#calendar">日历</tui:item>
+				<tui:item icon="fa-clone" path="#popup">弹出层</tui:item>
+				<tui:item icon="fa-bars" path="#menu">弹出菜单</tui:item>
+				<tui:item icon="fa-commenting" path="#dialog">对话框</tui:item>
+				<tui:item icon="fa-sliders" path="#scrollbar">滚动条</tui:item>
+				<tui:item icon="fa-table" path="#grid">数据网格</tui:item>
+				<tui:item icon="fa-th-list" path="#list">数据列表</tui:item>
+				<tui:item icon="fa-object-ungroup" path="#component">组件化开发</tui:item>
+				<tui:item icon="fa-window-maximize" path="#frame">嵌入页</tui:item>
+				<tui:item icon="fa-sitemap" path="#router">路由</tui:item>
+			</tui:item>
+			<tui:item>
+				工具函数
+				<tui:item icon="fa-clock-o" path="#time">时间</tui:item>
+				<tui:item icon="fa-file-text-o" path="#string">字符串</tui:item>
+				<tui:item icon="fa-sitemap" path="#browser">浏览器相关</tui:item>
+				<tui:item icon="fa-language" path="#lang">多语言</tui:item>
+			</tui:item>
+		</tui:navigator>
+		<!-- content -->
+		<div>
+			<h1>框架介绍</h1>
+			<p>
+				TUI.JS v2 是从 TUI.JS 发展出来的新版本UI框架，和 TUI.JS 并不兼容，关于 TUI.JS v1 的详细介绍，请参考 <a href="https://tui-thorqin.rhcloud.com">https://tui-thorqin.rhcloud.com</a>
+			</p>
+			<p>
+				
+			</p>
+			<h1>迁移到 TUI v2</h1>
+			<h1>组件列表</h1>
+			<div>
+				<h2>按钮</h2>
+				<h2>单选</h2>
+				<h2>多选</h2>
+				<h2>页签</h2>
+				<h2>按钮组</h2>
+				<h2>输入框</h2>
+				<h2>多行输入</h2>
+				<h2>下拉单选</h2>
+				<h2>下拉多选</h2>
+				<h2>文件选择</h2>
+				<h2>日期选择</h2>
+				<h2>自定义选择</h2>
+				<h2>日历</h2>
+				<h2>弹出层</h2>
+				<h2>弹出菜单</h2>
+				<h2>对话框</h2>
+				<h2>滚动条</h2>
+				<h2>数据网格</h2>
+				<h2>数据列表</h2>
+				<h2>组件化开发</h2>
+				<h2>嵌入页</h2>
+				<h2>路由</h2>
+			</div>
+			<h1>工具函数</h1>
+			<div>
+				<h2>时间</h2>
+				<h2>字符串</h2>
+				<h2>浏览器相关</h2>
+				<h2>多语言</h2>
+			</div>
+		</div>
+	</body>
+</html>

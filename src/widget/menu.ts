@@ -38,7 +38,7 @@ module tui.widget {
 				let item = new Item(node);
 				let text = item.get("text");
 				if (text === null)
-					text = browser.getNodeOwnText(node);
+					text = $.trim(browser.getNodeOwnText(node));
 				let menuItem: MenuItem = {
 					"text": text
 				};
