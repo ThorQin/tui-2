@@ -52,16 +52,19 @@ module tui.text {
 	/**
 	 * Convert 'aaa-bbb-ccc' or 'aaa_bbb_ccc' to 'aaaBbbCcc' 
 	 */
-	export function toCamel(word: string): string {
+	export function toCamel(word: string, strict: boolean = false): string {
 		var buffer: string = '';
-		word = word.toLowerCase();
+		if (strict)
+			word = word.toLowerCase();
+		var upperFlag: boolean = false;
 		for (let i = 0; i < word.length; i++) {
 			let c = word.charAt(i);
 			if (c === '-' || c === '_') {
-				if (++i < word.length)
-					buffer += word.charAt(i).toUpperCase();
-			} else
-				buffer += c;
+				upperFlag = true;
+			} else {
+				buffer += upperFlag ? c.toUpperCase() : c;
+				upperFlag = false;
+			}
 		}
 		return buffer;
 	}

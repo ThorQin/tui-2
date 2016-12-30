@@ -1,6 +1,7 @@
 /// <reference path="../core.ts" />
 /// <reference path="../text/text.ts" />
 /// <reference path="../ajax/ajax.ts" />
+/// <reference path="../service/service.ts" />
 /// <reference path="mask.ts" />
 module tui.widget {
 	"use strict";
@@ -513,8 +514,10 @@ module tui.widget {
 	
 	var detectResize: () => void;
 	$(window.document).ready(function() {
-		init(document.body);
-		tui.event.fire("initialized");
+		service.ready(function(){
+			init(document.body);
+			tui.event.fire("initialized");
+		});
 		if (typeof (<any>document.body).scopeName === "string") {
 			detectResize = function(){
 				for (var i = 0; i < resizeRegistration.length; i++) {

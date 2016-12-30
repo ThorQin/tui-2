@@ -1,5 +1,7 @@
 /// <reference path="base.ts" />
 /// <reference path="../ajax/ajax.ts" />
+/// <reference path="../service/service.ts" />
+
 module tui.widget {
 	"use strict";
 
@@ -29,7 +31,6 @@ module tui.widget {
 					}
 				}
 				this.fire("load");
-				console.log("on load ..." + this.get("name"));
 				var parent = this.get("parent");
 				parent && parent.fire("componentReady", {name: this.get("name")});
 			}
@@ -45,7 +46,6 @@ module tui.widget {
 
 
 			this.on("componentReady", (e:any) => {
-				console.log("componentReady ...." + e.data.name);
 				this._noReadyCount--;
 				this.checkReady();
 			});
@@ -63,7 +63,6 @@ module tui.widget {
 							this._fn = null;
 							this._scriptReady = false;
 							ajax.getFunction(value).done((result) => {
-								console.log("script ready..." + this.get("name"));
 								this._fn = result;
 								this._scriptReady = true;
 								this.checkReady();
@@ -90,7 +89,6 @@ module tui.widget {
 							this._htmlReady = false;
 							this._childrenInit = false;
 							ajax.getBody(value).done((result) => {
-								console.log("html ready..." + this.get("name"));
 								this._htmlReady = true;
 								this._.innerHTML = result;
 								this.loadComponents();
@@ -155,24 +153,12 @@ module tui.widget {
 
 		use(fn: (...arg: any[]) => void, desc?: string): void {
 			if (typeof fn === "function") {
-				var params = "";
-				if (desc)
-					params = desc + "";
-				else {
-					var matched = fn.toString().match(/^\s*function\s*[a-zA-Z0-9_]*\s*\(([\sa-zA-Z0-9,_\$]*)\)/);
-					if (matched) {
-						params = matched[1];
-					} else {
-						matched = fn.toString().match(/^\s*\(([\sa-zA-Z0-9,_\$]*)\)\s*=>/);
-						if (matched)
-							params = matched[1];
-					}
-				}
-				var argv = (params || "").split(",").map((s) => {
+				var params = service.parseParameters(fn, desc);
+				var argv = params.split(",").map((s) => {
 					if (!s)
 						return null;
 					else if (s[0] === '$') {
-						return tui.service.get(s);
+						return tui.service.get(s.substr(1));
 					} else {
 						var c: any = this.getComponent(s.trim());
 						if (c && c.__widget__)

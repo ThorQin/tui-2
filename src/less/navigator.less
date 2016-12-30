@@ -1,10 +1,10 @@
 @import 'commons.less';
 
-@navBackColor: #39a;
+@navBackColor: #009999;
 @navTextColor: #fff;
-@navActiveBackColor: #222;
-@navActiveBorderColor: #222;
-@navScrollBackColor: #444;
+@navActiveBackColor: #366;
+@navActiveBorderColor: transparent;
+@navScrollBackColor: #007777;
 
 
 tui\:navigator {
@@ -23,11 +23,11 @@ tui\:navigator {
 		height: 20px;
 		line-height: 20px;
 		text-align: center;
-		opacity: 0.7;
+		//opacity: 0.7;
 	}
 	div.tui-up {
 		top: 0;
-		.liner-color(@navScrollBackColor - #111, @navBackColor);
+		.liner-color-rgba(@navScrollBackColor - #111, transparent ); //@navBackColor
 		.icon-base;
 		//&:before {
 		//	.fa-angle-up;
@@ -35,7 +35,7 @@ tui\:navigator {
 	}
 	div.tui-down {
 		bottom: 0;
-		.liner-color(@navBackColor, @navScrollBackColor - #111);
+		.liner-color-rgba(transparent, @navScrollBackColor - #111);
 		.icon-base;
 		//&:before {
 		//	.fa-angle-down;
@@ -61,6 +61,7 @@ tui\:navigator {
 		cursor: pointer;
 		background-color: @navBackColor;
 		border-left:6px solid transparent;
+		border-right:6px solid transparent;
 		white-space: nowrap;
 		word-break: keep-all;
 		overflow: hidden;
@@ -93,11 +94,12 @@ tui\:navigator {
 			border-bottom: 1px solid @navBackColor + #151515;
 		}
 		&:hover,&:focus {
-			background-color: @navBackColor - #030303;
+			background-color: @navBackColor - #050505;
 		}
 		&.tui-active {
 			background-color: @navActiveBackColor;
-			border-left:6px solid @navActiveBorderColor;
+			//border-left:6px solid @navActiveBorderColor;
+			border-right:6px solid @navActiveBorderColor;
 		}
 		
 	}

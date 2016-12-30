@@ -94,7 +94,22 @@ module tui.widget {
 			this._.appendChild(container);
 			this._.appendChild(up);
 			this._.appendChild(down);
-
+			var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
+			$(this._).on(mousewheelevt, (ev) => {
+				var e = <any>ev.originalEvent;
+				var delta = e.detail ? e.detail * (-120) : e.wheelDelta;
+				if (delta <= -120) {
+					if (container.scrollTop + container.clientHeight >= container.scrollHeight) {
+						ev.preventDefault();
+					}
+				} else {
+					if (container.scrollTop <= 0) {
+						ev.preventDefault();
+					}
+				}
+				ev.stopPropagation();
+				ev.stopImmediatePropagation();
+			});
 			this.on("resize", () => {
 				var scrollbarWidth = container.offsetWidth - container.clientWidth;
 				container.style.width = this._.offsetWidth + scrollbarWidth + "px";
@@ -111,34 +126,64 @@ module tui.widget {
 				else
 					return findLine(elem.parentElement);
 			}
-			$(container).mousedown((e) => {
+			$(container).on("mousedown keydown", (e) => {
 				var elem: HTMLElement = <any>e.target || e.srcElement;
 				elem = findLine(elem);
+				if (e.type === "keydown" && e.keyCode != browser.KeyCode.ENTER)
+					return;
 				if (elem) {
-					if ($(elem).hasClass("tui-expand")) {
-						(<any>elem).item.expand = false;
-						$(elem).removeClass("tui-expand");
-						$(elem).addClass("tui-collapse");
-						$(elem).next().animate({height: "toggle"}, () => {
-							this.checkScroll();
-						});
-					} else if ($(elem).hasClass("tui-collapse")) {
-						(<any>elem).item.expand = true;
-						$(elem).removeClass("tui-collapse");
-						$(elem).addClass("tui-expand");
-						$(elem).next().animate({height: "toggle"}, () => {
-							this.checkScroll();
-						});
-						
+					var $elem = $(elem);
+					if ($elem.hasClass("tui-expand")) {
+						this.collapse(elem);
+					} else if ($elem.hasClass("tui-collapse")) {
+						this.expand(elem);
 					} else {
-						elem.focus();
-						if (this._activeItem)
-							$(this._activeItem).removeClass("tui-active");
-						$(elem).addClass("tui-active");
-						this._activeItem = elem;
+						this.active(elem);
+						if (this.fire("select", (<any>elem).item) === false)
+							return;
+						if (this.get("openPath")) {
+							let item: NaviItem = (<any>elem).item;
+							if (item && item.path) {
+								window.location.href = item.path;
+							}
+						}
 					}
 				}
 			});
+		}
+
+		private collapse(elem: HTMLElement) {
+			var $elem = $(elem);
+			(<any>elem).item.expand = false;
+			if (!$elem.hasClass("tui-collapse")) {
+				$elem.removeClass("tui-expand");
+				$elem.addClass("tui-collapse");
+				$elem.next().animate({height: "toggle"}, () => {
+					this.checkScroll();
+				});
+			}
+		}
+
+		private expand(elem: HTMLElement) {
+			var $elem = $(elem);
+			(<any>elem).item.expand = true;
+			if (!$elem.hasClass("tui-expand")) {
+				$elem.removeClass("tui-collapse");
+				$elem.addClass("tui-expand");
+				$elem.next().animate({height: "toggle"}, () => {
+					this.checkScroll();
+				});
+			}
+		}
+
+		private active(elem: HTMLElement) {
+			elem.focus();
+			if (this._activeItem)
+				$(this._activeItem).removeClass("tui-active");
+			if (this.get("selectable")) {
+				$(elem).addClass("tui-active");
+				this._activeItem = elem;
+			}
 		}
 
 		private drawItems(parent: HTMLElement, items: NaviItem[], level: number) {
@@ -180,6 +225,29 @@ module tui.widget {
 					parent.appendChild(subArea);
 				}
 			}
+		}
+
+		private _activeBy(parent: HTMLElement, key: string, value: string): boolean {
+			for (var i = 0; i < parent.children.length; i++) {
+				var node = parent.children[i];
+				if ($(node).hasClass("tui-line")) {
+					if ((<any>node).item[key] === value) {
+						this.active(<HTMLElement>node);
+						return true;
+					}
+				} else if ($(node).hasClass("tui-sub")) {
+					if (this._activeBy(<HTMLElement>node, key, value)) {
+						this.expand($(node).prev()[0]);
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		activeBy(key: string, value: string) {
+			var container = this._components["container"];
+			this._activeBy(container, key, value);
 		}
 
 		render(): void {
