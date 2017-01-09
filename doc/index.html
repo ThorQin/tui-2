@@ -15,6 +15,8 @@
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
 		<script type="text/javascript" src="marked.js"></script>
+		<link rel="stylesheet" href="/highlightjs/default.min.css">
+		<script src="/highlightjs/highlight.min.js"></script>
 		<script>
 			$(function(){
 				var scrollByCode = false;
@@ -149,6 +151,7 @@
 					$$("navi").set("items", index);
 					$("#content").html(marked(buffer));
 					tui.widget.init($("#content")[0]);
+					hljs.initHighlighting();
 				});
 			});
 		</script>

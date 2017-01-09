@@ -3,7 +3,7 @@ module tui.widget {
 	"use strict";
 	/**
 	 * <button>
-	 * Attributes: value, text, type, checked, radio, group, disable
+	 * Attributes: value, text, type, checked, group, disable
 	 * Events: click, mousedown, mouseup, keydown, keyup
 	 */
 	export class Button extends Widget {
