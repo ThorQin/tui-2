@@ -108,6 +108,32 @@ module tui.ajax {
 		return deffered;
 	}
 
+	export function getComponent(url: string): JQueryDeferred<any> {
+		var deffered = $.Deferred<any>();
+		getScript(url).done(function(result){
+			var html = document.createElement("html");
+			html.innerHTML = result;
+			var body = html.getElementsByTagName("body")[0];
+			for (var i = 0; i < body.children.length; i++) {
+				var child = body.children[i];
+				if (tui.widget.getFullName(child) === "tui:component") {
+					var handler = child.getAttribute("handler");
+					if (handler && handler.trim()) {
+						if (!text.isAbsUrl(handler)) {
+							handler = text.joinUrl(text.getBaseUrl(url), handler);
+						}
+					}
+					deffered.resolve(child.innerHTML, handler ? handler : null);
+					return;
+				}
+			}
+			deffered.resolve(body.innerHTML);
+		}).fail(function(status, responseText, xhr){
+			deffered.reject(status, responseText, xhr);
+		});
+		return deffered;
+	}
+
 	export function getFunction(url: string, param?: any): JQueryDeferred<any> {
 		var deffered = $.Deferred<any>();
 		getScript(url).done(function(result){

@@ -21,7 +21,7 @@ module tui.service {
 		return (params || "");
 	}
 
-	class Service {
+	class Service extends EventObject {
 		_constructor: Function;
 
 		use(fn: (...argv: any[]) => void, desc?: string): void {

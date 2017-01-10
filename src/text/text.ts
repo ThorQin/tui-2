@@ -106,10 +106,46 @@ module tui.text {
 	 * @param {String} url
 	 */
 	export function getUrlAnchor(url: string): string {
-		var anchor: any = location.href.match("(#.+)(?:\\?.*)?");
+		var anchor: any = url.match("(#.+)(?:\\?.*)?");
 		if (anchor)
 			anchor = anchor[1];
 		return anchor;
 	}
 
+	export function isAbsUrl(url: string): boolean {
+		if (!url)
+			return false;
+		return !!url.match(/^(([a-z0-9]+:)?\/\/|\/)/i);
+	}
+
+	export function getBaseUrl(url: string): string {
+		var matcher = url.match(/^(?:[a-z0-9]+:)?\/\//i);
+		var prefix = "";
+		if (matcher) {
+			prefix = matcher[0];
+			url = url.substr(matcher[0].length);
+		} 
+		var pos = url.lastIndexOf("/");
+		if (pos >= 0) {
+			return prefix + url.substr(0, pos + 1);
+		} else {
+			return prefix + url;
+		}
+	}
+	export function joinUrl(...urls: string[]): string {
+		var result: string = null;
+		for (var u of urls) {
+			if (!result)
+				result = u;
+			else {
+				if (u[0] == "/")
+					u = u.substr(1);
+				if (result[result.length - 1] == "/") {
+					result += u;
+				} else
+					result += "/" + u;
+			}
+		}
+		return result;
+	}
 }

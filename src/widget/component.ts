@@ -15,10 +15,10 @@ module tui.widget {
 		private _noReadyCount: number;
 
 		private checkReady() {
-			var hasController = !!this.get("controller");
-			var hasTemplate = !!this.get("template");
-			if ((!hasController || hasController && this._scriptReady)
-				&& (!hasTemplate || hasTemplate && this._htmlReady)
+			var hasHandler = !!this.get("handler");
+			var hasSrc = !!this.get("src");
+			if ((!hasHandler || hasHandler && this._scriptReady)
+				&& (!hasSrc || hasSrc && this._htmlReady)
 				&& this._changed 
 				&& this._childrenInit
 				&& this._noReadyCount <= 0) {
@@ -52,14 +52,14 @@ module tui.widget {
 
 			super.initRestriction();
 			this.setRestrictions({
-				"controller": {
+				"handler": {
 					"set": (value: any) => {
-						let oldValue = this._data["controller"];
+						let oldValue = this._data["handler"];
 						if (value && (value + "").trim().length > 0) {
 							value = (value + "").trim();
 							if (oldValue != value)
 								this._changed = true;
-							this._data["controller"] = value;
+							this._data["handler"] = value;
 							this._fn = null;
 							this._scriptReady = false;
 							ajax.getFunction(value).done((result) => {
@@ -73,25 +73,26 @@ module tui.widget {
 						} else {
 							if (oldValue)
 								this._changed = true;
-							delete this._data["controller"];
+							delete this._data["handler"];
 							this._scriptReady = true;
 							this._fn = null;
 							this.checkReady();
 						}
 					}
-				},"template": {
+				},"src": {
 					"set": (value: any) => {
-						let oldValue = this._data["template"];
+						let oldValue = this._data["src"];
 						
 						if (value && (value + "").trim().length > 0) {
 							value = (value + "").trim();
-							this._data["template"] = value;
+							this._data["src"] = value;
 							this._htmlReady = false;
 							this._childrenInit = false;
-							ajax.getBody(value).done((result) => {
+							ajax.getComponent(this.get("url")).done((result, handler) => {
 								this._htmlReady = true;
 								this._.innerHTML = result;
 								this.loadComponents();
+								handler && this.set("handler", handler);
 								this.render();
 								this.checkReady();
 							}).fail(() => {
@@ -101,13 +102,38 @@ module tui.widget {
 						} else {
 							if (oldValue)
 								this._changed = true;
-							delete this._data["template"];
+							delete this._data["src"];
 							this._htmlReady = true;
 							this.checkReady();
 						}
 					}
-				},
+				}, "url": {
+					"get": () => {
+						var parentUrl = this.getParentUrl();
+						var path = this.get("src");
+						if (!path)
+							return parentUrl;
+						else {
+							if (text.isAbsUrl(path))
+								return path;
+							else
+								return text.joinUrl(text.getBaseUrl(parentUrl), path);
+						}
+					}
+				}
 			});
+		}
+
+		private getParentUrl() {
+			let elem = this._.parentNode;
+			while (elem) {
+				if ((<any>elem).__widget__ && (<any>elem).__widget__.getNodeName() === "component") {
+					return (<any>elem).__widget__.get("url");
+				} else {
+					elem = elem.parentNode;
+				}
+			}
+			return location.href;
 		}
 
 		private loadComponents() {
@@ -144,7 +170,7 @@ module tui.widget {
 		}
 
 		protected initChildren(childNodes: Node[]) {
-			if (this.get("template") == null) {
+			if (this.get("src") == null) {
 				childNodes.forEach(n => this._.appendChild(n));
 				this.loadComponents();
 				this.checkReady();

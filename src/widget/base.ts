@@ -81,7 +81,7 @@ module tui.widget {
 					let v = parseValue(attr.value);
 					if (v !== null)
 						this._set(text.toCamel(attr.name), v);
-					if (!/^(id)$/i.test(attr.name.toLowerCase()))
+					if (!/^(id|name)$/i.test(attr.name.toLowerCase()))
 						names.push(attr.name);
 				}
 				for (let name of names) {
@@ -202,14 +202,29 @@ module tui.widget {
 			this.setRestrictions({
 				"id": {
 					"set": (value: any) => {
-						if (this._data["id"]) {
-							delete namedWidgets[this._data["id"]];
+						var oldId = this._.getAttribute("id");
+						if (oldId) {
+							delete namedWidgets[oldId];
 						}
 						if (typeof value === "string" && value.length > 0) {
 							namedWidgets[value] = this;
-							this._data["id"] = value;
+							this._.setAttribute("id", value);
 						} else
-							delete this._data["id"];
+							this._.removeAttribute("id");
+					}, 
+					"get": () => {
+						return this._.getAttribute("id");
+					}	
+				},
+				"name": {
+					"set": (value: any) => {
+						if (typeof value === "string" && value.length > 0) {
+							this._.setAttribute("name", value);
+						} else
+							this._.removeAttribute("name");
+					}, 
+					"get": () => {
+						return this._.getAttribute("name");
 					}	
 				},
 				"parent": {

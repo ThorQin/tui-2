@@ -5,6 +5,7 @@
   对于习惯使用 jQuery 这种命令式框架的开发人员来说更容易上手。
 * NG 等框架只是一个开发框架，仅仅提供了模块化和模板等功能，
   而 TUI2 不仅关注代码的组织形式，还集成了常用的界面UI控件，和常用的脚手架代码，使得集成更为简单。
+  且 TUI2 提供的界面控件**支持移动设备**。
 * TUI2 使用 **组件**，**服务** 和 **扩展** 的概念来组织您的站点应用
  - **组件**：使用 *component* 标签封装的界面逻辑，可以使用独立的HTML界面描述文件和JS脚本控制器
  - **服务**：一组提前加载的单例对象，使用依赖式注入互相引用，同时也可以注入到**组件**中供组件逻辑使用
@@ -15,19 +16,89 @@
 
 # 下载`(download)`
 使用 npm 进行高安装：
+
 ```bash
 npm install tui2
 ```
 执行上述命令后，打开 `node_modules/tui2` 可以看到安装的文件。
 
 # 使用`(quickStart)`
-在页面的 HEAD 标签中添加如下引用（或对应的压缩后版本）：
+TUI2 依赖 Font Awesome、jQuery 以及 es5-shim.js (如果要兼容IE8)  
+请在页面的 HEAD 标签中添加如下引用（或对应的压缩后版本）：
 ```html
 <link rel="stylesheet" href="path/to/font-awesome.css">
 <link rel="stylesheet" href="path/to/tui2.css" />
 <script type="text/javascript" src="path/to/es5-shim.js"></script>
 <script type="text/javascript" src="path/to/jquery-1.11.3.js"></script>
 <script type="text/javascript" src="path/to/tui2.js"></script>
+```
+
+现在写一个 Hello World 页面：
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="path/to/font-awesome.css">
+<link rel="stylesheet" href="path/to/tui2.css" />
+<script type="text/javascript" src="path/to/es5-shim.js"></script>
+<script type="text/javascript" src="path/to/jquery-1.11.3.js"></script>
+<script type="text/javascript" src="path/to/tui2.js"></script>
+</head>
+<body>
+  <tui:component handler="main.js">
+    <tui:button name="button">按我</tui:button>
+  </tui:component>
+</body>
+</html>
+```
+
+然后写一个控制器脚本：
+```javascript
+// main.js
+this.use(function(button){
+  button.on("click", function(){
+    tui.msgbox("Hello World!");
+  });
+});
+```
+这样就完成了一个基本的页面，TUI2推荐的代码组织形式是按照业务逻辑划分成可以复用的一个一个业务组件，
+自顶向下按照组件的方式分割代码逻辑，形成良好的模块化开发方式。
+
+下面开发一个业务组件，并在首页调用该组件：
+```html
+<!-- comp/mycomp.html -->
+<tui:component handler="mycomp.js">
+  <tui:input name="name"></tui:input>
+  <tui:button name="submit">显示</tui:button>
+</tui:component>
+```
+
+编写组件逻辑：
+
+```javascript
+// comp/mycomp.js
+this.use(function(name, submit){
+  submit.on("click", function(){
+    tui.msgbox("您输入的是：" + name.get("value"));
+  });
+})
+```
+
+首页中引用组件：
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="path/to/font-awesome.css">
+<link rel="stylesheet" href="path/to/tui2.css" />
+<script type="text/javascript" src="path/to/es5-shim.js"></script>
+<script type="text/javascript" src="path/to/jquery-1.11.3.js"></script>
+<script type="text/javascript" src="path/to/tui2.js"></script>
+</head>
+<body>
+  <tui:component src="comp/mycomp.html"></tui:component>
+</body>
+</html>
 ```
 
 # 控件

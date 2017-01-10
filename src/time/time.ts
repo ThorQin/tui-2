@@ -1,4 +1,5 @@
 /// <reference path="../core.ts" />
+/// <reference path="../text/text.ts" />
 module tui.time {
 
 	export var shortWeeks = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -479,7 +480,7 @@ module tui.time {
 			for (var k in rule) {
 				if (str.match(k) !== null) {
 					if (k === "y+") {
-						return paddingNumber(rule[k], str.length, str.length);
+						return text.paddingNumber(rule[k], str.length, str.length);
 					} else if (k === "a" || k === "A") {
 						return rule[k];
 					} else if (k === "z+") {
@@ -492,30 +493,30 @@ module tui.time {
 						if (str.length < 2)
 							z += Math.abs(Math.floor(rule[k] / 60));
 						else
-							z += paddingNumber(Math.abs(Math.floor(rule[k] / 60)), 2);
+							z += text.paddingNumber(Math.abs(Math.floor(rule[k] / 60)), 2);
 						if (str.length === 3)
-							z += paddingNumber(Math.abs(Math.floor(rule[k] % 60)), 2);
+							z += text.paddingNumber(Math.abs(Math.floor(rule[k] % 60)), 2);
 						else if (str.length > 3)
-							z += (":" + paddingNumber(Math.abs(Math.floor(rule[k] % 60)), 2));
+							z += (":" + text.paddingNumber(Math.abs(Math.floor(rule[k] % 60)), 2));
 						return z;
 					} else if (k === "E+") {
 						if (str.length < 3)
-							return paddingNumber(rule[k], str.length);
+							return text.paddingNumber(rule[k], str.length);
 						else if (str.length === 3)
 							return shortWeeks[rule[k]];
 						else
 							return weeks[rule[k]];
 					} else if (k === "M+") {
 						if (str.length < 3)
-							return paddingNumber(rule[k], str.length);
+							return text.paddingNumber(rule[k], str.length);
 						else if (str.length === 3)
 							return shortMonths[rule[k] - 1];
 						else
 							return months[rule[k] - 1];
 					} else if (k === "S+") {
-						return paddingNumber(rule[k], str.length, str.length, true);
+						return text.paddingNumber(rule[k], str.length, str.length, true);
 					} else {
-						return paddingNumber(rule[k], str.length);
+						return text.paddingNumber(rule[k], str.length);
 					}
 				}
 			}
