@@ -19,7 +19,6 @@ module tui.widget {
 
 		protected init(): void {
 			var $root = $(this._);
-			//var popup = <Popup>create(Popup);
 			var popup = this.createPopup();
 			this._components["popup"] = popup._;
 			var label = this._components["label"] = document.createElement("span");
@@ -62,6 +61,7 @@ module tui.widget {
 				if (this.get("disable"))
 					return;
 				if (e.charCode === browser.KeyCode.SPACE) {
+					e.preventDefault();
 					this.reset();
 					setTimeout(() => {
 						this._inSelection = true;

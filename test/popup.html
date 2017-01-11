@@ -25,13 +25,7 @@
 		
 		<tui:popup id="myPopup">
 			<div style="width:200px;height:100px;text-align:center;line-height:100px;">
-			<tui:button id="popBtn">HTML中的按钮
-				<tui:init>
-					this.on("click", function(){
-						newPopup(this._);
-					});
-				</tui:init>	
-			</tui:button>
+			<tui:button id="popBtn">HTML中的按钮</tui:button>
 			</div>
 		</tui:popup>
 		
@@ -87,7 +81,9 @@
 				$new("popup", {"content": newDiv}).open(elem);
 			}
 			$(function(){
-				
+				$$("popBtn").on("click", function(){
+					newPopup(this._);
+				});
 				$$("myButton").on("click", function(e) {
 					$$("myPopup").open(this._);
 				});

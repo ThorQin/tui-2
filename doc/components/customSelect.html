@@ -1,0 +1,12 @@
+<tui:component handler="customSelect.js">
+  <div name="content" style="display:none">
+    <p>选择一个类型</p>
+    <tui:button-group name="g1" type="radio">
+      <tui:radio value="abc">测试选项1</tui:radio>
+      <tui:radio value="def">测试选项2</tui:radio>
+    </tui:button-group>
+  </div>
+  <tui:dialog-select name="select" clearable={true} auto-validate={true} placeholder="定制选择框...">
+    <tui:verify format="*any">随便选择点什么</tui:verify>
+  </tui:dialog-select>
+</tui:component>

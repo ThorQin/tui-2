@@ -135,8 +135,10 @@ module tui.widget {
 		setContent(content: any) {
 			var contentDiv = this._components["content"];
 			contentDiv.innerHTML = "";
-			if (typeof content === "object" && content.nodeName)
+			if (typeof content === "object" && content.nodeName) {
+				content.style.display = "block";
 				contentDiv.appendChild(content);
+			}
 			else if (typeof content === "string") {
 				contentDiv.innerHTML = content;
 			}

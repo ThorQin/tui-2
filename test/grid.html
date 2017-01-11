@@ -13,72 +13,17 @@
 		<script type="text/javascript" src="es5-shim.js"></script>
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
-		<script>
-			$(function(){
-				var data = [];
-				function build(list, level) {
-					for (var i = 0; i < 3; i++) {
-						var child = {name: "name column: " + level + "_" + i, 
-							value: "value " + level + "_" + i,
-							expand: true, 
-							checked: i === 0 ? null : false,
-							icon: "fa-user"
-						};
-						list.push(child);
-						
-						if (level < 2 && Math.round(Math.random())) {
-							child.children = [];
-							build(child.children, level+1)
-						}
-					}
-				}
-				build(data, 0);
-				
-				
-				$$("grid").set("tree", data);
-				$$("grid").set("columns", [
-					{name: "name column", key: "name", arrow: true, type: "check", checkKey: "checked", iconKey: "icon", width: 300}, 
-					{name: "value column", key: "value", sortable: true},
-					{name: "value column", key: "value", sortable: true},
-					{name: "value column", key: "value"},
-					{name: "value column", key: "value"},
-					{name: "value column", key: "value"},
-					{name: "value column", key: "value"},
-					{name: "value column", key: "value"},
-					{name: "value column", key: "value"}
-				]);
-				
-				$$("grid").on("rowclick", function(e){
-					//tui.msgbox("rowclick: " + e.data);
-				});
-				$$("grid").on("rowdblclick", function(e){
-				
-				});
-				$$("grid").on("rowcheck", function(e){
-				});
-
-				
-				tui.browser.keepToTop($("#toolbar")[0]);
-				//tui.browser.keepToTop($$("grid").getComponent("head"), 60);
-				$$("titleBtn").on("click", function(e){
-					$$("grid").set("header", !$$("grid").get("header"));
-				});
-				$$("scrollBtn").on("click", function(e){
-					$$("grid").set("autoWidth", !$$("grid").get("autoWidth"));
-				});
-			});
-		</script>
-		
 	</head>
 	<body>
 		<div style="height:60px;">
 			<div id="toolbar" style="height:60px;line-height:60px;text-align:center">
 				一个工具栏
-				<tui:button id="titleBtn" class="tui-primary">切换表头显示</tui:button>
-				<tui:button id="scrollBtn">切换水平滚动</tui:button>
+				<tui:button name="titleBtn" class="tui-primary">切换表头显示</tui:button>
+				<tui:button name="scrollBtn">切换水平滚动</tui:button>
 			</div>
 		</div>
-		<tui:grid id="grid" style="height:500px;"
+		<tui:component name="dialog" template="dialog.html" controller="scripts/dialogController.js"></tui:component>
+		<tui:grid name="grid" style="height:500px;"
 			auto-height={false} 
 			header={true}  
 			auto-width={false}
@@ -86,6 +31,6 @@
 			sort-type="asc"
 			></tui:grid>
 		
-		<div id="disp"></div>
+		<div name="info"></div>
 	</body>
 </html>

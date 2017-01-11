@@ -14,82 +14,28 @@
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
 		<script>
-			$(function(){
-				
-				$$("myDialog").on("btnclick", function(e) {
-					disp.innerHTML = "button click: " + e.data.button;
-				}).on("close", function(){
-					disp.innerHTML =("closed");
-				}).on("open", function(){
-					disp.innerHTML =("open");
-				});
-				$$("btn1").on("click", function(e){
-					$$("myDialog").open();
-				});
-				$$("btn2").on("click", function(e){
-					$$("myDialog").open("ok#tui-primary,cancel");
-				});
-				
-				tui.get("btnMsg").on("click", function(){
-					tui.msgbox("一个普通测试消息。", "消息");
-				});
-				tui.get("btnInfo").on("click", function(){
-					tui.infobox("您还可以尝试使用不同的方法完成此操作。", "提示");
-				});
-				tui.get("btnOk").on("click", function(){
-					tui.okbox("保存操作成功！", "成功");
-				});
-				tui.get("btnWarn").on("click", function(){
-					tui.warnbox("股市有风险，请谨慎操作！", "警告");
-				});
-				tui.get("btnErr").on("click", function(){
-					tui.errbox("错误：服务器没有响应！", "错误");
-				});
-				tui.get("btnAsk").on("click", function(){
-					tui.askbox("是否真的要删除该记录？", "删除");
-				});
-				tui.get("btnWait").on("click", function(){
-					var dlg = tui.waitbox("任务1请稍后...");
-					setTimeout(function(){dlg.close()}, 3000);
-					setTimeout(function(){
-						var dlg1 = tui.waitbox("正在执行一个临时任务2请稍后...");
-						setTimeout(function(){
-							dlg1.close();
-							dlg1.close();
-						},1000);
-					},1000);
-				});
-				tui.get("longMsg").on("click", function(){
-					tui.msgbox("很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本", "删除");
-				});
-				tui.get("longInfo").on("click", function(){
-					tui.infobox("很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本很长很长的文本", "这是一个很长很长的标题这是一个很长很长的标题这是一个很长很长的标题这是一个很长很长的标题");
-				});
-			});
+			
 		</script>
 	</head>
 	<body>
-		<tui:button id="btn1">对话框</tui:button>
-		<tui:button id="btn2">带按钮的对话框</tui:button>
-		<tui:dialog id="myDialog" title="这是一个很长很长的标题这是一个很长很长的标题这是一个很长很长的标题这是一个很长很长的标题">
+		<tui:button name="btn1">对话框</tui:button>
+		<tui:button name="btn2">带按钮的对话框</tui:button>
+		<tui:dialog name="myDialog" title="这是一个很长很长的标题这是一个很长很长的标题这是一个很长很长的标题这是一个很长很长的标题">
 			<div>
 				<tui:calendar></tui:calendar>
 			</div>
-			<div>
-				<tui:button>测试一下咯<tui:init>this.on("click",function(){tui.infobox("测试消息")})</tui:init></tui:button>
-			</div>
 		</tui:dialog>
-		<div id="disp" style="padding:20px"></div>
+		<div name="disp" style="padding:20px"></div>
 		<div>
-			<tui:button id="btnMsg">普通消息</tui:button>
-			<tui:button id="btnInfo">提示消息</tui:button>
-			<tui:button id="btnOk">成功消息</tui:button>
-			<tui:button id="btnWarn">警告消息</tui:button>
-			<tui:button id="btnErr">错误消息</tui:button>
-			<tui:button id="btnAsk">询问</tui:button>
-			<tui:button id="btnWait">等待</tui:button>
-			<tui:button id="longMsg">长文本普通消息</tui:button>
-			<tui:button id="longInfo">长文本提示</tui:button>
+			<tui:button name="btnMsg">普通消息</tui:button>
+			<tui:button name="btnInfo">提示消息</tui:button>
+			<tui:button name="btnOk">成功消息</tui:button>
+			<tui:button name="btnWarn">警告消息</tui:button>
+			<tui:button name="btnErr">错误消息</tui:button>
+			<tui:button name="btnAsk">询问</tui:button>
+			<tui:button name="btnWait">等待</tui:button>
+			<tui:button name="longMsg">长文本普通消息</tui:button>
+			<tui:button name="longInfo">长文本提示</tui:button>
 		</div>
 	</body>
 </html>

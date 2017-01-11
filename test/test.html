@@ -14,20 +14,17 @@
 		<script type="text/javascript" src="jquery-1.11.3.js"></script>
         <script type="text/javascript" src="tui2.js"></script>
 		<script>
-			$(function(){
-				$$("s1").on("scroll", function(e){
-					$$("s2").set("page", e.data.value);
-				});
-			});
+			tui.service.load(["service/api.js", "service/util.js"]);
 		</script>
-		<style>
-			tui\:scrollbar {
-				height: 300px;
-			}
-		</style>
 	</head>
 	<body>
-		<tui:scrollbar id="s1" total="{1500}" style="height:300px"></tui:scrollbar>
-		<tui:scrollbar id="s2" total="{1500}" direction="horizontal" style="width:300px"></tui:scrollbar>
+		<tui:component name="main" handler="scripts/logic.js">
+			<tui:button name="gridBtn">Grid</tui:button>
+			<tui:button name="buttonBtn">Button</tui:button>
+			<tui:frame name="frame" src="grid.html"></tui:frame>
+			<tui:component src="component/mytest.html" ></tui:component>
+			<tui:component src="component/child/subtest.html" ></tui:component>
+		</tui:component>
+		
 	</body>
 </html>
