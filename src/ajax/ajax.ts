@@ -96,12 +96,22 @@ module tui.ajax {
 		return deffered;
 	}
 
+	function getHtmlBody(result: string): HTMLElement {
+		if (tui.ieVer <= 9) {
+			let html: HTMLElement = document.createElement("body");
+			html.innerHTML = result;
+			return html;
+		} else {
+			let html = document.createElement("html");
+			html.innerHTML = result;
+			return html.getElementsByTagName("body")[0];
+		}
+	}
+
 	export function getBody(url: string): JQueryDeferred<any> {
 		var deffered = $.Deferred<any>();
 		getScript(url).done(function(result){
-			var html = document.createElement("html");
-			html.innerHTML = result;
-			deffered.resolve(html.getElementsByTagName("body")[0].innerHTML);
+			deffered.resolve(getHtmlBody(result).innerHTML);
 		}).fail(function(status, responseText, xhr){
 			deffered.reject(status, responseText, xhr);
 		});
@@ -111,9 +121,7 @@ module tui.ajax {
 	export function getComponent(url: string): JQueryDeferred<any> {
 		var deffered = $.Deferred<any>();
 		getScript(url).done(function(result){
-			var html = document.createElement("html");
-			html.innerHTML = result;
-			var body = html.getElementsByTagName("body")[0];
+			var body = getHtmlBody(result);
 			for (var i = 0; i < body.children.length; i++) {
 				var child = body.children[i];
 				if (tui.widget.getFullName(child) === "tui:component") {

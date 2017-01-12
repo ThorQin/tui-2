@@ -79,6 +79,12 @@
 						$$(navi).activeBy("path", findItem.id);
 					}
 				});
+				function repeat(str, count) {
+					var result = "";
+					for (var i = 0; i < count; i++)
+						result += str;
+					return result;
+				}
 				tui.ajax.getScript("doc.md").done(function(result){
 					var buffer = "";
 					var line;
@@ -91,11 +97,13 @@
 					}
 					function getLevel(str) {
 						var level = 0;
-						for (var c of str)
+						for (var i = 0; i < str.length; i++) {
+							var c = str[i];
 							if (c === "#")
 								level++;
 							else
 								break;
+						}
 						return level;
 					}
 					var index = [];
@@ -142,9 +150,9 @@
 								lastLevel = level;
 							}
 							if (item.path)
-								line = "#".repeat(level) + " <span id='" + item.path + "'>" + item.text.trim() + "</span>" + "\n";
+								line = repeat("#", level) + " <span id='" + item.path + "'>" + item.text.trim() + "</span>" + "\n";
 							else
-								line = "#".repeat(level) + " " + item.text.trim() + "\n";
+								line = repeat("#", level) + " " + item.text.trim() + "\n";
 						} 
 						buffer += line;
 					}
