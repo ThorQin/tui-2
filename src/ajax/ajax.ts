@@ -174,7 +174,7 @@ module tui.ajax {
 	export function getFunction(url: string, param?: any): JQueryDeferred<any> {
 		var deffered = $.Deferred<any>();
 		getScript(url).done(function(result){
-			var fn: Function = eval("(function(){\n" + result + "})"
+			var fn: Function = eval("(0,function(){\n" + result + "})"
 				+ "\n//# sourceURL=" + url);
 			deffered.resolve(fn, param);
 		}).fail(function(status, responseText, xhr){
