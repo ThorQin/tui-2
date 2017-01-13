@@ -478,11 +478,20 @@ module tui.widget {
 						target.line, this.get("lineHeight"), this.get("columns"), data.get(target.line));
 					ev.preventDefault();
 					this.fire("rowcheck", {e: ev, row: target.line, col: target.col, checked: checked });
+				} else {
+					this.fire("rowmousedown", {e: ev, row: target.line, col: target.col});
 				}
 			};
 			
 			$(this._).on("mousedown", (ev) => {
 				testLine(ev);
+			});
+
+			$(this._).on("mouseup", (ev) => {
+				var obj = <HTMLElement>(ev.target || ev.srcElement);
+				var target = hittest(obj);
+				if (target.line != null) 
+					this.fire("rowmouseup", {e: ev, row: target.line, col: target.col});
 			});
 			
 			$(content).click((ev)=>{
@@ -512,13 +521,19 @@ module tui.widget {
 				if (target.line != null)
 					this.fire("rowdblclick", {e: ev, row: target.line, col: target.col});
 			});
+
+			$(this._).keyup((e) => {
+				var activeRow = this.get("activeRow");
+				this.fire("keyup", {e: e, row: activeRow});
+			});
 			
 			$(this._).keydown((e) => {
 				var k = e.keyCode;
+				var activeRow = this.get("activeRow");
+				this.fire("keydown", {e: e, row: activeRow});
 				if (k >= 33 && k <= 40 || k == browser.KeyCode.ENTER) {
 					if (k === browser.KeyCode.LEFT) {
 						if (this.get("dataType") === "tree") {
-							var activeRow = this.get("activeRow");
 							if (activeRow !== null) {
 								let node = <ds.TreeNode>this.get("data").get(activeRow);
 								if (node.hasChild && node.expand) {
@@ -549,7 +564,6 @@ module tui.widget {
 						}
 					} else if (k === browser.KeyCode.RIGHT) {
 						if (this.get("dataType") === "tree") {
-							var activeRow = this.get("activeRow");
 							if (activeRow !== null) {
 								let node = <ds.TreeNode>this.get("data").get(activeRow);
 								if (node.hasChild && !node.expand) {

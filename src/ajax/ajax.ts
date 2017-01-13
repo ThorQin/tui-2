@@ -96,16 +96,45 @@ module tui.ajax {
 		return deffered;
 	}
 
+	var TAG = /<(\/?[a-z0-9_\-:]+)(\s+[a-z0-9_\-]+(\s*=('[^']*'|"[^"]*"|[^\s>]+)))*\/?>/img;
+	var SCRIPT_END = /<\/\s*script(\s+[a-z0-9_\-]+(\s*=('[^']*'|"[^"]*"|[^\s>]+)))*>/img;
+
 	function getHtmlBody(result: string): HTMLElement {
-		if (tui.ieVer <= 9) {
-			let html: HTMLElement = document.createElement("body");
-			html.innerHTML = result;
-			return html;
-		} else {
-			let html = document.createElement("html");
-			html.innerHTML = result;
-			return html.getElementsByTagName("body")[0];
+		// To compatible IE 8~9 I must parse html by myself!
+		if (result == null || result.length == 0)
+			return document.createElement("body");
+		TAG.lastIndex = 0;
+		let len = result.length;
+		let m: RegExpExecArray;
+		let bodyStart: number = null;
+		let bodyEnd: number = null;
+		while ((m = TAG.exec(result)) != null) {
+			let tag = m[1].toLowerCase();
+			if (tag === "script") {
+				SCRIPT_END.lastIndex = TAG.lastIndex;
+				let scriptEnd = SCRIPT_END.exec(result);
+				if (scriptEnd == null)
+					break;
+				TAG.lastIndex = SCRIPT_END.lastIndex;
+			} else if (tag === "body") {
+				bodyStart = TAG.lastIndex;
+			} else if (tag === "/body") {
+				bodyEnd = m.index;
+			} else if (tag === "/html") {
+				if (bodyEnd == null)
+					bodyEnd = m.index;
+			}
 		}
+		if (bodyStart != null) {
+			if (bodyEnd != null && bodyEnd >= bodyStart) {
+				result = result.substring(bodyStart, bodyEnd);
+			} else {
+				result = result.substring(bodyStart);
+			}
+		}
+		var body = document.createElement("body");
+		body.innerHTML = result;
+		return body;
 	}
 
 	export function getBody(url: string): JQueryDeferred<any> {
