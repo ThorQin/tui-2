@@ -477,6 +477,8 @@ search | 搜索内容
 validate | 定义验证规则，通过属性定义需要传递 JSON 格式的对象，也可以通过 tui:verify 子标签定义
 autoValidate | 是否自动验证
 
+选择框的验证语法和输入框相同。
+
 ## [](fa-toggle-down) 下拉多选`(multiSelect)`
 外观：
 <tui:select tree="{[
@@ -501,20 +503,47 @@ autoValidate | 是否自动验证
 ## [](fa-file) 文件选择`(file)`
 
 ## [](fa-calendar-o) 日期选择`(datePicker)`
+外观：
+<tui:date-picker></tui:date-picker>
 
 ## [](fa-calendar) 日历`(calendar)`
+外观：
+<tui:calendar time-bar="{true}"></tui:calendar>
 
 ## [](fa-clone) 弹出层`(popup)`
 
 ## [](fa-bars) 弹出菜单`(menu)`
 
 ## [](fa-commenting) 对话框`(dialog)`
+外观：
+<tui:component src="components/dialog.html"></tui:component>
 
 ## [](fa-sliders) 滚动条`(scrollbar)`
 
 ## [](fa-table) 数据网格`(grid)`
 
 ## [](fa-th-list) 数据列表`(list)`
+外观：
+<tui:list style="height:200px;width:300px;margin:20px" 
+			checkable={true} row-tooltip-key="desc" data="{[
+				{name: '列表内容1(不可选)', value: 'value1', desc: '这是一个很长的描述信息1'},
+				{name: '列表内容2', check:false,  value: 'value2', desc: '这是一个很长的描述信息2'},
+				{name: '列表内容3', check:false, value: 'value3', desc: '这是一个很长的描述信息3'},
+				{name: '列表内容4', check:true, value: 'value4', desc: '这是一个很长的描述信息4'},
+				{name: '列表内容5', check:false, value: 'value5', desc: '这是一个很长的描述信息5'},
+				{name: '列表内容6(不可选)', value: 'value6', desc: '这是一个很长的描述信息6'}
+			]}">
+		</tui:list>
+		<tui:list style="height:200px;width:300px;margin:20px" 
+			data="{[
+				{name: '列表内容1'},
+				{name: '列表内容2'},
+				{name: '列表内容3'},
+				{name: '列表内容4'},
+				{name: '列表内容5'},
+				{name: '列表内容6'}
+			]}">
+		</tui:list>
 
 ## [](fa-object-ungroup) 组件化开发`(component)`
 

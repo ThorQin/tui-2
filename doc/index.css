@@ -14,7 +14,7 @@
 	right:0;
 	background-color: #555;
 	opacity: 0;
-	z-index: 1;
+	z-index: 100;
 }
 #banner {
 	position:fixed;
@@ -75,22 +75,23 @@ code {
 code[class] {
 	color: #444;
 }
-table {
+#content>table {
 	empty-cells: show;
 	border-collapse: collapse;
 	display: block;
 	overflow: auto;
+	width: 100%;
 }
-thead th {
+#content>table thead th {
 	border-bottom: 2px solid #888;
 	padding: 6px 15px;
 	text-align: left;
 	min-width: 150px;
 }
-thead th:last-child {
+#content>table thead th:last-child {
 	width: 100%;
 }
-tbody td {
+#content>table tbody td {
 	padding: 6px 15px;
 	border-bottom: 1px solid #ccc;
 }
@@ -101,7 +102,7 @@ tbody td {
 	#navi {
 		left: -250px;
 		top: 40px;
-		z-index: 2;
+		z-index: 101;
 	}
 	#banner {
 		width: 100%;
@@ -109,7 +110,7 @@ tbody td {
 		font-size: 20px;
 		text-align: left;
 		line-height: 40px;
-		z-index: 1;
+		z-index: 100;
 	}
 	#banner > span {
 		display: inline-block;
@@ -118,7 +119,7 @@ tbody td {
 		height: 40px;
 		line-height: 40px;
 	}
-	tui\:button, tui\:input, tui\:textarea, tui\:select {
+	tui\:button, tui\:input, tui\:textarea, tui\:select, tui\:date-picker, tui\:dialog-select {
 		display: block;
 		margin-top: 10px;
 		margin-top: 10px;
@@ -134,14 +135,14 @@ tbody td {
 	h2 {
 		font-size: 22px;
 	}
-	table {
+	#content>table {
 		width: 100%;
 	}
-	thead th {
+	#content>table thead th {
 		padding: 6px 6px;
 		min-width: 100px;
 	}
-	tbody td {
+	#content>table tbody td {
 		padding: 6px 6px;
 		word-break: keep-all;
 		white-space: normal;

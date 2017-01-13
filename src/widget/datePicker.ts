@@ -93,7 +93,7 @@ module tui.widget {
 			else
 				toolbar.innerHTML = todayButton;
 			
-			popup.open(this._, "Rb");
+			popup.open(this._, "Lb");
 			setTimeout(() => {
 				calendar._.focus();
 				calendar.set("value", this.get("value"));
