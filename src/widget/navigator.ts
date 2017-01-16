@@ -88,7 +88,7 @@ module tui.widget {
 			var container = this._components["container"] = document.createElement("div");
 			var up = this._components["up"] = document.createElement("div");
 			var down = this._components["down"] = document.createElement("div");
-			container.className = "tui-contailer";
+			container.className = "tui-container";
 			up.className = "tui-up";
 			down.className = "tui-down";
 			this._.appendChild(container);

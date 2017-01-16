@@ -1060,6 +1060,7 @@ module tui.widget {
 				if (columns[i].sortable)
 					sortClass = "tui-sortable";
 				var span = document.createElement("span");
+				span.setAttribute("unselectable", "on");
 				span.className = "tui-grid-" + this._tuid + "-" + i + " " + sortClass;
 				(<any>span).col = i;
 				head.appendChild(span);
