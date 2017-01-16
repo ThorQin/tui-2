@@ -945,7 +945,7 @@ module tui.widget {
 				line.innerHTML = "";
 				for (var i = 0; i < columns.length; i++) {
 					var span = document.createElement("span");
-					span.className = "tui-grid-" + this._tuid + "-" + i;
+					span.className = "tui-grid-cell tui-grid-" + this._tuid + "-" + i;
 					span.setAttribute("unselectable", "on");
 					(<any>span).col = i;
 					line.appendChild(span);
