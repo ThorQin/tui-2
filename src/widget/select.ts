@@ -326,6 +326,12 @@ module tui.widget {
 					searchBox.render();
 				list._.focus();
 				list.render();
+				if (tui.ieVer > 0 && tui.ieVer <= 9) {
+					// FIX ie bug.
+					setTimeout(()=>{
+						list.render();
+					});
+				}
 				if (!this.get("multiSelect")) {
 					if (this.get("value") !== null) { 
 						list.activeTo(this.get("valueKey"), this.get("value"));
