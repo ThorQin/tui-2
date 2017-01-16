@@ -998,7 +998,7 @@ module tui.widget {
 				var cell = (<HTMLElement>line.childNodes[i]);
 				cell.style.height = lineHeight + "px";
 				cell.style.lineHeight = lineHeight + "px";
-				cell.innerHTML = prefix;
+				browser.setInnerHtml(cell,prefix);
 				var prefixContent = columns[i].prefixKey !== null ? item[columns[i].prefixKey] : null;
 				if (prefixContent) {
 					var prefixSpan = document.createElement("span");
