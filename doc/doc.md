@@ -501,26 +501,39 @@ autoValidate | 是否自动验证
 <tui:component src="components/customSelect.html"></tui:component>
 
 ## [](fa-file) 文件选择`(file)`
+外观：
+<tui:file placeholder="请选择文件..." accept="text/plain" 
+ clearable={true}  action="uploadFile.do"></tui:file>
 
 ## [](fa-calendar-o) 日期选择`(datePicker)`
 外观：
-<tui:date-picker></tui:date-picker>
+<tui:date-picker placeholder="选择日期"></tui:date-picker>
+
+<tui:date-picker placeholder="选择日期和时间" format="yyyy-MM-dd hh:mm:ss" time-bar={true}></tui:date-picker>
 
 ## [](fa-calendar) 日历`(calendar)`
 外观：
 <tui:calendar time-bar="{true}"></tui:calendar>
 
 ## [](fa-clone) 弹出层`(popup)`
+外观：
+<tui:component src="components/popup.html"></tui:component>
 
 ## [](fa-bars) 弹出菜单`(menu)`
+外观：
+<tui:component src="components/menu.html"></tui:component>
 
 ## [](fa-commenting) 对话框`(dialog)`
 外观：
 <tui:component src="components/dialog.html"></tui:component>
 
 ## [](fa-sliders) 滚动条`(scrollbar)`
+外观：
+<tui:component src="components/scrollbar.html"></tui:component>
 
 ## [](fa-table) 数据网格`(grid)`
+外观：
+<tui:component src="components/grid.html"></tui:component>
 
 ## [](fa-th-list) 数据列表`(list)`
 外观：

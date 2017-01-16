@@ -90,14 +90,7 @@ module tui.widget {
 							this._childrenInit = false;
 							ajax.getComponent(this.get("url")).done((result, handler) => {
 								this._htmlReady = true;
-								if (tui.ieVer > 0 && tui.ieVer < 9) {
-									this._.innerHTML = "";
-									let d = document.createElement("div");
-									d.innerHTML = result;
-									while (d.children.length > 0)
-										this._.appendChild(d.children[0]);
-								} else
-									this._.innerHTML = result;
+								browser.setInnerHtml(this._, result);
 								this.loadComponents();
 								handler && this.set("handler", handler);
 								this.render();

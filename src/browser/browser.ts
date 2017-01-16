@@ -558,6 +558,18 @@ module tui.browser {
 		}
 		return positions;
 	}
+
+	export function setInnerHtml(elem: HTMLElement, content: string) {
+		if (tui.ieVer > 0 && tui.ieVer < 9) {
+			elem.innerHTML = "";
+			var d = document.createElement("div");
+			d.innerHTML = content;
+			while (d.children.length > 0)
+				elem.appendChild(d.children[0]);
+		} else {
+			elem && (elem.innerHTML = content);
+		}
+	}
 	
 	(<any>window).$text = toSafeText;
 }

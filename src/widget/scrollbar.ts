@@ -172,6 +172,9 @@ module tui.widget {
 				openDragMask(dragThumb, dragEnd);
 				this.fire("dragstart", {e:e, value: this.get("value") });
 			});
+			this.on("resize", () => {
+				this.render();
+			});
 
 			this.refresh();
 		}
@@ -249,4 +252,5 @@ module tui.widget {
 	}
 
 	register(Scrollbar);
+	registerResize(Scrollbar);
 }

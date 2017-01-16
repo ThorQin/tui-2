@@ -167,7 +167,7 @@ module tui.widget {
 			root.style.left = "0px";
 			root.style.top = "0px";
 			root.style.width = "";
-			root.style.width = browser.getCurrentStyle(root).width;
+			//root.style.width = browser.getCurrentStyle(root).width;
 			var ew = root.offsetWidth;
 			var eh = root.offsetHeight;
 			var box: browser.Rect = { left: 0, top: 0, width: 0, height: 0 };
