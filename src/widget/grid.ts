@@ -227,7 +227,7 @@ module tui.widget {
 		protected init(): void {
 			this._tuid = tuid();
 			$(this._).attr({"tabIndex": 0, "unselectable": "on"});
-			this._.innerHTML = "<div class='tui-grid-head'></div><div class='tui-content'></div>";
+			browser.setInnerHtml(this._, "<div class='tui-grid-head'></div><div class='tui-content'></div>");
 			var head = this._components["head"] = $(this._).children(".tui-grid-head")[0];
 			var content = this._components["content"] = $(this._).children(".tui-content")[0];
 			this._hbar = <Scrollbar>tui.create("scrollbar", {direction: "horizontal"});

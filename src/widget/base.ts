@@ -533,7 +533,7 @@ module tui.widget {
 			init(document.body);
 			tui.event.fire("initialized");
 		});
-		if (typeof (<any>document.body).scopeName === "string") {
+		if (typeof (<any>document.body).scopeName === "string" && tui.ieVer < 9) {
 			detectResize = function(){
 				for (var i = 0; i < resizeRegistration.length; i++) {
 					let nodes = document.getElementsByTagName(resizeRegistration[i].substr(4));
