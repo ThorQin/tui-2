@@ -1,0 +1,34 @@
+<tui:component handler="menu.js">
+	<tui:button name="popBtn">弹出菜单</tui:button>
+	<tui:menu name="menu" class="tui-big">
+		<tui:item icon="fa-user" shortcut="Ctrl+A">菜单项1</tui:item>
+		<tui:item type="check" checked="{true}" >第二个菜单项</tui:item>
+		<tui:item text="子菜单">
+			<tui:item type="radio" checked="{true}">子菜单项1</tui:item>
+			<tui:item type="radio" >第二个菜单项</tui:item>
+			<tui:item type="radio" >菜单项2</tui:item>
+			<tui:item type="radio" >菜单项3</tui:item>
+		</tui:item>
+		<tui:item disable="{true}">菜单项2</tui:item>
+		<tui:item>菜单项3</tui:item>
+		<tui:item text="子菜单" shortcut="Ctrl+Alt+S">
+			<tui:item>子菜单项1</tui:item>
+			<tui:item>第二个菜单项</tui:item>
+			<tui:item>菜单项2</tui:item>
+			<tui:item>菜单项3</tui:item>
+			<tui:item text="第二个菜单项子菜单">
+				<tui:item>子菜单项2</tui:item>
+				<tui:item>第二个菜单项</tui:item>
+				<tui:item>菜单项2</tui:item>
+				<tui:item>菜单项3</tui:item>
+			</tui:item>
+		</tui:item>
+		<tui:item type="line"></tui:item>
+		<tui:item text="子菜单">
+			<tui:item>子菜单项1</tui:item>
+			<tui:item>第二个菜单项</tui:item>
+			<tui:item>菜单项2</tui:item>
+			<tui:item>菜单项3</tui:item>
+		</tui:item>
+	</tui:menu>
+</tui:component>
