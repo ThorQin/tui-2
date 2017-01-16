@@ -46,6 +46,12 @@ module tui.widget {
 				}
 			});
 		}
+
+		private onInput(textbox: HTMLInputElement, e: JQueryEventObject) {
+			this.updateEmptyState(textbox.value === "");
+			this.reset();
+			this.fire("input", e);
+		}
 		
 		protected init(): void {
 			var $root = $(this._);
@@ -82,15 +88,17 @@ module tui.widget {
 				$(textbox).on("propertychange", (e: any) => {
 					if (e.originalEvent.propertyName !== 'value')
 						return;
-					this.updateEmptyState(textbox.value === "");
-					this.reset();
-					this.fire("input", e);
+					this.onInput(textbox, e);
 				});
 			} else {
+				if (tui.ieVer === 9) {
+					$(textbox).on("keydown", (e) => {
+						if (e.keyCode = browser.KeyCode.BACK)
+							this.onInput(textbox, e);
+					});
+				}
 				$(textbox).on("input", (e) => {
-					this.updateEmptyState(textbox.value === "");
-					this.reset();
-					this.fire("input", e);
+					this.onInput(textbox, e);
 				});
 			}
 			$(textbox).on("keydown", (e) => {

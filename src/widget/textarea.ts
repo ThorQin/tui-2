@@ -35,6 +35,18 @@ module tui.widget {
 				}
 			});
 		}
+
+		private onInput(textbox: HTMLTextAreaElement, e: JQueryEventObject) {
+			this.updateEmptyState(textbox.value === "");
+			var oldHeight = browser.getCurrentStyle(textbox).height;
+			textbox.style.height = "";
+			if (this._valid && textbox.scrollHeight !== this._lastTextHeight)
+				this.render();
+			else
+				textbox.style.height = oldHeight;
+			this.reset();
+			this.fire("input", e);
+		}
 		
 		protected init(): void {
 			var $root = $(this._);
@@ -64,27 +76,17 @@ module tui.widget {
 				$(textbox).on("propertychange", (e: any) => {
 					if (e.originalEvent.propertyName !== 'value')
 						return;
-					this.updateEmptyState(textbox.value === "");
-					var oldHeight = browser.getCurrentStyle(textbox).height;
-					textbox.style.height = "";
-					if (this._valid && textbox.scrollHeight !== this._lastTextHeight)
-						this.render();
-					else
-						textbox.style.height = oldHeight;
-					this.reset();
-					this.fire("input", e);
+					this.onInput(textbox, e);
 				});
 			} else {
+				if (tui.ieVer === 9) {
+					$(textbox).on("keydown", (e) => {
+						if (e.keyCode = browser.KeyCode.BACK)
+							this.onInput(textbox, e);
+					});
+				}
 				$(textbox).on("input", (e) => {
-					this.updateEmptyState(textbox.value === "");
-					var oldHeight = browser.getCurrentStyle(textbox).height;
-					textbox.style.height = "";
-					if (this._valid && textbox.scrollHeight !== this._lastTextHeight)
-						this.render();
-					else
-						textbox.style.height = oldHeight;
-					this.reset();
-					this.fire("input", e);
+					this.onInput(textbox, e);
 				});
 			}
 			$(textbox).on("change", (e) => {
@@ -148,8 +150,10 @@ module tui.widget {
 			}
 			textbox.style.height = "";
 			this._lastTextHeight = textbox.scrollHeight;
-			textbox.style.height = textbox.scrollHeight + 2 + "px";
-			this._.style.height = textbox.scrollHeight + 4 + "px";
+			if (this._lastTextHeight < 46)
+				this._lastTextHeight = 46;
+			textbox.style.height = this._lastTextHeight + 2 + "px";
+			this._.style.height = this._lastTextHeight + 4 + "px";
 			
 			textbox.style.left = marginLeft + "px";
 			var width = this._.clientWidth - iconInvalid.offsetWidth - marginLeft - marginRight;
