@@ -1236,12 +1236,6 @@ module tui.widget {
 			var cssText = "";
 			for (let i = 0; i < columns.length; i++) {
 				cssText += (".tui-grid-" + this._tuid + "-" + i + "{width:" + vval(columns[i].width) + "px;}");
-				if (tui.ieVer > 0 && tui.ieVer <= 9) {
-					let d = document.createElement("div");
-					d.className = "tui-grid-" + this._tuid + "-" + i;
-					d.style.display = "none";
-					document.body.appendChild(d);
-				}
 			}
 			if ((<any>document).createStyleSheet) // IE
 				(<any>this._gridStyle).cssText = cssText;
