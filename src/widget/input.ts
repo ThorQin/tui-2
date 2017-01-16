@@ -92,7 +92,7 @@ module tui.widget {
 				});
 			} else {
 				if (tui.ieVer === 9) {
-					$(textbox).on("keydown", (e) => {
+					$(textbox).on("keyup", (e) => {
 						if (e.keyCode = browser.KeyCode.BACK)
 							this.onInput(textbox, e);
 					});
