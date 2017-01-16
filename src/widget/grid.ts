@@ -945,7 +945,7 @@ module tui.widget {
 				line.innerHTML = "";
 				for (var i = 0; i < columns.length; i++) {
 					var span = document.createElement("span");
-					span.className = "tui-grid-cell tui-grid-" + this._tuid + "-" + i;
+					span.className = "tui-grid-" + this._tuid + "-" + i;
 					span.setAttribute("unselectable", "on");
 					(<any>span).col = i;
 					line.appendChild(span);
@@ -1234,16 +1234,22 @@ module tui.widget {
 			}
 			
 			var cssText = "";
-			for (var i = 0; i < columns.length; i++) {
+			for (let i = 0; i < columns.length; i++) {
 				cssText += (".tui-grid-" + this._tuid + "-" + i + "{width:" + vval(columns[i].width) + "px;}");
+				if (tui.ieVer > 0 && tui.ieVer <= 9) {
+					let d = document.createElement("div");
+					d.className = "tui-grid-" + this._tuid + "-" + i;
+					d.style.display = "none";
+					document.body.appendChild(d);
+				}
 			}
 			if ((<any>document).createStyleSheet) // IE
 				(<any>this._gridStyle).cssText = cssText;
 			else
 				this._gridStyle.innerHTML = cssText;
 				
-			for (var i = 0; i < this._buffer.lines.length; i++) {
-				var line: HTMLElement = this._buffer.lines[i];
+			for (let i = 0; i < this._buffer.lines.length; i++) {
+				let line: HTMLElement = this._buffer.lines[i];
 				line.style.width = this._contentWidth + "px";
 			}
 		}
