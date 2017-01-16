@@ -1002,14 +1002,14 @@ module tui.widget {
 				var prefixContent = columns[i].prefixKey !== null ? item[columns[i].prefixKey] : null;
 				if (prefixContent) {
 					var prefixSpan = document.createElement("span");
-					prefixSpan.innerHTML = prefixContent;
+					browser.setInnerHtml(prefixSpan, prefixContent);
 					cell.appendChild(prefixSpan);
 				}
 				cell.appendChild(document.createTextNode(item[columns[i].key]));
 				var suffixContent = columns[i].suffixKey !== null ? item[columns[i].suffixKey] : null;
 				if (suffixContent) {
 					var suffixSpan = document.createElement("span");
-					suffixSpan.innerHTML = suffixContent;
+					browser.setInnerHtml(suffixSpan, suffixContent);
 					cell.appendChild(suffixSpan);
 				}
 			}
@@ -1063,7 +1063,7 @@ module tui.widget {
 				span.className = "tui-grid-" + this._tuid + "-" + i + " " + sortClass;
 				(<any>span).col = i;
 				head.appendChild(span);
-				span.innerHTML = prefix;
+				browser.setInnerHtml(span, prefix);
 				span.appendChild(document.createTextNode(columns[i].name));
 			}
 		}
