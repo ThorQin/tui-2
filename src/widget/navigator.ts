@@ -97,8 +97,8 @@ module tui.widget {
 			var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
 			$(this._).on(mousewheelevt, (ev) => {
 				var e = <any>ev.originalEvent;
-				var delta = e.detail ? e.detail * (-120) : e.wheelDelta;
-				if (delta <= -120) {
+				var delta = e.detail ? e.detail * (-1) : e.wheelDelta;
+				if (delta <= 0) {
 					if (container.scrollTop + container.clientHeight >= container.scrollHeight) {
 						ev.preventDefault();
 					}

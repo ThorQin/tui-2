@@ -262,11 +262,11 @@ module tui.widget {
 				if (this.get("autoHeight"))
 					return;
 				var e = <any>ev.originalEvent;
-				var delta = e.detail ? e.detail * (-120) : e.wheelDelta;
+				var delta = e.detail ? e.detail * (-1) : e.wheelDelta;
 				var step = this.get("lineHeight");
 				//delta returns +120 when wheel is scrolled up, -120 when scrolled down
 				var scrollSize = step > 1 ? step : 1;
-				if (delta <= -120) {
+				if (delta <= 0) {
 					// console.log(this._vbar.get("value") + " : " + this._vbar.get("totle"));
 					if (this._vbar.get("value") < this._vbar.get("total")) {
 						ev.stopPropagation();

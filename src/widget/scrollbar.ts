@@ -117,12 +117,12 @@ module tui.widget {
 			var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
 			$(this._).on(mousewheelevt, (e: any) => {
 				var ev = e.originalEvent;
-				var delta = ev.detail ? ev.detail * (-120) : ev.wheelDelta;
+				var delta = ev.detail ? ev.detail * (-1) : ev.wheelDelta;
 				var page = this.get("page");
 				//delta returns +120 when wheel is scrolled up, -120 when scrolled down
 				var scrollSize = (Math.round(page / 2) > 1 ? Math.round(page / 2) : 1);
 				var oldValue = this.get("value");
-				if (delta <= -120) {
+				if (delta <= -0) {
 					this.set("value", oldValue + scrollSize);
 				} else {
 					this.set("value", oldValue - scrollSize);
