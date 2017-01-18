@@ -6,11 +6,20 @@ this.use(function(grid){
 		{name: "value column", key: "value"}
 	]);
 	var data = [];
-	for (var i = 0; i < 1000; i++) {
-		data.push({
+	for (var i = 0; i < 10; i++) {
+		var item = {
 			name: "列" + i,
-			value: "值" + i
-		})
+			value: "值" + i,
+			children: []
+		};
+		for (var j = 0; j < 5; j++) {
+			item.children.push({
+				name: "列" + i + "_" + j,
+				value: "值" + i + "_" + j
+			});
+		}
+		data.push(item)
 	}
-	grid.set("list", data);
+	
+	grid.set("tree", data);
 });

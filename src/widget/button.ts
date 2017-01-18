@@ -90,27 +90,39 @@ module tui.widget {
 				} else if (this.get("type") === "radio")
 					this.set("checked", true);
 				
+				let parent = this.get("parent");
 				let groupName = this.get("group");
-				if (groupName && (this.get("type") === "radio" || 
-					this.get("type") === "toggle-radio" && this.get("checked"))) {
-					let result = search( (elem: Widget) => {
-						if (elem.get("group") === groupName
-							&& (elem.get("type") === "radio" || elem.get("type") === "toggle-radio")
-							&& elem !== this)
-							return true;
-						else
-							return false;
-					})
+				if (this.get("type") === "radio" || 
+					this.get("type") === "toggle-radio" && this.get("checked")) {
+					let result: Widget[];
+					if (parent && parent instanceof Group) {
+						result = search( parent._, (elem: Widget) => {
+							if ((elem.get("type") === "radio" || elem.get("type") === "toggle-radio")
+								&& elem !== this)
+								return true;
+							else
+								return false;
+						})
+					} else {
+						result = search( (elem: Widget) => {
+							if (groupName && elem.get("group") === groupName
+								&& (elem.get("type") === "radio" || elem.get("type") === "toggle-radio")
+								&& elem !== this)
+								return true;
+							else
+								return false;
+						})
+					}
 					for (let elem of result) {
 						elem.set("checked", false);
 					}
 				}
+				
 				var onclick = this.get("onclick");
 				if (onclick) {
 					eval.call(window, onclick);
 				}
 				this.fire("click", e);
-				let parent = this.get("parent");
 				if (parent && parent instanceof Group)
 					parent.fire("click", {e: e, button: this});
 			};

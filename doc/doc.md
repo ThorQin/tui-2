@@ -215,7 +215,7 @@ $$("myButton").on("click", function(){
 
 ## [](fa-check-square-o) 单选`(radio)`
 外观：
-<tui:group name="g1">
+<tui:group>
  <tui:radio>选项1</tui:radio>
  <tui:radio>选项2</tui:radio>
  <tui:radio>选项3</tui:radio>
@@ -223,7 +223,7 @@ $$("myButton").on("click", function(){
 
 使用标签创建：
 ```html
-<tui:group name="g1">
+<tui:group>
   <tui:radio>选项1</tui:radio>
   <tui:radio>选项2</tui:radio>
   <tui:radio>选项3</tui:radio>
@@ -241,7 +241,7 @@ radio.appendTo(document.body);
 ## [](fa-dot-circle-o) 多选`(check)`
 
 外观：
-<tui:group name="g2">
+<tui:group>
  <tui:check>选项1</tui:check>
  <tui:check>选项2</tui:check>
  <tui:check>选项3</tui:check>
@@ -249,7 +249,7 @@ radio.appendTo(document.body);
 
 使用标签创建：
 ```html
-<tui:group name="g2">
+<tui:group>
   <tui:check>选项1</tui:check>
   <tui:check>选项2</tui:check>
   <tui:check>选项3</tui:check>
@@ -267,7 +267,7 @@ check.appendTo(document.body);
 ## [](fa-columns) 页签`(tab)`
 
 外观：
-<tui:button-group name="tab" class="tui-tab" style="border-bottom:1px solid #ccc">
+<tui:button-group class="tui-tab" style="border-bottom:1px solid #ccc">
   <tui:radio checked={true}>页签1</tui:radio>
   <tui:radio>页签2</tui:radio>
   <tui:radio>页签3</tui:radio>
@@ -277,7 +277,7 @@ check.appendTo(document.body);
 
 使用标签创建：
 ```html
-<tui:button-group name="tab" class="tui-tab" style="border-bottom:1px solid #ccc">
+<tui:button-group class="tui-tab" style="border-bottom:1px solid #ccc">
   <tui:radio checked={true}>页签1</tui:radio>
   <tui:radio>页签2</tui:radio>
   <tui:radio>页签3</tui:radio>
@@ -291,16 +291,16 @@ check.appendTo(document.body);
 ## [](fa-th) 按钮组`(group)`
 
 外观：
-<tui:button-group  class="tui-group">
+<tui:button-group>
 			<tui:button><i class="fa fa-file-o"></i></tui:button>
 			<tui:button><i class="fa fa-save"></i></tui:button>
 		</tui:button-group>
-		<tui:button-group name="edit">
+		<tui:button-group>
 			<tui:button><i class="fa fa-copy"></i></tui:button>
 			<tui:button><i class="fa fa-cut"></i></tui:button>
 			<tui:button><i class="fa fa-paste"></i></tui:button>
 		</tui:button-group>
-		<tui:button-group name="align" type="toggle-radio">
+		<tui:button-group type="toggle-radio">
 			<tui:button><i class="fa fa-align-left"></i></tui:button>
 			<tui:button><i class="fa fa-align-justify"></i></tui:button>
 			<tui:button><i class="fa fa-align-right"></i></tui:button>	
@@ -312,16 +312,16 @@ check.appendTo(document.body);
   
 HTML代码：
 ```html
-<tui:button-group  class="tui-group">
+<tui:button-group>
   <tui:button><i class="fa fa-file-o"></i></tui:button>
   <tui:button><i class="fa fa-save"></i></tui:button>
 </tui:button-group>
-<tui:button-group name="edit">
+<tui:button-group>
   <tui:button><i class="fa fa-copy"></i></tui:button>
   <tui:button><i class="fa fa-cut"></i></tui:button>
   <tui:button><i class="fa fa-paste"></i></tui:button>
 </tui:button-group>
-<tui:button-group name="align" type="toggle-radio">
+<tui:button-group type="toggle-radio">
   <tui:button><i class="fa fa-align-left"></i></tui:button>
   <tui:button><i class="fa fa-align-justify"></i></tui:button>
   <tui:button><i class="fa fa-align-right"></i></tui:button>	

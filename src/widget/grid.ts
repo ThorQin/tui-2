@@ -970,7 +970,7 @@ module tui.widget {
 				if (col.type === "check") {
 					var k = (col.checkKey ? col.checkKey : "checked"); 
 					if (item[k] === true)
-						prefix += "<i class='fa fa-check-square-o tui-grid-check'></i>";
+						prefix += "<i class='fa fa-check-square tui-grid-check'></i>";
 					else if (item[k] === false)
 						prefix += "<i class='fa fa-square-o tui-grid-check'></i>";
 					else
@@ -978,7 +978,7 @@ module tui.widget {
 				} else if (col.type === "tristate") {
 					var k = (col.checkKey ? col.checkKey : "checked"); 
 					if (item[k] === true)
-						prefix += "<i class='fa-check-square-o tui-grid-check'></i>";
+						prefix += "<i class='fa-check-square tui-grid-check'></i>";
 					else if (item[k] === false)
 						prefix += "<i class='fa-square-o tui-grid-check'></i>";
 					else if (item[k] === "tristate")

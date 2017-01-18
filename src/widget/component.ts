@@ -157,7 +157,7 @@ module tui.widget {
 						name = elem.getAttribute("name");
 						if (typeof name === "string" && name.trim().length > 0)
 							this._components[name] = elem;
-						if (!fullName.match(/^tui:/i) || fullName.match(/^tui:(input-group|group|button-group)$/))
+						if (!fullName.match(/^tui:/i) || fullName.match(/^tui:(dialog-select|input-group|group|button-group)$/))
 							searchElem(<HTMLElement>node);
 					}
 				}

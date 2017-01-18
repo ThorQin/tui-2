@@ -1,7 +1,9 @@
-this.use(function(select, content){
-	select.on("popup", function(e){
-		e.data.setContent(content);
-		e.data.open("ok#tui-primary");
+this.use(function(select, valueGroup){
+	select.on("open", function(e){
+		valueGroup.set("value", this.get("value"));
 	});
-
+	select.on("close", function(e){
+		this.set("text", valueGroup.get("text"));
+		this.set("value", valueGroup.get("value"));
+	});
 });

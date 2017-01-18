@@ -353,14 +353,32 @@ module tui.widget {
 
 	export class DialogSelect extends SelectBase {
 		private dialog: Dialog;
+		private content: HTMLElement;
 		openSelect(): void {
-			this.fire("popup", this.dialog);
+			this.fire("open", this.dialog);
+			this.dialog.open("ok#tui-primary");
 		} 
+		protected initChildren(childNodes: Node[]) {
+			super.initChildren(childNodes);
+			this.dialog = <Dialog>create(Dialog);
+			this.content = document.createElement("div");
+			childNodes.forEach(n => {
+				if (getFullName(n) !== "tui:verify")
+					this.content.appendChild(n);
+			});
+			this.dialog.setContent(this.content);
+			init(this.content);
+		}
+
 		protected createPopup(): any {
+			this.dialog.on("btnclick", () => {
+				this.fire("close");
+				this.dialog.close();
+			});
 			return this.dialog;
 		}
 		protected init(): void {
-			this.dialog = <Dialog>create(Dialog);
+			
 			super.init();
 			this.setInit("iconRight", "fa-pencil");
 		}

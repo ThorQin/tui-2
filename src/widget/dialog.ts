@@ -171,7 +171,7 @@ module tui.widget {
 			if (this.get("opened"))
 				return;
 			var contentDiv = this._components["content"];
-			
+			init(contentDiv);
 			this._init = true;
 			this._moved = false;
 			$(this._).css({
