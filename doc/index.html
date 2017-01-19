@@ -19,6 +19,7 @@
 		<script src="/highlightjs/highlight.min.js"></script>
 		<script>
 			$(function(){
+				
 				var scrollByCode = false;
 				function hideMenu() {
 					$("#navi").animate({left: "-250px"}, 150);
@@ -39,7 +40,7 @@
 				$("#mask").mousedown(function(e){
 					hideMenu();
 				});
-				$$(navi).on("select", function(e){
+				$$("navi").on("select", function(e){
 					if (e.data.path) {
 						scrollByCode = true;
 						var distance = $("#banner").height() > 40 ? 0 : 50;
@@ -73,10 +74,10 @@
 							minDistance = distance;
 						}
 					});
-					var currentItem = $$(navi).get("activeItem");
+					var currentItem = $$("navi").get("activeItem");
 					if (!currentItem || currentItem.path != findItem.id) {
 						console.log(findItem.id);
-						$$(navi).activeBy("path", findItem.id);
+						$$("navi").activeBy("path", findItem.id);
 					}
 				});
 				function repeat(str, count) {
@@ -159,7 +160,8 @@
 					$$("navi").set("items", index);
 					$("#content").html(marked(buffer));
 					tui.widget.init($("#content")[0]);
-					hljs.initHighlighting();
+					if (tui.ieVer <= 0 || tui.ieVer > 8)
+						hljs.initHighlighting();
 				});
 			});
 		</script>
@@ -173,5 +175,6 @@
 		<tui:navigator id="navi" selectable={true}></tui:navigator>
 		<!-- content -->
 		<div id="content"></div>
+		<br>
 	</body>
 </html>

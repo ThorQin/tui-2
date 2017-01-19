@@ -562,9 +562,23 @@ autoValidate | 是否自动验证
 
 ## [](fa-window-maximize) 嵌入页`(frame)`
 
-## [](fa-sitemap) 路由`(router)`
-
 # 工具函数
+## [](fa-sitemap) 路由`(router)`
+```javascript
+// 在首页的开始就注册路由表，然后在处理函数中使用 tui:frame 进行页面跳转
+tui.browser.startRouter([
+  {
+    state: "/test",
+    url: "page2.html"
+  }, {
+    state: "/index",
+    url: "page1.html",
+    default: true
+  }
+], function(state, hash, url){
+  $$("rootContainer").go(url);
+});
+```
 
 ## [](fa-clock-o) 时间`(time)`
 

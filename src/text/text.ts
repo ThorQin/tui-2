@@ -125,12 +125,15 @@ module tui.text {
 			prefix = matcher[0];
 			url = url.substr(matcher[0].length);
 		} 
+		var pos = url.indexOf("#");
+		if (pos >= 0) {
+			url = url.substring(0, pos);
+		} 
 		var pos = url.lastIndexOf("/");
 		if (pos >= 0) {
-			return prefix + url.substr(0, pos + 1);
-		} else {
-			return prefix + url;
+			url = url.substring(0, pos + 1);
 		}
+		return prefix + url;
 	}
 	export function joinUrl(...urls: string[]): string {
 		var result: string = null;
