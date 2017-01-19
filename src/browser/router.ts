@@ -11,7 +11,6 @@ module tui.browser {
 		state: string;
 		url?: string;
 		handler?: RouterHandler;
-		default?: boolean;
 	}
 
 	var _rules: RouterRule[];
@@ -37,7 +36,7 @@ module tui.browser {
 			}
 			if (matchRule == null) {
 				for (let r of _rules) {
-					if (r.default) {
+					if (r.state === "/") {
 						matchRule = r;
 						break;
 					}
