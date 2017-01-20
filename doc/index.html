@@ -163,7 +163,8 @@
 					tui.widget.init($("#content")[0]);
 					if (tui.ieVer <= 0 || tui.ieVer > 8)
 						hljs.initHighlighting();
-					location.href = location.hash;
+					if (location.hash && location.hash.length > 0 && location.hash.substring(0) == "#")
+						location.href = location.hash;
 				});
 			});
 		</script>
