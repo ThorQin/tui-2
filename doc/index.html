@@ -46,6 +46,7 @@
 						var distance = $("#banner").height() > 40 ? 0 : 50;
 						tui.browser.scrollToElement($("#"+e.data.path)[0], distance, function(){
 							scrollByCode = false;
+							location.href = "#"+e.data.path;
 						});
 						if (distance > 0)
 							hideMenu();
@@ -162,6 +163,7 @@
 					tui.widget.init($("#content")[0]);
 					if (tui.ieVer <= 0 || tui.ieVer > 8)
 						hljs.initHighlighting();
+					location.href = location.hash;
 				});
 			});
 		</script>

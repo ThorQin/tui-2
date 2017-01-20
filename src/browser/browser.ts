@@ -256,7 +256,7 @@ module tui.browser {
 		keepTopList.push({keepTop: false, elem: elem, top: top});
 	}
 	
-	export function cancelKeepToTop(elem: HTMLElement, top: number) {
+	export function cancelKeepToTop(elem: HTMLElement) {
 		var newList: KeepInfo[] = [];
 		for (var item of keepTopList) {
 			if (item.elem !== elem) {

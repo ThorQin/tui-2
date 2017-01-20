@@ -119,11 +119,22 @@ code[class] {
 		height: 40px;
 		line-height: 40px;
 	}
-	tui\:button, tui\:input, tui\:textarea, tui\:select, tui\:date-picker, tui\:dialog-select {
+	tui\:button, 
+	tui\:input, 
+	tui\:textarea, 
+	tui\:select, 
+	tui\:date-picker, 
+	tui\:dialog-select, 
+	tui\:file {
 		display: block;
 		margin-top: 10px;
 		margin-top: 10px;
 		width: inherit;
+	}
+	tui\:calendar {
+		width: 231px;
+		display: block;
+		margin: 0 auto;
 	}
 	body {
 		padding: 10px;

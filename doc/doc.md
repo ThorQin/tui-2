@@ -1,5 +1,5 @@
 # 简介`(introduce)`
-* TUI2 实现了不同于 *AngularJS*、*ReactJS* 以及 *Vue.js* 的模块化开发方式，
+* TUI2 实现了不同于 *AngularJS*、*ReactJS* 的模块化开发方式，
   TUI2 使用更自然的方式对页面和脚本进行模块化的组织，
   不需要使用脚本和标签混合的 JSX 语法，也不需要用 TypeScript 编译打包，使用方式完全回归传统。
   对于习惯使用 jQuery 这种命令式框架的开发人员来说更容易上手。
@@ -13,6 +13,11 @@
 * TUI2 不使用 MVC，MVVM 等数据绑定方法，由于不使用数据绑定，所以也不使用虚拟DOM进行所谓的加速，
   内部控件的绘制就是直接操作DOM对象，而重绘仅仅发生在变动的对象上，不会造成浪费。
 * 浏览器支持：**IE >= 8.0**，以及所有其他现代浏览器。
+
+# 作者`(author)`
+
+本框架作者是：秦诺，如要反馈问题，可以发邮件到 <a href="mailto:thor.qin@outlook.com">thor.qin@outlook.com</a> 
+或 <a href="mailto:thor.qin@qq.com">thor.qin@qq.com</a>
 
 # 下载`(download)`
 使用 npm 进行高安装：
@@ -100,6 +105,8 @@ this.use(function(name, submit){
 </body>
 </html>
 ```
+
+关于模块化开发、SPA 应用的内容，请参考关于 <a href="#component">模块化开发</a>，<a href="#frame">嵌入页</a> 和 <a href="#router">路由</a> 的描述。
 
 # 控件
 TUI2 提供了一组标准控件，取代了大部分浏览器内置的控件，以便提供统一的外观和操作。
@@ -267,23 +274,27 @@ check.appendTo(document.body);
 ## [](fa-columns) 页签`(tab)`
 
 外观：
-<tui:button-group class="tui-tab" style="border-bottom:1px solid #ccc">
+<div style="border-bottom:1px solid #ddd">
+  <tui:button-group class="tui-tab">
   <tui:radio checked={true}>页签1</tui:radio>
   <tui:radio>页签2</tui:radio>
   <tui:radio>页签3</tui:radio>
   <tui:radio>页签4</tui:radio>
   <tui:radio>页签5</tui:radio>
   </tui:button-group>
+  </div>
 
 使用标签创建：
 ```html
-<tui:button-group class="tui-tab" style="border-bottom:1px solid #ccc">
-  <tui:radio checked={true}>页签1</tui:radio>
-  <tui:radio>页签2</tui:radio>
-  <tui:radio>页签3</tui:radio>
-  <tui:radio>页签4</tui:radio>
-  <tui:radio>页签5</tui:radio>
-</tui:button-group>
+<div style="border-bottom:1px solid #ddd">
+  <tui:button-group class="tui-tab">
+    <tui:radio checked={true}>页签1</tui:radio>
+    <tui:radio>页签2</tui:radio>
+    <tui:radio>页签3</tui:radio>
+    <tui:radio>页签4</tui:radio>
+    <tui:radio>页签5</tui:radio>
+  </tui:button-group>
+</div>
 ```
 可以看到页签其实就是一组 radio 控件，只是外观有所变化。
 
@@ -441,6 +452,7 @@ HTML代码：
 可以看到，选择框支持嵌套的树状数据，还支持本地搜索。
 
 HTML代码：
+
 ```html
 <tui:select tree="{[
   {name:'选项1', value:'v1'},
@@ -481,7 +493,7 @@ autoValidate | 是否自动验证
 
 ## [](fa-toggle-down) 下拉多选`(multiSelect)`
 外观：
-<tui:select tree="{[
+<tui:select placeholder="多选..." clearable={true} tree="{[
   {name:'选项1', value:'v1' ,check: false},
   {name:'选项2', value:'v2' ,check: false},
   {name:'选项3', value:'v3' ,check: false, children:[
@@ -497,43 +509,404 @@ autoValidate | 是否自动验证
 属性和事件请参考下拉单选控件。
 
 ## [](fa-toggle-down) 自定义选择`(customSelect)`
+
+允许用户设计自己的对话框界面来进行选择，校验和属性可以参考下拉单选框。
+
 外观：
 <tui:component src="components/customSelect.html"></tui:component>
 
+HTML代码：
+
+```html
+<tui:component handler="customSelect.js">
+  <tui:dialog-select name="select" clearable={true} 
+      auto-validate={true} title="定制选择" placeholder="定制选择框...">
+    <tui:verify format="*any">随便选择点什么</tui:verify>
+    <tui:button-group name="valueGroup" type="radio">
+      <tui:radio value="v1">测试选项1</tui:radio>
+      <tui:radio value="v2">测试选项2</tui:radio>
+    </tui:button-group>
+  </tui:dialog-select>
+</tui:component>
+```
+JS代码：
+
+```javascript
+// customSelect.js
+this.use(function(select, valueGroup){
+	select.on("open", function(e){
+		valueGroup.set("value", this.get("value"));
+	});
+	select.on("close", function(e){
+		this.set("text", valueGroup.get("text"));
+		this.set("value", valueGroup.get("value"));
+	});
+});
+```
+事件
+
+事件名称 | 描述
+--- | ---
+open | 选择对话框打开
+close | 选择对话框关闭
+
 ## [](fa-file) 文件选择`(file)`
+工作方式是选择文件后就直接上传到服务器，再随表单一起把文件ID提交给服务器，现代浏览器中，文件选择框还会显示文件上传进度。
+
 外观：
 <tui:file placeholder="请选择文件..." accept="text/plain" 
  clearable={true}  action="uploadFile.do"></tui:file>
+
+```html
+<tui:file placeholder="请选择文件..." accept="text/plain" 
+ clearable={true}  action="uploadFile.do"></tui:file>
+```
+属性：
+
+属性名 | 描述
+--- | ---
+accept | 接受的文件类型：text/plain 或者 image/* 等 MIME 类型
+
 
 ## [](fa-calendar-o) 日期选择`(datePicker)`
 外观：
 <tui:date-picker placeholder="选择日期"></tui:date-picker>
 
+HTML代码：
+
+```html
+<tui:date-picker placeholder="选择日期"></tui:date-picker>
+```
+
 <tui:date-picker placeholder="选择日期和时间" format="yyyy-MM-dd hh:mm:ss" time-bar={true}></tui:date-picker>
+
+HTML代码：
+
+```html
+<tui:date-picker placeholder="选择日期和时间" 
+  format="yyyy-MM-dd hh:mm:ss" time-bar={true}>
+</tui:date-picker>
+```
+
+属性：
+
+属性名 | 描述
+--- | ---
+format | 显示的日期格式
+time-bar | boolean, 是否显示时间输入框
 
 ## [](fa-calendar) 日历`(calendar)`
 外观：
 <tui:calendar time-bar="{true}"></tui:calendar>
 
+HTML代码：
+
+```html
+<tui:calendar time-bar="{true}"></tui:calendar>
+```
+事件
+
+事件名称 | 描述
+--- | ---
+click | 单击选择日期
+dblclick | 双击选择日期
+
+
 ## [](fa-clone) 弹出层`(popup)`
+弹出层可以一层一层的层叠打开。
+
 外观：
 <tui:component src="components/popup.html"></tui:component>
 
+HTML代码：
+
+```html
+<tui:component handler="popup.js">
+	<tui:button name="popBtn">弹出层</tui:button>
+	<tui:popup name="popup">
+		<div style="width:200px;height:100px;text-align:center;line-height:100px;">
+		这是一个弹出层
+		</div>
+	</tui:popup>
+</tui:component>
+```
+JS代码：
+
+```javascript
+this.use(function(popup, popBtn){
+	popBtn.on("click", function(){
+		popup.open(popBtn._);
+	});
+});
+```
+
+事件
+
+事件名称 | 描述
+--- | ---
+open | 弹出层打开
+close | 弹出层关闭
+
 ## [](fa-bars) 弹出菜单`(menu)`
+弹出菜单是由弹出层派生的，可以实现任意多的自菜单。
+
 外观：
 <tui:component src="components/menu.html"></tui:component>
+
+HTML代码：
+
+```html
+<tui:component handler="menu.js">
+	<tui:button name="popBtn">弹出菜单</tui:button>
+	<tui:menu name="menu" class="tui-big">
+		<tui:item icon="fa-user" shortcut="Ctrl+A">菜单项1</tui:item>
+		<tui:item type="check" checked="{true}" >第二个菜单项</tui:item>
+		<tui:item text="子菜单">
+			<tui:item type="radio" checked="{true}">子菜单项1</tui:item>
+			<tui:item type="radio" >第二个菜单项</tui:item>
+			<tui:item type="radio" >菜单项2</tui:item>
+			<tui:item type="radio" >菜单项3</tui:item>
+		</tui:item>
+		<tui:item disable="{true}">菜单项2</tui:item>
+		<tui:item>菜单项3</tui:item>
+		<tui:item text="子菜单" shortcut="Ctrl+Alt+S">
+			<tui:item>子菜单项1</tui:item>
+			<tui:item>第二个菜单项</tui:item>
+			<tui:item>菜单项2</tui:item>
+			<tui:item>菜单项3</tui:item>
+			<tui:item text="第二个菜单项子菜单">
+				<tui:item>子菜单项2</tui:item>
+				<tui:item>第二个菜单项</tui:item>
+				<tui:item>菜单项2</tui:item>
+				<tui:item>菜单项3</tui:item>
+			</tui:item>
+		</tui:item>
+		<tui:item type="line"></tui:item>
+		<tui:item text="子菜单">
+			<tui:item>子菜单项1</tui:item>
+			<tui:item>第二个菜单项</tui:item>
+			<tui:item>菜单项2</tui:item>
+			<tui:item>菜单项3</tui:item>
+		</tui:item>
+	</tui:menu>
+</tui:component>
+```
+JS代码：
+
+```javascript
+this.use(function(menu, popBtn){
+	popBtn.on("click", function(){
+		menu.open(popBtn._);
+	});
+});
+```
+
+事件
+
+事件名称 | 描述
+--- | ---
+click | 单击菜单项
+open | 菜单打开
+close | 菜单关闭
 
 ## [](fa-commenting) 对话框`(dialog)`
 外观：
 <tui:component src="components/dialog.html"></tui:component>
 
+HTML代码：
+
+```html
+<tui:component handler="dialog.js">
+  <div>
+    <tui:button name="btnMsg">普通消息</tui:button>
+    <tui:button name="btnInfo">提示消息</tui:button>
+    <tui:button name="btnOk">成功消息</tui:button>
+    <tui:button name="btnWarn">警告消息</tui:button>
+    <tui:button name="btnErr">错误消息</tui:button>
+    <tui:button name="btnAsk">询问</tui:button>
+    <tui:button name="btnWait">等待</tui:button>
+  </div>
+</tui:component>
+```
+
+JS代码：
+
+```javascript
+// dialog.js
+this.use(function(btnMsg, btnInfo, btnOk, btnWarn, btnErr, btnAsk, btnWait){
+	btnMsg.on("click", function(){
+		tui.msgbox("一个普通测试消息。", "消息");
+	});
+	btnInfo.on("click", function(){
+		tui.infobox("您还可以尝试使用不同的方法完成此操作。", "提示");
+	});
+	btnOk.on("click", function(){
+		tui.okbox("保存操作成功！", "成功");
+	});
+	btnWarn.on("click", function(){
+		tui.warnbox("股市有风险，请谨慎操作！", "警告");
+	});
+	btnErr.on("click", function(){
+		tui.errbox("错误：服务器没有响应！", "错误");
+	});
+	btnAsk.on("click", function(){
+		tui.askbox("是否真的要删除该记录？", "删除");
+	});
+
+  // 多个等待事件并发，并不会弹出多个等待框，而是在同一框中显示不同的信息
+	btnWait.on("click", function(){
+		var dlg = tui.waitbox("任务1请稍后...");
+		setTimeout(function(){dlg.close()}, 3000);
+		setTimeout(function(){
+			var dlg1 = tui.waitbox("正在执行一个临时任务2请稍后...");
+			setTimeout(function(){
+				dlg1.close();
+				dlg1.close();
+			},1000);
+		},1000);
+	});
+});
+```
+
+事件
+
+事件名称 | 描述
+--- | ---
+btnclick | 单击对话框底部的按钮
+open | 对话框打开
+close | 对话框关闭
+
+方法
+
+方法名称 | 描述
+--- | ---
+open() | 打开对话框
+close() | 关闭对话框
+tui.msgbox() | 静态，弹出普通消息框
+tui.infobox() | 静态，弹出通知消息框
+tui.okbox() | 静态，弹出成功消息框
+tui.errbox() | 静态，弹出错误消息框
+tui.warnbox() | 静态，弹出警告消息框
+tui.askbox() | 静态，弹出询问消息框
+tui.waitbox() | 静态，弹出等待消息框
+
 ## [](fa-sliders) 滚动条`(scrollbar)`
 外观：
 <tui:component src="components/scrollbar.html"></tui:component>
 
+HTML代码：
+
+```html
+<tui:component handler="scrollbar.js">
+	<tui:scrollbar name="scrollbar" 
+		direction="horizontal" 
+		total="{1000}" 
+		page="{20}" style="width: 100%"></tui:scrollbar>
+	<div name="info"></div>
+</tui:component>
+```
+
+JS代码：
+
+```javascript
+// scrollbar.js
+// 滚动的时候显示当期的值
+this.use(function(scrollbar, info){
+	scrollbar.on("scroll", function(e){
+		info.innerHTML = e.data.value;
+	});
+});
+```
+
+事件
+
+事件名称 | 描述
+--- | ---
+scroll | 滚动事件
+
 ## [](fa-table) 数据网格`(grid)`
 外观：
 <tui:component src="components/grid.html"></tui:component>
+
+HTML代码：
+
+```html
+<tui:component handler="grid.js">
+	<tui:grid name="grid" style="height:300px;"
+		auto-height={false} 
+		header={true}  
+		auto-width={false}
+		sort-column={1}
+		sort-type="asc">
+	</tui:grid>
+</tui:component>
+```
+
+JS代码：
+
+```javascript
+// grid.js 一般来说数据都是由服务器返回的，这里使用 javascript 生成假数据来演示
+this.use(function(grid){
+	grid.set("columns", [
+		{name: "name column", key: "name", sortable: true, 
+			arrow: true, checkKey: "checked", iconKey: "icon"}, 
+		{name: "value column", key: "value"},
+		{name: "value column", key: "value"}
+	]);
+	var data = [];
+	for (var i = 0; i < 10; i++) {
+		var item = {
+			name: "列" + i,
+			value: "值" + i,
+			children: []
+		};
+		for (var j = 0; j < 5; j++) {
+			item.children.push({
+				name: "列" + i + "_" + j,
+				value: "值" + i + "_" + j
+			});
+		}
+		data.push(item)
+	}
+	grid.set("tree", data);
+});
+```
+
+属性：
+
+属性名 | 描述
+--- | ---
+data | 数据内容，要求是个 DS 对象或者数组
+list | 数据内容，要求是个 DS 对象或者数组（明确不支持嵌套数据）
+tree | 数据内容，要求是个 DS 对象或者数组（明确支持嵌套数据）
+columns | 表格的列定义
+sortColumn | 排序列
+sortType | 排序类型
+scrollTop | 垂直滚动距离
+scrollLeft | 水平滚动距离
+activeRow | 当前选择的行
+activeRowData | 当前选择的行数据项
+activeColumn | 当前选择的列
+selectable | 是否可以选择（打勾）
+autoWidth | 自动宽度（如果是 false 就会使用水平滚动条）
+autoHeight | 自动高度（如果是 false 就会使用垂直滚动条）
+
+事件
+
+事件名称 | 描述
+--- | ---
+rowclick | 单击行
+rowdblclick | 双击行
+sort | 排序事件
+rowcheck | 行打勾
+keyselect | 键盘选择行
+
+方法
+
+方法名称 | 描述
+--- | ---
+scrollTo() | 滚动到某行
+setSortFlag() | 进行排序
 
 ## [](fa-th-list) 数据列表`(list)`
 外观：
@@ -558,12 +931,150 @@ autoValidate | 是否自动验证
 			]}">
 		</tui:list>
 
+HTML代码：
+
+```html
+<tui:list style="height:200px;width:300px;margin:20px" 
+  checkable={true} row-tooltip-key="desc" data="{[
+    {name: '列表内容1(不可选)', value: 'value1', desc: '这是一个很长的描述信息1'},
+    {name: '列表内容2', check:false,  value: 'value2', desc: '这是一个很长的描述信息2'},
+    {name: '列表内容3', check:false, value: 'value3', desc: '这是一个很长的描述信息3'},
+    {name: '列表内容4', check:true, value: 'value4', desc: '这是一个很长的描述信息4'},
+    {name: '列表内容5', check:false, value: 'value5', desc: '这是一个很长的描述信息5'},
+    {name: '列表内容6(不可选)', value: 'value6', desc: '这是一个很长的描述信息6'}
+  ]}">
+</tui:list>
+<tui:list style="height:200px;width:300px;margin:20px" 
+  data="{[
+    {name: '列表内容1'},
+    {name: '列表内容2'},
+    {name: '列表内容3'},
+    {name: '列表内容4'},
+    {name: '列表内容5'},
+    {name: '列表内容6'}
+  ]}">
+</tui:list>
+```
+
+属性、事件等都合 Grid 一致，区别就是没有 header 只有一列，另外样式稍有不同。
+
+
 ## [](fa-object-ungroup) 组件化开发`(component)`
+
+在 <a href="#quickStart">快速开始</a> 中已经大致描述过组件化开发的概念了，所谓组件就是 TUI2 提供的一个标签：`tui:component`
+  这个标签，就像C语言中的 `include` 和 java 中的 `import` 一样，都是把别的文件中定义的代码引入本文件，
+  这样通过把功能分割到不同的文件中，再相互包含引用，以实现良好的代码组织形式。
+
+一个基本的组件包括了页面模板和控制器代码两部分，页面模板就是 HTML 的标签组合，使用 HTML 标签可以直观的
+  设计组件的外观，控制器代码部分描述了组件实现的业务逻辑，根据响应各子组件产生的事件，调用子组件或全局服务的方法
+  来创造新的逻辑模块，这样组件还可以层层封装成更为复杂的组件。
+
+组件定义的形式为：
+
+```html
+<tui:component handler="xxx.js">
+  ...
+  <xxx name="obj1">
+    ...
+  </xxx>
+  ...
+</tui:component>
+```
+
+组件的控制器中使用依赖注入来生成对子组件或HTML元素的引用：
+
+```javascript
+this.use(function(obj1, obj2, $svc1, $svc2, ...){
+  var me = this;
+
+  // 声明组件方法
+  this.myMethod = function(){
+    ...
+  };
+
+  obj1.on("xxx", function(e){
+    obj2.someMethod("...");
+    ...
+    $svc1.doSomeThing();
+    ...
+    // 触发组件事件
+    me.fire("newEvent", {some:"data"});
+  });
+});
+```
+
+使用 `$` 开头的变量是注入全局服务，其他的是注入本组件的子组件（TUI控件）或HTML元素，
+  可以看到组件标签清晰的描述了业务逻辑实现，且做到了 HTML 和 JS 的完全分离。
+  灵活地使用组件是开发 SPA 应用必不可少的重要手段。
+
+组件引用的形式为：
+
+```html
+<tui:component src="someComponent.html"></tui:component>
+```
+
 
 ## [](fa-window-maximize) 嵌入页`(frame)`
 
-# 工具函数
+嵌入页 `<tui:frame>` 控件和标准 HTML 标签 `iframe` 非常类似，区别是嵌入页的文档元素是直接加入到当前页面中的，
+  而 `iframe` 是单独创建了一个容器把子页面和当前页隔离的开来，我不推荐使用 `iframe` 元素，除非是要引入站外页面，
+  否则把子页引入到本页中会比较便于开发，各种交互也比较容易，当然为了各个页面不会互相干扰破坏，建议每个页面都按照组件的形式进行开发。
+  使用TUI2提供的组件标签，可以完全不使用 ID 这种全局名称，所以不会出现命名冲突。
+
+一个使用 `<tui:frame>` 的例子：
+<tui:component src="components/frame.html"></tui:component>
+
+# 工具和服务
+
+其实根据项目中的经验来看，除了AJAX，路由和服务外，TUI2提供的大部分工具函数都很少用到，这些函数有些只是内部被框架自己使用，
+  所以也可以不用太了解这些函数。
+
+## [](fa-gear) 服务`(service)`
+TUI2 中脚手架代码都使用静态函数的方式提供，并没有预制什么服务，但是用户可以通过 service 接口注册自己服务。
+
+注册服务：
+
+从文件中加载服务，一个文件一个服务：
+
+```javascript
+tui.service.load(['service1.js', 'service2.js']);
+```
+
+或者手工注册服务：
+
+```javascript
+tui.service.register('name1', function(){
+  this.use(function($svc1, $svc2){
+    this.method1 = function(){
+      // do sth...
+    };
+  });
+});
+
+// 注册多个服务
+...
+
+// 注册完成
+tui.service.ready();
+```
+
+服务的引用可以通过依赖注入在组件或其他服务中使用，或者通过 `tui.service.get()` 方法获取
+
+服务相关的常用方法：
+
+方法名称 | 描述
+--- | ---
+tui.service.load() | 加载服务
+tui.service.register() | 注册一个服务
+tui.service.ready() | 标记服务全都注册完成
+tui.service.onReady() | 当所有服务注册完成时调用，参数是一个回调函数，如果执行的时候已经都 ready 了就立即回调
+tui.service.get() | 根据名称获取一个服务
+
 ## [](fa-sitemap) 路由`(router)`
+路由函数，在单页应用中用来记录历史和控制跳转。
+
+JS代码：
+
 ```javascript
 // 在首页的开始就注册路由表，然后在处理函数中使用 tui:frame 进行页面跳转
 tui.browser.startRouter([
@@ -571,21 +1082,151 @@ tui.browser.startRouter([
     state: "/test",
     url: "page2.html"
   }, {
-    state: "/index",
+    state: "/",
     url: "page1.html",
-    default: true
   }
 ], function(state, hash, url){
   $$("rootContainer").go(url);
 });
 ```
 
+路由通过匹配当前 URL 的 HASH 部分来执行路由规则，如果没有匹配的规则，则执行 `"/"` 对应的规则，称之为默认规则。
+
+路由相关的常用方法：
+
+方法名称 | 描述
+--- | ---
+tui.browser.startRouter() | 启动一个路由表监听
+tui.browser.stopRouter() | 停止一个路由表监听
+
+## [](fa-exchange) AJAX`(ajax)`
+
+一组 HTTP AJAX 函数封装，来简单的执行 POST，GET 等与服务器的交互操作，它内部封装了 jQuery 的 Ajax 操作，
+ 同时在操作的过程中可以选择性的显示加载等待框，如果出错还会提供标准的错误对话框，使得操作更为友好简单。
+
+如：
+
+```javascript
+$post("some/url/xxx", {data: "value"}).done(function(result, xhr){
+  // success...
+}).fail(function(status, message, xhr){
+  // failed...
+});
+```
+
+方法：
+
+ 方法 | 短名 | 描述
+--- | --- | ---
+tui.ajax.send(url, method, data, options) | $ajax | 发送（获取）数据到（从）服务器
+tui.ajax.post(url, data, options) | $post() | 执行 HTTP POST 方法
+tui.ajax.get(url, data, options) | $get() | 执行 HTTP GET 方法
+tui.ajax.post_(url, data, options) | $post_() | 静默执行 HTTP POST 方法
+tui.ajax.get_(url, data, options) | $get_() | 静默执行 HTTP GET 方法
+tui.ajax.getScript(url) | 无 | 静默获取一个脚本文件内容（与jQuery不同，不会执行该脚本）
+tui.ajax.getBody(url) | 无 | 静默获取一个 HTML 页面中 body 的部分
+tui.ajax.getComponent(url) | 无 | 静默获取一个 HTML 页面中的组件定义
+tui.ajax.getFunction(url, param) | 无 | 静默获取一个脚本文件并返回一个封装的闭包函数
+
 ## [](fa-clock-o) 时间`(time)`
 
+一组和时间相关的函数，用来格式化或解析时间字符串，或计算时间间隔。
+
+方法：
+
+ 方法 | 描述
+--- | ---
+tui.time.timespan(seconds, language) | 显示时间间隔，如：3天2小时
+tui.time.dateDiff(dt1, dt2, unit = 'd') | 计算时间间隔
+tui.time.dateAdd(dt, val, unit = 'd') | 时间加间隔求一个新时间
+tui.time.dayOfYear(dt) | 获取这个日期是一天中的第多少天
+tui.time.totalDaysOfMonth(dt) | 获取这个日期所在的月共有多少钱
+tui.time.parseDate(dtStr, format?) | 解析一个日期字符串，可以执行格式
+tui.time.formatDate(dt, dateFmt = "yyyy-MM-ddTHH:mm:sszzz") | 格式化日期
+
+
+
 ## [](fa-file-text-o) 字符串`(string)`
+一组和字符串操作相关的附加函数。
+
+方法：
+
+ 方法 | 描述
+--- | ---
+tui.text.parseBoolean(value) | 解析boolean值，yes true y 1 等都解析成 true
+tui.text.format(template, params) | 格式化字符串
+tui.text.toDashSplit(word) | 把驼峰风格的命名字符串格式化成用减号隔开的形式
+tui.text.toCamel(word, strict = false) | 把减号或下划线分割的单词格式化成驼峰命名
+tui.text.paddingNumber(v, min, max?, alignLeft = false) | 用0填充一个数字
+tui.text.getUrlParam(url, key) | 获取一个URL中的某个查询参数
+tui.text.getUrlAnchor(url) | 获取一个URL中的锚点
+tui.text.isAbsUrl(url) | 判断一个地址是否是绝对地址
+tui.text.getBaseUrl(url) | 获取一个地址中的基地址
+tui.text.joinUrl(path1, path2, ...) | 连接地址
+
 
 ## [](fa-sitemap) 浏览器相关`(browser)`
+一组和字符串操作相关的附加函数。
+
+方法：
+
+ 方法 | 描述
+--- | ---
+tui.browser.backupScrollPosition(target) | 保存一个元素的滚动位置
+tui.browser.focusWithoutScroll(target) | 让某个元素获取焦点但不滚动页面
+tui.browser.scrollToElement(target, distance?, callback?) | 滚动页面以显示某个元素,这个是有动画的
+tui.browser.toElement(str, withParentDiv = false) | 用 HTML 字符串创建元素
+tui.browser.toHTML(node 或 nodeList) | 把元素或元素集合转换成 HTML 字符串
+tui.browser.removeNode(node) | 把元素从文档中移除
+tui.browser.toSafeText(str) | 转换成安全的文字,转移 HTML 的标签符号
+tui.browser.getNodeText(node) | 获取元素的纯文本
+tui.browser.setNodeText(node, text) | 设置素的纯文本
+tui.browser.getNodeOwnText(node) | 获取元素的纯文本,不包括子元素
+tui.browser.getRectOfParent(node) | 获取相对于父元素的位置和大小
+tui.browser.getRectOfPage(node) | 获取相对于页面的位置和大小
+tui.browser.getRectOfScreen(node) | 获取相对于窗口的位置和大小
+tui.browser.getTopBody() | 获取顶层的 body
+tui.browser.getWindow(node) | 获取一个元素对应的窗口
+tui.browser.getWindowScrollElement() | 获取浏览器的顶层滚动对象(不同的浏览器是不一样的)
+tui.browser.keepToTop(node, top) | 让某个元素置顶
+tui.browser.cancelKeepToTop(node) | 让某个元素置顶
+tui.browser.getCurrentStyle(node) | 获取元素当前计算后的样式
+tui.browser.isLButton(event) | 判断当前事件中是否是鼠标左键的点击动作
+tui.browser.banBackspace() | 禁止浏览器使用退格键返回上一浏览记录
+tui.browser.cancelDefault(event) | 禁用缺省事件处理操作
+tui.browser.cancelBubble(event) | 禁止事件冒泡
+tui.browser.isAncestry(node, parent) | 判断是否祖先节点
+tui.browser.isPosterity(node, child) | 判断是否后代节点
+tui.browser.isFireInside(node, event) | 判断事件是否是在元素内触发的
+tui.browser.isInDoc(node) | 判断元素是否位于文档内
+tui.browser.saveCookie(name, value, expires?, path?, domain?, secure = false) | 保存 cookie
+tui.browser.loadCookie(name) | 获取 cookie
+tui.browser.deleteCookie(name, path?, domain?) | 删除 cookie
+tui.browser.saveData(key, value, sessionOnly = false) | 保存数据到 localStore 或 sessionStore 如果没有这些存储就存到 cookie 里
+tui.browser.loadData(key, sessionOnly = false) | 提取数据
+tui.browser.deleteData(key, sessionOnly = false) | 删除数据
+tui.browser.addAccelerate(key, actionId) | 增加一个全局快捷键
+tui.browser.deleteAccelerate(key, actionId) | 删除一个全局快捷键
+tui.browser.getUrlParam(key) | 获取当前页面的路径查询参数
+tui.browser.getEventPosition(e, allFingers = false) | 获取触摸事件中触摸点的位置
+tui.browser.setInnerHtml(node, html) | 设置元素的源代码(兼容IE8)
+tui.browser.createUploader(node, options) | 使一个元素可以点击上传文件
 
 ## [](fa-language) 多语言`(lang)`
 
+TUI2 中的组件都支持多语言,同时提供了一组函数用来处理前台的多语言的问题。
+通过设置 tui.lang 变量来修改全局的语言设置。
 
+```html
+<script src="tui2.js"></script>
+<script>
+  tui.lang = "zh-CN";
+</script>
+```
+
+方法：
+
+ 方法 | 描述
+--- | ---
+tui.dict(lang, translator) | 为某个语言设置一个字典
+tui.str(str, lang?) | 获取一个字符串的本地化翻译，如果lang没有传就使用 tui.lang 变量

@@ -1,11 +1,12 @@
 /// <reference path="base.ts" />
+/// <reference path="group.ts" />
 /// <reference path="../ajax/ajax.ts" />
 /// <reference path="../service/service.ts" />
 
 module tui.widget {
 	"use strict";
 
-	export class Component extends Widget {
+	export class Component extends Group {
 		
 		private _scriptReady: boolean;
 		private _htmlReady: boolean;
@@ -82,7 +83,8 @@ module tui.widget {
 				},"src": {
 					"set": (value: any) => {
 						let oldValue = this._data["src"];
-						
+						if (value == oldValue)
+							return;
 						if (value && (value + "").trim().length > 0) {
 							value = (value + "").trim();
 							this._data["src"] = value;
@@ -100,8 +102,10 @@ module tui.widget {
 								this.checkReady();
 							});
 						} else {
-							if (oldValue)
+							if (oldValue) {
 								this._changed = true;
+								this._.innerHTML = "";
+							}
 							delete this._data["src"];
 							this._htmlReady = true;
 							this.checkReady();

@@ -1,7 +1,6 @@
 <tui:component handler="customSelect.js">
-  <tui:dialog-select name="select" clearable={true} auto-validate={true} placeholder="定制选择框...">
+  <tui:dialog-select name="select" clearable={true} auto-validate={true} title="定制选择" placeholder="定制选择框...">
     <tui:verify format="*any">随便选择点什么</tui:verify>
-    <p>选择一个类型</p>
     <tui:button-group name="valueGroup" type="radio">
       <tui:radio value="v1">测试选项1</tui:radio>
       <tui:radio value="v2">测试选项2</tui:radio>

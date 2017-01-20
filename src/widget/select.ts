@@ -356,6 +356,7 @@ module tui.widget {
 		private content: HTMLElement;
 		openSelect(): void {
 			this.fire("open", this.dialog);
+			this.dialog.set("title", this.get("title"));
 			this.dialog.open("ok#tui-primary");
 		} 
 		protected initChildren(childNodes: Node[]) {

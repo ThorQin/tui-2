@@ -72,16 +72,7 @@ module tui.service {
 				var p: any = arguments[i];
 				register(p[1], p[0]);
 			}
-			for (let name in _services) {
-				if (_services.hasOwnProperty(name)) {
-					let service = _services[name];
-					service._constructor.call(service);
-				}
-			}
-			_serviceReady = true;
-			for (let cb of _readyCallbacks) {
-				cb();
-			}
+			ready();
 		}).fail(function(){
 			_serviceReady = true;
 		});
@@ -93,11 +84,24 @@ module tui.service {
 		_services[name] = service;
 	}
 
+	export function ready() {
+		for (let name in _services) {
+			if (_services.hasOwnProperty(name)) {
+				let service = _services[name];
+				service._constructor.call(service);
+			}
+		}
+		_serviceReady = true;
+		for (let cb of _readyCallbacks) {
+			cb();
+		}
+	}
+
 	export function get(name: string): any {
 		return _services[name];
 	}
 
-	export function ready(fn: Function) {
+	export function onReady(fn: Function) {
 		if (_serviceReady) {
 			fn();
 		} else {

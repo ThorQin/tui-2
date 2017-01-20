@@ -529,7 +529,7 @@ module tui.widget {
 	
 	var detectResize: () => void;
 	$(window.document).ready(function() {
-		service.ready(function(){
+		service.onReady(function(){
 			init(document.body);
 			tui.event.fire("initialized");
 		});

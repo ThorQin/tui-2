@@ -1,0 +1,9 @@
+<tui:component handler="frame.js">
+  <div style="border-bottom:1px solid #ddd">
+    <tui:button-group name="tabButtons" class="tui-tab">
+      <tui:radio checked={true} value="pages/1.html">页面1</tui:radio>
+      <tui:radio value="pages/2.html">页面2</tui:radio>
+    </tui:button-group>
+  </div>
+  <tui:frame name="container" src="pages/1.html"></tui:frame>
+</tui:component>
