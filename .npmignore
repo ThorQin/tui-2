@@ -1,0 +1,8 @@
+doc
+src
+tsconfig.json
+index.html
+gulpfile.js
+test
+.npmignore
+.vscode

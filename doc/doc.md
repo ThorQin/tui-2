@@ -20,7 +20,7 @@
 或 <a href="mailto:thor.qin@qq.com">thor.qin@qq.com</a>
 
 # 下载`(download)`
-使用 npm 进行高安装：
+使用 npm 进行安装：
 
 ```bash
 npm install tui2
@@ -33,7 +33,9 @@ TUI2 依赖 Font Awesome、jQuery 以及 es5-shim.js (如果要兼容IE8)
 ```html
 <link rel="stylesheet" href="path/to/font-awesome.css">
 <link rel="stylesheet" href="path/to/tui2.css" />
+<!--[if IE 8]>
 <script type="text/javascript" src="path/to/es5-shim.js"></script>
+<![endif]-->
 <script type="text/javascript" src="path/to/jquery-1.11.3.js"></script>
 <script type="text/javascript" src="path/to/tui2.js"></script>
 ```

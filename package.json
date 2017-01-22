@@ -1,9 +1,23 @@
 {
   "name": "tui2",
   "version": "1.0.0",
+  "author":{
+    "name": "Thor Qin",
+    "email": "thor.qin@outlook.com"
+  },
   "description": "HTML UI framework.",
   "license": "MIT",
-  "private": true,
+  "keywords": [
+    "ui", "browser", "framework", "modular"
+  ],
+  "repository": {
+    "type" : "git", 
+    "url" : "https://git.oschina.net/thor.qin/TUI-2.git"
+  },
+  "bugs": {
+    "url" : "https://git.oschina.net/thor.qin/TUI-2/issues", 
+    "email" : "thor.qin@qq.com"
+  },
   "devDependencies": {
     "async": "^1.5.2",
     "gulp": "^3.9.1",
