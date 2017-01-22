@@ -1231,4 +1231,5 @@ TUI2 中的组件都支持多语言,同时提供了一组函数用来处理前�
  方法 | 描述
 --- | ---
 tui.dict(lang, translator) | 为某个语言设置一个字典
-tui.str(str, lang?) | 获取一个字符串的本地化翻译，如果lang没有传就使用 tui.lang 变量
+tui.str(str, lang?) | 获取一个字符串的本地化翻译，如果lang没有传，就使用 tui.lang 变量
+
