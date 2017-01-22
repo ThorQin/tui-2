@@ -26,13 +26,23 @@ module tui.widget {
 			}
 			var key = name + ":" + src;
 			if (cache && this._cache.hasOwnProperty(key)) {
-				this._.innerHTML = "";
+				if (tui.ieVer > 0)
+					while (this._.children.length > 0) {
+						this._.removeChild(this._.children[0]);
+					}
+				else
+					this._.innerHTML = "";
 				let page: HTMLElement = this._cache[key];
 				this._.appendChild(page);
 			} else {
 				ajax.getBody(src).done((content) => {
 					let page = browser.toElement(content, true);
-					this._.innerHTML = "";
+					if (tui.ieVer > 0)
+						while (this._.children.length > 0) {
+							this._.removeChild(this._.children[0]);
+						}
+					else
+						this._.innerHTML = "";
 					this._.appendChild(page);
 					if (cache) {
 						this._cache[key] = page;
