@@ -1,0 +1,156 @@
+@import 'commons.less';
+
+tui\:button {
+	.btn();
+	margin:2px;
+	cursor:pointer;
+	.border-radius(@buttonBorderRadius);
+	text-decoration: none;
+	color: @textColor;
+    border: 1px solid @borderColor;
+	-webkit-tap-highlight-color: inherit;
+	-webkit-touch-callout: none;
+	outline: none;
+	.btn-color(@windowColor, @panelColor - #111, @borderColor, @borderColor);
+	&.tui-menu:after {
+		.icon-base();
+		font-size:@fontSize;
+		margin-left:6px;
+		.fa-caret-down;
+	}
+	&:hover {
+		color: #000;
+	}
+	&:active {
+		.inset-shadow();
+	}
+	
+	&.tui-dropdown {
+		min-width:10px;
+		padding-left:5px;
+		padding-right:5px;
+		&:before {
+			content: "";
+		}
+		&:after {
+			.icon-base();
+			.fa-caret-down();
+			margin-left:0px;
+		}
+	}
+
+	&.tui-success {
+		color: #fff;
+		.btn-color(#00c555, #00a020);
+	}
+	&.tui-primary {
+		color: #fff;
+		.btn-color(#00aaff, #0090d0);
+	}
+	&.tui-danger {
+		color: #fff;
+		.btn-color(#ff5060, #e04020);
+	}
+	&.tui-warning {
+		color: #fff;
+		.btn-color(#ff9a40, #e07a20);
+	}
+	
+	&.tui-checked {
+		color: @textColor;
+		.btn-color(@panelColor - #111, @panelColor - #222);
+        .inset-shadow();
+	}
+	
+	&.tui-disable {
+		cursor:default;
+		.btn-color(@panelColor, @panelColor, @borderColor, @borderColor);
+		color: @panelColor - #333;
+		&:active {
+			box-shadow: none;
+		}
+	}
+}
+
+
+tui\:check,tui\:radio {
+	.btn();
+	padding: 0 6px;
+	text-align:center;
+	margin:2px;
+	cursor:pointer;
+	text-decoration: none;
+	.border-radius(@buttonBorderRadius);
+	color: #000;
+	vertical-align:middle;
+
+	&.tui-notify {
+		color:red;
+		&:hover {
+			color:red;
+		}
+	}
+	&.tui-disable {
+		cursor:default;
+		color: @panelColor - #333;
+		&:hover {
+			color: @panelColor - #333;
+		}
+	}
+}
+
+@buttonIconWidth: 15px;
+
+tui\:check {
+	&:before {
+		display:inline-block;
+		.icon();
+		.fa-square-o();
+		text-align:left;
+		color: @uncheckColor;
+		width: @buttonIconWidth;
+	}
+	&.tui-checked:before {
+		display:inline-block;
+		.icon();
+		.fa-check-square();
+		text-align:left;
+		color: @checkedColor;
+		width: @buttonIconWidth;
+	}
+	&.tui-tristate:before {
+		display:inline-block;
+		.icon();
+		.fa-check-square();
+		text-align:left;
+		color: @uncheckColor;
+		width: @buttonIconWidth;
+	}
+	&:hover {
+		color:inherit;
+	}
+}
+
+tui\:radio {
+	&:before {
+		display:inline-block;
+		.icon();
+		.fa-circle-thin();
+		text-align:left;
+		color: @uncheckColor;
+		width: @buttonIconWidth;
+	}
+	&.tui-checked:before {
+		display:inline-block;
+		.icon();
+		.fa-dot-circle-o();
+		text-align:left;
+		color: @checkedColor;
+		width: @buttonIconWidth;
+	}
+	&:hover {
+		color:inherit;
+	}
+}
+
+

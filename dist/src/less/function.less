@@ -1,0 +1,140 @@
+@import 'awesome4.less';
+@import 'settings.less';
+
+.font() {
+	font:@font;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	-moz-font-smoothing: grayscale;
+}
+.btn() {
+	.font();
+	/*padding:@buttonPaddingTopBottom @buttonPaddingLeftRight;*/
+	padding: 0 @buttonPaddingLeftRight;
+	height: @buttonHeight;
+	line-height: @buttonHeight - 0px;
+	text-align:center;
+	vertical-align:middle;
+	text-decoration:none;
+	display:inline-block;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.group() {
+	margin-left:2px;
+	margin-right:2px;
+	white-space:nowrap;
+	> *, > *.tui-focus, > *.tui-active, > *:focus {
+		vertical-align:middle;
+
+		float:left;
+		margin-left:0;
+		margin-right:0;
+		border-left-width:0;
+		.border-radius(0px);
+		&.tui-button {
+			min-width:0px;
+		}
+	}
+	> *:first-child, > *.tui-active:first-child, > *.tui-focus:first-child, > *:first-child:focus {
+		.left-radius(@buttonBorderRadius);
+		border-left-width:1px;
+	}
+	> *:last-child {
+		.right-radius(@buttonBorderRadius);
+	}
+	&:after {
+		display:block;
+		content:"";
+		clear:left;
+	}
+}
+
+
+.shadow(@x: 1px, @y: 1px, @blur: 1px, @color: rgba(0,0,0,.1)) {
+	box-shadow: @x @y @blur @color;
+}
+
+.inset-shadow(@x: 1px, @y: 2px, @blur : 3px, @color : rgba(0,0,0,.1)) {
+    box-shadow: @x @y @blur @color inset;
+}
+
+.border-radius(@size) {
+	border-radius:@size;
+}
+.top-left-radius(@size) {
+	border-top-left-radius:@size;
+}
+.top-right-radius(@size) {
+	border-top-right-radius:@size;
+}
+.bottom-left-radius(@size) {
+	border-bottom-left-radius:@size;
+}
+.bottom-right-radius(@size) {
+	border-bottom-right-radius:@size;
+}
+.right-radius(@size) {
+	.top-right-radius(@size);
+	.bottom-right-radius(@size);
+}
+.left-radius(@size) {
+	.top-left-radius(@size);
+	.bottom-left-radius(@size);
+}
+.top-radius(@size) {
+	.top-left-radius(@size);
+	.top-right-radius(@size);
+}
+.bottom-radius(@size) {
+	.bottom-left-radius(@size);
+	.bottom-right-radius(@size);
+}
+
+.liner-color(@begin, @end) {
+	background-color: (@begin + @end) / 2;
+	filter:e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d')", @begin, @end));
+	background-image: linear-gradient(to bottom, @begin, @end);
+}
+.liner-color-rgba(@begin, @end) {
+	background-image: linear-gradient(to bottom, @begin, @end);
+}
+.btn-color(@color, @focusColor, @borderColor: @color, @focusBorderColor: @focusColor) {
+    background-color: @color;
+	border-color: @borderColor;
+    &:focus,&:hover {
+        background-color: @focusColor;
+        border-color: @focusBorderColor;
+    }
+	&:active,&.tui-active {
+        background-color: @focusColor - #111;
+        border-color: @focusBorderColor - #111;
+		&.tui-disable {
+            background-color: @color;
+            border-color: @borderColor;
+		}
+	}
+}
+.icon-base() {
+	display: inline-block;
+	font-family: FontAwesome;
+	font-style: normal;
+	font-weight: normal;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.icon() {
+	.icon-base();
+	font-size:@fontSize;
+	width:14px;
+	//margin-right:4px;
+}
+
+.opacity(@value) {
+	opacity:@value;
+	@filterValue: @value * 100;
+	filter:alpha(opacity=@filterValue);
+}

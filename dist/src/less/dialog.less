@@ -1,0 +1,128 @@
+@import 'commons.less';
+
+@hineColor: #e8e8e8;
+@titleBackColor: white;
+@backColor: white;
+
+.tui-dialog-mask:extend(.tui-mask) {
+	background-color:#888;
+	.opacity(0.5);
+	z-index:@dialogLayer;
+}
+tui\:dialog {
+	@captionHeight: 40px;
+
+	outline:none;
+	display:none;
+	position:fixed;
+	background-color:white;
+	.border-radius(@dialogBorderRadius);
+	min-width:280px;
+	border:1px solid @borderColor;
+	.shadow(0px, 1px, 30px, rgba(0,0,0,0.5));
+	z-index:@dialogLayer;
+	text-align:left;
+	> div {
+		padding:10px 20px;
+		background-color:@backColor;
+		overflow:auto;
+	}
+	> .tui-title-bar {
+		.top-radius(@dialogBorderRadius);
+		//position:relative;
+		overflow:hidden;
+		padding:5px 20px;
+		padding-right: 50px;
+		border-bottom:1px solid @hineColor;
+		
+		background-color: @titleBackColor;
+		height:@captionHeight;
+		line-height:@captionHeight;
+		cursor: default;
+		.tui-close {
+			position:absolute;
+			top:10px;
+			right:10px;
+			width:30px;
+			height:30px;
+			line-height:30px;
+			text-align:center;
+			padding:0;
+			background-color:transparent;
+			border:0;
+			cursor:pointer;
+			outline:none;
+			.border-radius(@buttonBorderRadius);
+			&:hover {
+				background-color:(@panelColor - #111);
+			}
+			&:before {
+				.icon-base();
+				.fa-times();
+			}
+		}
+		>.tui-text {
+			display: block;
+			max-width: 500px;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+	}
+	> .tui-button-bar {
+		.bottom-radius(@dialogBorderRadius);
+		overflow:hidden;
+		padding:10px 20px;
+		border-top:1px solid @hineColor;
+		background-color:@titleBackColor;
+		text-align:right;
+		white-space:nowrap;
+		tui\:button {
+			margin:2px 4px;
+			min-width: 50px;
+		}
+	}
+}
+
+.tui-msg-container {
+	padding:30px;
+	max-width: 500px;
+	& td>span:before {
+		.icon-base();
+		font-size:3em;
+		margin:-8px 0;
+		margin-right:20px;
+		vertical-align:middle;
+	}
+	& td.tui-info-box>span:before {
+		display: inline-block;
+		.fa-info-circle();
+		color:@iconInfoColor;
+	}
+	& td.tui-ok-box>span:before {
+		display: inline-block;
+		.fa-check-circle();
+		color:@iconSuccessColor;
+	}
+	& td.tui-err-box>span:before {
+		display: inline-block;
+		.fa-times-circle();
+		color:red;
+	}
+	& td.tui-warn-box>span:before {
+		display: inline-block;
+		.fa-warning();
+		color:@iconWarnColor;
+	}
+	& td.tui-ask-box>span:before {
+		display: inline-block;
+		.fa-question-circle();
+		color:@iconInfoColor;
+	}
+	& td.tui-wait-box>span:before {
+		display: inline-block;
+		.fa-gear();
+		.tui-spin();
+		color:#aaa;
+	}
+}

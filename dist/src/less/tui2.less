@@ -1,0 +1,43 @@
+@import 'button.less';
+@import 'input.less';
+@import 'popup.less';
+@import 'calendar.less';
+@import 'dialog.less';
+@import 'grid.less';
+@import 'scrollbar.less';
+@import 'tooltip.less';
+
+@import 'group.less';
+@import 'navigator.less';
+
+// Global default theme
+
+@inputBackColor: #fff;
+@inputDisableTextColor: #777;
+tui\:input, tui\:textarea,tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file {
+	background-color:@inputBackColor;
+	i {
+		background-color:@inputBackColor;
+	}
+}
+
+tui\:grid .tui-content, tui\:list .tui-content {
+	background-color:@inputBackColor;
+    color: #333;
+}
+tui\:grid,tui\:list {
+    .tui-grid-head { 
+        background-color: white;
+    }
+}
+
+tui\:input.tui-disable,tui\:textarea.tui-disable,tui\:select.tui-disable,tui\:dialog-select.tui-disable,tui\:date-picker.tui-disable,tui\:file.tui-disable {
+	background-color:@inputBackColor;
+	color: @inputDisableTextColor;
+	i {
+		background-color:@inputBackColor;
+	}
+}
+tui\:input.tui-disable > input {
+	color: @inputDisableTextColor;
+}

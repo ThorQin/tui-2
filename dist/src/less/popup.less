@@ -1,0 +1,104 @@
+@import 'commons.less';
+
+tui\:popup,tui\:menu {
+	display:none;
+	position:fixed;
+	overflow: hidden;
+	left:0;
+	top:0;
+	outline:none;
+	z-index:@popupLayer;
+	.shadow(0px, 3px, 7px, rgba(0,0,0,0.3));
+	.border-radius(@buttonBorderRadius);
+	border: 1px solid (@borderColor);
+	background-color: @windowColor;
+	min-height: 10px;
+	min-width: 20px;
+	-webkit-tap-highlight-color: transparent;
+}
+
+tui\:menu:before {
+	content:"";
+	display:block;
+	position:absolute;
+	top:0;
+	left:0px;
+	width:24px;
+	bottom:0;
+	background: #f0f0f0;
+	z-index: -1;
+}
+
+tui\:menu.tui-big:before {
+	display:none;
+}
+
+@itemHeight: 28px;
+tui\:menu>div {
+	display:block;
+	white-space: nowrap;
+	cursor: default;
+	outline: none;
+	color:@textColor;
+	>* {
+		display: inline-block;
+		height:@itemHeight;
+		line-height: @itemHeight;
+		vertical-align: middle;
+		white-space: nowrap;
+		word-break: keep-all;
+	}
+	>.tui-icon {
+		.icon-base();
+		width:24px;
+		text-align: center;
+		margin-right:5px;
+		float:left;
+	}
+	>.tui-label {
+		float:left;
+	}
+	>.tui-shortcut {
+		color: @disabledTextColor;
+		margin-left:10px;
+		float:right;
+	}
+	>.tui-arrow {
+		.icon-base();
+		width:30px;
+		float:right;
+		text-align: center;
+	}
+	
+	&.tui-line {
+		height: 0px;
+		border-top:1px solid @borderColor;
+		margin: 1px 0;
+	}
+	&.tui-disabled {
+		color: @disabledTextColor;
+	}
+	&.tui-actived,&.tui-sub {
+		background-color: @lineSelectFocusedBackgroundColor;
+		color: @lineSelectFocusedForeColor;
+	}
+	&:after {
+		display:block;
+		content: "";
+		clear:both;
+	}
+}
+tui\:menu.tui-big>div {
+	>* {
+		display: inline-block;
+		height:@itemHeight + 10px;
+		line-height: @itemHeight + 10px;
+	}
+	>.tui-icon {
+		margin: 0 6px;
+	}
+	&.tui-line {
+		height: 0px;
+	}
+}
+

@@ -1,0 +1,224 @@
+@import 'commons.less';
+
+tui\:grid,tui\:list {
+	display: block;
+	position: relative;
+	border: 1px solid @borderColor;
+	overflow: hidden;
+	background-color: @scrollBackColor;
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+	-webkit-touch-callout: none;
+	
+	.tui-grid-head {
+		display: block;
+		position: absolute;
+		left:0;
+		top:0;
+		right:0;
+		border-bottom: 1px solid #ddd;
+		height: @gridLineHeight;
+		line-height: @gridLineHeight;
+		background: #f5f5f5;
+		z-index: 10;
+		white-space: nowrap;
+		word-break: keep-all;
+		overflow: hidden;
+		> span {
+			cursor:default;
+			position: relative;
+			.tui-grid-asc,.tui-grid-desc {
+				// display: block;
+				// position: absolute;
+				// left:0;
+				// top:0;
+				// right: 0;
+				// height: 8px;
+				// line-height: 8px;
+				// text-align: center;
+				// overflow: hidden;
+				padding: 0 5px;
+				color: @lineSelectFocusedBackgroundColor;
+				//color: #ee7755
+				//.liner-color(#e0e0e0, #f0f0f0);
+			}
+			.tui-grid-no-sort {
+				padding: 0 2px;
+			}
+			.tui-grid-desc::before {
+				.icon-base();
+				//.fa-chevron-down;
+				.fa-chevron-circle-down;
+			}
+			.tui-grid-asc::before {
+				.icon-base();
+				//.fa-chevron-up;
+				.fa-chevron-circle-up;
+			}
+			&.tui-sortable {
+				cursor: pointer;
+				color: @lineSelectFocusedBackgroundColor;
+				&:hover {
+					// .tui-grid-asc,.tui-grid-desc {
+					// 	.liner-color(rgba(180,240,255,1), #ddd);
+					// }
+					background-color: #ddd;
+				}
+			}
+		}
+	}
+	.tui-content {
+		display: block;
+		position: absolute;
+		top:0;
+		left:0;
+		background-color: @windowColor;
+		overflow: hidden;
+	}
+	
+	tui\:scrollbar {
+		&.tui-horizontal {
+			display: block;
+			position: absolute;
+			left:0;
+			bottom:0;
+			z-index: 20;
+			&.tui-hidden {
+				display: none;
+			}
+		}
+	}
+	
+	tui\:scrollbar {
+		&.tui-vertical {
+			display: block;
+			position: absolute;
+			top:0;
+			right:0;
+			z-index: 20;
+			&.tui-hidden {
+				display: none;
+			}
+		}
+	}
+	.tui-grid-vline {
+		display: block;
+		position: absolute;
+		top: 0px;
+		width: 0px;
+		border-right: 1px solid #ddd;
+		z-index: 15;
+	}
+	.tui-grid-handler {
+		display: block;
+		position: absolute;
+		top: 0px;
+		width: 8px;
+		height: @gridLineHeight;
+		border: none;
+		z-index: 16;
+		cursor: col-resize;
+	}
+	.tui-handler-move {
+		background: #555;
+		opacity: 0.5;
+	}
+	.tui-grid-line,.tui-grid-test {
+		display: block;
+		position: absolute;
+		height: @gridLineHeight;
+		line-height: @gridLineHeight;
+		border: none;
+		border-bottom: 1px solid #ddd;
+		padding: 0;
+		margin: 0;
+		white-space: nowrap;
+		word-break: keep-all;
+		cursor: default;
+	}
+	.tui-grid-test {
+		visibility: hidden;
+	}
+	.tui-grid-line > span:before {
+		content: " ";
+		display: inline-block;
+		width: 4px;
+	}
+	.tui-grid-line.tui-actived {
+		background-color: @lineSelectFocusedBackgroundColor;
+		color: @lineSelectFocusedForeColor;
+	}
+	.tui-grid-head>span, .tui-grid-line>span, .tui-grid-cell {
+		display: inline-block;
+		height: @gridLineHeight;
+		line-height: @gridLineHeight;
+		border: none;
+		white-space: nowrap;
+		word-break: keep-all;
+		padding: 0px 4px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.tui-space,.tui-arrow-collapse,.tui-arrow-expand,.tui-arrow,.tui-grid-check,.tui-grid-no-check { //  .tui-grid-checked, .tui-grid-unchecked
+		display: inline-block;
+		width: 22px;
+		text-align: center;
+	}
+	.tui-arrow-collapse::before {
+		.icon-base();
+		.fa-caret-right;
+	}
+	.tui-arrow-expand::before {
+		.icon-base();
+		.fa-caret-down;
+	}
+	.tui-grid-check {
+		//color: @uncheckColor;
+		text-align: center;
+		color: @checkedColor;
+	}
+	.tui-grid-no-check {
+		//color: @uncheckColor;
+		font-family: arial;
+		text-align: center;
+	}
+	// .tui-grid-no-check::before {
+	// 	color: #666;
+	// 	.icon-base();
+	// 	.fa-square;
+	// }
+	.tui-grid-check::before {
+		.icon-base();
+	}
+	.tui-grid-icon {
+		margin-right: 5px;
+	}
+	.tui-grid-select, .tui-grid-edit {
+		display: block;
+		position: relative;
+		top: 1px;
+		height: @gridLineHeight - 1px;
+		line-height: @gridLineHeight - 1px;
+		float: right;
+		width: 20px;
+		text-align: center;
+		background-color: white;
+	}
+	.tui-grid-line.tui-actived {
+		.tui-grid-check {
+			color: @lineSelectFocusedForeColor;
+		}
+		.tui-grid-select, .tui-grid-edit {
+			background-color:  @lineSelectFocusedBackgroundColor;
+		}
+	}
+	.tui-space {
+		width: 14px;
+	}
+}
+
+tui\:list {
+	.tui-grid-line, .tui-grid-test {
+		border-bottom: 0px;
+	}
+}

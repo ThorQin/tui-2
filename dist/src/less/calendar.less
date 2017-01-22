@@ -1,0 +1,101 @@
+@import 'commons.less';
+
+tui\:calendar {
+	@activeBackColor: @panelColor - #111;
+	@weekendBackColor:#f0f0f0;
+	@todayBackColor:@lineSelectFocusedBackgroundColor;
+	padding:2px;
+	border: 1px solid @borderColor;
+	white-space:nowrap;
+	display:inline-block;
+	font-family: Calibri;
+	font-size:14px;
+	vertical-align:middle;
+	cursor:default;
+	
+	td {
+		padding:3px;
+		text-align:center;
+		width: 25px;
+		border:1px solid transparent;
+		&[colspan='3'] {
+			width:inherit;
+		}
+		&.tui-before,&.tui-after {
+			color:#d0d0d0;
+		}
+		&.tui-weekend {
+			background-color:@weekendBackColor;
+		}
+		&.tui-today {
+			color:#f00;
+			border:1px solid @todayBackColor;
+		}
+		&.tui-actived {
+			background-color:@todayBackColor;
+			color:#fff;
+		}
+		&.tui-pm,&.tui-py,&.tui-nm,&.tui-ny {
+			cursor:pointer;
+			&:before {
+				.icon();
+			}
+			&:hover {
+				background-color:@activeBackColor;
+			}
+		}
+		&.tui-pm:before {
+			.fa-angle-left;
+		}
+		&.tui-py:before {
+			.fa-angle-double-left;
+		}
+		&.tui-nm:before {
+			.fa-angle-right;
+		}
+		&.tui-ny:before {
+			.fa-angle-double-right;
+		}
+	}
+	tr.tui-yearbar > td {
+		height:25px;
+	}
+	.tui-week {
+		background-color: @todayBackColor;
+		color:#fff;
+		font-size:12px;
+	}
+	.tui-month {
+		font-size:12px;
+	}
+	>div {
+		font-family: Microsoft Yahei;
+		font-size:14px;
+		font-weight: bold;
+		padding:4px 2px;
+		border-top:1px dotted @borderColor;
+		text-align:center;
+		color:#aaa;
+		>input {
+			border:0;
+			background-color: transparent;
+			padding: 0px 4px;
+			margin:0px;
+			width:18px;
+			vertical-align: middle;
+			text-align: center;
+			outline:none;
+		}
+		>a {
+			font-weight:normal;
+			cursor:pointer;
+			margin-left:5px;
+			&:before {
+				padding:0px 5px;
+				display:inline-block;
+				.icon();
+				.fa-refresh;
+			}
+		}
+	}
+}

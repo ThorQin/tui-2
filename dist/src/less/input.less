@@ -1,0 +1,209 @@
+@import 'commons.less';
+
+tui\:input,tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file,tui\:textarea {
+	display: inline-block;
+	position: relative;
+	height: @buttonHeight;
+	line-height: @buttonHeight;
+	margin:2px;
+	border: 1px solid @borderColor;
+	width: 200px;
+	background-color: @windowColor;
+	overflow: hidden;
+	white-space: nowrap;
+	word-break: keep-all;
+	outline: none;
+	vertical-align: middle;
+	text-align: left;
+	.border-radius(@buttonBorderRadius);
+	-webkit-tap-highlight-color: transparent;
+	
+	&.tui-active {
+		border: 1px solid @borderFocusColor;
+		.shadow(0px, 0px, 4px, #88ccff);
+	}
+	&.tui-disable {
+		background-color: #f0f0f0;
+		color: #ccc;
+	}
+	
+	&.tui-invalid {
+		color: red;
+		border: 1px solid red;
+		&.tui-active {
+			.shadow(0px, 0px, 4px, #ff8888);
+		}
+	}
+	i {
+		display: inline-block;
+		position: absolute;
+		top: 1px;
+		width:30px;
+		height: @buttonHeight - 2px;
+		line-height: @buttonHeight - 2px;
+		text-align: center;
+		cursor: default;
+		background-color: @windowColor;
+	}
+	.tui-invalid-icon {
+		&::before {
+			.icon-base();
+			.fa-exclamation-triangle;
+		}
+	}
+	.tui-input-clear-button {
+		color: #555;
+		&::before {
+			.icon-base();
+			/*.fa-times; */
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 20px;
+			content: "\00d7";
+		}
+	}
+	i::before {
+		.icon-base();
+	}
+	&.tui-disable > i {
+		background-color: #f0f0f0;
+	}
+	.tui-placeholder {
+		display: block;
+		position: absolute;
+		height: @buttonHeight;
+		line-height: @buttonHeight;
+		top: 0;
+		color: #ccc;
+		cursor: text;
+		z-index: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+}
+
+tui\:input {
+	
+	>input {
+		position: absolute;
+		border: none;
+		margin: 0px;
+		padding: 0px;
+		top: 2px;
+		height: @buttonHeight - 4px;
+		line-height: @buttonHeight - 4px;
+		overflow: hidden;
+		background: transparent;
+		z-index: 1;
+		outline: none;
+		-webkit-tap-highlight-color: transparent;
+		-webkit-touch-callout: none;
+		&:focus {
+			-webkit-tap-highlight-color: transparent;
+    		-webkit-user-modify:read-write-plaintext-only; 
+		}
+		&::-ms-clear {
+			display: none;
+		}
+	}
+	&.tui-invalid>input {
+		color: red;
+	}
+	&.tui-disable>input {
+		color: #ccc;
+	}
+}
+
+tui\:textarea {
+	overflow-y: auto;
+	>textarea {
+		position: absolute;
+		border: none;
+		margin: 0px;
+		padding: 0px;
+		top: 2px;
+		min-height: @buttonHeight - 4px;
+		line-height: 22px;
+		overflow: hidden;
+		background: transparent;
+		z-index: 1;
+		outline: none;
+		word-break:break-all;
+		word-wrap: break-word;
+		-webkit-tap-highlight-color: transparent;
+		-webkit-touch-callout: none;
+		resize: none;
+		&:focus {
+			-webkit-tap-highlight-color: transparent;
+    		-webkit-user-modify:read-write-plaintext-only; 
+		}
+	}
+	&.tui-invalid>textarea {
+		color: red;
+	}
+	&.tui-disable>textarea {
+		color: #ccc;
+	}
+}
+
+tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file {
+	cursor: pointer;
+	.tui-input-label {
+		display: block;
+		position: absolute;
+		padding: 0px 6px;
+		height: @buttonHeight;
+		line-height: @buttonHeight;
+		top: 0;
+		left: 0;
+		right: 30px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		cursor: pointer;
+	}
+	i {
+		cursor: pointer;
+	}
+	
+}
+.tui-select-toolbar {
+	color: #ccc;
+	text-align: center;
+	padding: 10px 0px;
+	a {
+		cursor: pointer;
+	}
+	border-top: 1px dotted #ccc;
+}
+.tui-select-searchbar {
+	padding: 4px 4px;
+	border-bottom: 1px dotted #ccc;
+	tui\:input {
+		display: block;
+		width:inherit;
+		border: 1px solid #ccc;
+		.shadow(0px, 0px, 0px, #88ccff);
+	}
+}
+
+tui\:input-group {
+	display:block;
+	padding: 3px 2px 10px 2px;
+	&>* {
+		display: block;
+		width:inherit;
+	}
+	&>label {
+		display: block;
+		color: block;
+		font-weight: bold;
+		margin: 0px 2px;
+		padding:3px 0px;
+		&[desc]:after {
+			display: inline;
+			vertical-align: baseline;
+			content: attr(desc);
+			margin: 0 4px;
+			color: red;
+		}
+	}
+}

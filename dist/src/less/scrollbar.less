@@ -1,0 +1,118 @@
+@import 'commons.less';
+
+.tui-scroll-space {
+	display:inline-block;
+	position:absolute;
+	width:@scrollBarWidth;
+	height:@scrollBarWidth;
+	right:0;
+	bottom:0;
+	background-color:@scrollBackColor;
+}
+tui\:scrollbar {
+	@iconColor:#ccc;
+	@backColor:@scrollBackColor;
+	@thumbColor:@iconColor;
+	@thumbActiveColor:#999;
+	@space:0px;
+	@expand:4px;
+	@radius:0px;
+	@buttonPadding:4px;
+
+	font-size:9px;
+	margin:0;
+	padding:0;
+	display:inline-block;
+	position:relative;
+	overflow: hidden;
+	
+	background-color:@backColor;
+	vertical-align:middle;
+	cursor:default;
+	.border-radius(@radius);
+
+	span {
+		display:inline-block;
+		position:absolute;
+		margin:0;
+		padding:0;
+		text-align:center;
+		vertical-align:middle;
+	}
+	
+	&.tui-vertical {
+		height: auto;
+		width:@scrollBarWidth;
+		
+		span {
+			left:0;
+			right:0;
+			top:auto;
+			bottom:auto;
+		}
+		.tui-scroll-thumb {
+			top:auto;
+			bottom:auto;
+			left:0px;
+			right:0px;
+			background-color:@thumbColor;
+			.border-radius(@radius);
+			border-top:0;
+			border-bottom:0;
+			border-left:@space solid @backColor;
+			border-right:@space solid @backColor;
+			transition: background-color .3s;
+		}
+		&.tui-mobile {
+			transition: width .3s;
+			width:@scrollBarWidth - @expand;
+			&:hover,&.tui-actived {
+				transition: width .3s;
+				width:@scrollBarWidth;
+			}
+		}
+	}
+
+	&.tui-horizontal {
+		height:@scrollBarWidth;
+		width:auto;
+		span {
+			top:0;
+			bottom:0;
+			left:auto;
+			right:auto;
+		}
+
+		.tui-scroll-thumb {
+			top:0px;
+			bottom:0px;
+			left:auto;
+			right:auto;
+			background-color:@thumbColor;
+			border-top:@space solid @backColor;
+			border-bottom:@space solid @backColor;
+			border-left:0;
+			border-right:0;
+			.border-radius(@radius);
+			transition: background-color .3s;
+		}
+		&.tui-mobile {
+			transition: height .3s;
+			height:@scrollBarWidth - @expand;
+			&:hover,&.tui-actived {
+				transition: height .3s;
+				height:@scrollBarWidth;
+				transition: width .3s;
+			}
+		}
+		
+	}
+	
+	
+	&:hover,&.tui-actived {
+		.tui-scroll-thumb {
+			transition: background-color .3s;
+			background-color:@thumbActiveColor;
+		}
+	}
+}

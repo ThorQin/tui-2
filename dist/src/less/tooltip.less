@@ -1,0 +1,29 @@
+@import 'commons.less';
+
+@tooltipForeColor: #eee;
+@tooltipBackgroundColor: #000;
+.tui-tooltip {
+	// &:before {
+	// 	display:inline-block;
+	// 	position:absolute;
+	// 	content:" ";
+	// 	width:0;
+	// 	height:0;
+	// 	left:10px;
+	// 	top:-14px;
+	// 	border:8px solid transparent;
+	// 	border-bottom-color:@tooltipBackgroundColor;
+	// }
+	padding:8px 12px;
+	color: @tooltipForeColor;
+	position:fixed;
+	white-space: nowrap;
+	max-width:300px;
+	overflow: hidden;
+	z-index: @tooltipLayer;
+	background-color:@tooltipBackgroundColor;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	.border-radius(4px);
+	.shadow(1px, 1px, 3px, #555);
+}
