@@ -26,178 +26,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             clearTimeout(id);
         };
 }());
-// Embedded JSON2
-var JSON;
-if (!JSON) {
-    var JSON = {};
-}
-(function () {
-    "use strict";
-    function f(n) {
-        return n < 10 ? '0' + n : n;
-    }
-    if (typeof Date.prototype.toJSON !== 'function') {
-        Date.prototype.toJSON = function (key) {
-            return isFinite(this.valueOf()) ?
-                this.getUTCFullYear() + '-' +
-                    f(this.getUTCMonth() + 1) + '-' +
-                    f(this.getUTCDate()) + 'T' +
-                    f(this.getUTCHours()) + ':' +
-                    f(this.getUTCMinutes()) + ':' +
-                    f(this.getUTCSeconds()) + 'Z' : null;
-        };
-        String.prototype.toJSON = Number.prototype.toJSON = Boolean.prototype.toJSON = function (key) {
-            return this.valueOf();
-        };
-    }
-    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g, escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g, gap, indent, meta = {
-        "\b": "\\b",
-        "\t": "\\t",
-        "\n": "\\n",
-        "\f": "\\f",
-        "\r": "\\r",
-        "\"": "\\\"",
-        "\\": "\\\\"
-    }, rep;
-    function quote(str) {
-        escapable.lastIndex = 0;
-        return escapable.test(str) ? '"' + str.replace(escapable, function (a) {
-            var c = meta[a];
-            return typeof c === 'string' ? c :
-                '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-        }) + '"' : '"' + str + '"';
-    }
-    function str(key, holder) {
-        var i, // The loop counter.
-        k, // The member key.
-        v, // The member value.
-        length, mind = gap, partial, value = holder[key];
-        if (value && typeof value === 'object' &&
-            typeof value.toJSON === 'function') {
-            value = value.toJSON(key);
-        }
-        if (typeof rep === 'function') {
-            value = rep.call(holder, key, value);
-        }
-        switch (typeof value) {
-            case 'string':
-                return quote(value);
-            case 'number':
-                return isFinite(value) ? String(value) : 'null';
-            case 'boolean':
-            case 'null':
-                return String(value);
-            case 'object':
-                if (!value) {
-                    return 'null';
-                }
-                gap += indent;
-                partial = [];
-                if (Object.prototype.toString.apply(value) === '[object Array]') {
-                    length = value.length;
-                    for (i = 0; i < length; i += 1) {
-                        partial[i] = str(i, value) || 'null';
-                    }
-                    v = partial.length === 0 ? '[]' : gap ?
-                        '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']' :
-                        '[' + partial.join(',') + ']';
-                    gap = mind;
-                    return v;
-                }
-                if (rep && typeof rep === 'object') {
-                    length = rep.length;
-                    for (i = 0; i < length; i += 1) {
-                        if (typeof rep[i] === 'string') {
-                            k = rep[i];
-                            v = str(k, value);
-                            if (v) {
-                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
-                            }
-                        }
-                    }
-                }
-                else {
-                    for (k in value) {
-                        if (Object.prototype.hasOwnProperty.call(value, k)) {
-                            v = str(k, value);
-                            if (v) {
-                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
-                            }
-                        }
-                    }
-                }
-                v = partial.length === 0 ? '{}' : gap ?
-                    '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}' :
-                    '{' + partial.join(',') + '}';
-                gap = mind;
-                return v;
-        }
-    }
-    if (typeof JSON.stringify !== 'function') {
-        JSON.stringify = function (value, replacer, space) {
-            var i;
-            gap = '';
-            indent = '';
-            if (typeof space === 'number') {
-                for (i = 0; i < space; i += 1) {
-                    indent += ' ';
-                }
-            }
-            else if (typeof space === 'string') {
-                indent = space;
-            }
-            rep = replacer;
-            if (replacer && typeof replacer !== 'function' &&
-                (typeof replacer !== 'object' ||
-                    typeof replacer.length !== 'number')) {
-                throw new Error('JSON.stringify');
-            }
-            return str('', { '': value });
-        };
-    }
-    if (typeof JSON.parse !== 'function') {
-        JSON.parse = function (text, reviver) {
-            var j;
-            function walk(holder, key) {
-                var k, v, value = holder[key];
-                if (value && typeof value === 'object') {
-                    for (k in value) {
-                        if (Object.prototype.hasOwnProperty.call(value, k)) {
-                            v = walk(value, k);
-                            if (v !== undefined) {
-                                value[k] = v;
-                            }
-                            else {
-                                delete value[k];
-                            }
-                        }
-                    }
-                }
-                return reviver.call(holder, key, value);
-            }
-            text = String(text);
-            cx.lastIndex = 0;
-            if (cx.test(text)) {
-                text = text.replace(cx, function (a) {
-                    return '\\u' +
-                        ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-                });
-            }
-            if (/^[\],:{}\s]*$/
-                .test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@')
-                .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
-                .replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
-                j = eval('(' + text + ')');
-                return typeof reviver === 'function' ?
-                    walk({ '': j }, '') : j;
-            }
-            throw new SyntaxError('JSON.parse');
-        };
-    }
-}());
-// End of JSON2 
 /// <reference path="jquery.d.ts" />
-/// <reference path="json.ts" />
 /// <reference path="animation.ts" />
 var tui;
 (function (tui) {
@@ -469,23 +298,6 @@ var tui;
         return rv;
     })();
 })(tui || (tui = {}));
-/// <reference path="core.ts" />
-tui.dict("en-us", {
-    "success": "Success",
-    "notmodified": "Request's content has not been modified!",
-    "error": "Error",
-    "timeout": "Request timeout!",
-    "abort": "Operating has been aborted!",
-    "parsererror": "Server response invalid content!",
-    "ok": "OK",
-    "close": "Close",
-    "cancel": "Cancel",
-    "accept": "Accept",
-    "agree": "Agree",
-    "reject": "Reject",
-    "yes": "Yes",
-    "no": "No"
-});
 /// <reference path="../core.ts" />
 var tui;
 (function (tui) {
@@ -636,7 +448,7 @@ var tui;
         function joinUrl() {
             var urls = [];
             for (var _i = 0; _i < arguments.length; _i++) {
-                urls[_i - 0] = arguments[_i];
+                urls[_i] = arguments[_i];
             }
             var result = null;
             for (var _a = 0, urls_1 = urls; _a < urls_1.length; _a++) {
@@ -686,7 +498,7 @@ var tui;
         var Service = (function (_super) {
             __extends(Service, _super);
             function Service() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Service.prototype.use = function (fn, desc) {
                 service.use.call(this, fn, desc);
@@ -880,9 +692,10 @@ var tui;
         var WidgetBase = (function (_super) {
             __extends(WidgetBase, _super);
             function WidgetBase() {
-                _super.apply(this, arguments);
-                this._data = undefined;
-                this._rs = {};
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._data = undefined;
+                _this._rs = {};
+                return _this;
             }
             //restrict
             WidgetBase.prototype.setRestriction = function (key, propCtrl) {
@@ -1009,24 +822,24 @@ var tui;
                 return this;
             };
             return WidgetBase;
-        }(tui.EventObject));
-        widget_1.WidgetBase = WidgetBase; // End of class WidgetBase
+        }(tui.EventObject)); // End of class WidgetBase
+        widget_1.WidgetBase = WidgetBase;
         var namedWidgets = {};
         var Widget = (function (_super) {
             __extends(Widget, _super);
             function Widget(root, initParam) {
-                _super.call(this);
-                this._lastWidth = null;
-                this._lastHeight = null;
-                this._components = {};
-                if (getFullName(root) !== "tui:" + this.getNodeName()) {
-                    throw new TypeError("Node type unmatched!");
-                }
-                this._components[''] = root;
-                this._ = root;
-                root.__widget__ = this;
-                this.initRestriction(); // install restrictor
-                this.load(); // load initial properties
+                var _this = _super.call(this) || this;
+                _this._lastWidth = null;
+                _this._lastHeight = null;
+                _this._components = {};
+                // if (getFullName(root) !== "tui:" + this.getNodeName()) {
+                // 	throw new TypeError("Node type unmatched!");
+                // }
+                _this._components[''] = root;
+                _this._ = root;
+                root.__widget__ = _this;
+                _this.initRestriction(); // install restrictor
+                _this.load(); // load initial properties
                 // Obtain all child nodes
                 var childNodes = [];
                 for (var i = 0; i < root.childNodes.length; i++) {
@@ -1037,15 +850,16 @@ var tui;
                     var removeNode = childNodes_1[_i];
                     tui.browser.removeNode(removeNode);
                 }
-                this.initChildren(childNodes);
+                _this.initChildren(childNodes);
                 if (typeof initParam !== tui.UNDEFINED) {
-                    this._set(initParam);
+                    _this._set(initParam);
                 }
-                this.init();
+                _this.init();
                 // Any widget which has ID property will be registered in namedWidgets
-                var id = this.get("id");
+                var id = _this.get("id");
                 if (typeof id === "string" && id.length > 0)
-                    namedWidgets[id] = this;
+                    namedWidgets[id] = _this;
+                return _this;
             }
             Widget.prototype.init = function () { };
             ;
@@ -1182,24 +996,25 @@ var tui;
                     return this._components[''];
                 }
             };
-            Widget.prototype.getNodeName = function () {
-                return tui.text.toDashSplit(getClassName(this.constructor));
-            };
+            // getNodeName(): string {
+            // 	return text.toDashSplit(getClassName(this.constructor));
+            // }
             Widget.prototype.focus = function () {
                 this._.focus();
             };
             return Widget;
-        }(WidgetBase));
-        widget_1.Widget = Widget; // End of class Widget
+        }(WidgetBase)); // End of class Widget
+        widget_1.Widget = Widget;
         /**
          * Any config element can extends from this class.
          */
         var Item = (function (_super) {
             __extends(Item, _super);
             function Item(root) {
-                _super.call(this);
-                this._ = root;
-                this.load();
+                var _this = _super.call(this) || this;
+                _this._ = root;
+                _this.load();
+                return _this;
             }
             Item.prototype.getComponent = function (name) {
                 if (arguments.length > 0) {
@@ -1211,12 +1026,12 @@ var tui;
             };
             Item.prototype.render = function () { };
             return Item;
-        }(WidgetBase));
-        widget_1.Item = Item; // End of ConfigNode
+        }(WidgetBase)); // End of ConfigNode
+        widget_1.Item = Item;
         var widgetRegistration = {};
-        function register(constructor, type) {
-            if (typeof type === "string")
-                widgetRegistration["tui:" + type.toLowerCase()] = constructor;
+        function register(constructor, nodeName) {
+            if (typeof nodeName === "string")
+                widgetRegistration["tui:" + nodeName.toLowerCase()] = constructor;
             else {
                 widgetRegistration["tui:" + tui.text.toDashSplit(getClassName(constructor))] = constructor;
             }
@@ -1244,10 +1059,7 @@ var tui;
         widget_1.get = get;
         window["$$"] = get;
         function create(type, initParam) {
-            if (typeof type === "function") {
-                type = tui.text.toDashSplit(getClassName(type));
-            }
-            else if (typeof type !== "string")
+            if (typeof type !== "string")
                 throw new TypeError("Invalid parameters.");
             var constructor = widgetRegistration["tui:" + type.toLowerCase()];
             if (typeof constructor !== "function")
@@ -1356,8 +1168,8 @@ var tui;
         widget_1.search = search;
         // Detecting which widgets was resied.
         var resizeRegistration = [];
-        function registerResize(constructor) {
-            resizeRegistration.push("tui:" + tui.text.toDashSplit(getClassName(constructor)));
+        function registerResize(nodeName) {
+            resizeRegistration.push("tui:" + nodeName);
         }
         widget_1.registerResize = registerResize;
         var detectResize;
@@ -1398,7 +1210,6 @@ var tui;
         });
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-var tui;
 (function (tui) {
     tui.get = tui.widget.get;
     tui.create = tui.widget.create;
@@ -1458,11 +1269,12 @@ var tui;
         var Dialog = (function (_super) {
             __extends(Dialog, _super);
             function Dialog() {
-                _super.apply(this, arguments);
-                this._sizeTimer = null;
-                this._contentSize = null;
-                this._moved = false;
-                this._init = true;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._sizeTimer = null;
+                _this._contentSize = null;
+                _this._moved = false;
+                _this._init = true;
+                return _this;
             }
             Dialog.prototype.initChildren = function (childNodes) {
                 if (childNodes.length > 0) {
@@ -1548,9 +1360,9 @@ var tui;
                 buttonBar.innerHTML = "";
                 if (typeof buttonDef === "string" && buttonDef.length > 0) {
                     var names = buttonDef.split(",");
-                    var _loop_1 = function(name_3) {
+                    var _loop_1 = function (name_3) {
                         var pair = name_3.split("#");
-                        var btn = widget.create(widget.Button, { text: tui.str($.trim(pair[0])) });
+                        var btn = widget.create("button", { text: tui.str($.trim(pair[0])) });
                         if (pair.length > 1 && $.trim(pair[1]).length > 0)
                             btn._.className = pair[1];
                         btn.on("click", function (e) {
@@ -1689,9 +1501,9 @@ var tui;
                 this._contentSize = { width: contentDiv.scrollWidth, height: contentDiv.scrollHeight };
             };
             return Dialog;
-        }(widget.Widget));
-        widget.Dialog = Dialog; // End of Dialog class
-        widget.register(Dialog);
+        }(widget.Widget)); // End of Dialog class
+        widget.Dialog = Dialog;
+        widget.register(Dialog, "dialog");
         $(document).on("keydown", function (e) {
             var k = e.keyCode;
             if (widget.dialogStack.length <= 0)
@@ -1715,7 +1527,6 @@ var tui;
         });
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-var tui;
 (function (tui) {
     "use strict";
     function makeContent(message, className) {
@@ -2058,16 +1869,30 @@ var tui;
             }, 0);
         }
         browser.focusWithoutScroll = focusWithoutScroll;
-        function scrollToElement(elem, p1, p2) {
+        function scrollToElement(elem) {
+            var param = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                param[_i - 1] = arguments[_i];
+            }
             var distance = 0;
-            if (typeof p1 === "number")
-                distance = p1;
             var cb = null;
-            if (typeof p1 === "function" && typeof p2 === tui.UNDEFINED)
-                cb = p1;
-            if (typeof p2 === "function")
-                cb = p2;
-            $(getWindowScrollElement()).animate({ scrollTop: $(elem).offset().top - distance }, 200, cb);
+            var useAnimation = true;
+            for (var _a = 0, param_1 = param; _a < param_1.length; _a++) {
+                var p = param_1[_a];
+                if (typeof p === "number")
+                    distance = p;
+                else if (typeof p === "boolean")
+                    useAnimation = p;
+                else if (typeof p === "function")
+                    cb = p;
+            }
+            if (useAnimation) {
+                $(getWindowScrollElement()).animate({ scrollTop: $(elem).offset().top - distance }, 150, cb);
+            }
+            else {
+                getWindowScrollElement().scrollTop = $(elem).offset().top - distance;
+                cb && cb();
+            }
         }
         browser.scrollToElement = scrollToElement;
         function toElement(html, withParentDiv) {
@@ -2593,6 +2418,7 @@ var tui;
     var browser;
     (function (browser) {
         "use strict";
+        var KeyCode;
         (function (KeyCode) {
             KeyCode[KeyCode["BACK"] = 8] = "BACK";
             KeyCode[KeyCode["TAB"] = 9] = "TAB";
@@ -2690,8 +2516,7 @@ var tui;
             KeyCode[KeyCode["BACKSLASH"] = 220] = "BACKSLASH";
             KeyCode[KeyCode["RIGHT_BRACKET"] = 221] = "RIGHT_BRACKET";
             KeyCode[KeyCode["QUOTE"] = 222] = "QUOTE";
-        })(browser.KeyCode || (browser.KeyCode = {}));
-        var KeyCode = browser.KeyCode;
+        })(KeyCode = browser.KeyCode || (browser.KeyCode = {}));
     })(browser = tui.browser || (tui.browser = {}));
 })(tui || (tui = {}));
 /// <reference path="../core.ts" />
@@ -2773,16 +2598,16 @@ var tui;
         var Uploader = (function (_super) {
             __extends(Uploader, _super);
             function Uploader(container, options) {
-                _super.call(this);
-                this._settings = {
+                var _this = _super.call(this) || this;
+                _this._settings = {
                     action: "upload",
                     name: "file",
                     multiple: false,
                     autoSubmit: true
                 };
-                this._container = null;
-                this._input = null;
-                this.setOptions(options);
+                _this._container = null;
+                _this._input = null;
+                _this.setOptions(options);
                 if (!container || container.nodeType !== 1) {
                     throw new Error("Please make sure that you're passing a valid element");
                 }
@@ -2791,9 +2616,10 @@ var tui;
                     $(container).on('click', function (e) { e.preventDefault(); });
                 }
                 // DOM element
-                this._container = container;
+                _this._container = container;
                 // DOM element                 
-                this._input = null;
+                _this._input = null;
+                return _this;
             }
             Uploader.prototype.setOptions = function (options) {
                 if (options) {
@@ -3100,10 +2926,11 @@ var tui;
         var DSBase = (function (_super) {
             __extends(DSBase, _super);
             function DSBase() {
-                _super.apply(this, arguments);
-                this._finalData = null;
-                this._order = null;
-                this._filter = null;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._finalData = null;
+                _this._order = null;
+                _this._filter = null;
+                return _this;
             }
             DSBase.prototype.setOrder = function (order) {
                 this._order = order;
@@ -3170,11 +2997,12 @@ var tui;
             function List(data, filter, order) {
                 if (filter === void 0) { filter = null; }
                 if (order === void 0) { order = null; }
-                _super.call(this);
-                this._data = data;
-                this._filter = filter;
-                this._order = order;
-                this.build();
+                var _this = _super.call(this) || this;
+                _this._data = data;
+                _this._filter = filter;
+                _this._order = order;
+                _this.build();
+                return _this;
             }
             List.prototype.length = function () {
                 if (this._finalData == null)
@@ -3214,14 +3042,15 @@ var tui;
                 if (cacheSize === void 0) { cacheSize = 50; }
                 if (filter === void 0) { filter = null; }
                 if (order === void 0) { order = null; }
-                _super.call(this);
-                this._cache1 = null;
-                this._cache2 = null;
-                this._length = null;
-                this._cacheSize = cacheSize;
-                this.reset();
-                this._filter = filter;
-                this._order = order;
+                var _this = _super.call(this) || this;
+                _this._cache1 = null;
+                _this._cache2 = null;
+                _this._length = null;
+                _this._cacheSize = cacheSize;
+                _this.reset();
+                _this._filter = filter;
+                _this._order = order;
+                return _this;
             }
             RemoteList.prototype.length = function () {
                 if (this._length === null) {
@@ -3301,14 +3130,15 @@ var tui;
                 });
             };
             return RemoteList;
-        }(DSBase));
-        ds.RemoteList = RemoteList; // End of RemoteListSource
+        }(DSBase)); // End of RemoteListSource
+        ds.RemoteList = RemoteList;
         var TreeBase = (function (_super) {
             __extends(TreeBase, _super);
             function TreeBase() {
-                _super.apply(this, arguments);
-                this._index = null;
-                this._rawData = null;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._index = null;
+                _this._rawData = null;
+                return _this;
             }
             TreeBase.prototype.getConfig = function () {
                 return this._config;
@@ -3421,11 +3251,12 @@ var tui;
                 if (config === void 0) { config = { children: "children", expand: "expand" }; }
                 if (filter === void 0) { filter = null; }
                 if (order === void 0) { order = null; }
-                _super.call(this);
-                this._config = config;
-                this._filter = filter;
-                this._order = order;
-                this.update(data);
+                var _this = _super.call(this) || this;
+                _this._config = config;
+                _this._filter = filter;
+                _this._order = order;
+                _this.update(data);
+                return _this;
             }
             Tree.prototype.update = function (data) {
                 var config = this._config;
@@ -3478,11 +3309,12 @@ var tui;
                 if (config === void 0) { config = { children: "children", expand: "expand", hasChild: "hasChild" }; }
                 if (filter === void 0) { filter = null; }
                 if (order === void 0) { order = null; }
-                _super.call(this);
-                this._querying = false;
-                this._config = config;
-                this._filter = filter;
-                this._order = order;
+                var _this = _super.call(this) || this;
+                _this._querying = false;
+                _this._config = config;
+                _this._filter = filter;
+                _this._order = order;
+                return _this;
             }
             RemoteTree.prototype.length = function () {
                 if (this._index)
@@ -3545,6 +3377,23 @@ var tui;
         ds.RemoteTree = RemoteTree;
     })(ds = tui.ds || (tui.ds = {}));
 })(tui || (tui = {}));
+/// <reference path="core.ts" />
+tui.dict("en-us", {
+    "success": "Success",
+    "notmodified": "Request's content has not been modified!",
+    "error": "Error",
+    "timeout": "Request timeout!",
+    "abort": "Operating has been aborted!",
+    "parsererror": "Server response invalid content!",
+    "ok": "OK",
+    "close": "Close",
+    "cancel": "Cancel",
+    "accept": "Accept",
+    "agree": "Agree",
+    "reject": "Reject",
+    "yes": "Yes",
+    "no": "No"
+});
 /// <reference path="../core.ts" />
 /// <reference path="../text/text.ts" />
 var tui;
@@ -4113,7 +3962,7 @@ var tui;
         var Button = (function (_super) {
             __extends(Button, _super);
             function Button() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Button.prototype.initChildren = function (childNodes) {
                 if (childNodes && childNodes.length > 0)
@@ -4268,7 +4117,7 @@ var tui;
         var Check = (function (_super) {
             __extends(Check, _super);
             function Check() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Check.prototype.init = function () {
                 _super.prototype.init.call(this);
@@ -4280,7 +4129,7 @@ var tui;
         var Radio = (function (_super) {
             __extends(Radio, _super);
             function Radio() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Radio.prototype.init = function () {
                 _super.prototype.init.call(this);
@@ -4289,9 +4138,9 @@ var tui;
             return Radio;
         }(Button));
         widget.Radio = Radio;
-        widget.register(Button);
-        widget.register(Check);
-        widget.register(Radio);
+        widget.register(Button, "button");
+        widget.register(Check, "check");
+        widget.register(Radio, "radio");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="base.ts" />
@@ -4322,7 +4171,7 @@ var tui;
         var Calendar = (function (_super) {
             __extends(Calendar, _super);
             function Calendar() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Calendar.prototype.initRestriction = function () {
                 var _this = this;
@@ -4726,7 +4575,7 @@ var tui;
             return Calendar;
         }(widget.Widget));
         widget.Calendar = Calendar;
-        widget.register(Calendar);
+        widget.register(Calendar, "calendar");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="base.ts" />
@@ -4743,7 +4592,7 @@ var tui;
         var Group = (function (_super) {
             __extends(Group, _super);
             function Group() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Group.prototype.initChildren = function (childNodes) {
                 for (var _i = 0, childNodes_3 = childNodes; _i < childNodes_3.length; _i++) {
@@ -4800,7 +4649,7 @@ var tui;
         var ButtonGroup = (function (_super) {
             __extends(ButtonGroup, _super);
             function ButtonGroup() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             ButtonGroup.prototype.initRestriction = function () {
                 var _this = this;
@@ -4876,8 +4725,8 @@ var tui;
             return ButtonGroup;
         }(Group));
         widget.ButtonGroup = ButtonGroup;
-        widget.register(Group);
-        widget.register(ButtonGroup);
+        widget.register(Group, "group");
+        widget.register(ButtonGroup, "button-group");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="base.ts" />
@@ -4892,7 +4741,7 @@ var tui;
         var Component = (function (_super) {
             __extends(Component, _super);
             function Component() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Component.prototype.checkReady = function () {
                 var hasHandler = !!this.get("handler");
@@ -5085,7 +4934,7 @@ var tui;
             return Component;
         }(widget_5.Group));
         widget_5.Component = Component;
-        widget_5.register(Component);
+        widget_5.register(Component, "component");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="base.ts" />
@@ -5110,9 +4959,10 @@ var tui;
         var InputBase = (function (_super) {
             __extends(InputBase, _super);
             function InputBase() {
-                _super.apply(this, arguments);
-                this._valid = true;
-                this._invalidMessage = null;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._valid = true;
+                _this._invalidMessage = null;
+                return _this;
             }
             InputBase.prototype.initChildren = function (childNodes) {
                 var validators = [];
@@ -5257,8 +5107,9 @@ var tui;
         var SelectBase = (function (_super) {
             __extends(SelectBase, _super);
             function SelectBase() {
-                _super.apply(this, arguments);
-                this._inSelection = false;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._inSelection = false;
+                return _this;
             }
             SelectBase.prototype.closeSelect = function () {
                 var popup = widget.get(this._components["popup"]);
@@ -5385,17 +5236,17 @@ var tui;
                     this._set("follow-tooltip", null);
                 }
             };
-            SelectBase.PADDING = 6;
             return SelectBase;
         }(widget.InputBase));
+        SelectBase.PADDING = 6;
         widget.SelectBase = SelectBase;
         var SelectPopupBase = (function (_super) {
             __extends(SelectPopupBase, _super);
             function SelectPopupBase() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             SelectPopupBase.prototype.createPopup = function () {
-                return widget.create(widget.Popup);
+                return widget.create("popup");
             };
             return SelectPopupBase;
         }(SelectBase));
@@ -5417,11 +5268,11 @@ var tui;
         var DatePicker = (function (_super) {
             __extends(DatePicker, _super);
             function DatePicker() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             DatePicker.prototype.initRestriction = function () {
                 var _this = this;
-                var calendar = widget.create(widget.Calendar);
+                var calendar = widget.create("calendar");
                 this._components["calendar"] = calendar._;
                 _super.prototype.initRestriction.call(this);
                 this.setRestrictions({
@@ -5508,7 +5359,7 @@ var tui;
             return DatePicker;
         }(widget.SelectPopupBase));
         widget.DatePicker = DatePicker;
-        widget.register(DatePicker);
+        widget.register(DatePicker, "date-picker");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="inputBase.ts" />
@@ -5521,7 +5372,7 @@ var tui;
         var File = (function (_super) {
             __extends(File, _super);
             function File() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             File.prototype.initRestriction = function () {
                 var _this = this;
@@ -5655,11 +5506,11 @@ var tui;
                     this._set("follow-tooltip", null);
                 }
             };
-            File.PADDING = 6;
             return File;
         }(widget.InputBase));
+        File.PADDING = 6;
         widget.File = File;
-        widget.register(File);
+        widget.register(File, "file");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="base.ts" />
@@ -5671,7 +5522,7 @@ var tui;
         var Frame = (function (_super) {
             __extends(Frame, _super);
             function Frame() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Frame.prototype.initRestriction = function () {
                 var _this = this;
@@ -5731,7 +5582,7 @@ var tui;
             return Frame;
         }(widget.Widget));
         widget.Frame = Frame;
-        widget.register(Frame);
+        widget.register(Frame, "frame");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="base.ts" />
@@ -5758,11 +5609,12 @@ var tui;
         var Grid = (function (_super) {
             __extends(Grid, _super);
             function Grid() {
-                _super.apply(this, arguments);
-                this._setupHeadMoveListener = false;
-                this._columnWidths = [];
-                this._vLines = [];
-                this._handlers = [];
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._setupHeadMoveListener = false;
+                _this._columnWidths = [];
+                _this._vLines = [];
+                _this._handlers = [];
+                return _this;
             }
             Grid.prototype.initRestriction = function () {
                 var _this = this;
@@ -6975,20 +6827,20 @@ var tui;
                 this.drawContent();
                 this.computeHOffset();
             };
-            Grid.CELL_SPACE = 4;
-            Grid.LINE_HEIGHT = 31;
             return Grid;
         }(widget.Widget));
+        Grid.CELL_SPACE = 4;
+        Grid.LINE_HEIGHT = 31;
         widget.Grid = Grid;
-        widget.register(Grid);
-        widget.registerResize(Grid);
+        widget.register(Grid, "grid");
+        widget.registerResize("grid");
         /**
          * <tui:list>
          */
         var List = (function (_super) {
             __extends(List, _super);
             function List() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             List.prototype.initRestriction = function () {
                 var _this = this;
@@ -7144,12 +6996,12 @@ var tui;
                 });
                 this.render();
             };
-            List.LINE_HEIGHT = 30;
             return List;
         }(Grid));
+        List.LINE_HEIGHT = 30;
         widget.List = List;
-        widget.register(List);
-        widget.registerResize(List);
+        widget.register(List, "list");
+        widget.registerResize("list");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="inputBase.ts" />
@@ -7167,7 +7019,7 @@ var tui;
         var Input = (function (_super) {
             __extends(Input, _super);
             function Input() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Input.prototype.initRestriction = function () {
                 var _this = this;
@@ -7395,12 +7247,12 @@ var tui;
                     this._set("follow-tooltip", null);
                 }
             };
-            Input.PADDING = 6;
             return Input;
         }(widget.InputBase));
+        Input.PADDING = 6;
         widget.Input = Input;
-        widget.register(Input);
-        widget.registerResize(Input);
+        widget.register(Input, "input");
+        widget.registerResize("input");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="base.ts" />
@@ -7437,14 +7289,14 @@ var tui;
         var Popup = (function (_super) {
             __extends(Popup, _super);
             function Popup() {
-                var _this = this;
-                _super.apply(this, arguments);
-                this.popIndex = null;
-                this.referRect = null;
-                this.checkInterval = null;
-                this.refProc = function () {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.popIndex = null;
+                _this.referRect = null;
+                _this.checkInterval = null;
+                _this.refProc = function () {
                     _this.render();
                 };
+                return _this;
             }
             Popup.prototype.initRestriction = function () {
                 var _this = this;
@@ -7640,7 +7492,7 @@ var tui;
             return Popup;
         }(widget.Widget));
         widget.Popup = Popup;
-        widget.register(Popup);
+        widget.register(Popup, "popup");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="popup.ts" />
@@ -7659,8 +7511,9 @@ var tui;
         var Menu = (function (_super) {
             __extends(Menu, _super);
             function Menu() {
-                _super.apply(this, arguments);
-                this.activeItem = null;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.activeItem = null;
+                return _this;
             }
             Menu.prototype.initChildren = function (childNodes) {
                 var data = [];
@@ -8001,7 +7854,7 @@ var tui;
                         var itemIndex_1 = _this.activeItem;
                         openSubMenuTimer = setTimeout(function () {
                             var childItems = item.children;
-                            var subMenu = widget.create(Menu, { "items": childItems });
+                            var subMenu = widget.create("menu", { "items": childItems });
                             if ($(_this._).hasClass("tui-big"))
                                 $(subMenu._).addClass("tui-big");
                             $(div_1).addClass("tui-sub");
@@ -8022,7 +7875,7 @@ var tui;
             return Menu;
         }(widget.Popup));
         widget.Menu = Menu;
-        widget.register(Menu);
+        widget.register(Menu, "menu");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 var tui;
@@ -8033,7 +7886,7 @@ var tui;
         var Navigator = (function (_super) {
             __extends(Navigator, _super);
             function Navigator() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Navigator.prototype.initRestriction = function () {
                 var _this = this;
@@ -8282,8 +8135,8 @@ var tui;
             return Navigator;
         }(widget.Widget));
         widget.Navigator = Navigator;
-        widget.register(Navigator);
-        widget.registerResize(Navigator);
+        widget.register(Navigator, "navigator");
+        widget.registerResize("navigator");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="base.ts" />
@@ -8295,7 +8148,7 @@ var tui;
         var Scrollbar = (function (_super) {
             __extends(Scrollbar, _super);
             function Scrollbar() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Scrollbar.prototype.initRestriction = function () {
                 var _this = this;
@@ -8541,8 +8394,8 @@ var tui;
             return Scrollbar;
         }(widget.Widget));
         widget.Scrollbar = Scrollbar;
-        widget.register(Scrollbar);
-        widget.registerResize(Scrollbar);
+        widget.register(Scrollbar, "scrollbar");
+        widget.registerResize("scrollbar");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="selectBase.ts" />
@@ -8562,11 +8415,11 @@ var tui;
         var Select = (function (_super) {
             __extends(Select, _super);
             function Select() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Select.prototype.initRestriction = function () {
                 var _this = this;
-                var list = widget.create(widget.List);
+                var list = widget.create("list");
                 list._set("noMouseWheel", true);
                 list.set("lineHeight", Select.LIST_LINE_HEIGHT);
                 this._components["list"] = list._;
@@ -8755,7 +8608,7 @@ var tui;
                 var container = document.createElement("div");
                 var searchbar = container.appendChild(document.createElement("div"));
                 searchbar.className = "tui-select-searchbar";
-                var searchBox = widget.create(widget.Input);
+                var searchBox = widget.create("input");
                 searchBox._set("clearable", true);
                 searchBox._set("iconLeft", "fa-search");
                 searchbar.appendChild(searchBox._);
@@ -8893,15 +8746,15 @@ var tui;
                     _this.changeSize();
                 });
             };
-            Select.LIST_LINE_HEIGHT = 28;
             return Select;
         }(widget.SelectPopupBase));
+        Select.LIST_LINE_HEIGHT = 28;
         widget.Select = Select;
-        widget.register(Select);
+        widget.register(Select, "select");
         var DialogSelect = (function (_super) {
             __extends(DialogSelect, _super);
             function DialogSelect() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             DialogSelect.prototype.openSelect = function () {
                 this.fire("open", this.dialog);
@@ -8911,7 +8764,7 @@ var tui;
             DialogSelect.prototype.initChildren = function (childNodes) {
                 var _this = this;
                 _super.prototype.initChildren.call(this, childNodes);
-                this.dialog = widget.create(widget.Dialog);
+                this.dialog = widget.create("dialog");
                 this.content = document.createElement("div");
                 childNodes.forEach(function (n) {
                     if (widget.getFullName(n) !== "tui:verify")
@@ -8935,7 +8788,7 @@ var tui;
             return DialogSelect;
         }(widget.SelectBase));
         widget.DialogSelect = DialogSelect;
-        widget.register(DialogSelect);
+        widget.register(DialogSelect, "dialog-select");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="inputBase.ts" />
@@ -8952,7 +8805,7 @@ var tui;
         var Textarea = (function (_super) {
             __extends(Textarea, _super);
             function Textarea() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Textarea.prototype.initRestriction = function () {
                 var _this = this;
@@ -9118,8 +8971,8 @@ var tui;
             return Textarea;
         }(widget.InputBase));
         widget.Textarea = Textarea;
-        widget.register(Textarea);
-        widget.registerResize(Textarea);
+        widget.register(Textarea, "textarea");
+        widget.registerResize("textarea");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="../core.ts" />

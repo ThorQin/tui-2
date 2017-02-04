@@ -412,5 +412,5 @@ module tui.widget {
 
 	}
 	
-	register(Calendar);
+	register(Calendar, "calendar");
 }

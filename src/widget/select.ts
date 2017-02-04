@@ -15,7 +15,7 @@ module tui.widget {
 		private static LIST_LINE_HEIGHT = 28;
 		
 		protected initRestriction(): void {
-			var list = create(List);
+			var list = create("list");
 			list._set("noMouseWheel", true);
 			list.set("lineHeight", Select.LIST_LINE_HEIGHT);
 			this._components["list"] = list._;
@@ -208,7 +208,7 @@ module tui.widget {
 			var container = document.createElement("div"); 
 			var searchbar = <HTMLElement>container.appendChild(document.createElement("div"));
 			searchbar.className = "tui-select-searchbar";
-			var searchBox = create(Input);
+			var searchBox = create("input");
 			searchBox._set("clearable", true);
 			searchBox._set("iconLeft", "fa-search");
 			searchbar.appendChild(searchBox._);
@@ -349,7 +349,7 @@ module tui.widget {
 		}
 	}
 	
-	register(Select);
+	register(Select, "select");
 
 	export class DialogSelect extends SelectBase {
 		private dialog: Dialog;
@@ -361,7 +361,7 @@ module tui.widget {
 		} 
 		protected initChildren(childNodes: Node[]) {
 			super.initChildren(childNodes);
-			this.dialog = <Dialog>create(Dialog);
+			this.dialog = <Dialog>create("dialog");
 			this.content = document.createElement("div");
 			childNodes.forEach(n => {
 				if (getFullName(n) !== "tui:verify")
@@ -384,6 +384,6 @@ module tui.widget {
 			this.setInit("iconRight", "fa-pencil");
 		}
 	}
-	register(DialogSelect);
+	register(DialogSelect, "dialog-select");
 
 }

@@ -1258,8 +1258,8 @@ module tui.widget {
 		}
 	}
 
-	register(Grid);
-	registerResize(Grid);
+	register(Grid, "grid");
+	registerResize("grid");
 	
 	
 	/**
@@ -1429,6 +1429,6 @@ module tui.widget {
 		}
 	}
 	
-	register(List);
-	registerResize(List);
+	register(List, "list");
+	registerResize("list");
 }

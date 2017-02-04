@@ -152,7 +152,7 @@ module tui.widget {
 				var names = buttonDef.split(",");
 				for (let name of names) {
 					let pair = name.split("#");
-					let btn = create(Button, { text:tui.str($.trim(pair[0])) })
+					let btn = create("button", { text:tui.str($.trim(pair[0])) })
 					if (pair.length > 1 && $.trim(pair[1]).length > 0)
 						btn._.className = pair[1];
 					btn.on("click", (e) => {
@@ -290,7 +290,7 @@ module tui.widget {
 		
 	} // End of Dialog class
 	
-	register(Dialog);
+	register(Dialog, "dialog");
 
 	$(document).on("keydown", (e) => {
 		var k = e.keyCode;

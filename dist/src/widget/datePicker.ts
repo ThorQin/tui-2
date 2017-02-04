@@ -11,7 +11,7 @@ module tui.widget {
 	export class DatePicker extends SelectPopupBase {
 		
 		protected initRestriction(): void {
-			var calendar = create(Calendar);
+			var calendar = create("calendar");
 			this._components["calendar"] = calendar._;
 			super.initRestriction();
 			this.setRestrictions({
@@ -102,5 +102,5 @@ module tui.widget {
 	}
 	
 	
-	register(DatePicker);
+	register(DatePicker, "date-picker");
 }

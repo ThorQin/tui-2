@@ -61,5 +61,5 @@ module tui.widget {
 			init(this._);
 		}
 	}
-	register(Frame);
+	register(Frame, "frame");
 }

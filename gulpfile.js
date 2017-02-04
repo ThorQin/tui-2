@@ -32,8 +32,14 @@ gulp.task('ts', function () {
 		},
 		function (cb) {
 			gulp.src('dist/tui2.js')
+			.pipe(sourcemaps.init())
+			.pipe(uglify({
+				compress: {
+					unsafe: false
+				}
+			}))
 			.pipe(rename('tui2.min.js'))
-			.pipe(uglify())
+    		.pipe(sourcemaps.write('.'))
 			.pipe(gulp.dest('dist'))
 			.on('end', cb);
 		},

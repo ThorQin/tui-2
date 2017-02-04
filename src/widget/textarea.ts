@@ -180,6 +180,6 @@ module tui.widget {
 		}
 	}
 	
-	register(Textarea);
-	registerResize(Textarea);
+	register(Textarea, "textarea");
+	registerResize("textarea");
 }

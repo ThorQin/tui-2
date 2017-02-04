@@ -205,6 +205,6 @@ module tui.widget {
 		}
 	}
 
-	register(Component);
+	register(Component, "component");
 
 }

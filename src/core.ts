@@ -1,5 +1,4 @@
 /// <reference path="jquery.d.ts" />
-/// <reference path="json.ts" />
 /// <reference path="animation.ts" />
 module tui {
     "use strict";

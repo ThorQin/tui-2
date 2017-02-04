@@ -1,10 +1,11 @@
 @import 'commons.less';
 
-@navBackColor: #009999;
-@navTextColor: #fff;
-@navActiveBackColor: #366;
+@navBackColor: #444;
+@navTextColor: #aaa;
+@navActiveTextColor: #ccc;
+@navActiveBackColor: #777;
 @navActiveBorderColor: transparent;
-@navScrollBackColor: #007777;
+@navScrollBackColor: #333;
 
 
 tui\:navigator {
@@ -98,6 +99,7 @@ tui\:navigator {
 			background-color: @navBackColor - #050505;
 		}
 		&.tui-active {
+			color: @navActiveTextColor;
 			background-color: @navActiveBackColor;
 			//border-left:6px solid @navActiveBorderColor;
 			border-right:6px solid @navActiveBorderColor;

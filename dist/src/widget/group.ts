@@ -128,7 +128,7 @@ module tui.widget {
 		
 	}
 	
-	register(Group);
-	register(ButtonGroup);
+	register(Group, "group");
+	register(ButtonGroup, "button-group");
 
 }

@@ -38,19 +38,24 @@ module tui.browser {
 		}, 0);
 	}
 
-	export function scrollToElement(elem: HTMLElement): void;
-	export function scrollToElement(elem: HTMLElement, cb?: ()=>void): void;
-	export function scrollToElement(elem: HTMLElement, distance: number, cb?: ()=>void ): void;
-	export function scrollToElement(elem: HTMLElement, p1?: any, p2?: any): void {
+	export function scrollToElement(elem: HTMLElement, ...param: any[]): void {
 		var distance = 0;
-		if (typeof p1 === "number")
-			distance = p1;
 		var cb: ()=>void = null;
-		if (typeof p1 === "function" && typeof p2 === UNDEFINED)
-			cb = p1;
-		if (typeof p2 === "function")
-			cb = p2;
-		$(getWindowScrollElement()).animate({ scrollTop: $(elem).offset().top - distance }, 200, cb);
+		var useAnimation = true;
+		for (let p of param) {
+			if (typeof p === "number")
+				distance = p;
+			else if (typeof p === "boolean")
+				useAnimation = p;
+			else if (typeof p === "function")
+				cb = p;
+		}
+		if (useAnimation) {
+			$(getWindowScrollElement()).animate({ scrollTop: $(elem).offset().top - distance }, 150, cb);
+		} else {
+			getWindowScrollElement().scrollTop = $(elem).offset().top - distance;
+			cb && cb();
+		}
 	}
 
 	export function toElement(html: string, withParentDiv: boolean = false): HTMLElement {

@@ -361,7 +361,7 @@ module tui.widget {
 					let itemIndex = this.activeItem;
 					openSubMenuTimer = setTimeout(() => {
 						let childItems = item.children;
-						let subMenu: Menu = <Menu>create(Menu, {"items": childItems});
+						let subMenu: Menu = <Menu>create("menu", {"items": childItems});
 						if ($(this._).hasClass("tui-big"))
 							$(subMenu._).addClass("tui-big");
 						$(div).addClass("tui-sub");
@@ -381,5 +381,5 @@ module tui.widget {
 		}
 	}
 	
-	register(Menu);
+	register(Menu, "menu");
 }

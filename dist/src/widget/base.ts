@@ -310,9 +310,9 @@ module tui.widget {
 			}
 		}
 		
-		getNodeName(): string {
-			return text.toDashSplit(getClassName(this.constructor));
-		}
+		// getNodeName(): string {
+		// 	return text.toDashSplit(getClassName(this.constructor));
+		// }
 
 		focus() {
 			this._.focus();
@@ -321,9 +321,9 @@ module tui.widget {
 		constructor(root: HTMLElement, initParam?: { [index: string]: any }) {
 			super();
 
-			if (getFullName(root) !== "tui:" + this.getNodeName()) {
-				throw new TypeError("Node type unmatched!");
-			}
+			// if (getFullName(root) !== "tui:" + this.getNodeName()) {
+			// 	throw new TypeError("Node type unmatched!");
+			// }
 			this._components[''] = root;
 			this._ = root;
 			(<any>root).__widget__ = this;
@@ -377,9 +377,9 @@ module tui.widget {
 	
 	var widgetRegistration: { [index: string]: { new (elem: HTMLElement, initParam?: { [index: string]: any }): any; } } = {};
 
-	export function register(constructor: { new (elem: HTMLElement, initParam?: { [index: string]: any }): any; }, type?: string) {
-		if (typeof type === "string")
-			widgetRegistration["tui:" + type.toLowerCase()] = constructor;
+	export function register(constructor: { new (elem: HTMLElement, initParam?: { [index: string]: any }): any; }, nodeName: string) {
+		if (typeof nodeName === "string")
+			widgetRegistration["tui:" + nodeName.toLowerCase()] = constructor;
 		else {
 			widgetRegistration["tui:" + text.toDashSplit(getClassName(constructor))] = constructor;
 		}
@@ -407,12 +407,8 @@ module tui.widget {
 	
 	(<any>window)["$$"] = get;
 
-	export function create(type: Function, initParam?: { [index: string]: any }): Widget;
-	export function create(type: string, initParam?: { [index: string]: any }): Widget;
-	export function create(type: any, initParam?: { [index: string]: any }): Widget {
-		if (typeof type === "function") {
-			type = text.toDashSplit(getClassName(type));
-		} else if (typeof type !== "string")
+	export function create(type: string, initParam?: { [index: string]: any }): Widget {
+		if (typeof type !== "string")
 			throw new TypeError("Invalid parameters.");
 		var constructor = widgetRegistration["tui:" + type.toLowerCase()];
 		if (typeof constructor !== "function")
@@ -523,8 +519,8 @@ module tui.widget {
 	// Detecting which widgets was resied.
 	var resizeRegistration: string[] = [];
 
-	export function registerResize(constructor: { new (elem: HTMLElement, initParam?: { [index: string]: any }): any; }) {
-		resizeRegistration.push("tui:" + text.toDashSplit(getClassName(constructor)));
+	export function registerResize(nodeName: string) {
+		resizeRegistration.push("tui:" + nodeName);
 	}
 	
 	var detectResize: () => void;

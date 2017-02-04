@@ -259,6 +259,6 @@ module tui.widget {
 		}
 	}
 
-	register(Navigator);
-	registerResize(Navigator);
+	register(Navigator, "navigator");
+	registerResize("navigator");
 }

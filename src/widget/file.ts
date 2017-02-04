@@ -143,6 +143,6 @@ module tui.widget {
 		}
 	}
 	
-	register(File);
+	register(File, "file");
 	
 }

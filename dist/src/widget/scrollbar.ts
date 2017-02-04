@@ -251,6 +251,6 @@ module tui.widget {
 		}
 	}
 
-	register(Scrollbar);
-	registerResize(Scrollbar);
+	register(Scrollbar, "scrollbar");
+	registerResize("scrollbar");
 }

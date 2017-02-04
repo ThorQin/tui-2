@@ -21,22 +21,57 @@
 		<script src="lib/highlightjs/highlight.min.js"></script>
 		<script>
 			$(function(){
-				
 				var scrollByCode = false;
-				function hideMenu() {
+				var manuallyHide = false;
+				function isMobile() {
+					return $(window).width() <= 780;
+				}
+
+				function scrollToSection(hash, animate) {
+					tui.browser.scrollToElement($(hash)[0], 50, function(){
+						scrollByCode = false;
+						var scrollElement = tui.browser.getWindowScrollElement();
+					}, animate);
+				}
+				
+				function hideMenu(cb) {
 					$("#navi").animate({left: "-250px"}, 150);
-					$("#mask").animate({opacity: 0}, 150, function(){
-						$("#mask").css("display", "none");
-					});
+					if (isMobile()) {
+						manuallyHide = false;
+						$(document.body).animate({left: 0, paddingLeft: "10px"}, 150, function(){
+							$("#mask").removeClass("show");
+							cb && cb();
+						});
+						$("#banner").animate({left: "0px"}, 150);
+					} else {
+						manuallyHide = true;
+						$(document.body).animate({left: 0, paddingLeft: "10px"}, 150, function(){
+							$("#mask").removeClass("show");
+							cb && cb();
+						});
+						$("#banner").animate({left: 0}, 150);
+					}
+				}
+				function showMenu() {
+					$("#navi").animate({left: "0px"}, 150);
+					if (isMobile()) {
+						$(document.body).animate({left: "250px", paddingLeft: "10px"}, 150, function(){
+							$("#mask").addClass("show");
+						});
+						$("#banner").animate({left: "250px"}, 150);
+					} else {
+						$(document.body).animate({left: 0, paddingLeft: "260px"}, 150, function(){
+							$("#mask").addClass("show");
+						});
+						$("#banner").animate({left: "250px"}, 150);
+					}
 				}
 				$("#banner>span").mousedown(function(e){
 					$("#navi").stop();
 					if ($("#navi").offset().left >= 0) {
 						hideMenu();
 					} else {
-						$("#navi").animate({left: "0px"}, 150);
-						$("#mask").css("display", "block");
-						$("#mask").animate({opacity:0.6}, 150);
+						showMenu();
 					}
 				});
 				$("#mask").mousedown(function(e){
@@ -44,22 +79,23 @@
 				});
 				$$("navi").on("select", function(e){
 					if (e.data.path) {
-						scrollByCode = true;
-						var distance = $("#banner").height() > 40 ? 0 : 50;
-						tui.browser.scrollToElement($("#"+e.data.path)[0], distance, function(){
-							scrollByCode = false;
-							location.href = "#"+e.data.path;
-						});
-						if (distance > 0)
-							hideMenu();
+						if (isMobile()) {
+							hideMenu(function(){
+								scrollByCode = true;
+								scrollToSection("#"+e.data.path);
+							});
+						} else {
+							scrollByCode = true;
+							scrollToSection("#"+e.data.path);
+						}
 					}
 				});
 				$(window).resize(function(){
-					if ($("#banner").height() > 40) {
-						$("#navi").css("left", "0px");
-						$("#mask").css("display", "none");
-					} else if ($("#mask").css("display") === "none") {
-						$("#navi").css("left", "-250px");
+					if (isMobile()) {
+						hideMenu();
+					} else {
+						if (!manuallyHide)
+							showMenu();
 					}
 				});
 				$(window).scroll(function(e){
@@ -164,8 +200,9 @@
 					tui.widget.init($("#content")[0]);
 					if (tui.ieVer <= 0 || tui.ieVer > 8)
 						hljs.initHighlighting();
-					if (location.hash && location.hash.length > 0 && location.hash.substring(0) == "#")
-						location.href = location.hash;
+					if (location.hash && location.hash.length > 0) {
+						scrollToSection(location.hash, false);
+					}
 				});
 			});
 		</script>
@@ -175,7 +212,7 @@
 			<span class="fa fa-bars"></span>
 			TUI.JS v2
 		</div>
-		<div id="mask" unselectable="on" style="display:none"></div>
+		<div id="mask" unselectable="on"></div>
 		<tui:navigator id="navi" selectable={true}></tui:navigator>
 		<!-- content -->
 		<div id="content"></div>

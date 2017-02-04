@@ -240,6 +240,6 @@ module tui.widget {
 		}
 	}
 	
-	register(Popup);
+	register(Popup, "popup");
 	
 }

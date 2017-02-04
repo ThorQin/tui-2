@@ -245,6 +245,6 @@ module tui.widget {
 		}
 	}
 	
-	register(Input);
-	registerResize(Input);
+	register(Input, "input");
+	registerResize("input");
 }

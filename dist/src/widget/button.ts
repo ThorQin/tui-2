@@ -174,7 +174,7 @@ module tui.widget {
 		}
 	}
 
-	register(Button);
-	register(Check);
-	register(Radio);
+	register(Button, "button");
+	register(Check, "check");
+	register(Radio, "radio");
 }

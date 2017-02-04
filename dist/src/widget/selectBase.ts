@@ -144,7 +144,7 @@ module tui.widget {
 	
 	export abstract class SelectPopupBase extends SelectBase {
 		protected createPopup(): any {
-			return <Popup>create(Popup);
+			return <Popup>create("popup");
 		}
 	}
 
