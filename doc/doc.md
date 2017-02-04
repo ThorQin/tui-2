@@ -35,6 +35,7 @@ TUI2 依赖 Font Awesome、jQuery 以及 es5-shim.js (如果要兼容IE8)
 <link rel="stylesheet" href="path/to/tui2.css" />
 <!--[if IE 8]>
 <script type="text/javascript" src="path/to/es5-shim.js"></script>
+<script type="text/javascript" src="path/to/json2.js"></script>
 <![endif]-->
 <script type="text/javascript" src="path/to/jquery-1.11.3.js"></script>
 <script type="text/javascript" src="path/to/tui2.js"></script>
