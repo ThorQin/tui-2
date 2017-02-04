@@ -6,3 +6,7 @@ gulpfile.js
 test
 .npmignore
 .vscode
+favicon.ico
+.project
+.settings
+web.config
