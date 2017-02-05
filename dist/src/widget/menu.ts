@@ -108,9 +108,9 @@ module tui.widget {
 					} else if (item.icon) {
 						$(div).children(".tui-icon").addClass(item.icon);
 					}
-					$(div).children(".tui-label").html(item.text);
+					$(div).children(".tui-label").text(item.text);
 					if (typeof item.shortcut === "string")
-						$(div).children(".tui-shortcut").html(item.shortcut);
+						$(div).children(".tui-shortcut").text(item.shortcut);
 					if (item.type === "menu")
 						$(div).children(".tui-arrow").addClass("fa-caret-right");
 					if (item.disable)
@@ -131,6 +131,10 @@ module tui.widget {
 			$root.attr("tabIndex", "-1");
 			$root.css("display", "none");
 			browser.removeNode(this._);
+
+			$(this._).mousedown(function(e){
+				e.stopImmediatePropagation();
+			});
 
 			function findMenuItemDiv(elem: any): HTMLElement {
 				var children = $root.children("div");
@@ -274,8 +278,10 @@ module tui.widget {
 						}
 						item.checked = true;
 					}
-					this.fire("click", {e:e, item:item});
-					this.close();
+					if (!item.children || item.children.length == 0) {
+						this.fire("click", {e:e, item:item});
+						this.close();
+					}
 				}
 			});
 			

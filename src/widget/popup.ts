@@ -23,6 +23,10 @@ module tui.widget {
 	setInterval( function () {
 		findPopupToClose(<HTMLElement>document.activeElement);
 	}, 50);
+
+	// $(window).on("mousedown", function(){
+	// 	popStack[0] && popStack[0].close();
+	// });
 	
 	/**
 	 * <popup>
@@ -81,6 +85,10 @@ module tui.widget {
 						this.get("referElement").focus();
 					}
 				}	
+			});
+
+			$(this._).mousedown(function(e){
+				e.stopImmediatePropagation();
 			});
 		}
 		

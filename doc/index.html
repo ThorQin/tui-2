@@ -15,7 +15,7 @@
 		<script type="text/javascript" src="../depends/json2.min.js"></script>
 		<![endif]-->
 		<script type="text/javascript" src="../depends/jquery-1.11.3.min.js"></script>
-        <script type="text/javascript" src="../dist/tui2.min.js"></script>
+        <script type="text/javascript" src="../dist/tui2.js"></script>
 		<script type="text/javascript" src="lib/marked.min.js"></script>
 		<link rel="stylesheet" href="lib//highlightjs/default.min.css">
 		<script src="lib/highlightjs/highlight.min.js"></script>
@@ -23,6 +23,8 @@
 			$(function(){
 				var scrollByCode = false;
 				var manuallyHide = false;
+				var animateDelay = 100;
+
 				function isMobile() {
 					return $(window).width() <= 780;
 				}
@@ -35,35 +37,51 @@
 				}
 				
 				function hideMenu(cb) {
-					$("#navi").animate({left: "-250px"}, 150);
+					$("#navi").animate({left: "-250px"}, animateDelay);
+					// $("#navi").css({left: "-250px"});
 					if (isMobile()) {
 						manuallyHide = false;
-						$(document.body).animate({left: 0, paddingLeft: "10px"}, 150, function(){
+						$(document.body).animate({left: 0, paddingLeft: "10px"}, animateDelay, function(){
 							$("#mask").removeClass("show");
 							cb && cb();
 						});
-						$("#banner").animate({left: "0px"}, 150);
+						$("#banner").animate({left: "0px"}, animateDelay);
+						// $(document.body).css({left: 0, paddingLeft: "10px"});
+						// $("#banner").css({left: "0px"});
+						// $("#mask").removeClass("show");
+						// cb && cb();
 					} else {
 						manuallyHide = true;
-						$(document.body).animate({left: 0, paddingLeft: "10px"}, 150, function(){
+						$(document.body).animate({left: 0, paddingLeft: "10px"}, animateDelay, function(){
 							$("#mask").removeClass("show");
 							cb && cb();
 						});
-						$("#banner").animate({left: 0}, 150);
+						$("#banner").animate({left: 0}, animateDelay);
+						// $(document.body).css({left: 0, paddingLeft: "10px"});
+						// $("#mask").removeClass("show");
+						// $("#banner").css({left: 0});
+						// cb && cb();
 					}
 				}
 				function showMenu() {
-					$("#navi").animate({left: "0px"}, 150);
+					$("#navi").animate({left: "0px"}, animateDelay);
+					// $("#navi").css({left: "0px"});
 					if (isMobile()) {
-						$(document.body).animate({left: "250px", paddingLeft: "10px"}, 150, function(){
+						$(document.body).animate({left: "250px", paddingLeft: "10px"}, animateDelay, function(){
 							$("#mask").addClass("show");
 						});
-						$("#banner").animate({left: "250px"}, 150);
+						$("#banner").animate({left: "250px"}, animateDelay);
+						// $(document.body).css({left: "250px", paddingLeft: "10px"});
+						// $("#banner").css({left: "250px"});
+						// $("#mask").addClass("show");
 					} else {
-						$(document.body).animate({left: 0, paddingLeft: "260px"}, 150, function(){
+						$(document.body).animate({left: "0px", paddingLeft: "260px"}, animateDelay, function(){
 							$("#mask").addClass("show");
 						});
-						$("#banner").animate({left: "250px"}, 150);
+						$("#banner").animate({left: "250px"}, animateDelay);
+						// $(document.body).css({left: 0, paddingLeft: "260px"});
+						// $("#banner").css({left: "250px"});
+						// $("#mask").addClass("show");
 					}
 				}
 				$("#banner>span").mousedown(function(e){

@@ -126,7 +126,7 @@ module tui.widget {
 				else
 					return findLine(elem.parentElement);
 			}
-			$(container).on("mousedown keydown", (e) => {
+			$(container).on("click keydown", (e) => {
 				var elem: HTMLElement = <any>e.target || e.srcElement;
 				elem = findLine(elem);
 				if (e.type === "keydown" && e.keyCode != browser.KeyCode.ENTER)
@@ -177,7 +177,15 @@ module tui.widget {
 		}
 
 		private active(elem: HTMLElement) {
-			elem.focus();
+			var container = this._components["container"];
+			var rc = tui.browser.getRectOfParent(elem);
+			if (rc.top >= container.scrollTop && rc.top + rc.height <= container.scrollTop + container.clientHeight) {
+				// It's in visible.
+			} else if (rc.top < container.scrollTop) {
+				container.scrollTop = rc.top;
+			} else if (rc.top + rc.height > container.scrollTop + container.clientHeight) {
+				container.scrollTop = (rc.top + rc.height - container.clientHeight);
+			}
 			if (this._activeItem)
 				$(this._activeItem).removeClass("tui-active");
 			if (this.get("selectable")) {

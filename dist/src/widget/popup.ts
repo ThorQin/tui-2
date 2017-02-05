@@ -82,6 +82,10 @@ module tui.widget {
 					}
 				}	
 			});
+
+			$(this._).mousedown(function(e){
+				e.stopImmediatePropagation();
+			});
 		}
 		
 		private refProc = () => {

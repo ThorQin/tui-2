@@ -7280,6 +7280,9 @@ var tui;
         setInterval(function () {
             findPopupToClose(document.activeElement);
         }, 50);
+        // $(window).on("mousedown", function(){
+        // 	popStack[0] && popStack[0].close();
+        // });
         /**
          * <popup>
          * Attributes: content, direction, referPos, referElement, opened
@@ -7343,6 +7346,9 @@ var tui;
                             _this.get("referElement").focus();
                         }
                     }
+                });
+                $(this._).mousedown(function (e) {
+                    e.stopImmediatePropagation();
                 });
             };
             Popup.prototype.open = function (refer, direction) {
@@ -7600,9 +7606,9 @@ var tui;
                         else if (item.icon) {
                             $(div).children(".tui-icon").addClass(item.icon);
                         }
-                        $(div).children(".tui-label").html(item.text);
+                        $(div).children(".tui-label").text(item.text);
                         if (typeof item.shortcut === "string")
-                            $(div).children(".tui-shortcut").html(item.shortcut);
+                            $(div).children(".tui-shortcut").text(item.shortcut);
                         if (item.type === "menu")
                             $(div).children(".tui-arrow").addClass("fa-caret-right");
                         if (item.disable)
@@ -7624,6 +7630,9 @@ var tui;
                 $root.attr("tabIndex", "-1");
                 $root.css("display", "none");
                 tui.browser.removeNode(this._);
+                $(this._).mousedown(function (e) {
+                    e.stopImmediatePropagation();
+                });
                 function findMenuItemDiv(elem) {
                     var children = $root.children("div");
                     for (var i = 0; i < children.length; i++) {
@@ -7765,8 +7774,10 @@ var tui;
                             }
                             item.checked = true;
                         }
-                        _this.fire("click", { e: e, item: item });
-                        _this.close();
+                        if (!item.children || item.children.length == 0) {
+                            _this.fire("click", { e: e, item: item });
+                            _this.close();
+                        }
                     }
                 });
                 var findItem = function (from, step) {
@@ -8001,7 +8012,7 @@ var tui;
                     else
                         return findLine(elem.parentElement);
                 }
-                $(container).on("mousedown keydown", function (e) {
+                $(container).on("click keydown", function (e) {
                     var elem = e.target || e.srcElement;
                     elem = findLine(elem);
                     if (e.type === "keydown" && e.keyCode != tui.browser.KeyCode.ENTER)
@@ -8053,7 +8064,16 @@ var tui;
                 }
             };
             Navigator.prototype.active = function (elem) {
-                elem.focus();
+                var container = this._components["container"];
+                var rc = tui.browser.getRectOfParent(elem);
+                if (rc.top >= container.scrollTop && rc.top + rc.height <= container.scrollTop + container.clientHeight) {
+                }
+                else if (rc.top < container.scrollTop) {
+                    container.scrollTop = rc.top;
+                }
+                else if (rc.top + rc.height > container.scrollTop + container.clientHeight) {
+                    container.scrollTop = (rc.top + rc.height - container.clientHeight);
+                }
                 if (this._activeItem)
                     $(this._activeItem).removeClass("tui-active");
                 if (this.get("selectable")) {
