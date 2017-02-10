@@ -23,7 +23,7 @@ tui\:input,tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file,tui\:textar
 		.shadow(0px, 0px, 4px, #88ccff);
 	}
 	&.tui-disable {
-		background-color: #f0f0f0;
+		background-color: #f5f5f5;
 		color: #ccc;
 	}
 	
@@ -65,7 +65,7 @@ tui\:input,tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file,tui\:textar
 		.icon-base();
 	}
 	&.tui-disable > i {
-		background-color: #f0f0f0;
+		background-color: #f5f5f5;
 	}
 	.tui-placeholder {
 		display: block;
@@ -97,6 +97,7 @@ tui\:input {
 		outline: none;
 		-webkit-tap-highlight-color: transparent;
 		-webkit-touch-callout: none;
+		color: @textColor;
 		&:focus {
 			-webkit-tap-highlight-color: transparent;
     		-webkit-user-modify:read-write-plaintext-only; 
@@ -132,6 +133,7 @@ tui\:textarea {
 		-webkit-tap-highlight-color: transparent;
 		-webkit-touch-callout: none;
 		resize: none;
+		color: @textColor;
 		&:focus {
 			-webkit-tap-highlight-color: transparent;
     		-webkit-user-modify:read-write-plaintext-only; 

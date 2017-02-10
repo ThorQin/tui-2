@@ -27,7 +27,10 @@ tui\:grid,tui\:list {
 		> span {
 			cursor:default;
 			position: relative;
-			.tui-grid-asc,.tui-grid-desc {
+			&.tui-asc,&.tui-desc {
+				color: @lineSelectFocusedBackgroundColor;
+			}
+			.tui-grid-asc,.tui-grid-desc,.tui-grid-sortable {
 				// display: block;
 				// position: absolute;
 				// left:0;
@@ -45,24 +48,33 @@ tui\:grid,tui\:list {
 			.tui-grid-no-sort {
 				padding: 0 2px;
 			}
+			.tui-grid-sortable {
+				color: #777;
+			}
+			.tui-grid-sortable::before {
+				.icon-base();
+				.fa-sort;
+			}
 			.tui-grid-desc::before {
 				.icon-base();
 				//.fa-chevron-down;
-				.fa-chevron-circle-down;
+				//.fa-sort-desc;
+				.fa-caret-down;
 			}
 			.tui-grid-asc::before {
 				.icon-base();
 				//.fa-chevron-up;
-				.fa-chevron-circle-up;
+				//.fa-sort-asc;
+				.fa-caret-up;
 			}
 			&.tui-sortable {
 				cursor: pointer;
-				color: @lineSelectFocusedBackgroundColor;
+				// color: @lineSelectFocusedBackgroundColor;
 				&:hover {
 					// .tui-grid-asc,.tui-grid-desc {
 					// 	.liner-color(rgba(180,240,255,1), #ddd);
 					// }
-					background-color: #ddd;
+					background-color: #eee;
 				}
 			}
 		}

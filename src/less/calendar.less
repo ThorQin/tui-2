@@ -4,7 +4,7 @@ tui\:calendar {
 	@activeBackColor: @panelColor - #111;
 	@weekendBackColor:#f0f0f0;
 	@todayBackColor:@lineSelectFocusedBackgroundColor;
-	padding:2px;
+	padding:6px;
 	border: 1px solid @borderColor;
 	white-space:nowrap;
 	display:inline-block;
@@ -12,28 +12,44 @@ tui\:calendar {
 	font-size:14px;
 	vertical-align:middle;
 	cursor:default;
+	max-width: 400px;
+	min-width: 260px;
+
+	table {
+		border-collapse: collapse;
+		width: 100%;
+	}
 	
 	td {
 		padding:3px;
 		text-align:center;
-		width: 25px;
-		border:1px solid transparent;
+		min-width: 30px;
+		height: 24px;
+		border:1px solid #ddd;
+		background-color: #fafafa;
+		color: #666;
+		font-family: sans-serif, monospace;
+		font-size: 15px;
+		box-shadow: inset 1px 1px 0px white;
 		&[colspan='3'] {
 			width:inherit;
 		}
 		&.tui-before,&.tui-after {
-			color:#d0d0d0;
+			box-shadow: none;
+    		background-color: #eee;
 		}
-		&.tui-weekend {
-			background-color:@weekendBackColor;
-		}
+		// &.tui-weekend {
+		// 	background-color:@weekendBackColor;
+		// }
 		&.tui-today {
-			color:#f00;
-			border:1px solid @todayBackColor;
+			background-color: #888;
+			box-shadow: inset 1px 1px 0px #777;
+			color:#fff;
 		}
 		&.tui-actived {
 			background-color:@todayBackColor;
 			color:#fff;
+			box-shadow: inset 1px 1px 0px #8ac;
 		}
 		&.tui-pm,&.tui-py,&.tui-nm,&.tui-ny {
 			cursor:pointer;
@@ -59,21 +75,28 @@ tui\:calendar {
 	}
 	tr.tui-yearbar > td {
 		height:25px;
+		box-shadow: none;
+		border:0;
+		background: white;
+		color: block;
+		font-weight: bold;
 	}
 	.tui-week {
-		background-color: @todayBackColor;
-		color:#fff;
-		font-size:12px;
+		font-size: 12px;
+		background: white;
+		color: #bbb;
+		border-left: 0;
+		border-right: 0;
 	}
 	.tui-month {
 		font-size:12px;
 	}
 	>div {
+		margin-top: 6px;
 		font-family: Microsoft Yahei;
 		font-size:14px;
 		font-weight: bold;
-		padding:4px 2px;
-		border-top:1px dotted @borderColor;
+		padding:2px 2px;
 		text-align:center;
 		color:#aaa;
 		>input {

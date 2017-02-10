@@ -117,6 +117,30 @@
 		}
 	}
 }
+.flat-btn-color(@color, @activeColor) {
+	background-color: transparent;
+	border-color: transparent;
+	color: @color;
+	&:focus,&:hover {
+        background-color: #f3f3f3;
+        border-color: #f3f3f3;
+		box-shadow: none;
+    }
+	&.tui-disable {
+		color: #ccc;
+		&:hover,&:active,&.tui-active {
+			color: #ccc;
+			background-color: transparent;
+		}
+	}
+	&:active,&.tui-active {
+        background-color: #ddd;
+        border-color: #ddd;
+		color: @activeColor;
+		box-shadow: none;
+	}
+}
+
 .icon-base() {
 	display: inline-block;
 	font-family: FontAwesome;

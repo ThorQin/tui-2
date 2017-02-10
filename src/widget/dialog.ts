@@ -242,7 +242,8 @@ module tui.widget {
 				"maxHeight": winSize.height + "px"
 			});
 			$(contentDiv).css({
-				"maxWidth": winSize.width - $(contentDiv).outerWidth() + $(contentDiv).width() + "px",
+				//"maxWidth": winSize.width - $(contentDiv).outerWidth() + $(contentDiv).width() + "px",
+				"maxWidth": winSize.width - 80 + "px",
 				"maxHeight": winSize.height - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px"
 			});
 			
@@ -318,17 +319,28 @@ module tui.widget {
 module tui {
 	"use strict";
 	
-	function makeContent(message: string, className: string) {
-		return text.format( "<table align='center' class='tui-msg-container'><tr><td class='{1}'><span></span></td><td>{0}</td></tr></table>", message, className);
+	function makeContent(message: string) {
+		// return text.format( 
+		// 	"<table align='center' class='tui-msg-container'><tr><td class='{1}'><span></span></td><td>{0}</td></tr></table>", 
+		// 	message, className);
+		if (message) {
+			return text.format( 
+				"<div class='tui-msg-container'><span></span><div>{0}</div></div>", 
+				message);
+		} else {
+			return text.format( 
+				"<div class='tui-msg-container'><span></span></div>");
+		}
 	}
 	
 	function makeDialog(message: string, className: string, title?: string, btn: string = "ok#tui-primary", 
 		callback: (btnName:string) => void = null, esc: boolean = true): widget.Dialog {
 		var dlg = <widget.Dialog>tui.widget.create("dialog", {
-			"content": makeContent(message, className),
+			"content": makeContent(message),
 			"title": title,
 			"esc": esc
 		 });
+		$(dlg._).addClass(className);
 		dlg.on("btnclick", function (e: EventInfo) {
 			dlg.close();
 			if (callback)
@@ -338,25 +350,42 @@ module tui {
 		return dlg;
 	}
 
-	export function msgbox(message: string, title?: string): widget.Dialog {
+	export function msgbox(message: string, title: string = null): widget.Dialog {
 		return makeDialog(message, "tui-msg-box", title);
 	}
-	export function infobox(message: string, title?: string): widget.Dialog {
-		return makeDialog(message, "tui-info-box", title);
+	export function infobox(message: string, title: string = ""): widget.Dialog {
+		var titleText = "<i class='tui-dialog-title-info'></i>";
+		if (title)
+			titleText += title;
+		return makeDialog(message, "tui-info-box", titleText);
 	}
-	export function okbox(message: string, title?: string): widget.Dialog {
-		return makeDialog(message, "tui-ok-box", title);
+	export function okbox(message: string, title: string = ""): widget.Dialog {
+		var titleText = "<i class='tui-dialog-title-ok'></i>";
+		if (title)
+			titleText += title;
+		return makeDialog(message, "tui-ok-box", titleText);
 	}
-	export function errbox(message: string, title?: string): widget.Dialog {
-		return makeDialog(message, "tui-err-box", title);
+	export function errbox(message: string, title: string = ""): widget.Dialog {
+		var titleText = "<i class='tui-dialog-title-error'></i>";
+		if (title)
+			titleText += title;
+		return makeDialog(message, "tui-err-box", titleText);
 	}
-	export function warnbox(message: string, title?: string): widget.Dialog {
-		return makeDialog(message, "tui-warn-box", title);
+	export function warnbox(message: string, title: string = ""): widget.Dialog {
+		var titleText = "<i class='tui-dialog-title-warning'></i>";
+		if (title)
+			titleText += title;
+		return makeDialog(message, "tui-warn-box", titleText);
 	}
-	export function askbox(message: string, title?: string, callback?: (result: boolean) => void): widget.Dialog {
-		if (typeof title === "function")
+	export function askbox(message: string, title: string = "", callback?: (result: boolean) => void): widget.Dialog {
+		if (typeof title === "function") {
 			callback = <(result:boolean)=>void><any>title;
-		return makeDialog(message, "tui-ask-box", title, "ok#tui-primary,cancel", function(buttonName: string){
+			title = null;
+		}
+		var titleText = "<i class='tui-dialog-title-ask'></i>";
+		if (title)
+			titleText += title;
+		return makeDialog(message, "tui-ask-box", titleText, "cancel#tui-flat,ok#tui-primary", function(buttonName: string){
 			if (typeof callback === "function")
 				callback(buttonName === "ok");
 		});
@@ -371,7 +400,7 @@ module tui {
 			waitDlg = makeDialog(message, "tui-wait-box", null, null, null, false);
 		} else {
 			waitMsg.push(message);
-			waitDlg.setContent(makeContent(message, "tui-wait-box"));
+			waitDlg.setContent(makeContent(message));
 		}
 		var index = waitMsg.length - 1;
 		refCount++;
@@ -384,7 +413,7 @@ module tui {
 					waitMsg[index] = null;
 					for (var i = index - 1; i >= 0; i--) {
 						if (waitMsg[i] != null) {
-							waitDlg.setContent(makeContent(waitMsg[i], "tui-wait-box"));
+							waitDlg.setContent(makeContent(waitMsg[i]));
 							break;
 						}
 					}
@@ -399,7 +428,7 @@ module tui {
 				if (!closed) {
 					waitMsg[index] = message;
 					if (index === waitMsg.length - 1)
-						waitDlg.setContent(makeContent(message, "tui-wait-box"));
+						waitDlg.setContent(makeContent(message));
 				}
 			}
 		};

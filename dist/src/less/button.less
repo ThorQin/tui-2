@@ -4,9 +4,11 @@ tui\:button {
 	.btn();
 	margin:2px;
 	cursor:pointer;
+	//font-weight: bold;
 	.border-radius(@buttonBorderRadius);
 	text-decoration: none;
-	color: @textColor;
+	color: @textColor - #111;
+	//color:#616161;
     border: 1px solid @borderColor;
 	-webkit-tap-highlight-color: inherit;
 	-webkit-touch-callout: none;
@@ -41,19 +43,19 @@ tui\:button {
 
 	&.tui-success {
 		color: #fff;
-		.btn-color(#00c555, #00a020);
+		.btn-color(#259b24, #056f00);
 	}
 	&.tui-primary {
 		color: #fff;
-		.btn-color(#00aaff, #0090d0);
+		.btn-color(#039be5, #0277bd);
 	}
 	&.tui-danger {
 		color: #fff;
-		.btn-color(#ff5060, #e04020);
+		.btn-color(#e51c23, #c41411);
 	}
 	&.tui-warning {
 		color: #fff;
-		.btn-color(#ff9a40, #e07a20);
+		.btn-color(#ff9800, #ef6c00);
 	}
 	
 	&.tui-checked {
@@ -70,18 +72,39 @@ tui\:button {
 			box-shadow: none;
 		}
 	}
+
+	&.tui-flat {
+		border-color: transparent;
+		margin:2px 0px;
+		box-shadow: none;
+		font-weight: bold;
+		.flat-btn-color(#616161, #000);
+		&.tui-success {
+			.flat-btn-color(#0a8f08, #056f00);
+		}
+		&.tui-primary {
+			.flat-btn-color(#0288d1, #01579b);
+		}
+		&.tui-danger {
+			.flat-btn-color(#d01716, #b0120a);
+		}
+		&.tui-warning {
+			.flat-btn-color(#f57c00, #e65100);
+		}
+	}
 }
 
 
 tui\:check,tui\:radio {
 	.btn();
+	color: @textColor - #111;
 	padding: 0 6px;
 	text-align:center;
 	margin:2px;
 	cursor:pointer;
 	text-decoration: none;
 	.border-radius(@buttonBorderRadius);
-	color: #000;
+	
 	vertical-align:middle;
 
 	&.tui-notify {
@@ -99,7 +122,8 @@ tui\:check,tui\:radio {
 	}
 }
 
-@buttonIconWidth: 15px;
+@buttonIconWidth: 22px;
+@buttonIconFontSize: 20px;
 
 tui\:check {
 	&:before {
@@ -109,6 +133,8 @@ tui\:check {
 		text-align:left;
 		color: @uncheckColor;
 		width: @buttonIconWidth;
+		vertical-align: middle;
+		font-size: @buttonIconFontSize;
 	}
 	&.tui-checked:before {
 		display:inline-block;
@@ -117,6 +143,7 @@ tui\:check {
 		text-align:left;
 		color: @checkedColor;
 		width: @buttonIconWidth;
+		font-size: @buttonIconFontSize;
 	}
 	&.tui-tristate:before {
 		display:inline-block;
@@ -125,6 +152,7 @@ tui\:check {
 		text-align:left;
 		color: @uncheckColor;
 		width: @buttonIconWidth;
+		font-size: @buttonIconFontSize;
 	}
 	&:hover {
 		color:inherit;
@@ -139,6 +167,8 @@ tui\:radio {
 		text-align:left;
 		color: @uncheckColor;
 		width: @buttonIconWidth;
+		vertical-align: middle;
+		font-size: @buttonIconFontSize;
 	}
 	&.tui-checked:before {
 		display:inline-block;
@@ -147,6 +177,7 @@ tui\:radio {
 		text-align:left;
 		color: @checkedColor;
 		width: @buttonIconWidth;
+		font-size: @buttonIconFontSize;
 	}
 	&:hover {
 		color:inherit;

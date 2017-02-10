@@ -16,9 +16,11 @@ tui\:button-group.tui-tab {
 		margin-top: 0px;
 		outline:none;
 		padding: 3px 14px;
-		border-bottom: 3px solid transparent;
+		border-bottom: 4px solid transparent;
 		border-bottom-left-radius:0px;
 		border-bottom-right-radius:0px;
+		color: #aaa;
+		font-weight: bold;
 		&:before {
 			display:none;
 			content:none;
@@ -36,7 +38,8 @@ tui\:button-group.tui-tab {
 			border-bottom-color: @checkedColor;
 		}
 		&:hover {
-			color:@checkedColor;
+			//color:@checkedColor;
+			border-bottom-color: #aaa;
 		}
 		&:focus {
 			color:@checkedColor;

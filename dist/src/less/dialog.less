@@ -18,7 +18,7 @@ tui\:dialog {
 	background-color:white;
 	.border-radius(@dialogBorderRadius);
 	min-width:280px;
-	border:1px solid @borderColor;
+	//border:1px solid @borderColor;
 	.shadow(0px, 1px, 30px, rgba(0,0,0,0.5));
 	z-index:@dialogLayer;
 	text-align:left;
@@ -33,7 +33,9 @@ tui\:dialog {
 		overflow:hidden;
 		padding:5px 20px;
 		padding-right: 50px;
-		border-bottom:1px solid @hineColor;
+		font-weight: bold;
+		font-size: 18px;
+	//	border-bottom:1px solid @hineColor;
 		
 		background-color: @titleBackColor;
 		height:@captionHeight;
@@ -52,13 +54,22 @@ tui\:dialog {
 			border:0;
 			cursor:pointer;
 			outline:none;
+			color: #777;
 			.border-radius(@buttonBorderRadius);
 			&:hover {
 				background-color:(@panelColor - #111);
 			}
 			&:before {
-				.icon-base();
-				.fa-times();
+				//.icon-base();
+				//.fa-times();
+				display: inline-block;
+				font-style: normal;
+				font-weight: 400;
+				-webkit-font-smoothing: antialiased;
+				-moz-osx-font-smoothing: grayscale;
+				font-family: Arial,Helvetica,sans-serif;
+				font-size: 30px;
+				content: "\00d7";
 			}
 		}
 		>.tui-text {
@@ -72,57 +83,87 @@ tui\:dialog {
 	> .tui-button-bar {
 		.bottom-radius(@dialogBorderRadius);
 		overflow:hidden;
-		padding:10px 20px;
-		border-top:1px solid @hineColor;
+		padding:10px 10px;
+		//border-top:1px solid @hineColor;
 		background-color:@titleBackColor;
 		text-align:right;
 		white-space:nowrap;
 		tui\:button {
 			margin:2px 4px;
-			min-width: 50px;
+			min-width: 40px;
+			padding-left: 14px;
+			padding-right: 14px;
+			display: inline-block;
 		}
 	}
 }
 
-.tui-msg-container {
-	padding:30px;
-	max-width: 500px;
-	& td>span:before {
-		.icon-base();
-		font-size:3em;
-		margin:-8px 0;
-		margin-right:20px;
-		vertical-align:middle;
+tui\:dialog.tui-wait-box {
+	min-width: 150px;
+}
+
+tui\:dialog .tui-title-bar {
+	span.tui-text i {
+		&:before {
+			.icon-base();
+			font-size:18px;
+		}
+		vertical-align: baseline;
+		text-align: left;
+		margin-right: 15px;
+		line-height: 20px;
 	}
-	& td.tui-info-box>span:before {
-		display: inline-block;
-		.fa-info-circle();
-		color:@iconInfoColor;
-	}
-	& td.tui-ok-box>span:before {
-		display: inline-block;
-		.fa-check-circle();
-		color:@iconSuccessColor;
-	}
-	& td.tui-err-box>span:before {
-		display: inline-block;
-		.fa-times-circle();
-		color:red;
-	}
-	& td.tui-warn-box>span:before {
-		display: inline-block;
+	.tui-dialog-title-warning:before {
 		.fa-warning();
 		color:@iconWarnColor;
 	}
-	& td.tui-ask-box>span:before {
-		display: inline-block;
+	.tui-dialog-title-ok:before {
+		.fa-check();
+		color:@iconSuccessColor;
+	}
+	.tui-dialog-title-info:before {
+		.fa-info();
+		color:@iconInfoColor;
+	}
+	.tui-dialog-title-error:before {
+		.fa-exclamation-circle();
+		color:red;
+	}
+	.tui-dialog-title-ask:before {
 		.fa-question-circle();
 		color:@iconInfoColor;
 	}
-	& td.tui-wait-box>span:before {
+}
+
+.tui-msg-container {
+	padding:5px 20px;
+	max-width: 500px;
+	text-align: center;
+	> div {
 		display: inline-block;
-		.fa-gear();
-		.tui-spin();
-		color:#aaa;
+		text-align: left;
+	}
+}
+
+tui\:dialog.tui-wait-box {
+	.tui-msg-container {
+		max-width: 250px;
+	}
+	.tui-msg-container>div {
+		padding:10px;
+	}
+	.tui-msg-container>span {
+		padding: 10px;
+		display: block;
+		height: 40px;
+		line-height: 40px;
+		text-align: center;
+		&:before {
+			.icon-base();
+			.fa-circle-o-notch();
+			.tui-spin();
+			font-size:38px;
+			color: #ccc;
+		}
 	}
 }

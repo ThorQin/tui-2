@@ -55,6 +55,28 @@ a {
 	}
 }
 
-tui\:init,tui\:item {
+table.tui-table {
+	border-collapse: collapse;
+	empty-cells: show;
+	&.auto-scroll {
+		display: block;
+		overflow: auto;
+	}
+	th {
+		border: 0;
+		border-bottom: 2px solid #888;
+		color: black;
+		font-weight: bold;
+		text-align: left;
+		padding: 6px 15px;
+	}
+	td {
+		padding: 6px 15px;
+		border: 0;
+		border-bottom: 1px solid #ccc;
+	}
+}
+
+tui\:item {
 	display: none;
 }

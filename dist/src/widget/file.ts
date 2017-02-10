@@ -44,7 +44,7 @@ module tui.widget {
 		}
 
 		protected init(): void {
-			this.setInit("iconRight", "fa-file-text-o"); 
+			this.setInit("iconRight", "fa-file-o"); 
 			var $root = $(this._);
 			var label = this._components["label"] = document.createElement("span");
 			var iconRight = this._components["iconRight"] = document.createElement("i");

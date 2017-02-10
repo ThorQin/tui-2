@@ -172,6 +172,13 @@ tui.widget.search() | 无 | searchArea（可选）, filter（可选） | 可以�
  <tui:button>菜单</tui:button><tui:button class="tui-dropdown"></tui:button>
  </tui:button-group>
 
+<tui:button class="tui-flat">普通平面按钮</tui:button>
+ <tui:button class="tui-primary tui-flat"><i class="fa fa-warning"></i>&nbsp;重要</tui:button>
+ <tui:button class="tui-danger tui-flat">危险</tui:button>
+ <tui:button class="tui-warning tui-flat">警告</tui:button>
+ <tui:button class="tui-success tui-flat">成功</tui:button>
+ <tui:button disable="{true}" class="tui-flat" >禁用</tui:button>
+
 使用标签创建：
 ```html
 <tui:button class="tui-primary">重要</tui:button>
@@ -192,6 +199,7 @@ tui-danger | 危险
 tui-warning | 警告
 tui-success | 成功
 tui-dropdown | 下拉菜单
+tui-flat | 平面按钮
 
 事件：
 
@@ -356,6 +364,7 @@ HTML代码：
 <tui:input placeholder="验证邮箱" icon-left="fa-envelope-o" auto-validate={true}>
  <tui:verify format="*email">请输入合法的邮箱</tui:verify>
  </tui:input>
+<tui:input placeholder="普通输入框" disable={true}></tui:input>
 
 HTML代码：
 ```html
@@ -600,12 +609,12 @@ time-bar | boolean, 是否显示时间输入框
 
 ## [](fa-calendar) 日历`(calendar)`
 外观：
-<tui:calendar time-bar="{true}"></tui:calendar>
+<tui:calendar time-bar="{true}" style="display:block;"></tui:calendar>
 
 HTML代码：
 
 ```html
-<tui:calendar time-bar="{true}"></tui:calendar>
+<tui:calendar time-bar="{true}" style="display:block;"></tui:calendar>
 ```
 事件
 

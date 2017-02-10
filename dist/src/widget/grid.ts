@@ -1048,18 +1048,23 @@ module tui.widget {
 			head.innerHTML = "";
 			var columns = <ColumnInfo[]>this.get("columns");
 			for (var i = 0; i < columns.length; i++) {
-				var prefix = "<i class='tui-grid-no-sort'></i>";
-				if (columns[i].sortable && this.get("sortColumn") == i) {
-					if (this.get("sortType") === "desc") {
-						prefix = "<i class='tui-grid-desc'></i>";
-					} else {
-						prefix = "<i class='tui-grid-asc'></i>";
+				let prefix = "<i class='tui-grid-no-sort'></i>";
+				let sortClass = "";
+				if (columns[i].sortable) {
+					prefix = "<i class='tui-grid-sortable'></i>";
+					if (this.get("sortColumn") == i) {
+						if (this.get("sortType") === "desc") {
+							prefix = "<i class='tui-grid-desc'></i>";
+							sortClass = "tui-desc";
+						} else {
+							prefix = "<i class='tui-grid-asc'></i>";
+							sortClass = "tui-asc";
+						}
 					}
+					sortClass += " tui-sortable";
 				}
-				var sortClass = "";
-				if (columns[i].sortable)
-					sortClass = "tui-sortable";
-				var span = document.createElement("span");
+					
+				let span = document.createElement("span");
 				span.setAttribute("unselectable", "on");
 				span.className = "tui-grid-" + this._tuid + "-" + i + " " + sortClass;
 				(<any>span).col = i;
