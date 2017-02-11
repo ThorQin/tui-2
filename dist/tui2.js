@@ -298,23 +298,6 @@ var tui;
         return rv;
     })();
 })(tui || (tui = {}));
-/// <reference path="core.ts" />
-tui.dict("en-us", {
-    "success": "SUCCESS",
-    "notmodified": "Request's content has not been modified!",
-    "error": "ERROR",
-    "timeout": "Request timeout!",
-    "abort": "Operating has been aborted!",
-    "parsererror": "Server response invalid content!",
-    "ok": "OK",
-    "close": "CLOSE",
-    "cancel": "CANCEL",
-    "accept": "ACCEPT",
-    "agree": "AGREE",
-    "reject": "REJECT",
-    "yes": "YES",
-    "no": "NO"
-});
 /// <reference path="../core.ts" />
 var tui;
 (function (tui) {
@@ -465,7 +448,7 @@ var tui;
         function joinUrl() {
             var urls = [];
             for (var _i = 0; _i < arguments.length; _i++) {
-                urls[_i - 0] = arguments[_i];
+                urls[_i] = arguments[_i];
             }
             var result = null;
             for (var _a = 0, urls_1 = urls; _a < urls_1.length; _a++) {
@@ -515,7 +498,7 @@ var tui;
         var Service = (function (_super) {
             __extends(Service, _super);
             function Service() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Service.prototype.use = function (fn, desc) {
                 service.use.call(this, fn, desc);
@@ -709,9 +692,10 @@ var tui;
         var WidgetBase = (function (_super) {
             __extends(WidgetBase, _super);
             function WidgetBase() {
-                _super.apply(this, arguments);
-                this._data = undefined;
-                this._rs = {};
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._data = undefined;
+                _this._rs = {};
+                return _this;
             }
             //restrict
             WidgetBase.prototype.setRestriction = function (key, propCtrl) {
@@ -838,24 +822,24 @@ var tui;
                 return this;
             };
             return WidgetBase;
-        }(tui.EventObject));
-        widget_1.WidgetBase = WidgetBase; // End of class WidgetBase
+        }(tui.EventObject)); // End of class WidgetBase
+        widget_1.WidgetBase = WidgetBase;
         var namedWidgets = {};
         var Widget = (function (_super) {
             __extends(Widget, _super);
             function Widget(root, initParam) {
-                _super.call(this);
-                this._lastWidth = null;
-                this._lastHeight = null;
-                this._components = {};
+                var _this = _super.call(this) || this;
+                _this._lastWidth = null;
+                _this._lastHeight = null;
+                _this._components = {};
                 // if (getFullName(root) !== "tui:" + this.getNodeName()) {
                 // 	throw new TypeError("Node type unmatched!");
                 // }
-                this._components[''] = root;
-                this._ = root;
-                root.__widget__ = this;
-                this.initRestriction(); // install restrictor
-                this.load(); // load initial properties
+                _this._components[''] = root;
+                _this._ = root;
+                root.__widget__ = _this;
+                _this.initRestriction(); // install restrictor
+                _this.load(); // load initial properties
                 // Obtain all child nodes
                 var childNodes = [];
                 for (var i = 0; i < root.childNodes.length; i++) {
@@ -866,15 +850,16 @@ var tui;
                     var removeNode = childNodes_1[_i];
                     tui.browser.removeNode(removeNode);
                 }
-                this.initChildren(childNodes);
+                _this.initChildren(childNodes);
                 if (typeof initParam !== tui.UNDEFINED) {
-                    this._set(initParam);
+                    _this._set(initParam);
                 }
-                this.init();
+                _this.init();
                 // Any widget which has ID property will be registered in namedWidgets
-                var id = this.get("id");
+                var id = _this.get("id");
                 if (typeof id === "string" && id.length > 0)
-                    namedWidgets[id] = this;
+                    namedWidgets[id] = _this;
+                return _this;
             }
             Widget.prototype.init = function () { };
             ;
@@ -1018,17 +1003,18 @@ var tui;
                 this._.focus();
             };
             return Widget;
-        }(WidgetBase));
-        widget_1.Widget = Widget; // End of class Widget
+        }(WidgetBase)); // End of class Widget
+        widget_1.Widget = Widget;
         /**
          * Any config element can extends from this class.
          */
         var Item = (function (_super) {
             __extends(Item, _super);
             function Item(root) {
-                _super.call(this);
-                this._ = root;
-                this.load();
+                var _this = _super.call(this) || this;
+                _this._ = root;
+                _this.load();
+                return _this;
             }
             Item.prototype.getComponent = function (name) {
                 if (arguments.length > 0) {
@@ -1040,8 +1026,8 @@ var tui;
             };
             Item.prototype.render = function () { };
             return Item;
-        }(WidgetBase));
-        widget_1.Item = Item; // End of ConfigNode
+        }(WidgetBase)); // End of ConfigNode
+        widget_1.Item = Item;
         var widgetRegistration = {};
         function register(constructor, nodeName) {
             if (typeof nodeName === "string")
@@ -1224,7 +1210,6 @@ var tui;
         });
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-var tui;
 (function (tui) {
     tui.get = tui.widget.get;
     tui.create = tui.widget.create;
@@ -1284,11 +1269,12 @@ var tui;
         var Dialog = (function (_super) {
             __extends(Dialog, _super);
             function Dialog() {
-                _super.apply(this, arguments);
-                this._sizeTimer = null;
-                this._contentSize = null;
-                this._moved = false;
-                this._init = true;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._sizeTimer = null;
+                _this._contentSize = null;
+                _this._moved = false;
+                _this._init = true;
+                return _this;
             }
             Dialog.prototype.initChildren = function (childNodes) {
                 if (childNodes.length > 0) {
@@ -1374,7 +1360,7 @@ var tui;
                 buttonBar.innerHTML = "";
                 if (typeof buttonDef === "string" && buttonDef.length > 0) {
                     var names = buttonDef.split(",");
-                    var _loop_1 = function(name_3) {
+                    var _loop_1 = function (name_3) {
                         var pair = name_3.split("#");
                         var btn = widget.create("button", { text: tui.str($.trim(pair[0])) });
                         if (pair.length > 1 && $.trim(pair[1]).length > 0)
@@ -1516,8 +1502,8 @@ var tui;
                 this._contentSize = { width: contentDiv.scrollWidth, height: contentDiv.scrollHeight };
             };
             return Dialog;
-        }(widget.Widget));
-        widget.Dialog = Dialog; // End of Dialog class
+        }(widget.Widget)); // End of Dialog class
+        widget.Dialog = Dialog;
         widget.register(Dialog, "dialog");
         $(document).on("keydown", function (e) {
             var k = e.keyCode;
@@ -1542,7 +1528,6 @@ var tui;
         });
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-var tui;
 (function (tui) {
     "use strict";
     function makeContent(message) {
@@ -1638,6 +1623,9 @@ var tui;
         else {
             waitMsg.push(message);
             waitDlg.setContent(makeContent(message));
+            setTimeout(function () {
+                waitDlg.refresh();
+            });
         }
         var index = waitMsg.length - 1;
         refCount++;
@@ -2466,6 +2454,7 @@ var tui;
     var browser;
     (function (browser) {
         "use strict";
+        var KeyCode;
         (function (KeyCode) {
             KeyCode[KeyCode["BACK"] = 8] = "BACK";
             KeyCode[KeyCode["TAB"] = 9] = "TAB";
@@ -2563,8 +2552,7 @@ var tui;
             KeyCode[KeyCode["BACKSLASH"] = 220] = "BACKSLASH";
             KeyCode[KeyCode["RIGHT_BRACKET"] = 221] = "RIGHT_BRACKET";
             KeyCode[KeyCode["QUOTE"] = 222] = "QUOTE";
-        })(browser.KeyCode || (browser.KeyCode = {}));
-        var KeyCode = browser.KeyCode;
+        })(KeyCode = browser.KeyCode || (browser.KeyCode = {}));
     })(browser = tui.browser || (tui.browser = {}));
 })(tui || (tui = {}));
 /// <reference path="../core.ts" />
@@ -2646,16 +2634,16 @@ var tui;
         var Uploader = (function (_super) {
             __extends(Uploader, _super);
             function Uploader(container, options) {
-                _super.call(this);
-                this._settings = {
+                var _this = _super.call(this) || this;
+                _this._settings = {
                     action: "upload",
                     name: "file",
                     multiple: false,
                     autoSubmit: true
                 };
-                this._container = null;
-                this._input = null;
-                this.setOptions(options);
+                _this._container = null;
+                _this._input = null;
+                _this.setOptions(options);
                 if (!container || container.nodeType !== 1) {
                     throw new Error("Please make sure that you're passing a valid element");
                 }
@@ -2664,9 +2652,10 @@ var tui;
                     $(container).on('click', function (e) { e.preventDefault(); });
                 }
                 // DOM element
-                this._container = container;
+                _this._container = container;
                 // DOM element                 
-                this._input = null;
+                _this._input = null;
+                return _this;
             }
             Uploader.prototype.setOptions = function (options) {
                 if (options) {
@@ -2973,10 +2962,11 @@ var tui;
         var DSBase = (function (_super) {
             __extends(DSBase, _super);
             function DSBase() {
-                _super.apply(this, arguments);
-                this._finalData = null;
-                this._order = null;
-                this._filter = null;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._finalData = null;
+                _this._order = null;
+                _this._filter = null;
+                return _this;
             }
             DSBase.prototype.setOrder = function (order) {
                 this._order = order;
@@ -3043,11 +3033,12 @@ var tui;
             function List(data, filter, order) {
                 if (filter === void 0) { filter = null; }
                 if (order === void 0) { order = null; }
-                _super.call(this);
-                this._data = data;
-                this._filter = filter;
-                this._order = order;
-                this.build();
+                var _this = _super.call(this) || this;
+                _this._data = data;
+                _this._filter = filter;
+                _this._order = order;
+                _this.build();
+                return _this;
             }
             List.prototype.length = function () {
                 if (this._finalData == null)
@@ -3087,14 +3078,15 @@ var tui;
                 if (cacheSize === void 0) { cacheSize = 50; }
                 if (filter === void 0) { filter = null; }
                 if (order === void 0) { order = null; }
-                _super.call(this);
-                this._cache1 = null;
-                this._cache2 = null;
-                this._length = null;
-                this._cacheSize = cacheSize;
-                this.reset();
-                this._filter = filter;
-                this._order = order;
+                var _this = _super.call(this) || this;
+                _this._cache1 = null;
+                _this._cache2 = null;
+                _this._length = null;
+                _this._cacheSize = cacheSize;
+                _this.reset();
+                _this._filter = filter;
+                _this._order = order;
+                return _this;
             }
             RemoteList.prototype.length = function () {
                 if (this._length === null) {
@@ -3174,14 +3166,15 @@ var tui;
                 });
             };
             return RemoteList;
-        }(DSBase));
-        ds.RemoteList = RemoteList; // End of RemoteListSource
+        }(DSBase)); // End of RemoteListSource
+        ds.RemoteList = RemoteList;
         var TreeBase = (function (_super) {
             __extends(TreeBase, _super);
             function TreeBase() {
-                _super.apply(this, arguments);
-                this._index = null;
-                this._rawData = null;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._index = null;
+                _this._rawData = null;
+                return _this;
             }
             TreeBase.prototype.getConfig = function () {
                 return this._config;
@@ -3294,11 +3287,12 @@ var tui;
                 if (config === void 0) { config = { children: "children", expand: "expand" }; }
                 if (filter === void 0) { filter = null; }
                 if (order === void 0) { order = null; }
-                _super.call(this);
-                this._config = config;
-                this._filter = filter;
-                this._order = order;
-                this.update(data);
+                var _this = _super.call(this) || this;
+                _this._config = config;
+                _this._filter = filter;
+                _this._order = order;
+                _this.update(data);
+                return _this;
             }
             Tree.prototype.update = function (data) {
                 var config = this._config;
@@ -3351,11 +3345,12 @@ var tui;
                 if (config === void 0) { config = { children: "children", expand: "expand", hasChild: "hasChild" }; }
                 if (filter === void 0) { filter = null; }
                 if (order === void 0) { order = null; }
-                _super.call(this);
-                this._querying = false;
-                this._config = config;
-                this._filter = filter;
-                this._order = order;
+                var _this = _super.call(this) || this;
+                _this._querying = false;
+                _this._config = config;
+                _this._filter = filter;
+                _this._order = order;
+                return _this;
             }
             RemoteTree.prototype.length = function () {
                 if (this._index)
@@ -3418,6 +3413,23 @@ var tui;
         ds.RemoteTree = RemoteTree;
     })(ds = tui.ds || (tui.ds = {}));
 })(tui || (tui = {}));
+/// <reference path="core.ts" />
+tui.dict("en-us", {
+    "success": "SUCCESS",
+    "notmodified": "Request's content has not been modified!",
+    "error": "ERROR",
+    "timeout": "Request timeout!",
+    "abort": "Operating has been aborted!",
+    "parsererror": "Server response invalid content!",
+    "ok": "OK",
+    "close": "CLOSE",
+    "cancel": "CANCEL",
+    "accept": "ACCEPT",
+    "agree": "AGREE",
+    "reject": "REJECT",
+    "yes": "YES",
+    "no": "NO"
+});
 /// <reference path="../core.ts" />
 /// <reference path="../text/text.ts" />
 var tui;
@@ -3986,7 +3998,7 @@ var tui;
         var Button = (function (_super) {
             __extends(Button, _super);
             function Button() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Button.prototype.initChildren = function (childNodes) {
                 if (childNodes && childNodes.length > 0)
@@ -4141,7 +4153,7 @@ var tui;
         var Check = (function (_super) {
             __extends(Check, _super);
             function Check() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Check.prototype.init = function () {
                 _super.prototype.init.call(this);
@@ -4153,7 +4165,7 @@ var tui;
         var Radio = (function (_super) {
             __extends(Radio, _super);
             function Radio() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Radio.prototype.init = function () {
                 _super.prototype.init.call(this);
@@ -4195,7 +4207,7 @@ var tui;
         var Calendar = (function (_super) {
             __extends(Calendar, _super);
             function Calendar() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Calendar.prototype.initRestriction = function () {
                 var _this = this;
@@ -4616,7 +4628,7 @@ var tui;
         var Group = (function (_super) {
             __extends(Group, _super);
             function Group() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Group.prototype.initChildren = function (childNodes) {
                 for (var _i = 0, childNodes_3 = childNodes; _i < childNodes_3.length; _i++) {
@@ -4673,7 +4685,7 @@ var tui;
         var ButtonGroup = (function (_super) {
             __extends(ButtonGroup, _super);
             function ButtonGroup() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             ButtonGroup.prototype.initRestriction = function () {
                 var _this = this;
@@ -4765,7 +4777,7 @@ var tui;
         var Component = (function (_super) {
             __extends(Component, _super);
             function Component() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Component.prototype.checkReady = function () {
                 var hasHandler = !!this.get("handler");
@@ -4983,9 +4995,10 @@ var tui;
         var InputBase = (function (_super) {
             __extends(InputBase, _super);
             function InputBase() {
-                _super.apply(this, arguments);
-                this._valid = true;
-                this._invalidMessage = null;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._valid = true;
+                _this._invalidMessage = null;
+                return _this;
             }
             InputBase.prototype.initChildren = function (childNodes) {
                 var validators = [];
@@ -5130,8 +5143,9 @@ var tui;
         var SelectBase = (function (_super) {
             __extends(SelectBase, _super);
             function SelectBase() {
-                _super.apply(this, arguments);
-                this._inSelection = false;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._inSelection = false;
+                return _this;
             }
             SelectBase.prototype.closeSelect = function () {
                 var popup = widget.get(this._components["popup"]);
@@ -5258,14 +5272,14 @@ var tui;
                     this._set("follow-tooltip", null);
                 }
             };
-            SelectBase.PADDING = 6;
             return SelectBase;
         }(widget.InputBase));
+        SelectBase.PADDING = 6;
         widget.SelectBase = SelectBase;
         var SelectPopupBase = (function (_super) {
             __extends(SelectPopupBase, _super);
             function SelectPopupBase() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             SelectPopupBase.prototype.createPopup = function () {
                 return widget.create("popup");
@@ -5290,7 +5304,7 @@ var tui;
         var DatePicker = (function (_super) {
             __extends(DatePicker, _super);
             function DatePicker() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             DatePicker.prototype.initRestriction = function () {
                 var _this = this;
@@ -5394,7 +5408,7 @@ var tui;
         var File = (function (_super) {
             __extends(File, _super);
             function File() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             File.prototype.initRestriction = function () {
                 var _this = this;
@@ -5528,9 +5542,9 @@ var tui;
                     this._set("follow-tooltip", null);
                 }
             };
-            File.PADDING = 6;
             return File;
         }(widget.InputBase));
+        File.PADDING = 6;
         widget.File = File;
         widget.register(File, "file");
     })(widget = tui.widget || (tui.widget = {}));
@@ -5544,7 +5558,7 @@ var tui;
         var Frame = (function (_super) {
             __extends(Frame, _super);
             function Frame() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Frame.prototype.initRestriction = function () {
                 var _this = this;
@@ -5631,11 +5645,12 @@ var tui;
         var Grid = (function (_super) {
             __extends(Grid, _super);
             function Grid() {
-                _super.apply(this, arguments);
-                this._setupHeadMoveListener = false;
-                this._columnWidths = [];
-                this._vLines = [];
-                this._handlers = [];
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._setupHeadMoveListener = false;
+                _this._columnWidths = [];
+                _this._vLines = [];
+                _this._handlers = [];
+                return _this;
             }
             Grid.prototype.initRestriction = function () {
                 var _this = this;
@@ -6852,10 +6867,10 @@ var tui;
                 this.drawContent();
                 this.computeHOffset();
             };
-            Grid.CELL_SPACE = 4;
-            Grid.LINE_HEIGHT = 31;
             return Grid;
         }(widget.Widget));
+        Grid.CELL_SPACE = 4;
+        Grid.LINE_HEIGHT = 31;
         widget.Grid = Grid;
         widget.register(Grid, "grid");
         widget.registerResize("grid");
@@ -6865,7 +6880,7 @@ var tui;
         var List = (function (_super) {
             __extends(List, _super);
             function List() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             List.prototype.initRestriction = function () {
                 var _this = this;
@@ -7021,9 +7036,9 @@ var tui;
                 });
                 this.render();
             };
-            List.LINE_HEIGHT = 30;
             return List;
         }(Grid));
+        List.LINE_HEIGHT = 30;
         widget.List = List;
         widget.register(List, "list");
         widget.registerResize("list");
@@ -7044,7 +7059,7 @@ var tui;
         var Input = (function (_super) {
             __extends(Input, _super);
             function Input() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Input.prototype.initRestriction = function () {
                 var _this = this;
@@ -7272,9 +7287,9 @@ var tui;
                     this._set("follow-tooltip", null);
                 }
             };
-            Input.PADDING = 6;
             return Input;
         }(widget.InputBase));
+        Input.PADDING = 6;
         widget.Input = Input;
         widget.register(Input, "input");
         widget.registerResize("input");
@@ -7317,14 +7332,14 @@ var tui;
         var Popup = (function (_super) {
             __extends(Popup, _super);
             function Popup() {
-                var _this = this;
-                _super.apply(this, arguments);
-                this.popIndex = null;
-                this.referRect = null;
-                this.checkInterval = null;
-                this.refProc = function () {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.popIndex = null;
+                _this.referRect = null;
+                _this.checkInterval = null;
+                _this.refProc = function () {
                     _this.render();
                 };
+                return _this;
             }
             Popup.prototype.initRestriction = function () {
                 var _this = this;
@@ -7542,8 +7557,9 @@ var tui;
         var Menu = (function (_super) {
             __extends(Menu, _super);
             function Menu() {
-                _super.apply(this, arguments);
-                this.activeItem = null;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.activeItem = null;
+                return _this;
             }
             Menu.prototype.initChildren = function (childNodes) {
                 var data = [];
@@ -7921,7 +7937,7 @@ var tui;
         var Navigator = (function (_super) {
             __extends(Navigator, _super);
             function Navigator() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Navigator.prototype.initRestriction = function () {
                 var _this = this;
@@ -8192,7 +8208,7 @@ var tui;
         var Scrollbar = (function (_super) {
             __extends(Scrollbar, _super);
             function Scrollbar() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Scrollbar.prototype.initRestriction = function () {
                 var _this = this;
@@ -8459,7 +8475,7 @@ var tui;
         var Select = (function (_super) {
             __extends(Select, _super);
             function Select() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Select.prototype.initRestriction = function () {
                 var _this = this;
@@ -8790,15 +8806,15 @@ var tui;
                     _this.changeSize();
                 });
             };
-            Select.LIST_LINE_HEIGHT = 28;
             return Select;
         }(widget.SelectPopupBase));
+        Select.LIST_LINE_HEIGHT = 28;
         widget.Select = Select;
         widget.register(Select, "select");
         var DialogSelect = (function (_super) {
             __extends(DialogSelect, _super);
             function DialogSelect() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             DialogSelect.prototype.openSelect = function () {
                 this.fire("open", this.dialog);
@@ -8849,7 +8865,7 @@ var tui;
         var Textarea = (function (_super) {
             __extends(Textarea, _super);
             function Textarea() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             Textarea.prototype.initRestriction = function () {
                 var _this = this;

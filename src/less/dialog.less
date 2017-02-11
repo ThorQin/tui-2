@@ -151,6 +151,7 @@ tui\:dialog.tui-wait-box {
 	}
 	.tui-msg-container>div {
 		padding:10px;
+		color: #424242;
 	}
 	.tui-msg-container>span {
 		padding: 10px;
@@ -158,12 +159,19 @@ tui\:dialog.tui-wait-box {
 		height: 40px;
 		line-height: 40px;
 		text-align: center;
+		
 		&:before {
 			.icon-base();
-			.fa-circle-o-notch();
+			//.fa-circle-o-notch();
+			.fa-gear();
 			.tui-spin();
+			// content: "";
+			// display: inline-block;
+			// width: 30px;
+			// height: 30px;
+			// background-image: url(loading.gif);
 			font-size:38px;
-			color: #ccc;
+			color: #aaa;
 		}
 	}
 }

@@ -6,7 +6,7 @@ body {
 	padding-top: 20px;
 	/*transition: padding-left 200ms, left 200ms;*/
 	color: #333;
-	background: #f9f9f9;
+	background: #f5f5f5;
 }
 #navi {
 	position: fixed;
@@ -88,6 +88,7 @@ pre {
 }
 code {
 	color: #ee6633;
+	font-family: 'Courier New', monospace;
 }
 code[class] {
 	color: #444;

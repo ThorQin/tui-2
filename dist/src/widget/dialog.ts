@@ -401,6 +401,9 @@ module tui {
 		} else {
 			waitMsg.push(message);
 			waitDlg.setContent(makeContent(message));
+			setTimeout(function(){
+				waitDlg.refresh();
+			});
 		}
 		var index = waitMsg.length - 1;
 		refCount++;

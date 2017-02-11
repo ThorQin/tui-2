@@ -31,19 +31,8 @@ tui\:grid,tui\:list {
 				color: @lineSelectFocusedBackgroundColor;
 			}
 			.tui-grid-asc,.tui-grid-desc,.tui-grid-sortable {
-				// display: block;
-				// position: absolute;
-				// left:0;
-				// top:0;
-				// right: 0;
-				// height: 8px;
-				// line-height: 8px;
-				// text-align: center;
-				// overflow: hidden;
 				padding: 0 5px;
 				color: @lineSelectFocusedBackgroundColor;
-				//color: #ee7755
-				//.liner-color(#e0e0e0, #f0f0f0);
 			}
 			.tui-grid-no-sort {
 				padding: 0 2px;
@@ -54,6 +43,7 @@ tui\:grid,tui\:list {
 			.tui-grid-sortable::before {
 				.icon-base();
 				.fa-sort;
+				color: #bbb;
 			}
 			.tui-grid-desc::before {
 				.icon-base();
