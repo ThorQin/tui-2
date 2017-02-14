@@ -40,6 +40,10 @@ var tui;
     })();
     var _dict = {};
     function dict(lang, translator) {
+        if (!lang)
+            return;
+        if (typeof lang === "string")
+            lang = lang.toLowerCase();
         if (typeof translator === "function")
             _dict[lang] = translator;
         else if (typeof translator === "object" && translator !== null) {

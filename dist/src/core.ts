@@ -19,6 +19,10 @@ module tui {
 	export function dict(lang: string, dict: {}): void;
 	export function dict(lang: string, func: (str: string) => string): void;
 	export function dict(lang: string, translator: any): void {
+		if (!lang)
+			return;
+		if (typeof lang === "string")
+			lang = lang.toLowerCase();
 		if (typeof translator === "function")
 			_dict[lang] = translator;
 		else if (typeof translator === "object" && translator !== null) {
