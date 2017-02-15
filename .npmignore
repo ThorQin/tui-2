@@ -1,9 +1,10 @@
-doc
-src
+/doc
+/src
 tsconfig.json
-index.html
+/index.html
 gulpfile.js
-test
+/test
+/lang
 .npmignore
 .vscode
 favicon.ico

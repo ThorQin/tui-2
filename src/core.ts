@@ -11,24 +11,40 @@ module tui {
 		return (navigator.language || (<any>navigator).browserLanguage || (<any>navigator).userLanguage).toLowerCase();
 	})();
 
-    var _dict: any = {};
+
+	class Translator {
+		dictionary: {[index:string]: string};
+		constructor() {
+			this.dictionary = {};
+		}
+		translate (str: string) {
+			return (this.dictionary && this.dictionary[(str + "").toLowerCase()]) || str;
+		}
+	}
+
+    var _dict: {[index: string]: Translator} = {};
 
 	/**
 	 * Register a translation dictionary.
 	 */
-	export function dict(lang: string, dict: {}): void;
-	export function dict(lang: string, func: (str: string) => string): void;
-	export function dict(lang: string, translator: any): void {
+	export function dict(lang: string, dictionary: {[index:string]: string}, replace: boolean = false): void {
 		if (!lang)
 			return;
 		if (typeof lang === "string")
 			lang = lang.toLowerCase();
-		if (typeof translator === "function")
-			_dict[lang] = translator;
-		else if (typeof translator === "object" && translator !== null) {
-			_dict[lang] = function(str: string) {
-				return translator[(str + "").toLowerCase()] || str;
-			};
+		if (typeof dictionary === "object" && dictionary !== null) {
+			var translator = _dict[lang];
+			if (!translator) {
+				translator = _dict[lang] = new Translator();
+			}
+			if (replace) {
+				translator.dictionary = dictionary;
+			} else {
+				for(var k in dictionary) {
+					if (dictionary.hasOwnProperty(k))
+						translator.dictionary[k] = dictionary[k];
+				}
+			}
 		}
 	}
     
@@ -44,15 +60,16 @@ module tui {
 			else
 				lang = tui.lang.toLowerCase();
 		}
-		var func = _dict[lang];
-		if (typeof func === "function") {
-			return func(str);
+		var translator = _dict[lang];
+		if (translator) {
+			return translator.translate(str);
 		} else {
-            func = _dict["en-us"];
-            if (typeof func === "function")
-                return func(str);
-            else
-                return str;
+            translator = _dict["en-us"];
+            if (translator) {
+				return translator.translate(str);
+			} else {
+				return str;
+			}
         }
 	}
 

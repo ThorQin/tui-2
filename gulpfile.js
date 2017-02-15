@@ -85,26 +85,27 @@ gulp.task('run', ['ts', 'less', 'watch'], function () {
 });
 
 // DO PACKAGE
-gulp.task('package', ['ts', 'less'], function (cb) {
+gulp.task('dist', ['ts', 'less'], function (cb) {
 	async.series([
+		/*
 		function (cb) {
 			gulp.src('depends/**')
 			.pipe(gulp.dest('dist/depends'))
 			.on('end', cb);
-		}, 
+		},*/ 
 		function (cb) {
 			gulp.src('lang/**')
-			.pipe(gulp.dest('dist'))
+			.pipe(gulp.dest('dist/lang'))
 			.on('end', cb);
-		}, 
+		}/*, 
 		function (cb) {
 			gulp.src('dist/**')
 			.pipe(zip('tui2.zip'))
-			.pipe(gulp.dest('dist'))
+			.pipe(gulp.dest('.'))
 			.on('end', function(){
 				rimraf('dist/depends', cb);
 			});;
-		}
+		}*/
 	]);
 });
 

@@ -38,18 +38,39 @@ var tui;
     tui.lang = (function () {
         return (navigator.language || navigator.browserLanguage || navigator.userLanguage).toLowerCase();
     })();
+    var Translator = (function () {
+        function Translator() {
+            this.dictionary = {};
+        }
+        Translator.prototype.translate = function (str) {
+            return (this.dictionary && this.dictionary[(str + "").toLowerCase()]) || str;
+        };
+        return Translator;
+    }());
     var _dict = {};
-    function dict(lang, translator) {
+    /**
+     * Register a translation dictionary.
+     */
+    function dict(lang, dictionary, replace) {
+        if (replace === void 0) { replace = false; }
         if (!lang)
             return;
         if (typeof lang === "string")
             lang = lang.toLowerCase();
-        if (typeof translator === "function")
-            _dict[lang] = translator;
-        else if (typeof translator === "object" && translator !== null) {
-            _dict[lang] = function (str) {
-                return translator[(str + "").toLowerCase()] || str;
-            };
+        if (typeof dictionary === "object" && dictionary !== null) {
+            var translator = _dict[lang];
+            if (!translator) {
+                translator = _dict[lang] = new Translator();
+            }
+            if (replace) {
+                translator.dictionary = dictionary;
+            }
+            else {
+                for (var k in dictionary) {
+                    if (dictionary.hasOwnProperty(k))
+                        translator.dictionary[k] = dictionary[k];
+                }
+            }
         }
     }
     tui.dict = dict;
@@ -65,16 +86,18 @@ var tui;
             else
                 lang = tui.lang.toLowerCase();
         }
-        var func = _dict[lang];
-        if (typeof func === "function") {
-            return func(str);
+        var translator = _dict[lang];
+        if (translator) {
+            return translator.translate(str);
         }
         else {
-            func = _dict["en-us"];
-            if (typeof func === "function")
-                return func(str);
-            else
+            translator = _dict["en-us"];
+            if (translator) {
+                return translator.translate(str);
+            }
+            else {
                 return str;
+            }
         }
     }
     tui.str = str;
@@ -8808,7 +8831,9 @@ var tui;
                 _super.apply(this, arguments);
             }
             DialogSelect.prototype.openSelect = function () {
-                this.fire("open", this.dialog);
+                if (this.fire("open", this.dialog) === false) {
+                    return;
+                }
                 this.dialog.set("title", this.get("title"));
                 this.dialog.open("ok#tui-primary");
             };
