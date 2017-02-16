@@ -16,11 +16,11 @@ tui\:button-group.tui-tab {
 		margin-top: 0px;
 		outline:none;
 		padding: 3px 14px;
-		border-bottom: 4px solid transparent;
+		border-bottom: 2px solid transparent;
 		border-bottom-left-radius:0px;
 		border-bottom-right-radius:0px;
 		color: #aaa;
-		font-weight: bold;
+		
 		&:before {
 			display:none;
 			content:none;
@@ -34,7 +34,7 @@ tui\:button-group.tui-tab {
 			content:none;
 		}
 		&.tui-checked {
-			color: @checkedColor;
+			color: #000;
 			border-bottom-color: @checkedColor;
 		}
 		&:hover {
@@ -45,6 +45,15 @@ tui\:button-group.tui-tab {
 			color:@checkedColor;
 			border-bottom-left-radius:0px;
 			border-bottom-right-radius:0px;
+		}
+		&.tui-checked {
+			&:hover {
+				color: #000;
+				border-bottom-color: @checkedColor;
+			}
+			&:focus {
+				color: #000;
+			}
 		}
 	}
 }

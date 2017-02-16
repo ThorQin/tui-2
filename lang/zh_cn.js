@@ -1,5 +1,8 @@
 tui.dict("zh-cn", {
     "success": "成功",
+    "warning": "警告",
+    "note": "注意",
+    "confirm": "确认",
     "notmodified": "请求的内容没有变更！",
     "error": "错误",
     "timeout": "请求超时！",

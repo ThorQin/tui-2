@@ -106,12 +106,14 @@ tui\:dialog .tui-title-bar {
 	span.tui-text i {
 		&:before {
 			.icon-base();
-			font-size:18px;
+			font-size:22px;
 		}
+		display: inline-block;
 		vertical-align: baseline;
-		text-align: left;
+		text-align: center;
 		margin-right: 15px;
-		line-height: 20px;
+		line-height: 22px;
+		width: 24px;
 	}
 	.tui-dialog-title-warning:before {
 		.fa-warning();
@@ -122,16 +124,21 @@ tui\:dialog .tui-title-bar {
 		color:@iconSuccessColor;
 	}
 	.tui-dialog-title-info:before {
-		.fa-info();
+		//.fa-info();
+		.fa-lightbulb-o();
 		color:@iconInfoColor;
 	}
 	.tui-dialog-title-error:before {
 		.fa-exclamation-circle();
 		color:red;
 	}
+	span.tui-text i.tui-dialog-title-ask {
+		display: none;
+	}
 	.tui-dialog-title-ask:before {
-		.fa-question-circle();
-		color:@iconInfoColor;
+		// .fa-question-circle();
+		// color:@iconInfoColor;
+		display: none;
 	}
 }
 

@@ -353,31 +353,31 @@ module tui {
 	export function msgbox(message: string, title: string = null): widget.Dialog {
 		return makeDialog(message, "tui-msg-box", title);
 	}
-	export function infobox(message: string, title: string = ""): widget.Dialog {
+	export function infobox(message: string, title: string = tui.str("note")): widget.Dialog {
 		var titleText = "<i class='tui-dialog-title-info'></i>";
 		if (title)
 			titleText += title;
 		return makeDialog(message, "tui-info-box", titleText);
 	}
-	export function okbox(message: string, title: string = ""): widget.Dialog {
+	export function okbox(message: string, title: string = tui.str("success")): widget.Dialog {
 		var titleText = "<i class='tui-dialog-title-ok'></i>";
 		if (title)
 			titleText += title;
 		return makeDialog(message, "tui-ok-box", titleText);
 	}
-	export function errbox(message: string, title: string = ""): widget.Dialog {
+	export function errbox(message: string, title: string = tui.str("error")): widget.Dialog {
 		var titleText = "<i class='tui-dialog-title-error'></i>";
 		if (title)
 			titleText += title;
 		return makeDialog(message, "tui-err-box", titleText);
 	}
-	export function warnbox(message: string, title: string = ""): widget.Dialog {
+	export function warnbox(message: string, title: string = tui.str("warning")): widget.Dialog {
 		var titleText = "<i class='tui-dialog-title-warning'></i>";
 		if (title)
 			titleText += title;
 		return makeDialog(message, "tui-warn-box", titleText);
 	}
-	export function askbox(message: string, title: string = "", callback?: (result: boolean) => void): widget.Dialog {
+	export function askbox(message: string, title: string = tui.str("confirm"), callback?: (result: boolean) => void): widget.Dialog {
 		if (typeof title === "function") {
 			callback = <(result:boolean)=>void><any>title;
 			title = null;
@@ -385,7 +385,7 @@ module tui {
 		var titleText = "<i class='tui-dialog-title-ask'></i>";
 		if (title)
 			titleText += title;
-		return makeDialog(message, "tui-ask-box", titleText, "cancel#tui-flat,ok#tui-primary", function(buttonName: string){
+		return makeDialog(message, "tui-ask-box", titleText, "ok#tui-primary,cancel", function(buttonName: string){
 			if (typeof callback === "function")
 				callback(buttonName === "ok");
 		});

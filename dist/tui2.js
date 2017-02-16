@@ -327,20 +327,23 @@ var tui;
 })(tui || (tui = {}));
 /// <reference path="core.ts" />
 tui.dict("en-us", {
-    "success": "SUCCESS",
+    "success": "Success",
+    "warning": "Warning",
+    "confirm": "Confirm",
+    "note": "Note",
     "notmodified": "Request's content has not been modified!",
-    "error": "ERROR",
+    "error": "Error",
     "timeout": "Request timeout!",
     "abort": "Operating has been aborted!",
     "parsererror": "Server response invalid content!",
     "ok": "OK",
-    "close": "CLOSE",
-    "cancel": "CANCEL",
-    "accept": "ACCEPT",
-    "agree": "AGREE",
-    "reject": "REJECT",
-    "yes": "YES",
-    "no": "NO"
+    "close": "Close",
+    "cancel": "Cancel",
+    "accept": "Accept",
+    "agree": "Agree",
+    "reject": "Reject",
+    "yes": "Yes",
+    "no": "No"
 });
 /// <reference path="../core.ts" />
 var tui;
@@ -1607,7 +1610,7 @@ var tui;
     }
     tui.msgbox = msgbox;
     function infobox(message, title) {
-        if (title === void 0) { title = ""; }
+        if (title === void 0) { title = tui.str("note"); }
         var titleText = "<i class='tui-dialog-title-info'></i>";
         if (title)
             titleText += title;
@@ -1615,7 +1618,7 @@ var tui;
     }
     tui.infobox = infobox;
     function okbox(message, title) {
-        if (title === void 0) { title = ""; }
+        if (title === void 0) { title = tui.str("success"); }
         var titleText = "<i class='tui-dialog-title-ok'></i>";
         if (title)
             titleText += title;
@@ -1623,7 +1626,7 @@ var tui;
     }
     tui.okbox = okbox;
     function errbox(message, title) {
-        if (title === void 0) { title = ""; }
+        if (title === void 0) { title = tui.str("error"); }
         var titleText = "<i class='tui-dialog-title-error'></i>";
         if (title)
             titleText += title;
@@ -1631,7 +1634,7 @@ var tui;
     }
     tui.errbox = errbox;
     function warnbox(message, title) {
-        if (title === void 0) { title = ""; }
+        if (title === void 0) { title = tui.str("warning"); }
         var titleText = "<i class='tui-dialog-title-warning'></i>";
         if (title)
             titleText += title;
@@ -1639,7 +1642,7 @@ var tui;
     }
     tui.warnbox = warnbox;
     function askbox(message, title, callback) {
-        if (title === void 0) { title = ""; }
+        if (title === void 0) { title = tui.str("confirm"); }
         if (typeof title === "function") {
             callback = title;
             title = null;
@@ -1647,7 +1650,7 @@ var tui;
         var titleText = "<i class='tui-dialog-title-ask'></i>";
         if (title)
             titleText += title;
-        return makeDialog(message, "tui-ask-box", titleText, "cancel#tui-flat,ok#tui-primary", function (buttonName) {
+        return makeDialog(message, "tui-ask-box", titleText, "ok#tui-primary,cancel", function (buttonName) {
             if (typeof callback === "function")
                 callback(buttonName === "ok");
         });
@@ -7480,7 +7483,7 @@ var tui;
                 root.style.left = "0px";
                 root.style.top = "0px";
                 root.style.width = "";
-                //root.style.width = browser.getCurrentStyle(root).width;
+                root.style.width = root.clientWidth + 1 + "px";
                 var ew = root.offsetWidth;
                 var eh = root.offsetHeight;
                 var box = { left: 0, top: 0, width: 0, height: 0 };
