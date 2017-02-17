@@ -373,7 +373,7 @@ module tui.ds {
 		}
 		
 		update(data: any[]) {
-			var config = this._config;
+			// var config = this._config;
 			this._index = [];
 			this._rawData = data;
 			this.expandItems(null, data, this._index, 0);

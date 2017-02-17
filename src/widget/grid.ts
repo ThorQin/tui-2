@@ -431,7 +431,6 @@ module tui.widget {
 			var hittest = (obj: HTMLElement): {line: number, col: number} => {
 				var line: number = null;
 				var col: number = null;
-				var srcObj = obj;
 				while (obj) {
 					var parent = <HTMLElement>obj.parentNode;
 					if (parent && $(parent).hasClass("tui-grid-line")) {
@@ -757,7 +756,7 @@ module tui.widget {
 			var data = this.get("data");
 			var dataType = this.get("dataType");
 			var path: number[] = [];
-			var childrenKey: string;
+			
 			
 			// If is a subset return 1, if equals return 2, otherwise return 0
 			function matchPath(p1: number[], p2: number[]): number {
@@ -970,19 +969,19 @@ module tui.widget {
 				if (col.type === "check") {
 					var k = (col.checkKey ? col.checkKey : "checked"); 
 					if (item[k] === true)
-						prefix += "<i class='fa fa-check-square tui-grid-check'></i>";
+						prefix += "<i class='fa fa-check-square tui-grid-check tui-checked'></i>";
 					else if (item[k] === false)
-						prefix += "<i class='fa fa-square-o tui-grid-check'></i>";
+						prefix += "<i class='fa fa-square-o tui-grid-check tui-unchecked'></i>";
 					else
 						prefix += "<i class='tui-grid-no-check'></i>";
 				} else if (col.type === "tristate") {
 					var k = (col.checkKey ? col.checkKey : "checked"); 
 					if (item[k] === true)
-						prefix += "<i class='fa-check-square tui-grid-check'></i>";
+						prefix += "<i class='fa-check-square tui-grid-check tui-checked'></i>";
 					else if (item[k] === false)
-						prefix += "<i class='fa-square-o tui-grid-check'></i>";
+						prefix += "<i class='fa-square-o tui-grid-check tui-unchecked'></i>";
 					else if (item[k] === "tristate")
-						prefix += "<i class='fa-check-square tui-grid-check'></i>";
+						prefix += "<i class='fa-check-square tui-grid-check tui-tristate'></i>";
 					else
 						prefix += "<i class='tui-grid-no-check'></i>";
 				} else if (col.type === "select") {
@@ -1021,7 +1020,7 @@ module tui.widget {
 		}
 
 		private createLine(parent: HTMLElement): HTMLElement {
-			var columns = <ColumnInfo[]>this.get("columns");
+			// var columns = <ColumnInfo[]>this.get("columns");
 			var line = document.createElement("div");
 			line.className = "tui-grid-line";
 			line.setAttribute("unselectable", "on");

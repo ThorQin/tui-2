@@ -113,7 +113,7 @@ module tui.widget {
 					width: number;
 					height: number;
 				} = { width: _mask.offsetWidth, height: _mask.offsetHeight };
-				var mask = tui.widget.openDragMask((e) => {
+				tui.widget.openDragMask((e) => {
 					var l = dialogX + e.clientX - beginX;
 					var t = dialogY + e.clientY - beginY;
 					if (l > winSize.width - this._.offsetWidth) l = winSize.width - this._.offsetWidth;
@@ -377,14 +377,15 @@ module tui {
 			titleText += title;
 		return makeDialog(message, "tui-warn-box", titleText);
 	}
-	export function askbox(message: string, title: string = tui.str("confirm"), callback?: (result: boolean) => void): widget.Dialog {
+	export function askbox(message: string, title?: string, callback?: (result: boolean) => void): widget.Dialog {
 		if (typeof title === "function") {
 			callback = <(result:boolean)=>void><any>title;
-			title = null;
+			title = tui.str("confirm");
+		} else if (title == null || typeof title === UNDEFINED) {
+			title = tui.str("confirm")
 		}
 		var titleText = "<i class='tui-dialog-title-ask'></i>";
-		if (title)
-			titleText += title;
+		titleText += title;
 		return makeDialog(message, "tui-ask-box", titleText, "ok#tui-primary,cancel", function(buttonName: string){
 			if (typeof callback === "function")
 				callback(buttonName === "ok");

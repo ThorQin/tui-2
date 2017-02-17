@@ -104,14 +104,14 @@ module tui.widget {
 					textbox.focus();
 				}, 0);
 			});
-			$root.click((e)=>{
-				if (this.get("disable"))
-					return;
-				var obj = e.target || e.srcElement;
-				if (obj === textbox) {
-					return;
-				}
-			});
+			// $root.click((e)=>{
+			// 	if (this.get("disable"))
+			// 		return;
+			// 	var obj = e.target || e.srcElement;
+			// 	if (obj === textbox) {
+			// 		return;
+			// 	}
+			// });
 			
 			this.on("resize", () => {
 				this.render();

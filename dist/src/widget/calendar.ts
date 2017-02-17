@@ -117,7 +117,7 @@ module tui.widget {
 				"<tr class='tui-yearbar'><td class='tui-pm'></td><td class='tui-py'>" +
 				"</td><td colspan='3' class='tui-ym'></td>" +
 				"<td class='tui-ny'></td><td class='tui-nm'></td></tr></table>");
-			var yearLine = tb.rows[0];
+			// var yearLine = tb.rows[0];
 			
 			for (var i = 0; i < 7; i++) {
 				var line: HTMLTableRowElement = <HTMLTableRowElement>tb.insertRow(-1);

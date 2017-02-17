@@ -178,11 +178,24 @@ tui\:grid,tui\:list {
 		//color: @uncheckColor;
 		text-align: center;
 		color: @checkedColor;
+		font-size: 20px; 
+		margin-right: 4px;
+		height: @gridLineHeight;
+		line-height: @gridLineHeight;
+		vertical-align: -2px;
+		
+		&.tui-unchecked {
+			color: #777;
+		}
+		&.tui-tristate {
+			color: #555;
+		}
 	}
 	.tui-grid-no-check {
 		//color: @uncheckColor;
 		font-family: arial;
 		text-align: center;
+		margin-right: 4px;
 	}
 	// .tui-grid-no-check::before {
 	// 	color: #666;

@@ -104,7 +104,7 @@ module tui.ajax {
 		if (result == null || result.length == 0)
 			return document.createElement("body");
 		TAG.lastIndex = 0;
-		let len = result.length;
+		// let len = result.length;
 		let m: RegExpExecArray;
 		let bodyStart: number = null;
 		let bodyEnd: number = null;

@@ -244,7 +244,7 @@ module tui.time {
 				}
 			},
 			"a|A": function matchNumber(v: string): boolean {
-				var len = v.length;
+				// var len = v.length;
 				var m = dtStr.match(/^(am|pm)/i);
 				if (m === null)
 					return false;
