@@ -507,9 +507,9 @@ autoValidate | 是否自动验证
 外观：
 <tui:select placeholder="多选..." clearable={true} tree="{[
   {name:'选项1', value:'v1' ,check: false},
-  {name:'选项2', value:'v2' ,check: false},
+  {name:'Option 2', value:'v2' ,check: false},
   {name:'选项3', value:'v3' ,check: false, children:[
-    {name:'子选项3-1', value:'v4' ,check: false},
+    {name:'Option 3-1', value:'v4' ,check: false},
     {name:'子选项3-2', value:'v5', check: false}
   ]}
  ]}" auto-validate={true} multi-select={true} can-search={true}>
@@ -925,9 +925,9 @@ setSortFlag() | 进行排序
 <tui:list style="height:200px;width:300px;margin:20px" 
 			checkable={true} row-tooltip-key="desc" data="{[
 				{name: '列表内容1(不可选)', value: 'value1', desc: '这是一个很长的描述信息1'},
-				{name: '列表内容2', check:false,  value: 'value2', desc: '这是一个很长的描述信息2'},
+				{name: 'List Item 2', check:false,  value: 'value2', desc: '这是一个很长的描述信息2'},
 				{name: '列表内容3', check:false, value: 'value3', desc: '这是一个很长的描述信息3'},
-				{name: '列表内容4', check:true, value: 'value4', desc: '这是一个很长的描述信息4'},
+				{name: 'List Item 4', check:true, value: 'value4', desc: '这是一个很长的描述信息4'},
 				{name: '列表内容5', check:false, value: 'value5', desc: '这是一个很长的描述信息5'},
 				{name: '列表内容6(不可选)', value: 'value6', desc: '这是一个很长的描述信息6'}
 			]}">
@@ -949,9 +949,9 @@ HTML代码：
 <tui:list style="height:200px;width:300px;margin:20px" 
   checkable={true} row-tooltip-key="desc" data="{[
     {name: '列表内容1(不可选)', value: 'value1', desc: '这是一个很长的描述信息1'},
-    {name: '列表内容2', check:false,  value: 'value2', desc: '这是一个很长的描述信息2'},
+    {name: 'List Item 2', check:false,  value: 'value2', desc: '这是一个很长的描述信息2'},
     {name: '列表内容3', check:false, value: 'value3', desc: '这是一个很长的描述信息3'},
-    {name: '列表内容4', check:true, value: 'value4', desc: '这是一个很长的描述信息4'},
+    {name: 'List Item 4', check:true, value: 'value4', desc: '这是一个很长的描述信息4'},
     {name: '列表内容5', check:false, value: 'value5', desc: '这是一个很长的描述信息5'},
     {name: '列表内容6(不可选)', value: 'value6', desc: '这是一个很长的描述信息6'}
   ]}">

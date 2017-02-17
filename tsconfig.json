@@ -5,14 +5,19 @@
         "removeComments": false,
         "outFile": "dist/tui2.js",
         "sourceMap": true,
-		"sourceRoot": "src",
 		"noEmitOnError": true
 	},
+	"include": [
+		"src/**/*.ts"
+	],
     "exclude": [
         "depends",
 		"dist",
-		"test",
+		"doc",
+		"extentions",
+		"less",
 		"node_modules",
-		"src/less"
+		"lang",
+		"test"
     ]
 }

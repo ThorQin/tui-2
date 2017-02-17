@@ -5,6 +5,7 @@ tsconfig.json
 gulpfile.js
 /test
 /lang
+/plugins
 .npmignore
 .vscode
 favicon.ico
