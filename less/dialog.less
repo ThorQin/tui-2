@@ -104,11 +104,8 @@ tui\:dialog.tui-wait-box {
 
 tui\:dialog .tui-title-bar {
 	span.tui-text i {
-		&:before {
-			.icon-base();
-			font-size:22px;
-		}
-		display: inline-block;
+		.icon-base();
+		font-size:22px;
 		vertical-align: baseline;
 		text-align: center;
 		margin-right: 15px;
@@ -166,17 +163,10 @@ tui\:dialog.tui-wait-box {
 		height: 40px;
 		line-height: 40px;
 		text-align: center;
-		
 		&:before {
-			.icon-base();
-			//.fa-circle-o-notch();
 			.fa-gear();
+			.icon-base();
 			.tui-spin();
-			// content: "";
-			// display: inline-block;
-			// width: 30px;
-			// height: 30px;
-			// background-image: url(loading.gif);
 			font-size:38px;
 			color: #aaa;
 		}

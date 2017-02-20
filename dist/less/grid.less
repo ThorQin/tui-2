@@ -39,18 +39,17 @@ tui\:grid,tui\:list {
 				padding: 0 2px;
 			}
 			.tui-grid-sortable {
-				color: #777;
-			}
-			.tui-grid-sortable::before {
-				.fa-sort;
 				color: #bbb;
+				&:before{
+					.fa-sort;
+				}
 			}
-			.tui-grid-desc::before {
+			.tui-grid-desc:before {
 				//.fa-chevron-down;
 				//.fa-sort-desc;
 				.fa-caret-down;
 			}
-			.tui-grid-asc::before {
+			.tui-grid-asc:before {
 				//.fa-chevron-up;
 				//.fa-sort-asc;
 				.fa-caret-up;
@@ -165,10 +164,10 @@ tui\:grid,tui\:list {
 		text-align: center;
 		.icon-base();
 	}
-	.tui-arrow-collapse::before {
+	.tui-arrow-collapse:before {
 		.fa-caret-right;
 	}
-	.tui-arrow-expand::before {
+	.tui-arrow-expand:before {
 		.fa-caret-down;
 	}
 	.tui-grid-check {
@@ -194,14 +193,7 @@ tui\:grid,tui\:list {
 		text-align: center;
 		margin-right: 4px;
 	}
-	// .tui-grid-no-check::before {
-	// 	color: #666;
-	// 	.icon-base();
-	// 	.fa-square;
-	// }
-	// .tui-grid-check::before {
-	// 	.icon-base();
-	// }
+
 	.tui-grid-icon {
 		margin-right: 5px;
 	}
@@ -233,4 +225,8 @@ tui\:list {
 	.tui-grid-line, .tui-grid-test {
 		border-bottom: 0px;
 	}
+}
+
+.tui-grid-sortabl:before {
+	.fa-sort();
 }
