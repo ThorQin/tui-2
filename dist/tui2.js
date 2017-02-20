@@ -5624,6 +5624,12 @@ var tui;
                 else {
                     tui.ajax.getBody(src).done(function (content) {
                         var page = tui.browser.toElement(content, true);
+                        if (cache) {
+                            _this._cache[key] = page;
+                        }
+                        if (_this._data["src"] !== src) {
+                            return;
+                        }
                         if (tui.ieVer > 0)
                             while (_this._.children.length > 0) {
                                 _this._.removeChild(_this._.children[0]);
@@ -5631,9 +5637,6 @@ var tui;
                         else
                             _this._.innerHTML = "";
                         _this._.appendChild(page);
-                        if (cache) {
-                            _this._cache[key] = page;
-                        }
                         _this.render();
                     });
                 }

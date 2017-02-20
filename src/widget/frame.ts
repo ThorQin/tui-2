@@ -37,6 +37,12 @@ module tui.widget {
 			} else {
 				ajax.getBody(src).done((content) => {
 					let page = browser.toElement(content, true);
+					if (cache) {
+						this._cache[key] = page;
+					}
+					if (this._data["src"] !== src) {
+						return;
+					}
 					if (tui.ieVer > 0)
 						while (this._.children.length > 0) {
 							this._.removeChild(this._.children[0]);
@@ -44,9 +50,7 @@ module tui.widget {
 					else
 						this._.innerHTML = "";
 					this._.appendChild(page);
-					if (cache) {
-						this._cache[key] = page;
-					}
+					
 					this.render();
 				});
 			}
