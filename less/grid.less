@@ -33,6 +33,7 @@ tui\:grid,tui\:list {
 			.tui-grid-asc,.tui-grid-desc,.tui-grid-sortable {
 				padding: 0 5px;
 				color: @lineSelectFocusedBackgroundColor;
+				.icon-base();
 			}
 			.tui-grid-no-sort {
 				padding: 0 2px;
@@ -41,18 +42,15 @@ tui\:grid,tui\:list {
 				color: #777;
 			}
 			.tui-grid-sortable::before {
-				.icon-base();
 				.fa-sort;
 				color: #bbb;
 			}
 			.tui-grid-desc::before {
-				.icon-base();
 				//.fa-chevron-down;
 				//.fa-sort-desc;
 				.fa-caret-down;
 			}
 			.tui-grid-asc::before {
-				.icon-base();
 				//.fa-chevron-up;
 				//.fa-sort-asc;
 				.fa-caret-up;
@@ -165,13 +163,12 @@ tui\:grid,tui\:list {
 		display: inline-block;
 		width: 22px;
 		text-align: center;
+		.icon-base();
 	}
 	.tui-arrow-collapse::before {
-		.icon-base();
 		.fa-caret-right;
 	}
 	.tui-arrow-expand::before {
-		.icon-base();
 		.fa-caret-down;
 	}
 	.tui-grid-check {
@@ -202,9 +199,9 @@ tui\:grid,tui\:list {
 	// 	.icon-base();
 	// 	.fa-square;
 	// }
-	.tui-grid-check::before {
-		.icon-base();
-	}
+	// .tui-grid-check::before {
+	// 	.icon-base();
+	// }
 	.tui-grid-icon {
 		margin-right: 5px;
 	}
