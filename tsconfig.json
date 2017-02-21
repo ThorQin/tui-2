@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"target": "es5",
         "noImplicitAny": true,
+		"declaration": true,
         "removeComments": false,
         "outFile": "dist/tui2.js",
         "sourceMap": true,

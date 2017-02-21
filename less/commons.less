@@ -1,82 +1,165 @@
-@import 'function.less';
-@import 'animation.less';
+@import 'awesome4.less';
+@import 'settings.less';
 
-.transparent {
-	background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAXSURBVBiVY/z//z8DMYCJKFWjCqmmEADVEgMRPT897AAAAABJRU5ErkJggg==);
+.font() {
+	font:@font;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	-moz-font-smoothing: grayscale;
 }
-
-.tui-mask {
-	display:block;
-	position:fixed;
-	.transparent();
-	left:0;
-	top:0;
-	right:0;
-	bottom:0;
-	cursor:default;
-	z-index:@maskLayer;
-}
-
-.tui-round {
-	.border-radius(@buttonBorderRadius);
-}
-
-.tui-round-large {
-	.border-radius(@panelBorderRadius);
-}
-
-[unselectable=on],.tui-unselectable {
-    user-select: none;
-}
-
-
-/* Set browser default behavior  */
-
-hr {
-	height:0;
-	border:none;
-	border-bottom:1px dashed @borderColor;
-	margin:20px 0px;
-}
-
-body,input,textarea,select {
-    .font;
-	background-color: white;
-}
-
-a {
-	color:@linkForeColor;
+.btn() {
+	.font();
+	/*padding:@buttonPaddingTopBottom @buttonPaddingLeftRight;*/
+	padding: 0 @buttonPaddingLeftRight;
+	height: @buttonHeight;
+	line-height: @buttonHeight - 0px;
+	text-align:center;
+	vertical-align:middle;
 	text-decoration:none;
-	&:visited {
-		color:@linkVisitedForeColor;
+	display:inline-block;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.group() {
+	margin-left:2px;
+	margin-right:2px;
+	white-space:nowrap;
+	> *, > *.tui-focus, > *.tui-active, > *:focus {
+		vertical-align:middle;
+
+		float:left;
+		margin-left:0;
+		margin-right:0;
+		border-left-width:0;
+		.border-radius(0px);
+		&.tui-button {
+			min-width:0px;
+		}
 	}
-	&:hover {
-		color:@linkHoverForeColor;
+	> *:first-child, > *.tui-active:first-child, > *.tui-focus:first-child, > *:first-child:focus {
+		.left-radius(@buttonBorderRadius);
+		border-left-width:1px;
+	}
+	> *:last-child {
+		.right-radius(@buttonBorderRadius);
+	}
+	&:after {
+		display:block;
+		content:"";
+		clear:left;
 	}
 }
 
-table.tui-table {
-	border-collapse: collapse;
-	empty-cells: show;
-	&.auto-scroll {
-		display: block;
-		overflow: auto;
+
+.shadow(@x: 1px, @y: 1px, @blur: 1px, @color: rgba(0,0,0,.1)) {
+	box-shadow: @x @y @blur @color;
+}
+
+.inset-shadow(@x: 1px, @y: 2px, @blur : 3px, @color : rgba(0,0,0,.1)) {
+    box-shadow: @x @y @blur @color inset;
+}
+
+.border-radius(@size) {
+	border-radius:@size;
+}
+.top-left-radius(@size) {
+	border-top-left-radius:@size;
+}
+.top-right-radius(@size) {
+	border-top-right-radius:@size;
+}
+.bottom-left-radius(@size) {
+	border-bottom-left-radius:@size;
+}
+.bottom-right-radius(@size) {
+	border-bottom-right-radius:@size;
+}
+.right-radius(@size) {
+	.top-right-radius(@size);
+	.bottom-right-radius(@size);
+}
+.left-radius(@size) {
+	.top-left-radius(@size);
+	.bottom-left-radius(@size);
+}
+.top-radius(@size) {
+	.top-left-radius(@size);
+	.top-right-radius(@size);
+}
+.bottom-radius(@size) {
+	.bottom-left-radius(@size);
+	.bottom-right-radius(@size);
+}
+
+.liner-color(@begin, @end) {
+	background-color: (@begin + @end) / 2;
+	filter:e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d')", @begin, @end));
+	background-image: linear-gradient(to bottom, @begin, @end);
+}
+.liner-color-rgba(@begin, @end) {
+	background-image: linear-gradient(to bottom, @begin, @end);
+}
+.btn-color(@color, @focusColor, @borderColor: @color, @focusBorderColor: @focusColor) {
+    background-color: @color;
+	border-color: @borderColor;
+    &:focus,&:hover {
+        background-color: @focusColor;
+        border-color: @focusBorderColor;
+    }
+	&:active,&.tui-active {
+        background-color: @focusColor - #111;
+        border-color: @focusBorderColor - #111;
+		&.tui-disable {
+            background-color: @color;
+            border-color: @borderColor;
+		}
 	}
-	th {
-		border: 0;
-		border-bottom: 2px solid #888;
-		color: black;
-		font-weight: bold;
-		text-align: left;
-		padding: 6px 15px;
+}
+.flat-btn-color(@color, @activeColor) {
+	background-color: transparent;
+	border-color: transparent;
+	color: @color;
+	&:focus,&:hover {
+        background-color: #e5e5e5;
+        border-color: #e5e5e5;
+		box-shadow: none;
+    }
+	&.tui-disable {
+		color: #ccc;
+		&:hover,&:active,&.tui-active {
+			color: #ccc;
+			background-color: transparent;
+			border-color: transparent;
+		}
 	}
-	td {
-		padding: 6px 15px;
-		border: 0;
-		border-bottom: 1px solid #ccc;
+	&:active,&.tui-active {
+        background-color: #ddd;
+        border-color: #ddd;
+		color: @activeColor;
+		box-shadow: none;
 	}
 }
 
-tui\:item {
-	display: none;
+.icon-base() {
+	display: inline-block;
+	font-family: FontAwesome;
+	font-style: normal;
+	font-weight: normal;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.icon() {
+	.icon-base();
+	font-size:@fontSize;
+	width:14px;
+	//margin-right:4px;
+}
+
+.opacity(@value) {
+	opacity:@value;
+	@filterValue: @value * 100;
+	filter:alpha(opacity=@filterValue);
 }

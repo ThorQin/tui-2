@@ -3,11 +3,11 @@
 module tui.browser {
 	"use strict";
 
-	interface RouterHandler {
+	export interface RouterHandler {
 		(state: string, hash: string, url?: string): boolean;
 	}
 
-	interface RouterRule {
+	export interface RouterRule {
 		state: string;
 		url?: string;
 		handler?: RouterHandler;

@@ -136,7 +136,7 @@ module tui.ds {
 		data: any[];
 	}
 	
-	interface QueryResult {
+	export interface QueryResult {
 		length: number; // total length
 		begin: number;
 		data: any[];
@@ -415,7 +415,7 @@ module tui.ds {
 		}
 	}
 	
-	interface TreeQueryResult {
+	export interface TreeQueryResult {
 		parent: TreeNode;
 		data: any[];
 	}

@@ -1,5 +1,7 @@
 /// <reference path="../core.ts" />
 /// <reference path="../text/text.ts" />
+/// <reference path="../browser/browser.ts" />
+/// <reference path="../browser/keyboard.ts" />
 /// <reference path="../ajax/ajax.ts" />
 /// <reference path="../service/service.ts" />
 /// <reference path="mask.ts" />

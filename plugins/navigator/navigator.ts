@@ -1,4 +1,6 @@
-module tui.widget {
+/// <reference path="../../dist/tui2.d.ts" />
+
+module tui.widget.ext {
 	"use strict";
 	
 	interface NaviItem {

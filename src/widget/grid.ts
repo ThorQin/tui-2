@@ -10,7 +10,7 @@ module tui.widget {
 		lines: HTMLElement[];
 	}
 	
-	interface ColumnInfo {
+	export interface ColumnInfo {
 		name: string;
 		width?: number;
 		fixed?: boolean;

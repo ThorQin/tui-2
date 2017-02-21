@@ -1,4 +1,4 @@
-/// <reference path="base.ts" />
+/// <reference path="button.ts" />
 module tui.widget {
 	"use strict";
 	

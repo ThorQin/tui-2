@@ -498,6 +498,701 @@ var tui;
     })(text = tui.text || (tui.text = {}));
 })(tui || (tui = {}));
 /// <reference path="../core.ts" />
+var tui;
+(function (tui) {
+    var browser;
+    (function (browser) {
+        "use strict";
+        var BackupedScrollPosition = (function () {
+            function BackupedScrollPosition(target) {
+                this.backupInfo = [];
+                var obj = target;
+                while (obj && obj !== document.body) {
+                    obj = obj.parentElement;
+                    if (obj)
+                        this.backupInfo.push({ obj: obj, left: obj.scrollLeft, top: obj.scrollTop });
+                }
+            }
+            BackupedScrollPosition.prototype.restore = function () {
+                for (var i = 0; i < this.backupInfo.length; i++) {
+                    var item = this.backupInfo[i];
+                    item.obj.scrollLeft = item.left;
+                    item.obj.scrollTop = item.top;
+                }
+            };
+            return BackupedScrollPosition;
+        }());
+        browser.BackupedScrollPosition = BackupedScrollPosition;
+        function backupScrollPosition(target) {
+            return new BackupedScrollPosition(target);
+        }
+        browser.backupScrollPosition = backupScrollPosition;
+        function focusWithoutScroll(target) {
+            setTimeout(function () {
+                if (tui.ieVer > 0) {
+                    target.setActive();
+                }
+                else if (tui.ffVer > 0)
+                    target.focus();
+                else {
+                    var backup = tui.browser.backupScrollPosition(target);
+                    target.focus();
+                    backup.restore();
+                }
+            }, 0);
+        }
+        browser.focusWithoutScroll = focusWithoutScroll;
+        function scrollToElement(elem) {
+            var param = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                param[_i - 1] = arguments[_i];
+            }
+            var distance = 0;
+            var cb = null;
+            var useAnimation = true;
+            for (var _a = 0, param_1 = param; _a < param_1.length; _a++) {
+                var p = param_1[_a];
+                if (typeof p === "number")
+                    distance = p;
+                else if (typeof p === "boolean")
+                    useAnimation = p;
+                else if (typeof p === "function")
+                    cb = p;
+            }
+            if (useAnimation) {
+                $(getWindowScrollElement()).animate({ scrollTop: $(elem).offset().top - distance }, 150, cb);
+            }
+            else {
+                getWindowScrollElement().scrollTop = $(elem).offset().top - distance;
+                cb && cb();
+            }
+        }
+        browser.scrollToElement = scrollToElement;
+        function toElement(html, withParentDiv) {
+            if (withParentDiv === void 0) { withParentDiv = false; }
+            var div = document.createElement("div");
+            div.innerHTML = $.trim(html);
+            if (withParentDiv)
+                return div;
+            var el = div.firstChild;
+            return div.removeChild(el);
+        }
+        browser.toElement = toElement;
+        function toHTML(node) {
+            var elem = document.createElement("span");
+            if (typeof node.nodeName === "string") {
+                elem.appendChild(node);
+            }
+            else if (typeof node.length === "number") {
+                for (var i = 0; i < node.length; i++) {
+                    elem.appendChild(node[i]);
+                }
+            }
+            return elem.innerHTML;
+        }
+        browser.toHTML = toHTML;
+        function removeNode(node) {
+            node.parentNode && node.parentNode.removeChild(node);
+        }
+        browser.removeNode = removeNode;
+        function toSafeText(text) {
+            return text.replace(/<|>|&/g, function (str) {
+                var args = [];
+                for (var _i = 1; _i < arguments.length; _i++) {
+                    args[_i - 1] = arguments[_i];
+                }
+                if (str === "<")
+                    return "&lt;";
+                else if (str === "<")
+                    return "&gt;";
+                else if (str === "&")
+                    return "&amp;";
+                else
+                    return str;
+            });
+        }
+        browser.toSafeText = toSafeText;
+        /**
+         * Get or set a HTMLElement's text content, return Element's text content.
+         * @param elem {HTMLElement or ID of the element} Objective element
+         * @param text {string or boolean}
+         */
+        function nodeText(elem, text) {
+            if (typeof elem === "string")
+                elem = document.getElementById(elem);
+            if (elem) {
+                if (typeof text === "string") {
+                    elem.innerHTML = "";
+                    elem.appendChild(document.createTextNode(text));
+                    return text;
+                }
+                if (typeof text !== "boolean")
+                    text = true;
+                var buf = "";
+                for (var i = 0; i < elem.childNodes.length; i++) {
+                    var c = elem.childNodes[i];
+                    if (c.nodeName.toLowerCase() === "#text") {
+                        buf += c.nodeValue;
+                    }
+                    else if (text)
+                        buf += nodeText(c);
+                }
+                return buf;
+            }
+            else
+                return null;
+        }
+        function getNodeText(elem) {
+            return nodeText(elem);
+        }
+        browser.getNodeText = getNodeText;
+        function setNodeText(elem, text) {
+            nodeText(elem, text);
+        }
+        browser.setNodeText = setNodeText;
+        function getNodeOwnText(elem) {
+            return nodeText(elem, false);
+        }
+        browser.getNodeOwnText = getNodeOwnText;
+        function getRectOfParent(elem) {
+            if (elem === null)
+                return null;
+            return {
+                left: elem.offsetLeft,
+                top: elem.offsetTop,
+                width: elem.offsetWidth,
+                height: elem.offsetHeight
+            };
+        }
+        browser.getRectOfParent = getRectOfParent;
+        function getRectOfPage(elem) {
+            if (elem === null)
+                return null;
+            var offset = $(elem).offset();
+            return {
+                left: offset.left,
+                top: offset.top,
+                width: elem.offsetWidth,
+                height: elem.offsetHeight
+            };
+        }
+        browser.getRectOfPage = getRectOfPage;
+        function getRectOfScreen(elem) {
+            if (elem === null)
+                return null;
+            var offset = $(elem).offset();
+            var $doc = $(document);
+            return {
+                left: offset.left - $doc.scrollLeft(),
+                top: offset.top - $doc.scrollTop(),
+                width: elem.offsetWidth,
+                height: elem.offsetHeight
+            };
+        }
+        browser.getRectOfScreen = getRectOfScreen;
+        /**
+         * Get top window's body element
+         */
+        function getTopBody() {
+            return top.document.body || top.document.getElementsByTagName("BODY")[0];
+        }
+        browser.getTopBody = getTopBody;
+        /**
+         * Get element's owner window
+         */
+        function getWindow(elem) {
+            return elem.ownerDocument.defaultView || elem.ownerDocument.parentWindow;
+        }
+        browser.getWindow = getWindow;
+        function getWindowScrollElement() {
+            if (tui.ieVer > 0 || tui.ffVer > 0) {
+                return window.document.documentElement;
+            }
+            else {
+                return window.document.body;
+            }
+        }
+        browser.getWindowScrollElement = getWindowScrollElement;
+        var keepTopList = [];
+        function keepTopProc() {
+            var scrollWindow = browser.getWindowScrollElement();
+            for (var _i = 0, keepTopList_1 = keepTopList; _i < keepTopList_1.length; _i++) {
+                var item = keepTopList_1[_i];
+                var rect = browser.getRectOfScreen(item.elem);
+                if (rect.top < item.top) {
+                    item.oldPosition = item.elem.style.position;
+                    item.oldTop = item.elem.style.top;
+                    item.oldLeft = item.elem.style.left;
+                    item.oldWidth = item.elem.style.width;
+                    item.oldZIndex = item.elem.style.zIndex;
+                    item.scrollTop = scrollWindow.scrollTop;
+                    item.scrollLeft = scrollWindow.scrollLeft;
+                    item.elem.style.zIndex = "1000";
+                    item.elem.style.width = item.elem.clientWidth + "px";
+                    item.elem.style.position = "fixed";
+                    item.elem.style.top = item.top + "px";
+                    item.elem.style.left = rect.left + "px";
+                    item.itemLeft = rect.left;
+                    item.keepTop = true;
+                }
+                else if (scrollWindow.scrollTop < item.scrollTop) {
+                    item.elem.style.position = item.oldPosition;
+                    item.elem.style.top = item.oldTop;
+                    item.elem.style.left = item.oldLeft;
+                    item.elem.style.width = item.oldWidth;
+                    item.keepTop = false;
+                }
+                else if (item.keepTop) {
+                    item.elem.style.left = (item.itemLeft - scrollWindow.scrollLeft + item.scrollLeft) + "px";
+                }
+            }
+        }
+        $(window).scroll(keepTopProc);
+        function keepToTop(elem, top) {
+            if (top === void 0) { top = 0; }
+            keepTopList.push({ keepTop: false, elem: elem, top: top });
+        }
+        browser.keepToTop = keepToTop;
+        function cancelKeepToTop(elem) {
+            var newList = [];
+            for (var _i = 0, keepTopList_2 = keepTopList; _i < keepTopList_2.length; _i++) {
+                var item = keepTopList_2[_i];
+                if (item.elem !== elem) {
+                    newList.push(item);
+                }
+                else {
+                    item.elem.style.position = item.oldPosition;
+                    item.elem.style.top = item.oldTop;
+                    item.elem.style.left = item.oldLeft;
+                    item.elem.style.width = item.oldWidth;
+                    item.keepTop = false;
+                }
+            }
+            keepTopList = newList;
+        }
+        browser.cancelKeepToTop = cancelKeepToTop;
+        function getCurrentStyle(elem) {
+            if (elem.currentStyle)
+                return elem.currentStyle;
+            else if (window.getComputedStyle) {
+                return window.getComputedStyle(elem);
+            }
+            else
+                return elem.style;
+        }
+        browser.getCurrentStyle = getCurrentStyle;
+        /**
+         * Test whether the button code is indecated that the event is triggered by a left mouse button.
+         */
+        function isLButton(e) {
+            var button = (typeof e.which !== "undefined") ? e.which : e.button;
+            if (button == 1) {
+                return true;
+            }
+            else
+                return false;
+        }
+        browser.isLButton = isLButton;
+        /**
+         * Prevent user press backspace key to go back to previous page
+         */
+        function banBackspace() {
+            function ban(e) {
+                var ev = e || window.event;
+                var obj = ev.target || ev.srcElement;
+                var t = obj.type || obj.getAttribute('type');
+                var vReadOnly = obj.readOnly;
+                var vDisabled = obj.disabled;
+                vReadOnly = (typeof vReadOnly === tui.UNDEFINED) ? false : vReadOnly;
+                vDisabled = (typeof vDisabled === tui.UNDEFINED) ? true : vDisabled;
+                var flag1 = ev.keyCode === 8 && (t === "password" || t === "text" || t === "textarea") && (vReadOnly || vDisabled);
+                var flag2 = ev.keyCode === 8 && t !== "password" && t !== "text" && t !== "textarea";
+                if (flag2 || flag1)
+                    return false;
+            }
+            $(document).bind("keypress", ban);
+            $(document).bind("keydown", ban);
+        }
+        browser.banBackspace = banBackspace;
+        function cancelDefault(event) {
+            if (event.preventDefault) {
+                event.preventDefault();
+            }
+            else {
+                event.returnValue = false;
+            }
+            return false;
+        }
+        browser.cancelDefault = cancelDefault;
+        function cancelBubble(event) {
+            if (event && event.stopPropagation)
+                event.stopPropagation();
+            else
+                window.event.cancelBubble = true;
+            return false;
+        }
+        browser.cancelBubble = cancelBubble;
+        /**
+         * Detect whether the given parent element is the real ancestry element
+         * @param elem
+         * @param parent
+         */
+        function isAncestry(elem, parent) {
+            while (elem) {
+                if (elem === parent)
+                    return true;
+                else
+                    elem = elem.parentNode;
+            }
+            return false;
+        }
+        browser.isAncestry = isAncestry;
+        /**
+         * Detect whether the given child element is the real posterity element
+         * @param elem
+         * @param child
+         */
+        function isPosterity(elem, child) {
+            return isAncestry(child, elem);
+        }
+        browser.isPosterity = isPosterity;
+        function isFireInside(elem, event) {
+            var target = event.target || event.srcElement;
+            return isPosterity(elem, target);
+        }
+        browser.isFireInside = isFireInside;
+        /**
+         * Detect whether the element is inside the document
+         * @param {type} elem
+         */
+        function isInDoc(elem) {
+            var obj = elem;
+            while (obj) {
+                if (obj.nodeName.toUpperCase() === "HTML")
+                    return true;
+                obj = obj.parentElement;
+            }
+            return false;
+        }
+        browser.isInDoc = isInDoc;
+        /**
+         * Set cookie value
+         * @param name
+         * @param value
+         * @param expires valid days
+         */
+        function saveCookie(name, value, expires, path, domain, secure) {
+            if (secure === void 0) { secure = false; }
+            // set time, it's in milliseconds
+            var today = new Date();
+            today.setTime(today.getTime());
+            /*
+            if the expires variable is set, make the correct
+            expires time, the current script below will set
+            it for x number of days, to make it for hours,
+            delete * 24, for minutes, delete * 60 * 24
+            */
+            if (expires) {
+                expires = expires * 1000 * 60 * 60 * 24;
+            }
+            var expires_date = new Date(today.getTime() + (expires));
+            document.cookie = name + "=" + encodeURIComponent(JSON.stringify(value)) +
+                ((expires) ? ";expires=" + expires_date.toUTCString() : "") +
+                ((path) ? ";path=" + path : "") +
+                ((domain) ? ";domain=" + domain : "") +
+                ((secure) ? ";secure" : "");
+        }
+        browser.saveCookie = saveCookie;
+        /**
+         * Get cookie value
+         * @param name
+         */
+        function loadCookie(name) {
+            var arr = document.cookie.match(new RegExp("(^| )" + name + "=([^;]*)(;|$)"));
+            if (arr !== null)
+                return JSON.parse(decodeURIComponent(arr[2]));
+            else
+                return null;
+        }
+        browser.loadCookie = loadCookie;
+        /**
+         * Delete cookie
+         * @param name
+         */
+        function deleteCookie(name, path, domain) {
+            if (loadCookie(name))
+                document.cookie = name + "=" +
+                    ((path) ? ";path=" + path : "") +
+                    ((domain) ? ";domain=" + domain : "") +
+                    ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
+        }
+        browser.deleteCookie = deleteCookie;
+        /**
+         * Save key value into local storage, if local storage doesn't usable then use local cookie instead.
+         * @param {String} key
+         * @param {String} value
+         * @param {Boolean} sessionOnly If true data only be keeped in this session
+         */
+        function saveData(key, value, sessionOnly) {
+            if (sessionOnly === void 0) { sessionOnly = false; }
+            try {
+                var storage = (sessionOnly === true ? window.sessionStorage : window.localStorage);
+                if (storage) {
+                    storage.setItem(key, JSON.stringify(value));
+                }
+                else
+                    saveCookie(key, value, 365);
+            }
+            catch (e) {
+            }
+        }
+        browser.saveData = saveData;
+        /**
+         * Load value from local storage, if local storage doesn't usable then use local cookie instead.
+         * @param {String} key
+         * @param {Boolean} sessionOnly If true data only be keeped in this session
+         */
+        function loadData(key, sessionOnly) {
+            if (sessionOnly === void 0) { sessionOnly = false; }
+            try {
+                var storage = (sessionOnly === true ? window.sessionStorage : window.localStorage);
+                if (storage)
+                    return JSON.parse(storage.getItem(key));
+                else
+                    return loadCookie(key);
+            }
+            catch (e) {
+                return null;
+            }
+        }
+        browser.loadData = loadData;
+        /**
+         * Remove value from local storage, if local storage doesn't usable then use local cookie instead.
+         * @param key
+         * @param {Boolean} sessionOnly If true data only be keeped in this session
+         */
+        function deleteData(key, sessionOnly) {
+            if (sessionOnly === void 0) { sessionOnly = false; }
+            try {
+                var storage = (sessionOnly === true ? window.sessionStorage : window.localStorage);
+                if (storage)
+                    storage.removeItem(key);
+                else
+                    deleteCookie(key);
+            }
+            catch (e) {
+            }
+        }
+        browser.deleteData = deleteData;
+        var _accMap = {};
+        function accelerate(e) {
+            var k = browser.KeyCode[e.keyCode];
+            if (!k) {
+                return;
+            }
+            k = k.toUpperCase();
+            var key = (e.ctrlKey ? "CTRL" : "");
+            if (e.altKey) {
+                if (key.length > 0)
+                    key += "+";
+                key += "ALT";
+            }
+            if (e.shiftKey) {
+                if (key.length > 0)
+                    key += "+";
+                key += "SHIFT";
+            }
+            if (e.metaKey) {
+                if (key.length > 0)
+                    key += "+";
+                key += "META";
+            }
+            if (key.length > 0)
+                key += "+";
+            key += k;
+            var l = _accMap[key];
+            if (l) {
+                for (var i = 0; i < l.length; i++) {
+                    if (tui.event.fire("accelerate", { name: l[i], event: e }) === false)
+                        return;
+                }
+            }
+        }
+        function addAccelerate(key, actionId) {
+            key = key.toUpperCase();
+            var l = null;
+            if (_accMap.hasOwnProperty(key))
+                l = _accMap[key];
+            else {
+                l = [];
+                _accMap[key] = l;
+            }
+            if (l.indexOf(actionId) < 0)
+                l.push(actionId);
+        }
+        browser.addAccelerate = addAccelerate;
+        function deleteAccelerate(key, actionId) {
+            key = key.toUpperCase();
+            if (!_accMap.hasOwnProperty(key))
+                return;
+            var l = _accMap[key];
+            var pos = l.indexOf(actionId);
+            if (pos >= 0) {
+                l.splice(pos, 1);
+                if (l.length <= 0)
+                    delete _accMap[key];
+            }
+        }
+        browser.deleteAccelerate = deleteAccelerate;
+        $(document).keydown(accelerate);
+        function getUrlParam(key) {
+            var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null)
+                return decodeURIComponent(r[2]);
+            return null;
+        }
+        browser.getUrlParam = getUrlParam;
+        function getEventPosition(e, allFingers) {
+            if (allFingers === void 0) { allFingers = false; }
+            var positions = [];
+            var event = e.originalEvent || e;
+            if (event.touches) {
+                var touchList = (allFingers ? event.touches : event.changedTouches);
+                for (var i = 0; i < touchList.length; i++) {
+                    var touch = touchList[i];
+                    positions.push({ x: touch.clientX, y: touch.clientY, id: touch.identifier });
+                }
+            }
+            else {
+                positions.push({ x: event.clientX, y: event.clientY });
+            }
+            return positions;
+        }
+        browser.getEventPosition = getEventPosition;
+        function setInnerHtml(elem, content) {
+            if (tui.ieVer > 0 && tui.ieVer < 9) {
+                elem.innerHTML = "";
+                var d = document.createElement("div");
+                d.innerHTML = content;
+                while (d.children.length > 0)
+                    elem.appendChild(d.children[0]);
+            }
+            else {
+                elem && (elem.innerHTML = content);
+            }
+        }
+        browser.setInnerHtml = setInnerHtml;
+        window.$text = toSafeText;
+    })(browser = tui.browser || (tui.browser = {}));
+})(tui || (tui = {}));
+var tui;
+(function (tui) {
+    var browser;
+    (function (browser) {
+        "use strict";
+        var KeyCode;
+        (function (KeyCode) {
+            KeyCode[KeyCode["BACK"] = 8] = "BACK";
+            KeyCode[KeyCode["TAB"] = 9] = "TAB";
+            KeyCode[KeyCode["ENTER"] = 13] = "ENTER";
+            KeyCode[KeyCode["SHIFT"] = 16] = "SHIFT";
+            KeyCode[KeyCode["CTRL"] = 17] = "CTRL";
+            KeyCode[KeyCode["ALT"] = 18] = "ALT";
+            KeyCode[KeyCode["PAUSE"] = 19] = "PAUSE";
+            KeyCode[KeyCode["CAPS"] = 20] = "CAPS";
+            KeyCode[KeyCode["ESCAPE"] = 27] = "ESCAPE";
+            KeyCode[KeyCode["SPACE"] = 32] = "SPACE";
+            KeyCode[KeyCode["PRIOR"] = 33] = "PRIOR";
+            KeyCode[KeyCode["NEXT"] = 34] = "NEXT";
+            KeyCode[KeyCode["END"] = 35] = "END";
+            KeyCode[KeyCode["HOME"] = 36] = "HOME";
+            KeyCode[KeyCode["LEFT"] = 37] = "LEFT";
+            KeyCode[KeyCode["UP"] = 38] = "UP";
+            KeyCode[KeyCode["RIGHT"] = 39] = "RIGHT";
+            KeyCode[KeyCode["DOWN"] = 40] = "DOWN";
+            KeyCode[KeyCode["PRINT"] = 44] = "PRINT";
+            KeyCode[KeyCode["INSERT"] = 45] = "INSERT";
+            KeyCode[KeyCode["DELETE"] = 46] = "DELETE";
+            KeyCode[KeyCode["KEY_0"] = 48] = "KEY_0";
+            KeyCode[KeyCode["KEY_1"] = 49] = "KEY_1";
+            KeyCode[KeyCode["KEY_2"] = 50] = "KEY_2";
+            KeyCode[KeyCode["KEY_3"] = 51] = "KEY_3";
+            KeyCode[KeyCode["KEY_4"] = 52] = "KEY_4";
+            KeyCode[KeyCode["KEY_5"] = 53] = "KEY_5";
+            KeyCode[KeyCode["KEY_6"] = 54] = "KEY_6";
+            KeyCode[KeyCode["KEY_7"] = 55] = "KEY_7";
+            KeyCode[KeyCode["KEY_8"] = 56] = "KEY_8";
+            KeyCode[KeyCode["KEY_9"] = 57] = "KEY_9";
+            KeyCode[KeyCode["SEMICOLON"] = 59] = "SEMICOLON";
+            KeyCode[KeyCode["EQUALS"] = 61] = "EQUALS";
+            KeyCode[KeyCode["A"] = 65] = "A";
+            KeyCode[KeyCode["B"] = 66] = "B";
+            KeyCode[KeyCode["C"] = 67] = "C";
+            KeyCode[KeyCode["D"] = 68] = "D";
+            KeyCode[KeyCode["E"] = 69] = "E";
+            KeyCode[KeyCode["F"] = 70] = "F";
+            KeyCode[KeyCode["G"] = 71] = "G";
+            KeyCode[KeyCode["H"] = 72] = "H";
+            KeyCode[KeyCode["I"] = 73] = "I";
+            KeyCode[KeyCode["J"] = 74] = "J";
+            KeyCode[KeyCode["K"] = 75] = "K";
+            KeyCode[KeyCode["L"] = 76] = "L";
+            KeyCode[KeyCode["M"] = 77] = "M";
+            KeyCode[KeyCode["N"] = 78] = "N";
+            KeyCode[KeyCode["O"] = 79] = "O";
+            KeyCode[KeyCode["P"] = 80] = "P";
+            KeyCode[KeyCode["Q"] = 81] = "Q";
+            KeyCode[KeyCode["R"] = 82] = "R";
+            KeyCode[KeyCode["S"] = 83] = "S";
+            KeyCode[KeyCode["T"] = 84] = "T";
+            KeyCode[KeyCode["U"] = 85] = "U";
+            KeyCode[KeyCode["V"] = 86] = "V";
+            KeyCode[KeyCode["W"] = 87] = "W";
+            KeyCode[KeyCode["X"] = 88] = "X";
+            KeyCode[KeyCode["Y"] = 89] = "Y";
+            KeyCode[KeyCode["Z"] = 90] = "Z";
+            KeyCode[KeyCode["WINDOWS"] = 91] = "WINDOWS";
+            KeyCode[KeyCode["NUM_0"] = 96] = "NUM_0";
+            KeyCode[KeyCode["NUM_1"] = 97] = "NUM_1";
+            KeyCode[KeyCode["NUM_2"] = 98] = "NUM_2";
+            KeyCode[KeyCode["NUM_3"] = 99] = "NUM_3";
+            KeyCode[KeyCode["NUM_4"] = 100] = "NUM_4";
+            KeyCode[KeyCode["NUM_5"] = 101] = "NUM_5";
+            KeyCode[KeyCode["NUM_6"] = 102] = "NUM_6";
+            KeyCode[KeyCode["NUM_7"] = 103] = "NUM_7";
+            KeyCode[KeyCode["NUM_8"] = 104] = "NUM_8";
+            KeyCode[KeyCode["NUM_9"] = 105] = "NUM_9";
+            KeyCode[KeyCode["NUM_MUL"] = 106] = "NUM_MUL";
+            KeyCode[KeyCode["NUM_PLUS"] = 107] = "NUM_PLUS";
+            KeyCode[KeyCode["NUM_MINUS"] = 109] = "NUM_MINUS";
+            KeyCode[KeyCode["NUM_DOT"] = 110] = "NUM_DOT";
+            KeyCode[KeyCode["NUM_DIV"] = 111] = "NUM_DIV";
+            KeyCode[KeyCode["F1"] = 112] = "F1";
+            KeyCode[KeyCode["F2"] = 113] = "F2";
+            KeyCode[KeyCode["F3"] = 114] = "F3";
+            KeyCode[KeyCode["F4"] = 115] = "F4";
+            KeyCode[KeyCode["F5"] = 116] = "F5";
+            KeyCode[KeyCode["F6"] = 117] = "F6";
+            KeyCode[KeyCode["F7"] = 118] = "F7";
+            KeyCode[KeyCode["F8"] = 119] = "F8";
+            KeyCode[KeyCode["F9"] = 120] = "F9";
+            KeyCode[KeyCode["F10"] = 121] = "F10";
+            KeyCode[KeyCode["F11"] = 122] = "F11";
+            KeyCode[KeyCode["F12"] = 123] = "F12";
+            KeyCode[KeyCode["DASH"] = 173] = "DASH";
+            KeyCode[KeyCode["COMMA"] = 188] = "COMMA";
+            KeyCode[KeyCode["PERIOD"] = 190] = "PERIOD";
+            KeyCode[KeyCode["SLASH"] = 191] = "SLASH";
+            KeyCode[KeyCode["GRAVE"] = 192] = "GRAVE";
+            KeyCode[KeyCode["LEFT_BRACKET"] = 219] = "LEFT_BRACKET";
+            KeyCode[KeyCode["BACKSLASH"] = 220] = "BACKSLASH";
+            KeyCode[KeyCode["RIGHT_BRACKET"] = 221] = "RIGHT_BRACKET";
+            KeyCode[KeyCode["QUOTE"] = 222] = "QUOTE";
+        })(KeyCode = browser.KeyCode || (browser.KeyCode = {}));
+    })(browser = tui.browser || (tui.browser = {}));
+})(tui || (tui = {}));
+/// <reference path="../core.ts" />
 /// <reference path="../ajax/ajax.ts" />
 var tui;
 (function (tui) {
@@ -692,6 +1387,8 @@ var tui;
 })(tui || (tui = {}));
 /// <reference path="../core.ts" />
 /// <reference path="../text/text.ts" />
+/// <reference path="../browser/browser.ts" />
+/// <reference path="../browser/keyboard.ts" />
 /// <reference path="../ajax/ajax.ts" />
 /// <reference path="../service/service.ts" />
 /// <reference path="mask.ts" />
@@ -1887,701 +2584,6 @@ var tui;
         window.$get = get;
         window.$get_ = get_; // silent mode
     })(ajax = tui.ajax || (tui.ajax = {}));
-})(tui || (tui = {}));
-/// <reference path="../core.ts" />
-var tui;
-(function (tui) {
-    var browser;
-    (function (browser) {
-        "use strict";
-        var BackupedScrollPosition = (function () {
-            function BackupedScrollPosition(target) {
-                this.backupInfo = [];
-                var obj = target;
-                while (obj && obj !== document.body) {
-                    obj = obj.parentElement;
-                    if (obj)
-                        this.backupInfo.push({ obj: obj, left: obj.scrollLeft, top: obj.scrollTop });
-                }
-            }
-            BackupedScrollPosition.prototype.restore = function () {
-                for (var i = 0; i < this.backupInfo.length; i++) {
-                    var item = this.backupInfo[i];
-                    item.obj.scrollLeft = item.left;
-                    item.obj.scrollTop = item.top;
-                }
-            };
-            return BackupedScrollPosition;
-        }());
-        browser.BackupedScrollPosition = BackupedScrollPosition;
-        function backupScrollPosition(target) {
-            return new BackupedScrollPosition(target);
-        }
-        browser.backupScrollPosition = backupScrollPosition;
-        function focusWithoutScroll(target) {
-            setTimeout(function () {
-                if (tui.ieVer > 0) {
-                    target.setActive();
-                }
-                else if (tui.ffVer > 0)
-                    target.focus();
-                else {
-                    var backup = tui.browser.backupScrollPosition(target);
-                    target.focus();
-                    backup.restore();
-                }
-            }, 0);
-        }
-        browser.focusWithoutScroll = focusWithoutScroll;
-        function scrollToElement(elem) {
-            var param = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                param[_i - 1] = arguments[_i];
-            }
-            var distance = 0;
-            var cb = null;
-            var useAnimation = true;
-            for (var _a = 0, param_1 = param; _a < param_1.length; _a++) {
-                var p = param_1[_a];
-                if (typeof p === "number")
-                    distance = p;
-                else if (typeof p === "boolean")
-                    useAnimation = p;
-                else if (typeof p === "function")
-                    cb = p;
-            }
-            if (useAnimation) {
-                $(getWindowScrollElement()).animate({ scrollTop: $(elem).offset().top - distance }, 150, cb);
-            }
-            else {
-                getWindowScrollElement().scrollTop = $(elem).offset().top - distance;
-                cb && cb();
-            }
-        }
-        browser.scrollToElement = scrollToElement;
-        function toElement(html, withParentDiv) {
-            if (withParentDiv === void 0) { withParentDiv = false; }
-            var div = document.createElement("div");
-            div.innerHTML = $.trim(html);
-            if (withParentDiv)
-                return div;
-            var el = div.firstChild;
-            return div.removeChild(el);
-        }
-        browser.toElement = toElement;
-        function toHTML(node) {
-            var elem = document.createElement("span");
-            if (typeof node.nodeName === "string") {
-                elem.appendChild(node);
-            }
-            else if (typeof node.length === "number") {
-                for (var i = 0; i < node.length; i++) {
-                    elem.appendChild(node[i]);
-                }
-            }
-            return elem.innerHTML;
-        }
-        browser.toHTML = toHTML;
-        function removeNode(node) {
-            node.parentNode && node.parentNode.removeChild(node);
-        }
-        browser.removeNode = removeNode;
-        function toSafeText(text) {
-            return text.replace(/<|>|&/g, function (str) {
-                var args = [];
-                for (var _i = 1; _i < arguments.length; _i++) {
-                    args[_i - 1] = arguments[_i];
-                }
-                if (str === "<")
-                    return "&lt;";
-                else if (str === "<")
-                    return "&gt;";
-                else if (str === "&")
-                    return "&amp;";
-                else
-                    return str;
-            });
-        }
-        browser.toSafeText = toSafeText;
-        /**
-         * Get or set a HTMLElement's text content, return Element's text content.
-         * @param elem {HTMLElement or ID of the element} Objective element
-         * @param text {string or boolean}
-         */
-        function nodeText(elem, text) {
-            if (typeof elem === "string")
-                elem = document.getElementById(elem);
-            if (elem) {
-                if (typeof text === "string") {
-                    elem.innerHTML = "";
-                    elem.appendChild(document.createTextNode(text));
-                    return text;
-                }
-                if (typeof text !== "boolean")
-                    text = true;
-                var buf = "";
-                for (var i = 0; i < elem.childNodes.length; i++) {
-                    var c = elem.childNodes[i];
-                    if (c.nodeName.toLowerCase() === "#text") {
-                        buf += c.nodeValue;
-                    }
-                    else if (text)
-                        buf += nodeText(c);
-                }
-                return buf;
-            }
-            else
-                return null;
-        }
-        function getNodeText(elem) {
-            return nodeText(elem);
-        }
-        browser.getNodeText = getNodeText;
-        function setNodeText(elem, text) {
-            nodeText(elem, text);
-        }
-        browser.setNodeText = setNodeText;
-        function getNodeOwnText(elem) {
-            return nodeText(elem, false);
-        }
-        browser.getNodeOwnText = getNodeOwnText;
-        function getRectOfParent(elem) {
-            if (elem === null)
-                return null;
-            return {
-                left: elem.offsetLeft,
-                top: elem.offsetTop,
-                width: elem.offsetWidth,
-                height: elem.offsetHeight
-            };
-        }
-        browser.getRectOfParent = getRectOfParent;
-        function getRectOfPage(elem) {
-            if (elem === null)
-                return null;
-            var offset = $(elem).offset();
-            return {
-                left: offset.left,
-                top: offset.top,
-                width: elem.offsetWidth,
-                height: elem.offsetHeight
-            };
-        }
-        browser.getRectOfPage = getRectOfPage;
-        function getRectOfScreen(elem) {
-            if (elem === null)
-                return null;
-            var offset = $(elem).offset();
-            var $doc = $(document);
-            return {
-                left: offset.left - $doc.scrollLeft(),
-                top: offset.top - $doc.scrollTop(),
-                width: elem.offsetWidth,
-                height: elem.offsetHeight
-            };
-        }
-        browser.getRectOfScreen = getRectOfScreen;
-        /**
-         * Get top window's body element
-         */
-        function getTopBody() {
-            return top.document.body || top.document.getElementsByTagName("BODY")[0];
-        }
-        browser.getTopBody = getTopBody;
-        /**
-         * Get element's owner window
-         */
-        function getWindow(elem) {
-            return elem.ownerDocument.defaultView || elem.ownerDocument.parentWindow;
-        }
-        browser.getWindow = getWindow;
-        function getWindowScrollElement() {
-            if (tui.ieVer > 0 || tui.ffVer > 0) {
-                return window.document.documentElement;
-            }
-            else {
-                return window.document.body;
-            }
-        }
-        browser.getWindowScrollElement = getWindowScrollElement;
-        var keepTopList = [];
-        function keepTopProc() {
-            var scrollWindow = browser.getWindowScrollElement();
-            for (var _i = 0, keepTopList_1 = keepTopList; _i < keepTopList_1.length; _i++) {
-                var item = keepTopList_1[_i];
-                var rect = browser.getRectOfScreen(item.elem);
-                if (rect.top < item.top) {
-                    item.oldPosition = item.elem.style.position;
-                    item.oldTop = item.elem.style.top;
-                    item.oldLeft = item.elem.style.left;
-                    item.oldWidth = item.elem.style.width;
-                    item.oldZIndex = item.elem.style.zIndex;
-                    item.scrollTop = scrollWindow.scrollTop;
-                    item.scrollLeft = scrollWindow.scrollLeft;
-                    item.elem.style.zIndex = "1000";
-                    item.elem.style.width = item.elem.clientWidth + "px";
-                    item.elem.style.position = "fixed";
-                    item.elem.style.top = item.top + "px";
-                    item.elem.style.left = rect.left + "px";
-                    item.itemLeft = rect.left;
-                    item.keepTop = true;
-                }
-                else if (scrollWindow.scrollTop < item.scrollTop) {
-                    item.elem.style.position = item.oldPosition;
-                    item.elem.style.top = item.oldTop;
-                    item.elem.style.left = item.oldLeft;
-                    item.elem.style.width = item.oldWidth;
-                    item.keepTop = false;
-                }
-                else if (item.keepTop) {
-                    item.elem.style.left = (item.itemLeft - scrollWindow.scrollLeft + item.scrollLeft) + "px";
-                }
-            }
-        }
-        $(window).scroll(keepTopProc);
-        function keepToTop(elem, top) {
-            if (top === void 0) { top = 0; }
-            keepTopList.push({ keepTop: false, elem: elem, top: top });
-        }
-        browser.keepToTop = keepToTop;
-        function cancelKeepToTop(elem) {
-            var newList = [];
-            for (var _i = 0, keepTopList_2 = keepTopList; _i < keepTopList_2.length; _i++) {
-                var item = keepTopList_2[_i];
-                if (item.elem !== elem) {
-                    newList.push(item);
-                }
-                else {
-                    item.elem.style.position = item.oldPosition;
-                    item.elem.style.top = item.oldTop;
-                    item.elem.style.left = item.oldLeft;
-                    item.elem.style.width = item.oldWidth;
-                    item.keepTop = false;
-                }
-            }
-            keepTopList = newList;
-        }
-        browser.cancelKeepToTop = cancelKeepToTop;
-        function getCurrentStyle(elem) {
-            if (elem.currentStyle)
-                return elem.currentStyle;
-            else if (window.getComputedStyle) {
-                return window.getComputedStyle(elem);
-            }
-            else
-                return elem.style;
-        }
-        browser.getCurrentStyle = getCurrentStyle;
-        /**
-         * Test whether the button code is indecated that the event is triggered by a left mouse button.
-         */
-        function isLButton(e) {
-            var button = (typeof e.which !== "undefined") ? e.which : e.button;
-            if (button == 1) {
-                return true;
-            }
-            else
-                return false;
-        }
-        browser.isLButton = isLButton;
-        /**
-         * Prevent user press backspace key to go back to previous page
-         */
-        function banBackspace() {
-            function ban(e) {
-                var ev = e || window.event;
-                var obj = ev.target || ev.srcElement;
-                var t = obj.type || obj.getAttribute('type');
-                var vReadOnly = obj.readOnly;
-                var vDisabled = obj.disabled;
-                vReadOnly = (typeof vReadOnly === tui.UNDEFINED) ? false : vReadOnly;
-                vDisabled = (typeof vDisabled === tui.UNDEFINED) ? true : vDisabled;
-                var flag1 = ev.keyCode === 8 && (t === "password" || t === "text" || t === "textarea") && (vReadOnly || vDisabled);
-                var flag2 = ev.keyCode === 8 && t !== "password" && t !== "text" && t !== "textarea";
-                if (flag2 || flag1)
-                    return false;
-            }
-            $(document).bind("keypress", ban);
-            $(document).bind("keydown", ban);
-        }
-        browser.banBackspace = banBackspace;
-        function cancelDefault(event) {
-            if (event.preventDefault) {
-                event.preventDefault();
-            }
-            else {
-                event.returnValue = false;
-            }
-            return false;
-        }
-        browser.cancelDefault = cancelDefault;
-        function cancelBubble(event) {
-            if (event && event.stopPropagation)
-                event.stopPropagation();
-            else
-                window.event.cancelBubble = true;
-            return false;
-        }
-        browser.cancelBubble = cancelBubble;
-        /**
-         * Detect whether the given parent element is the real ancestry element
-         * @param elem
-         * @param parent
-         */
-        function isAncestry(elem, parent) {
-            while (elem) {
-                if (elem === parent)
-                    return true;
-                else
-                    elem = elem.parentNode;
-            }
-            return false;
-        }
-        browser.isAncestry = isAncestry;
-        /**
-         * Detect whether the given child element is the real posterity element
-         * @param elem
-         * @param child
-         */
-        function isPosterity(elem, child) {
-            return isAncestry(child, elem);
-        }
-        browser.isPosterity = isPosterity;
-        function isFireInside(elem, event) {
-            var target = event.target || event.srcElement;
-            return isPosterity(elem, target);
-        }
-        browser.isFireInside = isFireInside;
-        /**
-         * Detect whether the element is inside the document
-         * @param {type} elem
-         */
-        function isInDoc(elem) {
-            var obj = elem;
-            while (obj) {
-                if (obj.nodeName.toUpperCase() === "HTML")
-                    return true;
-                obj = obj.parentElement;
-            }
-            return false;
-        }
-        browser.isInDoc = isInDoc;
-        /**
-         * Set cookie value
-         * @param name
-         * @param value
-         * @param expires valid days
-         */
-        function saveCookie(name, value, expires, path, domain, secure) {
-            if (secure === void 0) { secure = false; }
-            // set time, it's in milliseconds
-            var today = new Date();
-            today.setTime(today.getTime());
-            /*
-            if the expires variable is set, make the correct
-            expires time, the current script below will set
-            it for x number of days, to make it for hours,
-            delete * 24, for minutes, delete * 60 * 24
-            */
-            if (expires) {
-                expires = expires * 1000 * 60 * 60 * 24;
-            }
-            var expires_date = new Date(today.getTime() + (expires));
-            document.cookie = name + "=" + encodeURIComponent(JSON.stringify(value)) +
-                ((expires) ? ";expires=" + expires_date.toUTCString() : "") +
-                ((path) ? ";path=" + path : "") +
-                ((domain) ? ";domain=" + domain : "") +
-                ((secure) ? ";secure" : "");
-        }
-        browser.saveCookie = saveCookie;
-        /**
-         * Get cookie value
-         * @param name
-         */
-        function loadCookie(name) {
-            var arr = document.cookie.match(new RegExp("(^| )" + name + "=([^;]*)(;|$)"));
-            if (arr !== null)
-                return JSON.parse(decodeURIComponent(arr[2]));
-            else
-                return null;
-        }
-        browser.loadCookie = loadCookie;
-        /**
-         * Delete cookie
-         * @param name
-         */
-        function deleteCookie(name, path, domain) {
-            if (loadCookie(name))
-                document.cookie = name + "=" +
-                    ((path) ? ";path=" + path : "") +
-                    ((domain) ? ";domain=" + domain : "") +
-                    ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
-        }
-        browser.deleteCookie = deleteCookie;
-        /**
-         * Save key value into local storage, if local storage doesn't usable then use local cookie instead.
-         * @param {String} key
-         * @param {String} value
-         * @param {Boolean} sessionOnly If true data only be keeped in this session
-         */
-        function saveData(key, value, sessionOnly) {
-            if (sessionOnly === void 0) { sessionOnly = false; }
-            try {
-                var storage = (sessionOnly === true ? window.sessionStorage : window.localStorage);
-                if (storage) {
-                    storage.setItem(key, JSON.stringify(value));
-                }
-                else
-                    saveCookie(key, value, 365);
-            }
-            catch (e) {
-            }
-        }
-        browser.saveData = saveData;
-        /**
-         * Load value from local storage, if local storage doesn't usable then use local cookie instead.
-         * @param {String} key
-         * @param {Boolean} sessionOnly If true data only be keeped in this session
-         */
-        function loadData(key, sessionOnly) {
-            if (sessionOnly === void 0) { sessionOnly = false; }
-            try {
-                var storage = (sessionOnly === true ? window.sessionStorage : window.localStorage);
-                if (storage)
-                    return JSON.parse(storage.getItem(key));
-                else
-                    return loadCookie(key);
-            }
-            catch (e) {
-                return null;
-            }
-        }
-        browser.loadData = loadData;
-        /**
-         * Remove value from local storage, if local storage doesn't usable then use local cookie instead.
-         * @param key
-         * @param {Boolean} sessionOnly If true data only be keeped in this session
-         */
-        function deleteData(key, sessionOnly) {
-            if (sessionOnly === void 0) { sessionOnly = false; }
-            try {
-                var storage = (sessionOnly === true ? window.sessionStorage : window.localStorage);
-                if (storage)
-                    storage.removeItem(key);
-                else
-                    deleteCookie(key);
-            }
-            catch (e) {
-            }
-        }
-        browser.deleteData = deleteData;
-        var _accMap = {};
-        function accelerate(e) {
-            var k = browser.KeyCode[e.keyCode];
-            if (!k) {
-                return;
-            }
-            k = k.toUpperCase();
-            var key = (e.ctrlKey ? "CTRL" : "");
-            if (e.altKey) {
-                if (key.length > 0)
-                    key += "+";
-                key += "ALT";
-            }
-            if (e.shiftKey) {
-                if (key.length > 0)
-                    key += "+";
-                key += "SHIFT";
-            }
-            if (e.metaKey) {
-                if (key.length > 0)
-                    key += "+";
-                key += "META";
-            }
-            if (key.length > 0)
-                key += "+";
-            key += k;
-            var l = _accMap[key];
-            if (l) {
-                for (var i = 0; i < l.length; i++) {
-                    if (tui.event.fire("accelerate", { name: l[i], event: e }) === false)
-                        return;
-                }
-            }
-        }
-        function addAccelerate(key, actionId) {
-            key = key.toUpperCase();
-            var l = null;
-            if (_accMap.hasOwnProperty(key))
-                l = _accMap[key];
-            else {
-                l = [];
-                _accMap[key] = l;
-            }
-            if (l.indexOf(actionId) < 0)
-                l.push(actionId);
-        }
-        browser.addAccelerate = addAccelerate;
-        function deleteAccelerate(key, actionId) {
-            key = key.toUpperCase();
-            if (!_accMap.hasOwnProperty(key))
-                return;
-            var l = _accMap[key];
-            var pos = l.indexOf(actionId);
-            if (pos >= 0) {
-                l.splice(pos, 1);
-                if (l.length <= 0)
-                    delete _accMap[key];
-            }
-        }
-        browser.deleteAccelerate = deleteAccelerate;
-        $(document).keydown(accelerate);
-        function getUrlParam(key) {
-            var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
-            var r = window.location.search.substr(1).match(reg);
-            if (r != null)
-                return decodeURIComponent(r[2]);
-            return null;
-        }
-        browser.getUrlParam = getUrlParam;
-        function getEventPosition(e, allFingers) {
-            if (allFingers === void 0) { allFingers = false; }
-            var positions = [];
-            var event = e.originalEvent || e;
-            if (event.touches) {
-                var touchList = (allFingers ? event.touches : event.changedTouches);
-                for (var i = 0; i < touchList.length; i++) {
-                    var touch = touchList[i];
-                    positions.push({ x: touch.clientX, y: touch.clientY, id: touch.identifier });
-                }
-            }
-            else {
-                positions.push({ x: event.clientX, y: event.clientY });
-            }
-            return positions;
-        }
-        browser.getEventPosition = getEventPosition;
-        function setInnerHtml(elem, content) {
-            if (tui.ieVer > 0 && tui.ieVer < 9) {
-                elem.innerHTML = "";
-                var d = document.createElement("div");
-                d.innerHTML = content;
-                while (d.children.length > 0)
-                    elem.appendChild(d.children[0]);
-            }
-            else {
-                elem && (elem.innerHTML = content);
-            }
-        }
-        browser.setInnerHtml = setInnerHtml;
-        window.$text = toSafeText;
-    })(browser = tui.browser || (tui.browser = {}));
-})(tui || (tui = {}));
-var tui;
-(function (tui) {
-    var browser;
-    (function (browser) {
-        "use strict";
-        var KeyCode;
-        (function (KeyCode) {
-            KeyCode[KeyCode["BACK"] = 8] = "BACK";
-            KeyCode[KeyCode["TAB"] = 9] = "TAB";
-            KeyCode[KeyCode["ENTER"] = 13] = "ENTER";
-            KeyCode[KeyCode["SHIFT"] = 16] = "SHIFT";
-            KeyCode[KeyCode["CTRL"] = 17] = "CTRL";
-            KeyCode[KeyCode["ALT"] = 18] = "ALT";
-            KeyCode[KeyCode["PAUSE"] = 19] = "PAUSE";
-            KeyCode[KeyCode["CAPS"] = 20] = "CAPS";
-            KeyCode[KeyCode["ESCAPE"] = 27] = "ESCAPE";
-            KeyCode[KeyCode["SPACE"] = 32] = "SPACE";
-            KeyCode[KeyCode["PRIOR"] = 33] = "PRIOR";
-            KeyCode[KeyCode["NEXT"] = 34] = "NEXT";
-            KeyCode[KeyCode["END"] = 35] = "END";
-            KeyCode[KeyCode["HOME"] = 36] = "HOME";
-            KeyCode[KeyCode["LEFT"] = 37] = "LEFT";
-            KeyCode[KeyCode["UP"] = 38] = "UP";
-            KeyCode[KeyCode["RIGHT"] = 39] = "RIGHT";
-            KeyCode[KeyCode["DOWN"] = 40] = "DOWN";
-            KeyCode[KeyCode["PRINT"] = 44] = "PRINT";
-            KeyCode[KeyCode["INSERT"] = 45] = "INSERT";
-            KeyCode[KeyCode["DELETE"] = 46] = "DELETE";
-            KeyCode[KeyCode["KEY_0"] = 48] = "KEY_0";
-            KeyCode[KeyCode["KEY_1"] = 49] = "KEY_1";
-            KeyCode[KeyCode["KEY_2"] = 50] = "KEY_2";
-            KeyCode[KeyCode["KEY_3"] = 51] = "KEY_3";
-            KeyCode[KeyCode["KEY_4"] = 52] = "KEY_4";
-            KeyCode[KeyCode["KEY_5"] = 53] = "KEY_5";
-            KeyCode[KeyCode["KEY_6"] = 54] = "KEY_6";
-            KeyCode[KeyCode["KEY_7"] = 55] = "KEY_7";
-            KeyCode[KeyCode["KEY_8"] = 56] = "KEY_8";
-            KeyCode[KeyCode["KEY_9"] = 57] = "KEY_9";
-            KeyCode[KeyCode["SEMICOLON"] = 59] = "SEMICOLON";
-            KeyCode[KeyCode["EQUALS"] = 61] = "EQUALS";
-            KeyCode[KeyCode["A"] = 65] = "A";
-            KeyCode[KeyCode["B"] = 66] = "B";
-            KeyCode[KeyCode["C"] = 67] = "C";
-            KeyCode[KeyCode["D"] = 68] = "D";
-            KeyCode[KeyCode["E"] = 69] = "E";
-            KeyCode[KeyCode["F"] = 70] = "F";
-            KeyCode[KeyCode["G"] = 71] = "G";
-            KeyCode[KeyCode["H"] = 72] = "H";
-            KeyCode[KeyCode["I"] = 73] = "I";
-            KeyCode[KeyCode["J"] = 74] = "J";
-            KeyCode[KeyCode["K"] = 75] = "K";
-            KeyCode[KeyCode["L"] = 76] = "L";
-            KeyCode[KeyCode["M"] = 77] = "M";
-            KeyCode[KeyCode["N"] = 78] = "N";
-            KeyCode[KeyCode["O"] = 79] = "O";
-            KeyCode[KeyCode["P"] = 80] = "P";
-            KeyCode[KeyCode["Q"] = 81] = "Q";
-            KeyCode[KeyCode["R"] = 82] = "R";
-            KeyCode[KeyCode["S"] = 83] = "S";
-            KeyCode[KeyCode["T"] = 84] = "T";
-            KeyCode[KeyCode["U"] = 85] = "U";
-            KeyCode[KeyCode["V"] = 86] = "V";
-            KeyCode[KeyCode["W"] = 87] = "W";
-            KeyCode[KeyCode["X"] = 88] = "X";
-            KeyCode[KeyCode["Y"] = 89] = "Y";
-            KeyCode[KeyCode["Z"] = 90] = "Z";
-            KeyCode[KeyCode["WINDOWS"] = 91] = "WINDOWS";
-            KeyCode[KeyCode["NUM_0"] = 96] = "NUM_0";
-            KeyCode[KeyCode["NUM_1"] = 97] = "NUM_1";
-            KeyCode[KeyCode["NUM_2"] = 98] = "NUM_2";
-            KeyCode[KeyCode["NUM_3"] = 99] = "NUM_3";
-            KeyCode[KeyCode["NUM_4"] = 100] = "NUM_4";
-            KeyCode[KeyCode["NUM_5"] = 101] = "NUM_5";
-            KeyCode[KeyCode["NUM_6"] = 102] = "NUM_6";
-            KeyCode[KeyCode["NUM_7"] = 103] = "NUM_7";
-            KeyCode[KeyCode["NUM_8"] = 104] = "NUM_8";
-            KeyCode[KeyCode["NUM_9"] = 105] = "NUM_9";
-            KeyCode[KeyCode["NUM_MUL"] = 106] = "NUM_MUL";
-            KeyCode[KeyCode["NUM_PLUS"] = 107] = "NUM_PLUS";
-            KeyCode[KeyCode["NUM_MINUS"] = 109] = "NUM_MINUS";
-            KeyCode[KeyCode["NUM_DOT"] = 110] = "NUM_DOT";
-            KeyCode[KeyCode["NUM_DIV"] = 111] = "NUM_DIV";
-            KeyCode[KeyCode["F1"] = 112] = "F1";
-            KeyCode[KeyCode["F2"] = 113] = "F2";
-            KeyCode[KeyCode["F3"] = 114] = "F3";
-            KeyCode[KeyCode["F4"] = 115] = "F4";
-            KeyCode[KeyCode["F5"] = 116] = "F5";
-            KeyCode[KeyCode["F6"] = 117] = "F6";
-            KeyCode[KeyCode["F7"] = 118] = "F7";
-            KeyCode[KeyCode["F8"] = 119] = "F8";
-            KeyCode[KeyCode["F9"] = 120] = "F9";
-            KeyCode[KeyCode["F10"] = 121] = "F10";
-            KeyCode[KeyCode["F11"] = 122] = "F11";
-            KeyCode[KeyCode["F12"] = 123] = "F12";
-            KeyCode[KeyCode["DASH"] = 173] = "DASH";
-            KeyCode[KeyCode["COMMA"] = 188] = "COMMA";
-            KeyCode[KeyCode["PERIOD"] = 190] = "PERIOD";
-            KeyCode[KeyCode["SLASH"] = 191] = "SLASH";
-            KeyCode[KeyCode["GRAVE"] = 192] = "GRAVE";
-            KeyCode[KeyCode["LEFT_BRACKET"] = 219] = "LEFT_BRACKET";
-            KeyCode[KeyCode["BACKSLASH"] = 220] = "BACKSLASH";
-            KeyCode[KeyCode["RIGHT_BRACKET"] = 221] = "RIGHT_BRACKET";
-            KeyCode[KeyCode["QUOTE"] = 222] = "QUOTE";
-        })(KeyCode = browser.KeyCode || (browser.KeyCode = {}));
-    })(browser = tui.browser || (tui.browser = {}));
 })(tui || (tui = {}));
 /// <reference path="../core.ts" />
 /// <reference path="browser.ts" />
@@ -4645,7 +4647,7 @@ var tui;
         widget.register(Calendar, "calendar");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
+/// <reference path="button.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -7959,276 +7961,6 @@ var tui;
         }(widget.Popup));
         widget.Menu = Menu;
         widget.register(Menu, "menu");
-    })(widget = tui.widget || (tui.widget = {}));
-})(tui || (tui = {}));
-var tui;
-(function (tui) {
-    var widget;
-    (function (widget) {
-        "use strict";
-        var Navigator = (function (_super) {
-            __extends(Navigator, _super);
-            function Navigator() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            Navigator.prototype.initRestriction = function () {
-                var _this = this;
-                _super.prototype.initRestriction.call(this);
-                this.setRestrictions({
-                    "items": {
-                        "get": function () {
-                            var items = _this._data["items"];
-                            return items ? items : [];
-                        }
-                    },
-                    "activeItem": {
-                        "set": function (value) { },
-                        "get": function () {
-                            if (_this._activeItem != null) {
-                                return _this._activeItem.item;
-                            }
-                        }
-                    }
-                });
-            };
-            Navigator.prototype.initChildren = function (childNodes) {
-                var data = [];
-                function addChild(node, items) {
-                    var item = new widget.Item(node);
-                    var text = item.get("text");
-                    if (text === null)
-                        text = $.trim(tui.browser.getNodeOwnText(node));
-                    var naviItem = {
-                        "text": text
-                    };
-                    naviItem.name = item.get("name");
-                    naviItem.path = item.get("path");
-                    naviItem.icon = item.get("icon");
-                    naviItem.expand = item.get("expand");
-                    var children = [];
-                    addChildren(node.childNodes, children);
-                    if (children.length > 0)
-                        naviItem.children = children;
-                    items.push(naviItem);
-                }
-                function addChildren(childNodes, data) {
-                    for (var i = 0; i < childNodes.length; i++) {
-                        var node = childNodes[i];
-                        if (widget.getFullName(node) === "tui:item") {
-                            addChild(node, data);
-                        }
-                    }
-                }
-                addChildren(childNodes, data);
-                if (data.length > 0)
-                    this._set("items", data);
-            };
-            Navigator.prototype.checkScroll = function () {
-                var container = this._components["container"];
-                var up = this._components["up"];
-                var down = this._components["down"];
-                if (container.scrollTop == 0) {
-                    up.style.display = "none";
-                }
-                else {
-                    up.style.display = "block";
-                }
-                if (container.scrollTop == container.scrollHeight - container.clientHeight) {
-                    down.style.display = "none";
-                }
-                else {
-                    down.style.display = "block";
-                }
-            };
-            Navigator.prototype.init = function () {
-                var _this = this;
-                var container = this._components["container"] = document.createElement("div");
-                var up = this._components["up"] = document.createElement("div");
-                var down = this._components["down"] = document.createElement("div");
-                container.className = "tui-container";
-                up.className = "tui-up";
-                down.className = "tui-down";
-                this._.appendChild(container);
-                this._.appendChild(up);
-                this._.appendChild(down);
-                var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
-                $(this._).on(mousewheelevt, function (ev) {
-                    var e = ev.originalEvent;
-                    var delta = e.detail ? e.detail * (-1) : e.wheelDelta;
-                    if (delta <= 0) {
-                        if (container.scrollTop + container.clientHeight >= container.scrollHeight) {
-                            ev.preventDefault();
-                        }
-                    }
-                    else {
-                        if (container.scrollTop <= 0) {
-                            ev.preventDefault();
-                        }
-                    }
-                    ev.stopPropagation();
-                    ev.stopImmediatePropagation();
-                });
-                this.on("resize", function () {
-                    var scrollbarWidth = container.offsetWidth - container.clientWidth;
-                    container.style.width = _this._.offsetWidth + scrollbarWidth + "px";
-                    _this.checkScroll();
-                });
-                container.onscroll = function (e) {
-                    _this.checkScroll();
-                };
-                function findLine(elem) {
-                    if (!elem)
-                        return null;
-                    if ($(elem).hasClass("tui-line"))
-                        return elem;
-                    else
-                        return findLine(elem.parentElement);
-                }
-                $(container).on("click keydown", function (e) {
-                    var elem = e.target || e.srcElement;
-                    elem = findLine(elem);
-                    if (e.type === "keydown" && e.keyCode != tui.browser.KeyCode.ENTER)
-                        return;
-                    if (elem) {
-                        var $elem = $(elem);
-                        if ($elem.hasClass("tui-expand")) {
-                            _this.collapse(elem);
-                        }
-                        else if ($elem.hasClass("tui-collapse")) {
-                            _this.expand(elem);
-                        }
-                        else {
-                            _this.active(elem);
-                            if (_this.fire("select", elem.item) === false)
-                                return;
-                            if (_this.get("openPath")) {
-                                var item = elem.item;
-                                if (item && item.path) {
-                                    window.location.href = item.path;
-                                }
-                            }
-                        }
-                    }
-                });
-            };
-            Navigator.prototype.collapse = function (elem) {
-                var _this = this;
-                var $elem = $(elem);
-                elem.item.expand = false;
-                if (!$elem.hasClass("tui-collapse")) {
-                    $elem.removeClass("tui-expand");
-                    $elem.addClass("tui-collapse");
-                    $elem.next().animate({ height: "toggle" }, function () {
-                        _this.checkScroll();
-                    });
-                }
-            };
-            Navigator.prototype.expand = function (elem) {
-                var _this = this;
-                var $elem = $(elem);
-                elem.item.expand = true;
-                if (!$elem.hasClass("tui-expand")) {
-                    $elem.removeClass("tui-collapse");
-                    $elem.addClass("tui-expand");
-                    $elem.next().animate({ height: "toggle" }, function () {
-                        _this.checkScroll();
-                    });
-                }
-            };
-            Navigator.prototype.active = function (elem) {
-                var container = this._components["container"];
-                var rc = tui.browser.getRectOfParent(elem);
-                if (rc.top >= container.scrollTop && rc.top + rc.height <= container.scrollTop + container.clientHeight) {
-                }
-                else if (rc.top < container.scrollTop) {
-                    container.scrollTop = rc.top;
-                }
-                else if (rc.top + rc.height > container.scrollTop + container.clientHeight) {
-                    container.scrollTop = (rc.top + rc.height - container.clientHeight);
-                }
-                if (this._activeItem)
-                    $(this._activeItem).removeClass("tui-active");
-                if (this.get("selectable")) {
-                    $(elem).addClass("tui-active");
-                    this._activeItem = elem;
-                }
-            };
-            Navigator.prototype.drawItems = function (parent, items, level) {
-                for (var _i = 0, items_3 = items; _i < items_3.length; _i++) {
-                    var item = items_3[_i];
-                    var line = document.createElement("div");
-                    line.item = item;
-                    var $line = $(line);
-                    $line.attr("unselectable", "on");
-                    $line.attr("tabIndex", "0");
-                    $line.addClass("tui-line");
-                    $line.text(item.text);
-                    if (level > 0)
-                        $line.addClass("tui-child");
-                    if (item.icon) {
-                        var icon = document.createElement("i");
-                        icon.className = item.icon;
-                        line.insertBefore(icon, line.firstChild);
-                    }
-                    if (item.path)
-                        line.setAttribute("path", item.path);
-                    if (item.name)
-                        line.setAttribute("name", item.name);
-                    var space = document.createElement("span");
-                    space.style.display = "inline-block";
-                    space.style.width = 20 * level + "px";
-                    line.insertBefore(space, line.firstChild);
-                    parent.appendChild(line);
-                    if (item.children && item.children.length > 0) {
-                        var subArea = document.createElement("div");
-                        subArea.className = "tui-sub";
-                        if (item.expand) {
-                            $line.addClass("tui-expand");
-                            subArea.style.display = "block";
-                        }
-                        else {
-                            $line.addClass("tui-collapse");
-                            subArea.style.display = "none";
-                        }
-                        this.drawItems(subArea, item.children, level + 1);
-                        parent.appendChild(subArea);
-                    }
-                }
-            };
-            Navigator.prototype._activeBy = function (parent, key, value) {
-                for (var i = 0; i < parent.children.length; i++) {
-                    var node = parent.children[i];
-                    if ($(node).hasClass("tui-line")) {
-                        if (node.item[key] === value) {
-                            this.active(node);
-                            return true;
-                        }
-                    }
-                    else if ($(node).hasClass("tui-sub")) {
-                        if (this._activeBy(node, key, value)) {
-                            this.expand($(node).prev()[0]);
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            };
-            Navigator.prototype.activeBy = function (key, value) {
-                var container = this._components["container"];
-                this._activeBy(container, key, value);
-            };
-            Navigator.prototype.render = function () {
-                var items = this.get("items");
-                var container = this._components["container"];
-                container.innerHTML = "";
-                this.drawItems(container, items, 0);
-                this.checkScroll();
-            };
-            return Navigator;
-        }(widget.Widget));
-        widget.Navigator = Navigator;
-        widget.register(Navigator, "navigator");
-        widget.registerResize("navigator");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="base.ts" />
