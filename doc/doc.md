@@ -1054,6 +1054,25 @@ HTML代码：
 
 <tui:picture></tui:picture>
 
+由于本文没有后台代码，所以无法演示图片上传。
+
+HTML代码：
+
+```html
+<tui:picture></tui:picture>
+```
+
+不允许更改的图片，请添加 `disable={true}` 属性。
+
+属性：
+
+属性名 | 描述
+--- | ---
+action | 文件上传的地址
+accept | 接受的图片类型，如： image/png 或 image/jpg 或 image/* 等，不管 accept 如何设定，控件只允许上传 png,jpg,gif 类型的图片文件。
+value | 存储文件ID
+url | 图片展示的地址
+
 # 工具和服务
 
 其实根据项目中的经验来看，除了AJAX，路由和服务外，TUI2提供的大部分工具函数都很少用到，这些函数有些只是内部被框架自己使用，

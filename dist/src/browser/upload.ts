@@ -261,12 +261,19 @@ module tui.browser {
 				error: tui.str("Upload failed!") + (errorMessage ? errorMessage : "") 
 			} });
 		}
-		
-		private submitV5(file: string, extraData?: {[index: string]: string}) {
+
+		uploadV5(file: string, fileObject: File, extraData?: {[index: string]: string}) {
 			var waitbox = tui.waitbox(tui.str("Uploading..."));
 			var fd = new FormData();
-			for (var i = 0; i < this._input.files.length; i++) 
-            	fd.append(this._settings.name, this._input.files[i]);
+            fd.append(this._settings.name, fileObject);
+			if (extraData) {
+				for (let key in extraData) {
+					if (extraData.hasOwnProperty(key)) {
+						fd.append(key, extraData[key]);
+					}
+				}
+			}
+			
             var xhr = new XMLHttpRequest();
             xhr.upload.addEventListener("progress", (e: any) => {
 				if (e.lengthComputable) {
@@ -302,6 +309,13 @@ module tui.browser {
 			}, false);
             xhr.open("POST", this._settings.action);
             xhr.send(fd);
+		}
+		
+		private submitV5(file: string, extraData?: {[index: string]: string}) {
+			if (this._input.files.length > 0) {
+				var fileObject = this._input.files[0];
+				this.uploadV5(file, fileObject, extraData);
+			}
 			this.clearInput();
 		}
 		

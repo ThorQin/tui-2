@@ -4,6 +4,9 @@ import fs = require('fs');
 import path = require('path');
 import ps = require('child_process');
 
+
+const buildPluginName = process.argv.length > 2 ? process.argv[2] : null;
+
 var dir = fs.realpathSync(__dirname);
 
 function compile(pluginName, pluginDir) {
@@ -100,7 +103,8 @@ fs.readdir(dir, (err, files) => {
 	var plugins: string[] = [];
 	files.forEach((f) => {
 		let file = path.join(dir, f);
-		if (fs.statSync(file).isDirectory()) {
+		if (fs.statSync(file).isDirectory() && 
+			(buildPluginName == null || f === buildPluginName)) {
 			plugins.push(f);
 		}
 	});

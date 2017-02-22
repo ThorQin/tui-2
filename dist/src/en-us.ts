@@ -16,5 +16,6 @@ tui.dict("en-us", {
     "agree": "Agree",
     "reject": "Reject",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "invalid.file.type": "Invalid file type!"
 });

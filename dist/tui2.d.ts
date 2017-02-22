@@ -543,6 +543,9 @@ declare module tui.browser {
         private processResponse(iframe, file);
         private fireInvalidError();
         private fireError(errorMessage?);
+        uploadV5(file: string, fileObject: File, extraData?: {
+            [index: string]: string;
+        }): void;
         private submitV5(file, extraData?);
         private submitV4(file, extraData?);
         submit(extraData?: {

@@ -55,5 +55,6 @@ tui.dict("zh-cn", {
 	"sat": "六",
 	"today": "今天",
 	"select": "选择",
-	"clear": "清除"
+	"clear": "清除",
+    "invalid.file.type": "无效的文件类型！"
 });

@@ -38,6 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var fs = require("fs");
 var path = require("path");
 var ps = require("child_process");
+var buildPluginName = process.argv.length > 2 ? process.argv[2] : null;
 var dir = fs.realpathSync(__dirname);
 function compile(pluginName, pluginDir) {
     console.log("Compile: %s ...", pluginName);
@@ -149,7 +150,8 @@ fs.readdir(dir, function (err, files) {
     var plugins = [];
     files.forEach(function (f) {
         var file = path.join(dir, f);
-        if (fs.statSync(file).isDirectory()) {
+        if (fs.statSync(file).isDirectory() &&
+            (buildPluginName == null || f === buildPluginName)) {
             plugins.push(f);
         }
     });

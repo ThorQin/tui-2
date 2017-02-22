@@ -62,6 +62,41 @@ var tui;
                     this._uploader.on("error", function (e) {
                         tui.errbox(e.data.response.error, tui.str("Error"));
                     });
+                    this.setInit("accept", "image/png, image/jpeg, image/gif");
+                    var $root = $(this._);
+                    $root.on("dragenter", function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        _this._uploader.deleteInput();
+                        $root.addClass("tui-drag-enter");
+                    });
+                    $root.on("dragleave", function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!_this.get("disable")) {
+                            _this._uploader.createInput();
+                        }
+                        $root.removeClass("tui-drag-enter");
+                    });
+                    $root.on("dragover", function (e) {
+                        e.preventDefault();
+                    });
+                    $root.on("drop", function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        var dts = e.originalEvent.dataTransfer;
+                        if (dts && dts.files && dts.files.length > 0) {
+                            var fileName = dts.files[0].name;
+                            if (/\.(jpg|jpeg|png|gif)$/i.test(fileName))
+                                _this._uploader.uploadV5(fileName, dts.files[0]);
+                            else
+                                tui.errbox(tui.str("invalid.file.type"));
+                        }
+                        if (!_this.get("disable")) {
+                            _this._uploader.createInput();
+                        }
+                        $root.removeClass("tui-drag-enter");
+                    });
                 };
                 Picture.prototype.render = function () {
                     var $root = $(this._);

@@ -2886,12 +2886,18 @@ var tui;
                         error: tui.str("Upload failed!") + (errorMessage ? errorMessage : "")
                     } });
             };
-            Uploader.prototype.submitV5 = function (file, extraData) {
+            Uploader.prototype.uploadV5 = function (file, fileObject, extraData) {
                 var _this = this;
                 var waitbox = tui.waitbox(tui.str("Uploading..."));
                 var fd = new FormData();
-                for (var i = 0; i < this._input.files.length; i++)
-                    fd.append(this._settings.name, this._input.files[i]);
+                fd.append(this._settings.name, fileObject);
+                if (extraData) {
+                    for (var key in extraData) {
+                        if (extraData.hasOwnProperty(key)) {
+                            fd.append(key, extraData[key]);
+                        }
+                    }
+                }
                 var xhr = new XMLHttpRequest();
                 xhr.upload.addEventListener("progress", function (e) {
                     if (e.lengthComputable) {
@@ -2929,6 +2935,12 @@ var tui;
                 }, false);
                 xhr.open("POST", this._settings.action);
                 xhr.send(fd);
+            };
+            Uploader.prototype.submitV5 = function (file, extraData) {
+                if (this._input.files.length > 0) {
+                    var fileObject = this._input.files[0];
+                    this.uploadV5(file, fileObject, extraData);
+                }
                 this.clearInput();
             };
             Uploader.prototype.submitV4 = function (file, extraData) {
@@ -3461,7 +3473,8 @@ tui.dict("en-us", {
     "agree": "Agree",
     "reject": "Reject",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "invalid.file.type": "Invalid file type!"
 });
 /// <reference path="../core.ts" />
 /// <reference path="../text/text.ts" />
