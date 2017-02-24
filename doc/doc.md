@@ -1073,6 +1073,11 @@ accept | 接受的图片类型，如： image/png 或 image/jpg 或 image/* 等�
 value | 存储文件ID
 url | 图片展示的地址
 
+
+## [](fa-map) 地理位置`(location)`
+
+<tui:location app-key="e8f7d3075fc92aea2cb27947ce567763"></tui:location>
+
 # 工具和服务
 
 其实根据项目中的经验来看，除了AJAX，路由和服务外，TUI2提供的大部分工具函数都很少用到，这些函数有些只是内部被框架自己使用，

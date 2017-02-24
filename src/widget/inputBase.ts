@@ -14,13 +14,19 @@ module tui.widget {
 		"*key": "^([_a-zA-Z][a-zA-Z0-9_]*)?$",
 		"*any": "\\S+"
 	};
+
+	export interface Validatable {
+		reset(): void;
+		updateEmptyState(empty: boolean): void;
+		validate(e?: JQueryEventObject): boolean;
+	}
 	
-	export abstract class InputBase extends Widget {
+	export abstract class InputBase extends Widget implements Validatable {
 		protected _valid: boolean = true;
 		protected _invalidMessage: string = null;
 		protected _isEmpty: boolean;
-		
-		protected initChildren(childNodes: Node[]) {
+
+		static parseValidators(childNodes: Node[]) {
 			var validators: any[] = [];
 			for (let node of childNodes) {
 				if (getFullName(node) === "tui:verify") {
@@ -31,7 +37,11 @@ module tui.widget {
 					}
 				}
 			}
-			this._set("validate", validators);
+			return validators;
+		}
+		
+		protected initChildren(childNodes: Node[]) {
+			this._set("validate", InputBase.parseValidators(childNodes));
 		}
 		
 		reset() {

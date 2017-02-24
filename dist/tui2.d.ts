@@ -779,10 +779,16 @@ declare module tui.widget {
     }
 }
 declare module tui.widget {
-    abstract class InputBase extends Widget {
+    interface Validatable {
+        reset(): void;
+        updateEmptyState(empty: boolean): void;
+        validate(e?: JQueryEventObject): boolean;
+    }
+    abstract class InputBase extends Widget implements Validatable {
         protected _valid: boolean;
         protected _invalidMessage: string;
         protected _isEmpty: boolean;
+        static parseValidators(childNodes: Node[]): any[];
         protected initChildren(childNodes: Node[]): void;
         reset(): void;
         updateEmptyState(empty: boolean): void;

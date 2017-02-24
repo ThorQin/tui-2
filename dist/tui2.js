@@ -5046,7 +5046,7 @@ var tui;
                 _this._invalidMessage = null;
                 return _this;
             }
-            InputBase.prototype.initChildren = function (childNodes) {
+            InputBase.parseValidators = function (childNodes) {
                 var validators = [];
                 for (var _i = 0, childNodes_4 = childNodes; _i < childNodes_4.length; _i++) {
                     var node = childNodes_4[_i];
@@ -5058,7 +5058,10 @@ var tui;
                         }
                     }
                 }
-                this._set("validate", validators);
+                return validators;
+            };
+            InputBase.prototype.initChildren = function (childNodes) {
+                this._set("validate", InputBase.parseValidators(childNodes));
             };
             InputBase.prototype.reset = function () {
                 if (this._valid !== true) {
