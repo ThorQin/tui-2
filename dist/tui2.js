@@ -3474,6 +3474,8 @@ tui.dict("en-us", {
     "reject": "Reject",
     "yes": "Yes",
     "no": "No",
+    "select": "Select",
+    "address": "Address",
     "invalid.file.type": "Invalid file type!"
 });
 /// <reference path="../core.ts" />

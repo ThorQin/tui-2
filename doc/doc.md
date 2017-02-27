@@ -1078,6 +1078,8 @@ url | 图片展示的地址
 
 <tui:location app-key="e8f7d3075fc92aea2cb27947ce567763"></tui:location>
 
+<tui:location app-key="e8f7d3075fc92aea2cb27947ce567763"></tui:location>
+
 # 工具和服务
 
 其实根据项目中的经验来看，除了AJAX，路由和服务外，TUI2提供的大部分工具函数都很少用到，这些函数有些只是内部被框架自己使用，

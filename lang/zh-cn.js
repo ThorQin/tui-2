@@ -18,6 +18,8 @@ tui.dict("zh-cn", {
     "rerresh": "刷新",
     "yes": "是",
     "no": "否",
+    "select": "选择",
+    "address": "地址",
     "second": "秒",
     "seconds": "秒",
     "minute": "分",
@@ -56,5 +58,6 @@ tui.dict("zh-cn", {
 	"today": "今天",
 	"select": "选择",
 	"clear": "清除",
-    "invalid.file.type": "无效的文件类型！"
+    "invalid.file.type": "无效的文件类型！",
+    "geo.location.failed": "获取当前位置失败，请检查您的浏览器是否可以使用定位服务。"
 });

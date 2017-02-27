@@ -18,6 +18,8 @@ tui.dict("zh-cn", {
     "rerresh": "刷新",
     "yes": "是",
     "no": "否",
+    "select": "选择",
+    "address": "地址",
     "second": "秒",
     "seconds": "秒",
     "minute": "分",

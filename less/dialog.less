@@ -17,7 +17,9 @@ tui\:dialog {
 	position:fixed;
 	background-color:white;
 	.border-radius(@dialogBorderRadius);
-	min-width:280px;
+	// .tui-content {
+	// 	min-width:360px;
+	// }
 	//border:1px solid @borderColor;
 	.shadow(0px, 1px, 30px, rgba(0,0,0,0.5));
 	z-index:@dialogLayer;
@@ -98,9 +100,7 @@ tui\:dialog {
 	}
 }
 
-tui\:dialog.tui-wait-box {
-	min-width: 150px;
-}
+
 
 tui\:dialog .tui-title-bar {
 	span.tui-text i {
@@ -141,6 +141,7 @@ tui\:dialog .tui-title-bar {
 
 .tui-msg-container {
 	padding:5px 20px;
+	min-width: 260px;
 	max-width: 500px;
 	text-align: center;
 	> div {
@@ -151,7 +152,9 @@ tui\:dialog .tui-title-bar {
 
 tui\:dialog.tui-wait-box {
 	.tui-msg-container {
-		max-width: 250px;
+		.tui-content {
+			max-width: 250px;
+		}
 	}
 	.tui-msg-container>div {
 		padding:10px;
@@ -170,5 +173,18 @@ tui\:dialog.tui-wait-box {
 			font-size:38px;
 			color: #aaa;
 		}
+	}
+}
+
+@media (max-width: 380px) {
+	.tui-msg-container {
+		min-width: 0px;
+		max-width: 90%;
+	}
+}
+
+tui\:dialog.tui-wait-box {
+	.tui-msg-container {
+		min-width: 150px;
 	}
 }

@@ -17,5 +17,8 @@ tui.dict("en-us", {
     "reject": "Reject",
     "yes": "Yes",
     "no": "No",
-    "invalid.file.type": "Invalid file type!"
+    "select": "Select",
+    "address": "Address",
+    "invalid.file.type": "Invalid file type!",
+    "geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service."
 });

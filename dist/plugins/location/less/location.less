@@ -1,5 +1,34 @@
-.tui-map-container {
+@import '../../../less/commons.less';
+
+.tui-map-content {
 	display: block;
-	width: 400px;
-	height: 360px;
+	width: 600px;
+	.tui-map-address {
+		font-size: 13px;
+		padding: 0 5px;
+		border: 1px solid #ddd;
+		margin-bottom: 10px;
+		height: 30px;
+		line-height: 30px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.tui-map-container {
+		height: 420px;
+	}
+}
+
+@media(max-width: 720px) {
+	.tui-map-content {
+		width: 420px;
+	}
+}
+
+@media(max-width: 460px) {
+	.tui-map-content {
+		width: 280px;
+		.tui-map-container {
+			height: 300px;
+		}
+	}
 }
