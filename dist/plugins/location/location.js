@@ -32,6 +32,8 @@ var tui;
                 //e8f7d3075fc92aea2cb27947ce567763
                 Location.prototype.initRestriction = function () {
                     _super.prototype.initRestriction.call(this);
+                    this._selectedAddress = null;
+                    this._map = null;
                     var input = widget.create("input");
                     this._components["input"] = input._;
                     this.setRestrictions({
@@ -50,6 +52,22 @@ var tui;
                             "get": function () {
                                 return input.get("validate");
                             }
+                        },
+                        "clearable": {
+                            "set": function (value) {
+                                input.set("clearable", value);
+                            },
+                            "get": function () {
+                                return input.get("clearable");
+                            }
+                        },
+                        "placeholder": {
+                            "set": function (value) {
+                                input.set("placeholder", value);
+                            },
+                            "get": function () {
+                                return input.get("placeholder");
+                            }
                         }
                     });
                 };
@@ -65,6 +83,7 @@ var tui;
                         zoom: 10,
                         center: [116.39, 39.9]
                     });
+                    this._map = map;
                     window.AMap.service('AMap.Geocoder', function () {
                         _this._geocoder = new window.AMap.Geocoder();
                     });
@@ -86,7 +105,7 @@ var tui;
                         window.AMap.event.addListener(geolocation, 'complete', function (e) {
                         }); //返回定位信息
                         window.AMap.event.addListener(geolocation, 'error', function (e) {
-                            tui.errbox("Get current location failed, please make sure your browser has permission to use geo-location service.");
+                            tui.errbox(tui.str("geo.location.failed"));
                         }); //返回定位出错信息
                     });
                     map.on('click', function (e) {
@@ -94,6 +113,7 @@ var tui;
                         _this._geocoder && _this._geocoder.getAddress(e.lnglat, function (status, result) {
                             if (status === 'complete' && result.info === 'OK') {
                                 $(address).text(result.regeocode.formattedAddress);
+                                _this._selectedAddress = result.regeocode.formattedAddress;
                                 map.clearMap();
                                 new window.AMap.Marker({
                                     position: e.lnglat,
@@ -107,6 +127,7 @@ var tui;
                     });
                 };
                 Location.prototype.init = function () {
+                    var _this = this;
                     if (!_mapInit) {
                         _mapInit = true;
                         var mapUrl = "https://webapi.amap.com/maps?v=1.3&key=" + this.get("appKey") + "&callback=tui_widget_ext_Location_initApi";
@@ -134,6 +155,41 @@ var tui;
                         dlg._set("title", tui.str("address"));
                         dlg.setContent(dialogContent);
                         dlg.open("ok#tui-primary");
+                        var inputValue = input.get("value");
+                        if (inputValue) {
+                            if (inputValue != _this._selectedAddress) {
+                                _this._geocoder && _this._geocoder.getLocation(inputValue, function (status, result) {
+                                    if (status === 'complete' && result.info === 'OK') {
+                                        $(address).text(inputValue);
+                                        _this._selectedAddress = inputValue;
+                                        _this._map.clearMap();
+                                        new window.AMap.Marker({
+                                            position: result.geocodes[0].location,
+                                            map: _this._map
+                                        });
+                                        _this._map.setCenter(result.geocodes[0].location);
+                                    }
+                                    else {
+                                        $(address).text(inputValue);
+                                        _this._selectedAddress = inputValue;
+                                    }
+                                });
+                            }
+                        }
+                        else {
+                            _this._map.clearMap();
+                            $(address).text("");
+                            _this._selectedAddress = null;
+                        }
+                        dlg.on("btnclick", function () {
+                            if (_this._selectedAddress) {
+                                input.set("value", _this._selectedAddress);
+                                dlg.close();
+                            }
+                            else {
+                                tui.msgbox(tui.str("please.select.point"));
+                            }
+                        });
                     });
                 };
                 Location.prototype.reset = function () {

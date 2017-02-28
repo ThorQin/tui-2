@@ -14,6 +14,8 @@ module tui.widget.ext {
 	export class Location extends Widget implements Validatable {
 
 		private _geocoder: any;
+		private _selectedAddress: string;
+		private _map: any;
 
 		static initApi() {
 			_mapLoaded = true;
@@ -25,6 +27,8 @@ module tui.widget.ext {
 		//e8f7d3075fc92aea2cb27947ce567763
 		protected initRestriction(): void {
 			super.initRestriction();
+			this._selectedAddress = null;
+			this._map = null;
 			var input = create("input");
 			this._components["input"] = input._;
 			this.setRestrictions({
@@ -43,6 +47,22 @@ module tui.widget.ext {
 					"get": (): any => {
 						return input.get("validate");
 					}
+				},
+				"clearable": {
+					"set": (value: any) => {
+						input.set("clearable", value);
+					},
+					"get": (): any => {
+						return input.get("clearable");
+					}
+				},
+				"placeholder": {
+					"set": (value: any) => {
+						input.set("placeholder", value);
+					},
+					"get": (): any => {
+						return input.get("placeholder");
+					}
 				}
 			});
 		}
@@ -60,6 +80,7 @@ module tui.widget.ext {
 				zoom: 10,
 				center: [116.39,39.9]
 			});
+			this._map = map;
 
 			(<any>window).AMap.service('AMap.Geocoder',() => {
 				this._geocoder = new (<any>window).AMap.Geocoder();
@@ -68,7 +89,7 @@ module tui.widget.ext {
 			map.plugin('AMap.Geolocation', function () {
 				var geolocation = new (<any>window).AMap.Geolocation({
 					enableHighAccuracy: false,//是否使用高精度定位，默认:true
-					timeout: 5000,          //超过10秒后停止定位，默认：无穷大
+					timeout: 5000,           //超过10秒后停止定位，默认：无穷大
 					maximumAge: 0,           //定位结果缓存0毫秒，默认：0
 					convert: true,           //自动偏移坐标，偏移后的坐标为高德坐标，默认：true
 					showButton: true,        //显示定位按钮，默认：true
@@ -90,9 +111,10 @@ module tui.widget.ext {
 
 			map.on('click', (e) => {
 				$(address).text(tui.str("Locating..."));
-				this._geocoder && this._geocoder.getAddress(e.lnglat, function(status, result) {
+				this._geocoder && this._geocoder.getAddress(e.lnglat, (status, result) => {
 					if (status === 'complete' && result.info === 'OK') {
 						$(address).text(result.regeocode.formattedAddress);
+						this._selectedAddress = result.regeocode.formattedAddress;
 						map.clearMap();
 						new (<any>window).AMap.Marker({
 							position : e.lnglat,
@@ -138,6 +160,40 @@ module tui.widget.ext {
 				dlg._set("title", tui.str("address"));
 				dlg.setContent(dialogContent);
 				dlg.open("ok#tui-primary");
+
+				var inputValue = input.get("value");
+				if (inputValue) {
+					if (inputValue != this._selectedAddress) {
+						this._geocoder && this._geocoder.getLocation(inputValue, (status, result) => {
+							if (status === 'complete' && result.info === 'OK') {
+								$(address).text(inputValue);
+								this._selectedAddress = inputValue;
+								this._map.clearMap();
+								new (<any>window).AMap.Marker({
+									position : result.geocodes[0].location,
+									map : this._map
+								});
+								this._map.setCenter(result.geocodes[0].location);
+							} else{
+								$(address).text(inputValue);
+								this._selectedAddress = inputValue;
+							}
+						});
+					}
+				} else {
+					this._map.clearMap();
+					$(address).text("");
+					this._selectedAddress = null;
+				}
+
+				dlg.on("btnclick", () => {
+					if (this._selectedAddress) {
+						input.set("value", this._selectedAddress);
+						dlg.close();
+					} else {
+						tui.msgbox(tui.str("please.select.point"));
+					}
+				});
 			});
 		}
 

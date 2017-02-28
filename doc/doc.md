@@ -1076,9 +1076,9 @@ url | 图片展示的地址
 
 ## [](fa-map) 地理位置`(location)`
 
-<tui:location app-key="e8f7d3075fc92aea2cb27947ce567763"></tui:location>
+<tui:location app-key="e8f7d3075fc92aea2cb27947ce567763" placeholder="请选择地点..." clearable={true}></tui:location>
 
-<tui:location app-key="e8f7d3075fc92aea2cb27947ce567763"></tui:location>
+<tui:location app-key="e8f7d3075fc92aea2cb27947ce567763" placeholder="请选择地点..." disable={true} ></tui:location>
 
 # 工具和服务
 

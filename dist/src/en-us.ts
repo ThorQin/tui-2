@@ -18,6 +18,8 @@ tui.dict("en-us", {
     "yes": "Yes",
     "no": "No",
     "select": "Select",
+    "please.select.point": "Please select a point of the map.",
     "address": "Address",
-    "invalid.file.type": "Invalid file type!"
+    "invalid.file.type": "Invalid file type!",
+    "geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service."
 });
