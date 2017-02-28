@@ -24,7 +24,6 @@ module tui.widget.ext {
 			}
 		}
 
-		//e8f7d3075fc92aea2cb27947ce567763
 		protected initRestriction(): void {
 			super.initRestriction();
 			this._selectedAddress = null;
@@ -46,6 +45,14 @@ module tui.widget.ext {
 					},
 					"get": (): any => {
 						return input.get("validate");
+					}
+				},
+				"autoValidate": {
+					"set": (value: any) => {
+						input.set("autoValidate", value);
+					},
+					"get": (): any => {
+						return input.get("autoValidate");
 					}
 				},
 				"clearable": {

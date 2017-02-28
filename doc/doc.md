@@ -1076,9 +1076,26 @@ url | 图片展示的地址
 
 ## [](fa-map) 地理位置`(location)`
 
+地址位置插件可以让你通过地图的点击快速的输入地址信息，它使用的是高德地图。受限于地图本身，如果想要输入的是国外地址就力所不及了。
+
 <tui:location app-key="e8f7d3075fc92aea2cb27947ce567763" placeholder="请选择地点..." clearable={true}></tui:location>
 
-<tui:location app-key="e8f7d3075fc92aea2cb27947ce567763" placeholder="请选择地点..." disable={true} ></tui:location>
+HTML代码：
+
+```html
+<tui:location app-key="e8f7d3075fc92aea2cb27947ce567763" placeholder="请选择地点..." disable={true}></tui:location>
+```
+
+属性：（Input 的子集）
+
+属性名 | 描述
+--- | ---
+value | 地址信息（可以选择也可以输入）
+validate | 定义验证规则，通过属性定义需要传递 JSON 格式的对象，也可以通过 tui:verify 子标签定义
+autoValidate | 是否自动验证
+clearable | 是否可以清除
+placeholder | 占位信息
+
 
 # 工具和服务
 
