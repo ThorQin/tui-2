@@ -422,7 +422,7 @@ declare module tui.widget {
     function register(constructor: {
         new (elem: HTMLElement, initParam?: {
             [index: string]: any;
-        }): any;
+        }): Widget;
     }, nodeName: string): void;
     function get(id: any): Widget;
     function create(type: string, initParam?: {
@@ -832,6 +832,70 @@ declare module tui.widget {
     }
 }
 declare module tui.widget {
+    enum ItemSize {
+        NORMAL = 0,
+        BIG = 1,
+        BLOCK = 2,
+    }
+    interface FormItem {
+        type: string;
+        label: string | null;
+        key: string | null;
+        value: any | null;
+        validate?: string[];
+        size?: ItemSize;
+        inline?: boolean;
+        disable?: boolean;
+        important?: boolean;
+    }
+    interface FormControlConstructor {
+        new (form: Form, define: FormItem): FormControl;
+    }
+    abstract class FormControl {
+        div: HTMLDivElement;
+        label: HTMLLabelElement;
+        define: FormItem;
+        protected form: Form;
+        constructor(form: Form, define: FormItem);
+        isPresent(): boolean;
+        gone(): void;
+        present(): void;
+        getKey(): string;
+        abstract getName(): string;
+        abstract getValue(): any;
+        abstract setValue(value: any): void;
+        abstract render(): void;
+        abstract showProperty(): void;
+        abstract validate(): boolean;
+    }
+    class Form extends Widget {
+        private _definitionChanged;
+        private _items;
+        static register(type: string, controlType: FormControlConstructor): void;
+        private removeAll();
+        protected initRestriction(): void;
+        protected init(): void;
+        validate(): boolean;
+        render(): void;
+    }
+    abstract class BasicFormControl<T extends Widget> extends FormControl {
+        protected _widget: T;
+        protected _name: string;
+        /**
+         * Base class constructor of the simple form control.
+         * @param form Which form will contain this control.
+         * @param define Form item definition.
+         * @param type The name of what your tui control will be used.
+         * @param name The human friendly name of the form control.
+         */
+        constructor(form: Form, define: FormItem, type: string, name: string);
+        getName(): string;
+        getValue(): any;
+        setValue(value: any): void;
+        render(): void;
+    }
+}
+declare module tui.widget {
     class Frame extends Widget {
         private _cache;
         protected initRestriction(): void;
@@ -963,6 +1027,14 @@ declare module tui.widget {
         protected initChildren(childNodes: Node[]): void;
         open(refer: any, direction?: string): void;
         protected init(): void;
+    }
+}
+declare module tui.widget {
+    class Picture extends Widget {
+        private _uploader;
+        protected initRestriction(): void;
+        protected init(): void;
+        render(): void;
     }
 }
 declare module tui.widget {

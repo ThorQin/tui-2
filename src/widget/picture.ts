@@ -1,6 +1,7 @@
-/// <reference path="../../dist/tui2.d.ts" />
+/// <reference path="base.ts" />
+/// <reference path="../browser/upload.ts" />
 
-module tui.widget.ext {
+module tui.widget {
 	"use strict";
 
 	export class Picture extends Widget {
@@ -44,11 +45,14 @@ module tui.widget.ext {
 		protected init(): void {
 			var img = this._components["image"] = document.createElement("img");
 			this._.appendChild(img);
-			this._uploader.on("success", (e) => {
+			this._uploader.on("success", (e: any) => {
 				this._set("value", e.data.response.fileId);
 				this.set("url", e.data.response.url);
+				this.fire("success", e);
 			});
-			this._uploader.on("error", (e) => {
+			this._uploader.on("error", (e: any) => {
+				if (this.fire("error", e) === false)
+					return;
 				tui.errbox(e.data.response.error, tui.str("Error"));
 			});
 

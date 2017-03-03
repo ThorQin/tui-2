@@ -83,14 +83,17 @@ module tui.widget {
 					onblur();
 				});
 			});
-			this._uploader.on("change", (e) => {
+			this._uploader.on("change", (e: any) => {
 				return this.fire("change", e);
 			});
-			this._uploader.on("success", (e) => {
+			this._uploader.on("success", (e: any) => {
 				this._set("value", e.data.response.fileId);
 				this.set("text", e.data.response.fileName);
+				this.fire("success", e);
 			});
-			this._uploader.on("error", (e) => {
+			this._uploader.on("error", (e: any) => {
+				if (this.fire("error", e) === false)
+					return;
 				tui.errbox(e.data.response.error, tui.str("Error"));
 			});
 		}

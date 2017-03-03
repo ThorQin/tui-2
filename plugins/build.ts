@@ -4,7 +4,6 @@ import fs = require('fs');
 import path = require('path');
 import ps = require('child_process');
 
-
 const buildPluginName = process.argv.length > 2 ? process.argv[2] : null;
 
 var dir = fs.realpathSync(__dirname);
@@ -15,7 +14,7 @@ function compile(pluginName, pluginDir) {
 		cwd: pluginDir
 	};
 	return new Promise<any>((resovle, reject) => {
-		ps.exec("tsc *.ts --out ../../dist/plugins/" + pluginName + "/" + pluginName + ".js", options, (error: Error, stdout: string, stderr: string) => {
+		ps.exec("tsc *.ts --declaration --out ../../dist/plugins/" + pluginName + "/" + pluginName + ".js", options, (error: Error, stdout: string, stderr: string) => {
 			if (error) {
 				reject([error, stdout]);
 			} else {

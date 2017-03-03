@@ -377,9 +377,9 @@ module tui.widget {
 	}  // End of ConfigNode
 	
 	
-	var widgetRegistration: { [index: string]: { new (elem: HTMLElement, initParam?: { [index: string]: any }): any; } } = {};
+	var widgetRegistration: { [index: string]: { new (elem: HTMLElement, initParam?: { [index: string]: any }): Widget; } } = {};
 
-	export function register(constructor: { new (elem: HTMLElement, initParam?: { [index: string]: any }): any; }, nodeName: string) {
+	export function register(constructor: { new (elem: HTMLElement, initParam?: { [index: string]: any }): Widget; }, nodeName: string) {
 		if (typeof nodeName === "string")
 			widgetRegistration["tui:" + nodeName.toLowerCase()] = constructor;
 		else {

@@ -46,7 +46,7 @@ function compile(pluginName, pluginDir) {
         cwd: pluginDir
     };
     return new Promise(function (resovle, reject) {
-        ps.exec("tsc *.ts --out ../../dist/plugins/" + pluginName + "/" + pluginName + ".js", options, function (error, stdout, stderr) {
+        ps.exec("tsc *.ts --declaration --out ../../dist/plugins/" + pluginName + "/" + pluginName + ".js", options, function (error, stdout, stderr) {
             if (error) {
                 reject([error, stdout]);
             }

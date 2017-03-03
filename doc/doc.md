@@ -580,6 +580,29 @@ close | 选择对话框关闭
 accept | 接受的文件类型：text/plain 或者 image/* 等 MIME 类型
 
 
+## [](fa-file-image-o) 图片上传`(picture)`
+
+<tui:picture></tui:picture>
+
+由于本文没有后台代码，所以无法演示图片上传。
+
+HTML代码：
+
+```html
+<tui:picture></tui:picture>
+```
+
+不允许更改的图片，请添加 `disable={true}` 属性。
+
+属性：
+
+属性名 | 描述
+--- | ---
+action | 文件上传的地址
+accept | 接受的图片类型，如： image/png 或 image/jpg 或 image/* 等，不管 accept 如何设定，控件只允许上传 png,jpg,gif 类型的图片文件。
+value | 存储文件ID
+url | 图片展示的地址
+
 ## [](fa-calendar-o) 日期选择`(datePicker)`
 外观：
 <tui:date-picker placeholder="选择日期"></tui:date-picker>
@@ -1049,29 +1072,6 @@ HTML代码：
   ...
 ]}></tui:navigator>
 ```
-
-## [](fa-file-image-o) 图片上传`(picture)`
-
-<tui:picture></tui:picture>
-
-由于本文没有后台代码，所以无法演示图片上传。
-
-HTML代码：
-
-```html
-<tui:picture></tui:picture>
-```
-
-不允许更改的图片，请添加 `disable={true}` 属性。
-
-属性：
-
-属性名 | 描述
---- | ---
-action | 文件上传的地址
-accept | 接受的图片类型，如： image/png 或 image/jpg 或 image/* 等，不管 accept 如何设定，控件只允许上传 png,jpg,gif 类型的图片文件。
-value | 存储文件ID
-url | 图片展示的地址
 
 
 ## [](fa-map) 地理位置`(location)`

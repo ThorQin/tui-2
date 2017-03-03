@@ -5544,8 +5544,11 @@ var tui;
                 this._uploader.on("success", function (e) {
                     _this._set("value", e.data.response.fileId);
                     _this.set("text", e.data.response.fileName);
+                    _this.fire("success", e);
                 });
                 this._uploader.on("error", function (e) {
+                    if (_this.fire("error", e) === false)
+                        return;
                     tui.errbox(e.data.response.error, tui.str("Error"));
                 });
             };
@@ -5600,6 +5603,293 @@ var tui;
         File.PADDING = 6;
         widget.File = File;
         widget.register(File, "file");
+    })(widget = tui.widget || (tui.widget = {}));
+})(tui || (tui = {}));
+/// <reference path="base.ts" />
+var tui;
+(function (tui) {
+    var widget;
+    (function (widget) {
+        "use strict";
+        var ItemSize;
+        (function (ItemSize) {
+            ItemSize[ItemSize["NORMAL"] = 0] = "NORMAL";
+            ItemSize[ItemSize["BIG"] = 1] = "BIG";
+            ItemSize[ItemSize["BLOCK"] = 2] = "BLOCK";
+        })(ItemSize = widget.ItemSize || (widget.ItemSize = {}));
+        var FormControl = (function () {
+            function FormControl(form, define) {
+                this.form = form;
+                this.define = define;
+                this.div = document.createElement("div");
+                this.div.className = "tui-form-item-container";
+                if (define.size === ItemSize.BIG) {
+                    this.div.className += " tui-form-item-big-size";
+                }
+                else if (define.size === ItemSize.BLOCK) {
+                    this.div.className += " tui-form-item-full-size";
+                }
+                if (define.inline) {
+                    this.div.className += " tui-form-item-inline";
+                }
+                this.label = document.createElement("label");
+                this.label.className = "tui-form-item-label";
+                this.div.appendChild(this.label);
+                if (!define.label)
+                    this.label.style.display = "none";
+                else {
+                    this.label.innerHTML = tui.browser.toSafeText(define.label);
+                    if (define.important) {
+                        this.label.className = "tui-form-item-important";
+                    }
+                }
+            }
+            FormControl.prototype.isPresent = function () {
+                return this.div.parentElement === this.form._;
+            };
+            FormControl.prototype.gone = function () {
+                this.form._.removeChild(this.div);
+            };
+            FormControl.prototype.present = function () {
+                this.form._.appendChild(this.div);
+            };
+            FormControl.prototype.getKey = function () {
+                return this.define.key || null;
+            };
+            return FormControl;
+        }());
+        widget.FormControl = FormControl;
+        var _controls = {};
+        var Form = (function (_super) {
+            __extends(Form, _super);
+            function Form() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            Form.register = function (type, controlType) {
+                _controls[type] = controlType;
+            };
+            Form.prototype.removeAll = function () {
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    item.gone();
+                }
+                this._items = [];
+            };
+            Form.prototype.initRestriction = function () {
+                var _this = this;
+                _super.prototype.initRestriction.call(this);
+                this._items = [];
+                this.setRestrictions({
+                    "definition": {
+                        "set": function (value) {
+                            if (value instanceof Array) {
+                                _this.removeAll();
+                                for (var _i = 0, _a = value; _i < _a.length; _i++) {
+                                    var define = _a[_i];
+                                    var cstor = _controls[define.type];
+                                    if (cstor) {
+                                        _this._items.push(new cstor(_this, define));
+                                    }
+                                }
+                            }
+                            else if (value === null) {
+                                _this.removeAll();
+                            }
+                        },
+                        "get": function () {
+                            var result = [];
+                            for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
+                                var item = _a[_i];
+                                result.push(item.define);
+                            }
+                            return result;
+                        }
+                    },
+                    "value": {
+                        "set": function (value) {
+                            if (value === null) {
+                                for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
+                                    var item = _a[_i];
+                                    item.setValue(null);
+                                }
+                            }
+                            else if (typeof value === "object") {
+                                for (var _b = 0, _c = _this._items; _b < _c.length; _b++) {
+                                    var item = _c[_b];
+                                    var k = item.getKey();
+                                    if (k && value.hasOwnProperty(k)) {
+                                        item.setValue(value[k]);
+                                    }
+                                }
+                            }
+                        },
+                        "get": function () {
+                            var value = {};
+                            for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
+                                var item = _a[_i];
+                                var k = item.getKey();
+                                if (k) {
+                                    value[k] = item.getValue();
+                                }
+                            }
+                            return value;
+                        }
+                    }
+                });
+            };
+            Form.prototype.init = function () {
+                var title = this._components["title"] = document.createElement("h1");
+                title.className = "tui-form-title";
+                this._.appendChild(title);
+            };
+            Form.prototype.validate = function () {
+                var result = true;
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    if (!item.validate())
+                        result = false;
+                }
+                return result;
+            };
+            Form.prototype.render = function () {
+                var title = this._components["title"];
+                var titleText = this.get("title");
+                if (titleText) {
+                    title.innerHTML = tui.browser.toSafeText(titleText);
+                    title.style.display = "block";
+                }
+                else
+                    title.style.display = "none";
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    if (!item.isPresent())
+                        item.present();
+                    item.render();
+                }
+            };
+            return Form;
+        }(widget.Widget));
+        widget.Form = Form;
+        widget.register(Form, "form");
+        var BasicFormControl = (function (_super) {
+            __extends(BasicFormControl, _super);
+            /**
+             * Base class constructor of the simple form control.
+             * @param form Which form will contain this control.
+             * @param define Form item definition.
+             * @param type The name of what your tui control will be used.
+             * @param name The human friendly name of the form control.
+             */
+            function BasicFormControl(form, define, type, name) {
+                var _this = _super.call(this, form, define) || this;
+                _this._name = name;
+                _this._widget = widget.create(type);
+                _this._widget.appendTo(_this.div);
+                return _this;
+            }
+            BasicFormControl.prototype.getName = function () {
+                return this._name;
+            };
+            BasicFormControl.prototype.getValue = function () {
+                return this._widget.get("value");
+            };
+            BasicFormControl.prototype.setValue = function (value) {
+                this._widget.set("value", value);
+            };
+            BasicFormControl.prototype.render = function () {
+                if (this.define.validate instanceof Array) {
+                    this._widget._set("validate", this.define.validate);
+                    this._widget._set("autoValidate", true);
+                }
+                this._widget.render();
+            };
+            return BasicFormControl;
+        }(FormControl));
+        widget.BasicFormControl = BasicFormControl;
+        var FormTextbox = (function (_super) {
+            __extends(FormTextbox, _super);
+            function FormTextbox(form, define) {
+                return _super.call(this, form, define, "input", tui.str("textbox")) || this;
+            }
+            FormTextbox.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormTextbox.prototype.validate = function () {
+                return this._widget.validate();
+            };
+            return FormTextbox;
+        }(BasicFormControl));
+        Form.register("textbox", FormTextbox);
+        var FormTextarea = (function (_super) {
+            __extends(FormTextarea, _super);
+            function FormTextarea(form, define) {
+                return _super.call(this, form, define, "textarea", tui.str("textarea")) || this;
+            }
+            FormTextarea.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormTextarea.prototype.validate = function () {
+                return this._widget.validate();
+            };
+            return FormTextarea;
+        }(BasicFormControl));
+        Form.register("textarea", FormTextarea);
+        var FormDatePicker = (function (_super) {
+            __extends(FormDatePicker, _super);
+            function FormDatePicker(form, define) {
+                return _super.call(this, form, define, "date-picker", tui.str("datepicker")) || this;
+            }
+            FormDatePicker.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormDatePicker.prototype.validate = function () {
+                return this._widget.validate();
+            };
+            return FormDatePicker;
+        }(BasicFormControl));
+        Form.register("datepicker", FormDatePicker);
+        var FormFile = (function (_super) {
+            __extends(FormFile, _super);
+            function FormFile(form, define) {
+                return _super.call(this, form, define, "file", tui.str("file.upload")) || this;
+            }
+            FormFile.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormFile.prototype.validate = function () {
+                return this._widget.validate();
+            };
+            return FormFile;
+        }(BasicFormControl));
+        Form.register("file", FormFile);
+        var FormSelect = (function (_super) {
+            __extends(FormSelect, _super);
+            function FormSelect(form, define) {
+                return _super.call(this, form, define, "select", tui.str("file.upload")) || this;
+            }
+            FormSelect.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormSelect.prototype.validate = function () {
+                return this._widget.validate();
+            };
+            return FormSelect;
+        }(BasicFormControl));
+        Form.register("select", FormSelect);
+        var FormPicture = (function (_super) {
+            __extends(FormPicture, _super);
+            function FormPicture(form, define) {
+                return _super.call(this, form, define, "picture", tui.str("picture")) || this;
+            }
+            FormPicture.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormPicture.prototype.validate = function () {
+                return true;
+            };
+            return FormPicture;
+        }(BasicFormControl));
+        Form.register("picture", FormPicture);
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="base.ts" />
@@ -7984,6 +8274,129 @@ var tui;
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 /// <reference path="base.ts" />
+/// <reference path="../browser/upload.ts" />
+var tui;
+(function (tui) {
+    var widget;
+    (function (widget) {
+        "use strict";
+        var Picture = (function (_super) {
+            __extends(Picture, _super);
+            function Picture() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            Picture.prototype.initRestriction = function () {
+                var _this = this;
+                _super.prototype.initRestriction.call(this);
+                this._uploader = tui.browser.createUploader(this._);
+                this.setRestrictions({
+                    "action": {
+                        "set": function (value) {
+                            _this._uploader.getOptions().action = value;
+                        },
+                        "get": function () {
+                            return _this._uploader.getOptions().action;
+                        }
+                    },
+                    "accept": {
+                        "set": function (value) {
+                            _this._uploader.getOptions().accept = value;
+                            if (_this._uploader.getInput()) {
+                                _this._uploader.deleteInput();
+                                _this._uploader.createInput();
+                            }
+                        },
+                        "get": function () {
+                            return _this._uploader.getOptions().accept;
+                        }
+                    },
+                    "value": {
+                        "set": function (value) {
+                            _this._data["value"] = value;
+                            if (value === null || typeof value === tui.UNDEFINED) {
+                                _this._set("url", "");
+                            }
+                        }
+                    }
+                });
+            };
+            Picture.prototype.init = function () {
+                var _this = this;
+                var img = this._components["image"] = document.createElement("img");
+                this._.appendChild(img);
+                this._uploader.on("success", function (e) {
+                    _this._set("value", e.data.response.fileId);
+                    _this.set("url", e.data.response.url);
+                    _this.fire("success", e);
+                });
+                this._uploader.on("error", function (e) {
+                    if (_this.fire("error", e) === false)
+                        return;
+                    tui.errbox(e.data.response.error, tui.str("Error"));
+                });
+                this.setInit("accept", "image/png, image/jpeg, image/gif");
+                var $root = $(this._);
+                $root.on("dragenter", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    _this._uploader.deleteInput();
+                    $root.addClass("tui-drag-enter");
+                });
+                $root.on("dragleave", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!_this.get("disable")) {
+                        _this._uploader.createInput();
+                    }
+                    $root.removeClass("tui-drag-enter");
+                });
+                $root.on("dragover", function (e) {
+                    e.preventDefault();
+                });
+                $root.on("drop", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var dts = e.originalEvent.dataTransfer;
+                    if (dts && dts.files && dts.files.length > 0) {
+                        var fileName = dts.files[0].name;
+                        if (/\.(jpg|jpeg|png|gif)$/i.test(fileName))
+                            _this._uploader.uploadV5(fileName, dts.files[0]);
+                        else
+                            tui.errbox(tui.str("invalid.file.type"));
+                    }
+                    if (!_this.get("disable")) {
+                        _this._uploader.createInput();
+                    }
+                    $root.removeClass("tui-drag-enter");
+                });
+            };
+            Picture.prototype.render = function () {
+                var $root = $(this._);
+                if (this.get("disable")) {
+                    this._uploader.deleteInput();
+                    this._.setAttribute("tabIndex", "0");
+                }
+                else {
+                    this._uploader.createInput();
+                    this._.removeAttribute("tabIndex");
+                }
+                var url = this.get("url");
+                var img = this._components["image"];
+                if (url) {
+                    img.setAttribute("src", url);
+                    $root.removeClass("tui-picture-empty");
+                }
+                else {
+                    $root.addClass("tui-picture-empty");
+                }
+            };
+            return Picture;
+        }(widget.Widget));
+        widget.Picture = Picture;
+        widget.register(Picture, "picture");
+    })(widget = tui.widget || (tui.widget = {}));
+})(tui || (tui = {}));
+/// <reference path="base.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -8787,8 +9200,8 @@ var tui;
                 }
                 textbox.style.height = "";
                 this._lastTextHeight = textbox.scrollHeight;
-                if (this._lastTextHeight < 46)
-                    this._lastTextHeight = 46;
+                if (this._lastTextHeight < 66)
+                    this._lastTextHeight = 66;
                 textbox.style.height = this._lastTextHeight + 2 + "px";
                 this._.style.height = this._lastTextHeight + 4 + "px";
                 textbox.style.left = marginLeft + "px";

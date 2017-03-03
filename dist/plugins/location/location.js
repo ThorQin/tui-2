@@ -29,7 +29,6 @@ var tui;
                         initDef.func.call(initDef.context);
                     }
                 };
-                //e8f7d3075fc92aea2cb27947ce567763
                 Location.prototype.initRestriction = function () {
                     _super.prototype.initRestriction.call(this);
                     this._selectedAddress = null;
@@ -53,6 +52,14 @@ var tui;
                                 return input.get("validate");
                             }
                         },
+                        "autoValidate": {
+                            "set": function (value) {
+                                input.set("autoValidate", value);
+                            },
+                            "get": function () {
+                                return input.get("autoValidate");
+                            }
+                        },
                         "clearable": {
                             "set": function (value) {
                                 input.set("clearable", value);
@@ -67,6 +74,14 @@ var tui;
                             },
                             "get": function () {
                                 return input.get("placeholder");
+                            }
+                        },
+                        "text": {
+                            "set": function (value) {
+                                input.set("text", value);
+                            },
+                            "get": function () {
+                                return input.get("text");
                             }
                         }
                     });
@@ -184,6 +199,7 @@ var tui;
                         dlg.on("btnclick", function () {
                             if (_this._selectedAddress) {
                                 input.set("value", _this._selectedAddress);
+                                _this.fire("change", { value: _this._selectedAddress });
                                 dlg.close();
                             }
                             else {
@@ -209,6 +225,20 @@ var tui;
             }(widget.Widget));
             ext.Location = Location;
             widget.register(Location, "location");
+            var FormAddress = (function (_super) {
+                __extends(FormAddress, _super);
+                function FormAddress(form, define) {
+                    return _super.call(this, form, define, "location", tui.str("picture")) || this;
+                }
+                FormAddress.prototype.showProperty = function () {
+                    throw new Error('Method not implemented.');
+                };
+                FormAddress.prototype.validate = function () {
+                    return true;
+                };
+                return FormAddress;
+            }(widget.BasicFormControl));
+            widget.Form.register("address", FormAddress);
         })(ext = widget.ext || (widget.ext = {}));
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));

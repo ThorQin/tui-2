@@ -70,6 +70,14 @@ module tui.widget.ext {
 					"get": (): any => {
 						return input.get("placeholder");
 					}
+				},
+				"text": {
+					"set": (value: any) => {
+						input.set("text", value);
+					},
+					"get": (): any => {
+						return input.get("text");
+					}
 				}
 			});
 		}
@@ -196,6 +204,7 @@ module tui.widget.ext {
 				dlg.on("btnclick", () => {
 					if (this._selectedAddress) {
 						input.set("value", this._selectedAddress);
+						this.fire("change", {value: this._selectedAddress});
 						dlg.close();
 					} else {
 						tui.msgbox(tui.str("please.select.point"));
@@ -222,6 +231,19 @@ module tui.widget.ext {
 	}
 
 	register(Location, "location");
+
+	class FormAddress extends BasicFormControl<Location> {
+		constructor(form: Form, define: FormItem) {
+			super(form, define, "location", tui.str("picture"));
+		}
+		showProperty(): void {
+			throw new Error('Method not implemented.');
+		}
+		validate(): boolean {
+			return true;
+		}
+	}
+	Form.register("address", FormAddress);
 }
 
 function tui_widget_ext_Location_initApi() {

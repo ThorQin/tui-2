@@ -150,8 +150,8 @@ module tui.widget {
 			}
 			textbox.style.height = "";
 			this._lastTextHeight = textbox.scrollHeight;
-			if (this._lastTextHeight < 46)
-				this._lastTextHeight = 46;
+			if (this._lastTextHeight < 66)
+				this._lastTextHeight = 66;
 			textbox.style.height = this._lastTextHeight + 2 + "px";
 			this._.style.height = this._lastTextHeight + 4 + "px";
 			
