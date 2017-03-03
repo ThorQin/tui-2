@@ -1,8 +1,13 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 (function () {
     var lastTime = 0;
     var vendors = ['ms', 'moz', 'webkit', 'o'];
@@ -26,15 +31,12 @@ var __extends = (this && this.__extends) || function (d, b) {
             clearTimeout(id);
         };
 }());
-/// <reference path="jquery.d.ts" />
-/// <reference path="animation.ts" />
 var tui;
 (function (tui) {
     "use strict";
     tui.UNDEFINED = (function (undefined) {
         return typeof undefined;
     })();
-    // Used to decide which language should be used to display UI control
     tui.lang = (function () {
         return (navigator.language || navigator.browserLanguage || navigator.userLanguage).toLowerCase();
     })();
@@ -48,9 +50,6 @@ var tui;
         return Translator;
     }());
     var _dict = {};
-    /**
-     * Register a translation dictionary.
-     */
     function dict(lang, dictionary, replace) {
         if (replace === void 0) { replace = false; }
         if (!lang)
@@ -74,11 +73,6 @@ var tui;
         }
     }
     tui.dict = dict;
-    /**
-     * Multi-language support, translate source text to specified language(default use tui.lang setting)
-     * @param str {string} source text
-     * @param lang {string} if specified then use this parameter as objective language otherwise use tui.lang as objective language
-     */
     function str(str, lang) {
         if (!lang) {
             if (!tui.lang)
@@ -107,19 +101,10 @@ var tui;
             return ('tuid-' + id++);
         };
     })();
-    /**
-     * Base object, all other control extended from this base class.
-     */
     var EventObject = (function () {
         function EventObject() {
             this._events = {};
         }
-        /**
-         * Register event handler.
-         * @param {string} eventName
-         * @param {EventHandler} handler Which handler to be registered
-         * @param {boolean} atFirst If true then handler will be triggered firstly
-         */
         EventObject.prototype.bind = function (eventName, handler, atFirst) {
             if (!eventName)
                 return this;
@@ -137,11 +122,6 @@ var tui;
                 handlers.push(handler);
             return this;
         };
-        /**
-         * Unregister event handler.
-         * @param eventName
-         * @param handler Which handler to be unregistered if don't specified then unregister all handler
-         */
         EventObject.prototype.unbind = function (eventName, handler) {
             if (!eventName)
                 return this;
@@ -159,12 +139,6 @@ var tui;
             }
             return this;
         };
-        /**
-         * Register event handler.
-         * @param {string} eventName
-         * @param {callback} callback Which handler to be registered
-         * @param {boolean} atFirst If true then handler will be triggered firstly
-         */
         EventObject.prototype.on = function (eventName, callback, atFirst) {
             if (atFirst === void 0) { atFirst = false; }
             var envs = eventName.split(/\s+/);
@@ -174,22 +148,11 @@ var tui;
             }
             return this;
         };
-        /**
-         * Register event handler.
-         * @param eventName
-         * @param callback Which handler to be registered but event only can be trigered once
-         * @param atFirst If true then handler will be triggered firstly
-         */
         EventObject.prototype.once = function (eventName, callback, atFirst) {
             if (atFirst === void 0) { atFirst = false; }
             callback.isOnce = true;
             return this.on(eventName, callback, atFirst);
         };
-        /**
-         * Unregister event handler.
-         * @param eventName
-         * @param callback Which handler to be unregistered if don't specified then unregister all handler
-         */
         EventObject.prototype.off = function (eventName, callback) {
             var envs = eventName.split(/\s+/);
             for (var i = 0; i < envs.length; i++) {
@@ -203,12 +166,6 @@ var tui;
                 this.off(key);
             }
         };
-        /**
-         * Fire event. If some handler process return false then cancel the event channe and return false either
-         * @param {string} eventName
-         * @param {any[]} param
-         * @return {boolean} If any handler return false then stop other processing and return false either, otherwise return true
-         */
         EventObject.prototype.fire = function (eventName, data) {
             var handlers = this._events[eventName];
             if (!(handlers instanceof Array)) {
@@ -273,9 +230,6 @@ var tui;
             return newObj;
         }
     }
-    /**
-     * Deeply copy an object to an other object, but only contain properties without methods
-     */
     function clone(obj, excludeProperties) {
         if (typeof excludeProperties === "string" && $.trim(excludeProperties).length > 0) {
             return cloneInternal(obj, [excludeProperties]);
@@ -287,12 +241,8 @@ var tui;
             return JSON.parse(JSON.stringify(obj));
     }
     tui.clone = clone;
-    /**
-     * Get IE version
-     * @return {Number}
-     */
     tui.ieVer = (function () {
-        var rv = -1; // Return value assumes failure.
+        var rv = -1;
         if (navigator.appName === "Microsoft Internet Explorer" ||
             navigator.appName === "Netscape") {
             var ua = navigator.userAgent;
@@ -310,12 +260,8 @@ var tui;
         }
         return rv;
     })();
-    /**
-     * Get Firefox version
-     * @return {Number}
-     */
     tui.ffVer = (function () {
-        var rv = -1; // Return value assumes failure.
+        var rv = -1;
         if (navigator.appName === "Netscape") {
             var ua = navigator.userAgent;
             var re = new RegExp("Firefox/([0-9]{1,}[\.0-9]{0,})");
@@ -325,15 +271,35 @@ var tui;
         return rv;
     })();
 })(tui || (tui = {}));
-/// <reference path="../core.ts" />
+tui.dict("en-us", {
+    "success": "Success",
+    "warning": "Warning",
+    "confirm": "Confirm",
+    "note": "Note",
+    "notmodified": "Request's content has not been modified!",
+    "error": "Error",
+    "timeout": "Request timeout!",
+    "abort": "Operating has been aborted!",
+    "parsererror": "Server response invalid content!",
+    "ok": "OK",
+    "close": "Close",
+    "cancel": "Cancel",
+    "accept": "Accept",
+    "agree": "Agree",
+    "reject": "Reject",
+    "yes": "Yes",
+    "no": "No",
+    "select": "Select",
+    "please.select.point": "Please select a point of the map.",
+    "address": "Address",
+    "invalid.file.type": "Invalid file type!",
+    "geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service."
+});
 var tui;
 (function (tui) {
     var text;
     (function (text) {
         "use strict";
-        /**
-         * Convert anything to boolean
-         */
         function parseBoolean(value) {
             if (typeof value === tui.UNDEFINED)
                 return false;
@@ -350,9 +316,6 @@ var tui;
             }
         }
         text.parseBoolean = parseBoolean;
-        /**
-         * Format a string use a set of parameters
-         */
         function format(token) {
             var params = [];
             for (var _i = 1; _i < arguments.length; _i++) {
@@ -365,9 +328,6 @@ var tui;
             return token ? token : "";
         }
         text.format = format;
-        /**
-         * Convert 'aaaBbbCcc' to 'aaa-bbb-ccc'
-         */
         function toDashSplit(word) {
             var buffer = '';
             for (var i = 0; i < word.length; i++) {
@@ -384,9 +344,6 @@ var tui;
             return buffer;
         }
         text.toDashSplit = toDashSplit;
-        /**
-         * Convert 'aaa-bbb-ccc' or 'aaa_bbb_ccc' to 'aaaBbbCcc'
-         */
         function toCamel(word, strict) {
             if (strict === void 0) { strict = false; }
             var buffer = '';
@@ -406,9 +363,6 @@ var tui;
             return buffer;
         }
         text.toCamel = toCamel;
-        /**
-         * Format a number that padding it with '0'
-         */
         function paddingNumber(v, min, max, alignLeft) {
             if (alignLeft === void 0) { alignLeft = false; }
             var result = Math.abs(v) + "";
@@ -426,21 +380,12 @@ var tui;
             return result;
         }
         text.paddingNumber = paddingNumber;
-        /**
-         * Get the parameter of the URL query string.
-         * @param {String} url
-         * @param {String} key Parameter name
-         */
         function getUrlParam(url, key) {
             key = key.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
             var regex = new RegExp("[\\?&]" + key + "=([^&#]*)"), results = regex.exec(url);
             return results === null ? null : decodeURIComponent(results[1].replace(/\+/g, " "));
         }
         text.getUrlParam = getUrlParam;
-        /**
-         * Get the anchor of the URL query string.
-         * @param {String} url
-         */
         function getUrlAnchor(url) {
             var anchor = url.match("(#.+)(?:\\?.*)?");
             if (anchor)
@@ -497,7 +442,6 @@ var tui;
         text.joinUrl = joinUrl;
     })(text = tui.text || (tui.text = {}));
 })(tui || (tui = {}));
-/// <reference path="../core.ts" />
 var tui;
 (function (tui) {
     var browser;
@@ -612,11 +556,6 @@ var tui;
             });
         }
         browser.toSafeText = toSafeText;
-        /**
-         * Get or set a HTMLElement's text content, return Element's text content.
-         * @param elem {HTMLElement or ID of the element} Objective element
-         * @param text {string or boolean}
-         */
         function nodeText(elem, text) {
             if (typeof elem === "string")
                 elem = document.getElementById(elem);
@@ -690,16 +629,10 @@ var tui;
             };
         }
         browser.getRectOfScreen = getRectOfScreen;
-        /**
-         * Get top window's body element
-         */
         function getTopBody() {
             return top.document.body || top.document.getElementsByTagName("BODY")[0];
         }
         browser.getTopBody = getTopBody;
-        /**
-         * Get element's owner window
-         */
         function getWindow(elem) {
             return elem.ownerDocument.defaultView || elem.ownerDocument.parentWindow;
         }
@@ -781,9 +714,6 @@ var tui;
                 return elem.style;
         }
         browser.getCurrentStyle = getCurrentStyle;
-        /**
-         * Test whether the button code is indecated that the event is triggered by a left mouse button.
-         */
         function isLButton(e) {
             var button = (typeof e.which !== "undefined") ? e.which : e.button;
             if (button == 1) {
@@ -793,9 +723,6 @@ var tui;
                 return false;
         }
         browser.isLButton = isLButton;
-        /**
-         * Prevent user press backspace key to go back to previous page
-         */
         function banBackspace() {
             function ban(e) {
                 var ev = e || window.event;
@@ -832,11 +759,6 @@ var tui;
             return false;
         }
         browser.cancelBubble = cancelBubble;
-        /**
-         * Detect whether the given parent element is the real ancestry element
-         * @param elem
-         * @param parent
-         */
         function isAncestry(elem, parent) {
             while (elem) {
                 if (elem === parent)
@@ -847,11 +769,6 @@ var tui;
             return false;
         }
         browser.isAncestry = isAncestry;
-        /**
-         * Detect whether the given child element is the real posterity element
-         * @param elem
-         * @param child
-         */
         function isPosterity(elem, child) {
             return isAncestry(child, elem);
         }
@@ -861,10 +778,6 @@ var tui;
             return isPosterity(elem, target);
         }
         browser.isFireInside = isFireInside;
-        /**
-         * Detect whether the element is inside the document
-         * @param {type} elem
-         */
         function isInDoc(elem) {
             var obj = elem;
             while (obj) {
@@ -875,23 +788,10 @@ var tui;
             return false;
         }
         browser.isInDoc = isInDoc;
-        /**
-         * Set cookie value
-         * @param name
-         * @param value
-         * @param expires valid days
-         */
         function saveCookie(name, value, expires, path, domain, secure) {
             if (secure === void 0) { secure = false; }
-            // set time, it's in milliseconds
             var today = new Date();
             today.setTime(today.getTime());
-            /*
-            if the expires variable is set, make the correct
-            expires time, the current script below will set
-            it for x number of days, to make it for hours,
-            delete * 24, for minutes, delete * 60 * 24
-            */
             if (expires) {
                 expires = expires * 1000 * 60 * 60 * 24;
             }
@@ -903,10 +803,6 @@ var tui;
                 ((secure) ? ";secure" : "");
         }
         browser.saveCookie = saveCookie;
-        /**
-         * Get cookie value
-         * @param name
-         */
         function loadCookie(name) {
             var arr = document.cookie.match(new RegExp("(^| )" + name + "=([^;]*)(;|$)"));
             if (arr !== null)
@@ -915,10 +811,6 @@ var tui;
                 return null;
         }
         browser.loadCookie = loadCookie;
-        /**
-         * Delete cookie
-         * @param name
-         */
         function deleteCookie(name, path, domain) {
             if (loadCookie(name))
                 document.cookie = name + "=" +
@@ -927,12 +819,6 @@ var tui;
                     ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
         }
         browser.deleteCookie = deleteCookie;
-        /**
-         * Save key value into local storage, if local storage doesn't usable then use local cookie instead.
-         * @param {String} key
-         * @param {String} value
-         * @param {Boolean} sessionOnly If true data only be keeped in this session
-         */
         function saveData(key, value, sessionOnly) {
             if (sessionOnly === void 0) { sessionOnly = false; }
             try {
@@ -947,11 +833,6 @@ var tui;
             }
         }
         browser.saveData = saveData;
-        /**
-         * Load value from local storage, if local storage doesn't usable then use local cookie instead.
-         * @param {String} key
-         * @param {Boolean} sessionOnly If true data only be keeped in this session
-         */
         function loadData(key, sessionOnly) {
             if (sessionOnly === void 0) { sessionOnly = false; }
             try {
@@ -966,11 +847,6 @@ var tui;
             }
         }
         browser.loadData = loadData;
-        /**
-         * Remove value from local storage, if local storage doesn't usable then use local cookie instead.
-         * @param key
-         * @param {Boolean} sessionOnly If true data only be keeped in this session
-         */
         function deleteData(key, sessionOnly) {
             if (sessionOnly === void 0) { sessionOnly = false; }
             try {
@@ -1192,8 +1068,6 @@ var tui;
         })(KeyCode = browser.KeyCode || (browser.KeyCode = {}));
     })(browser = tui.browser || (tui.browser = {}));
 })(tui || (tui = {}));
-/// <reference path="../core.ts" />
-/// <reference path="../ajax/ajax.ts" />
 var tui;
 (function (tui) {
     var service;
@@ -1310,7 +1184,6 @@ var tui;
         service_1.onReady = onReady;
     })(service = tui.service || (tui.service = {}));
 })(tui || (tui = {}));
-/// <reference path="../core.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -1340,10 +1213,6 @@ var tui;
             return positions;
         }
         widget.getEventPosition = getEventPosition;
-        /**
-         * Show a mask layer to prevent user drag or select document elements which don't want to be affected.
-         * It's very useful when user perform a dragging operation.
-         */
         function openDragMask(onMove, onClose) {
             if (onClose === void 0) { onClose = null; }
             if (_maskOpened)
@@ -1355,7 +1224,6 @@ var tui;
             _mask.removeAttribute("tooltip");
             _mask.removeAttribute("fixed-tooltip");
             document.body.appendChild(_mask);
-            // _dragMoveFunc = onMove;
             function closeDragMask(e) {
                 _maskOpened = false;
                 if (_mask.setCapture)
@@ -1385,13 +1253,6 @@ var tui;
         widget.openDragMask = openDragMask;
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="../core.ts" />
-/// <reference path="../text/text.ts" />
-/// <reference path="../browser/browser.ts" />
-/// <reference path="../browser/keyboard.ts" />
-/// <reference path="../ajax/ajax.ts" />
-/// <reference path="../service/service.ts" />
-/// <reference path="mask.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -1421,7 +1282,6 @@ var tui;
                 _this._rs = {};
                 return _this;
             }
-            //restrict
             WidgetBase.prototype.setRestriction = function (key, propCtrl) {
                 if (propCtrl === null)
                     delete this._rs[key];
@@ -1546,7 +1406,7 @@ var tui;
                 return this;
             };
             return WidgetBase;
-        }(tui.EventObject)); // End of class WidgetBase
+        }(tui.EventObject));
         widget_1.WidgetBase = WidgetBase;
         var namedWidgets = {};
         var Widget = (function (_super) {
@@ -1556,15 +1416,11 @@ var tui;
                 _this._lastWidth = null;
                 _this._lastHeight = null;
                 _this._components = {};
-                // if (getFullName(root) !== "tui:" + this.getNodeName()) {
-                // 	throw new TypeError("Node type unmatched!");
-                // }
                 _this._components[''] = root;
                 _this._ = root;
                 root.__widget__ = _this;
-                _this.initRestriction(); // install restrictor
-                _this.load(); // load initial properties
-                // Obtain all child nodes
+                _this.initRestriction();
+                _this.load();
                 var childNodes = [];
                 for (var i = 0; i < root.childNodes.length; i++) {
                     var node = root.childNodes[i];
@@ -1579,7 +1435,6 @@ var tui;
                     _this._set(initParam);
                 }
                 _this.init();
-                // Any widget which has ID property will be registered in namedWidgets
                 var id = _this.get("id");
                 if (typeof id === "string" && id.length > 0)
                     namedWidgets[id] = _this;
@@ -1602,7 +1457,6 @@ var tui;
                 tui.browser.removeNode(this._);
             };
             Widget.prototype.initChildren = function (childNodes) {
-                // Default do nothing ...
             };
             Widget.prototype.initRestriction = function () {
                 var _this = this;
@@ -1720,18 +1574,12 @@ var tui;
                     return this._components[''];
                 }
             };
-            // getNodeName(): string {
-            // 	return text.toDashSplit(getClassName(this.constructor));
-            // }
             Widget.prototype.focus = function () {
                 this._.focus();
             };
             return Widget;
-        }(WidgetBase)); // End of class Widget
+        }(WidgetBase));
         widget_1.Widget = Widget;
-        /**
-         * Any config element can extends from this class.
-         */
         var Item = (function (_super) {
             __extends(Item, _super);
             function Item(root) {
@@ -1750,7 +1598,7 @@ var tui;
             };
             Item.prototype.render = function () { };
             return Item;
-        }(WidgetBase)); // End of ConfigNode
+        }(WidgetBase));
         widget_1.Item = Item;
         var widgetRegistration = {};
         function register(constructor, nodeName) {
@@ -1838,7 +1686,6 @@ var tui;
                 var item = initSet_1[_i];
                 var elem = item[0];
                 var constructor = item[1];
-                // try {
                 if (!elem.__widget__) {
                     var widget_2 = new constructor(elem);
                     if (typeof initFunc === "function") {
@@ -1890,7 +1737,6 @@ var tui;
             return result;
         }
         widget_1.search = search;
-        // Detecting which widgets was resied.
         var resizeRegistration = [];
         function registerResize(nodeName) {
             resizeRegistration.push("tui:" + nodeName);
@@ -1939,7 +1785,6 @@ var tui;
     tui.create = tui.widget.create;
     tui.search = tui.widget.search;
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -1984,12 +1829,6 @@ var tui;
         function disableSelect() {
             return false;
         }
-        /**
-         * <dialog>
-         * Attributes: content(element or html), opened(boolean), title, buttons(button array), esc(boolean)
-         * Method: open(buttonDef: string = null), close()
-         * Events: open, close, click-<button name>
-         */
         var Dialog = (function (_super) {
             __extends(Dialog, _super);
             function Dialog() {
@@ -2029,7 +1868,7 @@ var tui;
                     contentDiv.innerHTML = content;
                 }
                 this.setInit("esc", true);
-                widget.init(contentDiv); // Convert all child elements into tui controls
+                widget.init(contentDiv);
                 closeIcon.onclick = function () {
                     _this.close();
                 };
@@ -2150,7 +1989,6 @@ var tui;
                 var buttonBar = this._components["buttonBar"];
                 var contentDiv = this._components["content"];
                 var closeIcon = this._components["closeIcon"];
-                // Adjust title bar
                 if (this.get("title") === null && !this.get("esc")) {
                     titleBar.style.display = "none";
                 }
@@ -2168,18 +2006,15 @@ var tui;
                         titleText.style.width = titleText.offsetWidth + "px";
                     }
                 }
-                // Change position
                 var winSize = { width: _mask.offsetWidth, height: _mask.offsetHeight };
                 var root = this._;
                 var root$ = $(root);
-                // Limit content size
                 contentDiv.style.maxHeight = "";
                 root$.css({
                     "maxWidth": winSize.width + "px",
                     "maxHeight": winSize.height + "px"
                 });
                 $(contentDiv).css({
-                    //"maxWidth": winSize.width - $(contentDiv).outerWidth() + $(contentDiv).width() + "px",
                     "maxWidth": winSize.width - 80 + "px",
                     "maxHeight": winSize.height - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px"
                 });
@@ -2226,7 +2061,7 @@ var tui;
                 this._contentSize = { width: contentDiv.scrollWidth, height: contentDiv.scrollHeight };
             };
             return Dialog;
-        }(widget.Widget)); // End of Dialog class
+        }(widget.Widget));
         widget.Dialog = Dialog;
         widget.register(Dialog, "dialog");
         $(document).on("keydown", function (e) {
@@ -2255,9 +2090,6 @@ var tui;
 (function (tui) {
     "use strict";
     function makeContent(message) {
-        // return text.format( 
-        // 	"<table align='center' class='tui-msg-container'><tr><td class='{1}'><span></span></td><td>{0}</td></tr></table>", 
-        // 	message, className);
         if (message) {
             return tui.text.format("<div class='tui-msg-container'><span></span><div>{0}</div></div>", message);
         }
@@ -2386,13 +2218,10 @@ var tui;
     tui.waitbox = waitbox;
     function progressbox(message, cancelProc) {
         if (cancelProc === void 0) { cancelProc = null; }
-        // TODO: NOT FINISHED
         return null;
     }
     tui.progressbox = progressbox;
 })(tui || (tui = {}));
-/// <reference path="../core.ts" />
-/// <reference path="../widget/dialog.ts" />
 var tui;
 (function (tui) {
     var ajax;
@@ -2492,11 +2321,9 @@ var tui;
         var TAG = /<(\/?[a-z0-9_\-:]+)(\s+[a-z0-9_\-]+(\s*=('[^']*'|"[^"]*"|[^\s>]+)))*\/?>/img;
         var SCRIPT_END = /<\/\s*script(\s+[a-z0-9_\-]+(\s*=('[^']*'|"[^"]*"|[^\s>]+)))*>/img;
         function getHtmlBody(result) {
-            // To compatible IE 8~9 I must parse html by myself!
             if (result == null || result.length == 0)
                 return document.createElement("body");
             TAG.lastIndex = 0;
-            // let len = result.length;
             var m;
             var bodyStart = null;
             var bodyEnd = null;
@@ -2580,13 +2407,11 @@ var tui;
         ajax.getFunction = getFunction;
         window.$ajax = send;
         window.$post = post;
-        window.$post_ = post_; // silent mode
+        window.$post_ = post_;
         window.$get = get;
-        window.$get_ = get_; // silent mode
+        window.$get_ = get_;
     })(ajax = tui.ajax || (tui.ajax = {}));
 })(tui || (tui = {}));
-/// <reference path="../core.ts" />
-/// <reference path="browser.ts" />
 var tui;
 (function (tui) {
     var browser;
@@ -2645,8 +2470,6 @@ var tui;
         browser.stopRouter = stopRouter;
     })(browser = tui.browser || (tui.browser = {}));
 })(tui || (tui = {}));
-/// <reference path="../core.ts" />
-/// <reference path="browser.ts" />
 var tui;
 (function (tui) {
     var browser;
@@ -2678,12 +2501,9 @@ var tui;
                     throw new Error("Please make sure that you're passing a valid element");
                 }
                 if (container.nodeName.toLowerCase() === 'a') {
-                    // disable link
                     $(container).on('click', function (e) { e.preventDefault(); });
                 }
-                // DOM element
                 _this._container = container;
-                // DOM element                 
                 _this._input = null;
                 return _this;
             }
@@ -2721,7 +2541,6 @@ var tui;
                 form.setAttribute('target', iframe.name);
                 form.style.display = 'none';
                 document.body.appendChild(form);
-                // Create hidden input element for each data key
                 return form;
             };
             Uploader.prototype.createInput = function () {
@@ -2758,15 +2577,12 @@ var tui;
                     if (!input || input.value === '') {
                         return;
                     }
-                    // Get filename from input, required                
-                    // as some browsers have path instead of it
                     var file = fileFromPath(input.value);
                     var fileExt = getExt(file);
                     if (_this.fire("change", { e: e, "file": file, "ext": fileExt }) === false) {
                         _this.clearInput();
                         return;
                     }
-                    // Submit form when value is changed
                     if (_this._settings.autoSubmit) {
                         _this.submit();
                     }
@@ -2799,25 +2615,14 @@ var tui;
                 this.deleteInput();
                 this.createInput();
             };
-            /**
-            * Gets response from iframe and fires onComplete event when ready
-            * @param iframe
-            * @param file Filename to use in onComplete callback
-            */
             Uploader.prototype.processResponse = function (iframe, file) {
                 var _this = this;
-                // getting response
                 var waitbox = tui.waitbox(tui.str("Uploading..."));
                 var toDeleteFlag = false, settings = this._settings;
                 $(iframe).on('load', function () {
                     if (iframe.src === "javascript:'%3Chtml%3E%3C/html%3E';" ||
-                        // For FF, IE
                         iframe.src === "javascript:'<html></html>';") {
-                        // First time around, do not delete.
-                        // We reload to blank page, so that reloading main page
-                        // does not re-submit the post.
                         if (toDeleteFlag) {
-                            // Fix busy state in FF3
                             setTimeout(function () {
                                 browser.removeNode(iframe);
                             }, 0);
@@ -2825,12 +2630,10 @@ var tui;
                         return;
                     }
                     var doc = iframe.contentDocument ? iframe.contentDocument : window.frames[iframe.id].document;
-                    // fixing Opera 9.26,10.00
                     if (doc.readyState && doc.readyState !== 'complete') {
                         waitbox.close();
                         return;
                     }
-                    // fixing Opera 9.64
                     if (doc.body && doc.body.innerHTML === "false") {
                         waitbox.close();
                         return;
@@ -2838,7 +2641,6 @@ var tui;
                     waitbox.close();
                     var response;
                     if (doc.body) {
-                        // response is html document or plain text
                         response = doc.body.innerHTML;
                         try {
                             if (doc.body.firstChild && doc.body.firstChild.nodeName.toUpperCase() === 'PRE') {
@@ -2869,11 +2671,7 @@ var tui;
                     else {
                         _this.fireError();
                     }
-                    // Reload blank page, so that reloading main page
-                    // does not re-submit the post. Also, remember to
-                    // delete the frame
                     toDeleteFlag = true;
-                    // Fix IE mixed content issue
                     iframe.src = "javascript:'<html></html>';";
                     browser.removeNode(iframe);
                 });
@@ -2944,11 +2742,8 @@ var tui;
                 this.clearInput();
             };
             Uploader.prototype.submitV4 = function (file, extraData) {
-                // sending request    
                 var iframe = this.createIframe();
                 var form = this.createForm(iframe);
-                // assuming following structure
-                // div -> input type='file'
                 form.appendChild(this._input);
                 if (extraData) {
                     for (var prop in extraData) {
@@ -2963,7 +2758,6 @@ var tui;
                 }
                 this.processResponse(iframe, file);
                 form.submit();
-                // request set, clean up
                 browser.removeNode(form);
                 form = null;
                 this.clearInput();
@@ -2973,7 +2767,6 @@ var tui;
                     return;
                 }
                 var file = fileFromPath(this._input.value);
-                // user returned false to cancel upload
                 if (this.fire("submit", { "file": file, "ext": getExt(file) }) === false) {
                     this.clearInput();
                     this.fire("blur");
@@ -2995,7 +2788,6 @@ var tui;
         browser.createUploader = createUploader;
     })(browser = tui.browser || (tui.browser = {}));
 })(tui || (tui = {}));
-/// <reference path="../core.ts" />
 var tui;
 (function (tui) {
     var ds;
@@ -3208,7 +3000,7 @@ var tui;
                 });
             };
             return RemoteList;
-        }(DSBase)); // End of RemoteListSource
+        }(DSBase));
         ds.RemoteList = RemoteList;
         var TreeBase = (function (_super) {
             __extends(TreeBase, _super);
@@ -3337,7 +3129,6 @@ var tui;
                 return _this;
             }
             Tree.prototype.update = function (data) {
-                // var config = this._config;
                 this._index = [];
                 this._rawData = data;
                 this.expandItems(null, data, this._index, 0);
@@ -3455,33 +3246,6 @@ var tui;
         ds.RemoteTree = RemoteTree;
     })(ds = tui.ds || (tui.ds = {}));
 })(tui || (tui = {}));
-/// <reference path="core.ts" />
-tui.dict("en-us", {
-    "success": "Success",
-    "warning": "Warning",
-    "confirm": "Confirm",
-    "note": "Note",
-    "notmodified": "Request's content has not been modified!",
-    "error": "Error",
-    "timeout": "Request timeout!",
-    "abort": "Operating has been aborted!",
-    "parsererror": "Server response invalid content!",
-    "ok": "OK",
-    "close": "Close",
-    "cancel": "Cancel",
-    "accept": "Accept",
-    "agree": "Agree",
-    "reject": "Reject",
-    "yes": "Yes",
-    "no": "No",
-    "select": "Select",
-    "please.select.point": "Please select a point of the map.",
-    "address": "Address",
-    "invalid.file.type": "Invalid file type!",
-    "geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service."
-});
-/// <reference path="../core.ts" />
-/// <reference path="../text/text.ts" />
 var tui;
 (function (tui) {
     var time;
@@ -3490,18 +3254,10 @@ var tui;
         time.weeks = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         time.shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         time.months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        /**
-         * Get today
-         */
         function now() {
             return new Date();
         }
         time.now = now;
-        /**
-         * Input seconds and get a time description
-         * @param seconds Tims distance of seconds
-         * @param lang Display language
-         */
         function timespan(seconds, lang) {
             var desc = ["day", "hour", "minute", "second"];
             var val = [];
@@ -3541,12 +3297,6 @@ var tui;
             return beg + (beg.length ? " " : "") + end;
         }
         time.timespan = timespan;
-        /**
-         * Get the distance of dt2 compare to dt1 (dt2 - dt1) return in specified unit (d: day, h: hours, m: minutes, s: seconds, ms: milliseconds)
-         * @param dt1
-         * @param dt2
-         * @param unit "d", "h", "m", "s" or "ms"
-         */
         function dateDiff(dt1, dt2, unit) {
             if (unit === void 0) { unit = "d"; }
             var d1 = dt1.getTime();
@@ -3574,12 +3324,6 @@ var tui;
                 return NaN;
         }
         time.dateDiff = dateDiff;
-        /**
-         * Get new date of dt add specified unit of values.
-         * @param dt The day of the target
-         * @param val Increased value
-         * @param unit "y", "M", "d", "h", "m", "s" or "ms"
-         */
         function dateAdd(dt, val, unit) {
             if (unit === void 0) { unit = "d"; }
             var tm = dt.getTime();
@@ -3624,20 +3368,12 @@ var tui;
                 return null;
         }
         time.dateAdd = dateAdd;
-        /**
-         * Get day in year
-         * @param dt The day of the target
-         */
         function dayOfYear(dt) {
             var y = dt.getFullYear();
             var d1 = new Date(y, 0, 1);
             return dateDiff(d1, dt, "d");
         }
         time.dayOfYear = dayOfYear;
-        /**
-         * Get total days of month
-         * @param dt The day of the target
-         */
         function totalDaysOfMonth(dt) {
             var y = dt.getFullYear();
             var m = dt.getMonth();
@@ -3743,7 +3479,6 @@ var tui;
                     }
                 },
                 "a|A": function matchNumber(v) {
-                    // var len = v.length;
                     var m = dtStr.match(/^(am|pm)/i);
                     if (m === null)
                         return false;
@@ -3880,16 +3615,6 @@ var tui;
             }
             return now;
         }
-        /**
-         * Parse string get date instance (
-         * try to parse format:
-         *		yyyy-MM-dd HH:mm:ss，
-         *		yyyy-MM-dd,
-         *		dd MMM yyyy,
-         *		MMM dd, yyyy,
-         *		ISO8601 format)
-         * @param {String} dtStr Data string
-         */
         function parseDate(dtStr, format) {
             if (typeof format === "string")
                 return parseDateInternal(dtStr, format);
@@ -3919,11 +3644,6 @@ var tui;
             return null;
         }
         time.parseDate = parseDate;
-        /**
-         * Convert date to string and output can be formated to ISO8601, RFC2822, RFC3339 or other customized format
-         * @param dt {Date} Date object to be convert
-         * @param dateFmt {String} which format should be apply, default use ISO8601 standard format
-         */
         function formatDate(dt, dateFmt) {
             if (dateFmt === void 0) { dateFmt = "yyyy-MM-ddTHH:mm:sszzz"; }
             var isUTC = (dateFmt.indexOf("Z") >= 0 ? true : false);
@@ -4034,17 +3754,11 @@ var tui;
         time.formatDate = formatDate;
     })(time = tui.time || (tui.time = {}));
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
 var tui;
 (function (tui) {
     var widget;
     (function (widget) {
         "use strict";
-        /**
-         * <button>
-         * Attributes: value, text, type, checked, group, disable
-         * Events: click, mousedown, mouseup, keydown, keyup
-         */
         var Button = (function (_super) {
             __extends(Button, _super);
             function Button() {
@@ -4229,8 +3943,6 @@ var tui;
         widget.register(Radio, "radio");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
-/// <reference path="../time/time.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -4352,7 +4064,6 @@ var tui;
                     "<tr class='tui-yearbar'><td class='tui-pm'></td><td class='tui-py'>" +
                     "</td><td colspan='3' class='tui-ym'></td>" +
                     "<td class='tui-ny'></td><td class='tui-nm'></td></tr></table>");
-                // var yearLine = tb.rows[0];
                 for (var i = 0; i < 7; i++) {
                     var line = tb.insertRow(-1);
                     for (var j = 0; j < 7; j++) {
@@ -4664,17 +4375,11 @@ var tui;
         widget.register(Calendar, "calendar");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="button.ts" />
 var tui;
 (function (tui) {
     var widget;
     (function (widget) {
         "use strict";
-        /**
-         * <group>
-         * Attributes: name, type(check,radio,toggle)
-         * Events:
-         */
         var Group = (function (_super) {
             __extends(Group, _super);
             function Group() {
@@ -4815,10 +4520,6 @@ var tui;
         widget.register(ButtonGroup, "button-group");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
-/// <reference path="group.ts" />
-/// <reference path="../ajax/ajax.ts" />
-/// <reference path="../service/service.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -5023,7 +4724,6 @@ var tui;
         widget_5.register(Component, "component");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -5186,8 +4886,6 @@ var tui;
         widget.InputBase = InputBase;
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="inputBase.ts" />
-/// <reference path="../browser/keyboard.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -5342,18 +5040,11 @@ var tui;
         widget.SelectPopupBase = SelectPopupBase;
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="selectBase.ts" />
 var tui;
 (function (tui) {
     var widget;
     (function (widget) {
         "use strict";
-        /**
-         * <tui:date-picker>
-         * Attributes: value, text(value to string), format, timeBar
-         * Method: openSelect
-         * Events: change
-         */
         var DatePicker = (function (_super) {
             __extends(DatePicker, _super);
             function DatePicker() {
@@ -5428,7 +5119,6 @@ var tui;
                 var _this = this;
                 var calendar = widget.get(this._components["calendar"]);
                 var popup = widget.get(this._components["popup"]);
-                //popup._set("content", list._);
                 var toolbar = this._components["toolbar"];
                 var todayButton = "<a name='today'>" + tui.str("Today") + "</a>";
                 var clearButton = " | <a name='clear'><i class='fa fa-trash-o'></i> " + tui.str("Clear") + "</a>";
@@ -5451,8 +5141,6 @@ var tui;
         widget.register(DatePicker, "date-picker");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="inputBase.ts" />
-/// <reference path="../browser/upload.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -5605,32 +5293,25 @@ var tui;
         widget.register(File, "file");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
 var tui;
 (function (tui) {
     var widget;
     (function (widget) {
         "use strict";
-        var ItemSize;
-        (function (ItemSize) {
-            ItemSize[ItemSize["NORMAL"] = 0] = "NORMAL";
-            ItemSize[ItemSize["BIG"] = 1] = "BIG";
-            ItemSize[ItemSize["BLOCK"] = 2] = "BLOCK";
-        })(ItemSize = widget.ItemSize || (widget.ItemSize = {}));
         var FormControl = (function () {
             function FormControl(form, define) {
                 this.form = form;
                 this.define = define;
                 this.div = document.createElement("div");
                 this.div.className = "tui-form-item-container";
-                if (define.size === ItemSize.BIG) {
+                if (define.size === 2) {
                     this.div.className += " tui-form-item-big-size";
                 }
-                else if (define.size === ItemSize.BLOCK) {
+                else if (define.size === 3) {
                     this.div.className += " tui-form-item-full-size";
                 }
-                if (define.inline) {
-                    this.div.className += " tui-form-item-inline";
+                if (define.newline) {
+                    this.div.className += " tui-form-item-newline";
                 }
                 this.label = document.createElement("label");
                 this.label.className = "tui-form-item-label";
@@ -5773,13 +5454,6 @@ var tui;
         widget.register(Form, "form");
         var BasicFormControl = (function (_super) {
             __extends(BasicFormControl, _super);
-            /**
-             * Base class constructor of the simple form control.
-             * @param form Which form will contain this control.
-             * @param define Form item definition.
-             * @param type The name of what your tui control will be used.
-             * @param name The human friendly name of the form control.
-             */
             function BasicFormControl(form, define, type, name) {
                 var _this = _super.call(this, form, define) || this;
                 _this._name = name;
@@ -5892,7 +5566,6 @@ var tui;
         Form.register("picture", FormPicture);
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -5967,8 +5640,6 @@ var tui;
         widget.register(Frame, "frame");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
-/// <reference path="../browser/keyboard.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -5980,14 +5651,6 @@ var tui;
             else
                 return v;
         }
-        /**
-         * <tui:gird>
-         * Attributes: data, list(array type data), tree(tree type data),
-         * columns, sortColumn, sortType, scrollTop, scrollLeft, activeRow,
-         * activeColumn
-         * Method: scrollTo, setSortFlag
-         * Events: sort, rowclick, rowdblclick, rowcheck, keyselect
-         */
         var Grid = (function (_super) {
             __extends(Grid, _super);
             function Grid() {
@@ -6000,7 +5663,6 @@ var tui;
             }
             Grid.prototype.initRestriction = function () {
                 var _this = this;
-                // Register update callback routine
                 var updateCallback = (function () {
                     var me = _this;
                     return function (data) {
@@ -6180,7 +5842,6 @@ var tui;
                 this._components["hScroll"] = this._hbar.appendTo(this._, false)._;
                 this._vbar = tui.create("scrollbar");
                 this._components["vScroll"] = this._vbar.appendTo(this._, false)._;
-                //this._lineHeight = Grid.LINE_HEIGHT;
                 if (document.createStyleSheet) {
                     this._gridStyle = document.createStyleSheet();
                 }
@@ -6197,7 +5858,6 @@ var tui;
                     _this.drawContent();
                 });
                 this._hbar.on("scroll", function () {
-                    //this.drawContent();
                     _this.computeHOffset();
                 });
                 var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
@@ -6207,10 +5867,8 @@ var tui;
                     var e = ev.originalEvent;
                     var delta = e.detail ? e.detail * (-1) : e.wheelDelta;
                     var step = _this.get("lineHeight");
-                    //delta returns +120 when wheel is scrolled up, -120 when scrolled down
                     var scrollSize = step > 1 ? step : 1;
                     if (delta <= 0) {
-                        // console.log(this._vbar.get("value") + " : " + this._vbar.get("totle"));
                         if (_this._vbar.get("value") < _this._vbar.get("total")) {
                             ev.stopPropagation();
                             ev.preventDefault();
@@ -6708,15 +6366,10 @@ var tui;
                     }
                 }
             };
-            /**
-             * Search a row by condition, get field value by 'dataKey' and compare to value, if match then active it.
-             * Should only used in local data type, e.g. List or Tree, if used in RemoteList or RemoteTree may not work correctly.
-             */
             Grid.prototype.activeTo = function (dataKey, value) {
                 var data = this.get("data");
                 var dataType = this.get("dataType");
                 var path = [];
-                // If is a subset return 1, if equals return 2, otherwise return 0
                 function matchPath(p1, p2) {
                     for (var i = 0; i < p1.length; i++) {
                         if (i >= p2.length)
@@ -6982,7 +6635,6 @@ var tui;
                 line.style.width = this._contentWidth + "px";
             };
             Grid.prototype.createLine = function (parent) {
-                // var columns = <ColumnInfo[]>this.get("columns");
                 var line = document.createElement("div");
                 line.className = "tui-grid-line";
                 line.setAttribute("unselectable", "on");
@@ -7104,7 +6756,6 @@ var tui;
                 }
             };
             Grid.prototype.computeHOffset = function () {
-                //var widths: number[] = [];
                 var head = this._components["head"];
                 var content = this._components["content"];
                 var scrollLeft = this._hbar.get("value");
@@ -7127,14 +6778,12 @@ var tui;
                 }
             };
             Grid.prototype.computeColumnWidth = function () {
-                //var widths: number[] = [];
                 var columns = this.get("columns");
                 if (this.get("autoWidth")) {
                     var total = this._contentWidth;
                     var totalNoBorder = total - (Grid.CELL_SPACE * 2) * columns.length;
                     var totalNoFixed = totalNoBorder;
                     var totalCompute = 0;
-                    // Exclude all fixed columns
                     for (var i = 0; i < columns.length; i++) {
                         if (columns[i].fixed) {
                             totalNoFixed -= this._columnWidths[i];
@@ -7154,10 +6803,8 @@ var tui;
                 }
                 for (var i = 0; i < this._columnWidths.length; i++) {
                     var val = Math.round(this._columnWidths[i]);
-                    //widths.push(val);
                     columns[i].width = val;
                 }
-                // Add V lines
                 for (var i = 0; i < this._vLines.length; i++) {
                     if (this._vLines[i].parentNode)
                         this._.removeChild(this._vLines[i]);
@@ -7173,7 +6820,6 @@ var tui;
                     this._vLines[i].style.height = Math.min(this._contentHeight, this._.clientHeight) + "px";
                     this._.appendChild(this._vLines[i]);
                 }
-                // Add Handlers
                 for (var i = 0; i < this._handlers.length; i++) {
                     if (this._handlers[i].parentNode)
                         this._.removeChild(this._handlers[i]);
@@ -7218,9 +6864,6 @@ var tui;
         widget.Grid = Grid;
         widget.register(Grid, "grid");
         widget.registerResize("grid");
-        /**
-         * <tui:list>
-         */
         var List = (function (_super) {
             __extends(List, _super);
             function List() {
@@ -7388,18 +7031,11 @@ var tui;
         widget.registerResize("list");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="inputBase.ts" />
-/// <reference path="../browser/keyboard.ts" />
 var tui;
 (function (tui) {
     var widget;
     (function (widget) {
         "use strict";
-        /**
-         * <input>
-         * Attributes: value, text, type, iconLeft, iconRight, autoValidate
-         * Events: input, change, left-icon-mousedown, right-icon-mousedown, left-icon-click, right-icon-click
-         */
         var Input = (function (_super) {
             __extends(Input, _super);
             function Input() {
@@ -7639,8 +7275,6 @@ var tui;
         widget.registerResize("input");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
-/// <reference path="../browser/keyboard.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -7664,15 +7298,6 @@ var tui;
         setInterval(function () {
             findPopupToClose(document.activeElement);
         }, 50);
-        // $(window).on("mousedown", function(){
-        // 	popStack[0] && popStack[0].close();
-        // });
-        /**
-         * <popup>
-         * Attributes: content, direction, referPos, referElement, opened
-         * Method: open(), close()
-         * Events: open, close
-         */
         var Popup = (function (_super) {
             __extends(Popup, _super);
             function Popup() {
@@ -7775,9 +7400,9 @@ var tui;
                     "display": "block",
                     "position": "fixed"
                 });
-                this.appendTo(document.body); // Will cause refresh
-                widget.init(this._); // refresh children
-                this.render(); // refresh self again
+                this.appendTo(document.body);
+                widget.init(this._);
+                this.render();
                 this._.focus();
                 this.fire("open");
             };
@@ -7822,7 +7447,6 @@ var tui;
                 else if (this.get("referElement")) {
                     box = tui.browser.getRectOfScreen(this.get("referElement"));
                 }
-                // lower case letter means 'next to', upper case letter means 'align to'
                 var compute = {
                     "l": function () {
                         pos.left = box.left - ew;
@@ -7866,8 +7490,8 @@ var tui;
                     }
                 };
                 var direction = this.get("direction");
-                compute[direction.substring(0, 1)](); // parse left
-                compute[direction.substring(1, 2)](); // parse top
+                compute[direction.substring(0, 1)]();
+                compute[direction.substring(1, 2)]();
                 if (pos.left > ww - 2)
                     pos.left = ww - 2;
                 if (pos.left < 2)
@@ -7885,19 +7509,11 @@ var tui;
         widget.register(Popup, "popup");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="popup.ts" />
-/// <reference path="../browser/keyboard.ts" />
 var tui;
 (function (tui) {
     var widget;
     (function (widget) {
         "use strict";
-        /**
-         * <menu>
-         * Attributes: content, direction, referPos, referElement, opened
-         * Method: open(), close()
-         * Events: open, close, click
-         */
         var Menu = (function (_super) {
             __extends(Menu, _super);
             function Menu() {
@@ -8273,8 +7889,6 @@ var tui;
         widget.register(Menu, "menu");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
-/// <reference path="../browser/upload.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -8396,7 +8010,6 @@ var tui;
         widget.register(Picture, "picture");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="base.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -8521,7 +8134,6 @@ var tui;
                     var ev = e.originalEvent;
                     var delta = ev.detail ? ev.detail * (-1) : ev.wheelDelta;
                     var page = _this.get("page");
-                    //delta returns +120 when wheel is scrolled up, -120 when scrolled down
                     var scrollSize = (Math.round(page / 2) > 1 ? Math.round(page / 2) : 1);
                     var oldValue = _this.get("value");
                     if (delta <= -0) {
@@ -8655,20 +8267,11 @@ var tui;
         widget.registerResize("scrollbar");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="selectBase.ts" />
-/// <reference path="dialog.ts" />
 var tui;
 (function (tui) {
     var widget;
     (function (widget) {
         "use strict";
-        /**
-         * <tui:select>
-         * Attributes: data, list, tree, multiSelect, checkKey, nameKey, canSearch, search
-         * iconKey, valueKey
-         * Method: openSelect
-         * Events: change, click
-         */
         var Select = (function (_super) {
             __extends(Select, _super);
             function Select() {
@@ -8891,7 +8494,6 @@ var tui;
                             item = rowData.item;
                         else
                             item = rowData;
-                        // this._set("text", item[list.get("nameKey")]);
                         _this.set("value", item[list.get("valueKey")]);
                         _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         if (e.event === "rowclick") {
@@ -8929,14 +8531,12 @@ var tui;
                     }
                     else if (name === "ok") {
                         _this.set("value", list.get("checkedValues"));
-                        // this.set("text", list.get("checkedNames").join(", "));
                         _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this.closeSelect();
                         _this._.focus();
                         _this.fire("click", { e: e, value: _this.get("value"), text: _this.get("text") });
                     }
                     else if (name === "clear") {
-                        // this._set("text", null);
                         _this.set("value", null);
                         _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this.closeSelect();
@@ -8953,7 +8553,6 @@ var tui;
                 if (minWidth < 250)
                     minWidth = 250;
                 popup._.style.minWidth = minWidth + "px";
-                //popup._set("content", list._);
                 var toolbar = this._components["toolbar"];
                 var searchbar = this._components["searchbar"];
                 var searchBox = widget.get(this._components["searchBox"]);
@@ -8982,7 +8581,6 @@ var tui;
                     list._.focus();
                     list.render();
                     if (tui.ieVer > 0 && tui.ieVer <= 9) {
-                        // FIX ie bug.
                         setTimeout(function () {
                             list.render();
                         });
@@ -9050,17 +8648,11 @@ var tui;
         widget.register(DialogSelect, "dialog-select");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="inputBase.ts" />
 var tui;
 (function (tui) {
     var widget;
     (function (widget) {
         "use strict";
-        /**
-         * <input>
-         * Attributes: value, text, type, iconLeft, iconRight, autoValidate
-         * Events: input, change, left-icon-mousedown, right-icon-mousedown, left-icon-click, right-icon-click
-         */
         var Textarea = (function (_super) {
             __extends(Textarea, _super);
             function Textarea() {
@@ -9157,14 +8749,6 @@ var tui;
                         textbox.focus();
                     }, 0);
                 });
-                // $root.click((e)=>{
-                // 	if (this.get("disable"))
-                // 		return;
-                // 	var obj = e.target || e.srcElement;
-                // 	if (obj === textbox) {
-                // 		return;
-                // 	}
-                // });
                 this.on("resize", function () {
                     _this.render();
                 });
@@ -9234,7 +8818,6 @@ var tui;
         widget.registerResize("textarea");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
-/// <reference path="../core.ts" />
 var tui;
 (function (tui) {
     var widget;
@@ -9293,7 +8876,7 @@ var tui;
                     obj = null;
                     break;
                 }
-                var tooltip = obj.getAttribute("follow-tooltip"); // high priority
+                var tooltip = obj.getAttribute("follow-tooltip");
                 if (tooltip) {
                     showTooltip(obj, tooltip, { x: e.clientX, y: e.clientY }, true);
                     return;

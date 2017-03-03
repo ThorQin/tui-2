@@ -8,9 +8,7 @@ module tui.widget.ext {
 	var _mapLoaded = false;
 	var _initFunctions: {context:any, func:Function}[] = [];
 
-	/**
-	 * 
-	 */
+
 	export class Location extends Widget implements Validatable {
 
 		private _geocoder: any;
@@ -116,17 +114,17 @@ module tui.widget.ext {
 					zoomToAccuracy:true      //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
 				});
 				map.addControl(geolocation);
-				(<any>window).AMap.event.addListener(geolocation, 'complete', (e) => {
+				(<any>window).AMap.event.addListener(geolocation, 'complete', (e:any) => {
 					
 				});//返回定位信息
-				(<any>window).AMap.event.addListener(geolocation, 'error', (e) => {
+				(<any>window).AMap.event.addListener(geolocation, 'error', (e:any) => {
 					tui.errbox(tui.str("geo.location.failed"))
 				});//返回定位出错信息
 			});
 
-			map.on('click', (e) => {
+			map.on('click', (e: any) => {
 				$(address).text(tui.str("Locating..."));
-				this._geocoder && this._geocoder.getAddress(e.lnglat, (status, result) => {
+				this._geocoder && this._geocoder.getAddress(e.lnglat, (status: any, result: any) => {
 					if (status === 'complete' && result.info === 'OK') {
 						$(address).text(result.regeocode.formattedAddress);
 						this._selectedAddress = result.regeocode.formattedAddress;
@@ -143,6 +141,7 @@ module tui.widget.ext {
 		}
 
 		protected init() {
+			this.setInit("appKey", "e8f7d3075fc92aea2cb27947ce567763");
 			if (!_mapInit) {
 				_mapInit = true;
 				let mapUrl = "https://webapi.amap.com/maps?v=1.3&key=" + this.get("appKey") + "&callback=tui_widget_ext_Location_initApi";
@@ -179,7 +178,7 @@ module tui.widget.ext {
 				var inputValue = input.get("value");
 				if (inputValue) {
 					if (inputValue != this._selectedAddress) {
-						this._geocoder && this._geocoder.getLocation(inputValue, (status, result) => {
+						this._geocoder && this._geocoder.getLocation(inputValue, (status: any, result: any) => {
 							if (status === 'complete' && result.info === 'OK') {
 								$(address).text(inputValue);
 								this._selectedAddress = inputValue;

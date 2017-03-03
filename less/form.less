@@ -2,9 +2,8 @@
 
 tui\:form {
 	display: block;
-	width: 610px;
-	box-shadow: 0px 0px 3px #ccc;
-	padding: 0px;
+	padding: 10px;
+	padding-bottom: 20px;
 	margin: 0 auto;
 	background: white;
 
@@ -12,23 +11,27 @@ tui\:form {
 		display: block;
 		border-bottom: 1px solid #ccc;
 		padding: 20px 0;
+		margin: 0;
+		margin-bottom: 10px;
 		text-align: center;
 		color: #424242;
-		font-size: 24px;
+		font-size: 20px;
 		font-weight: bold;
 	}
 
 	div.tui-form-item-container {
-		padding: 10px 20px;
+		padding: 10px 10px;
 		width: 200px;
+		display: inline-block;
+		vertical-align: top;
 
-		&.tui-form-item-inline {
-			display: inline-block;
+		&.tui-form-item-newline {
+			display: block;
 		}
 
 		&>* {
 			display: block !important;
-			width: inherit !important;
+			width: initial !important;
 		}
 
 		label.tui-form-item-label {
@@ -40,10 +43,12 @@ tui\:form {
 		}
 
 		&.tui-form-item-big-size {
-			width: 400px;
+			width: 420px;
+			max-width: initial;
 		}
 		&.tui-form-item-full-size {
-			width: 100%;
+			display: block;
+			width: initial;
 		}
 	}
 

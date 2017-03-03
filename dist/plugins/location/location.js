@@ -1,9 +1,13 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-/// <reference path="../../dist/tui2.d.ts" />
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var tui;
 (function (tui) {
     var widget;
@@ -14,9 +18,6 @@ var tui;
             var _mapInit = false;
             var _mapLoaded = false;
             var _initFunctions = [];
-            /**
-             *
-             */
             var Location = (function (_super) {
                 __extends(Location, _super);
                 function Location() {
@@ -114,14 +115,14 @@ var tui;
                             showMarker: true,
                             showCircle: true,
                             panToLocation: true,
-                            zoomToAccuracy: true //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
+                            zoomToAccuracy: true
                         });
                         map.addControl(geolocation);
                         window.AMap.event.addListener(geolocation, 'complete', function (e) {
-                        }); //返回定位信息
+                        });
                         window.AMap.event.addListener(geolocation, 'error', function (e) {
                             tui.errbox(tui.str("geo.location.failed"));
-                        }); //返回定位出错信息
+                        });
                     });
                     map.on('click', function (e) {
                         $(address).text(tui.str("Locating..."));
@@ -143,6 +144,7 @@ var tui;
                 };
                 Location.prototype.init = function () {
                     var _this = this;
+                    this.setInit("appKey", "e8f7d3075fc92aea2cb27947ce567763");
                     if (!_mapInit) {
                         _mapInit = true;
                         var mapUrl = "https://webapi.amap.com/maps?v=1.3&key=" + this.get("appKey") + "&callback=tui_widget_ext_Location_initApi";

@@ -4,21 +4,14 @@
         "noImplicitAny": true,
 		"declaration": true,
         "removeComments": true,
-        "outFile": "dist/tui2.js",
-        "sourceMap": true,
+        "outFile": "../../dist/plugins/location/location.js",
+        "sourceMap": false,
 		"noEmitOnError": true
 	},
 	"include": [
-		"src/**/*.ts"
+		"*.ts"
 	],
     "exclude": [
-        "depends",
-		"dist",
-		"doc",
-		"extentions",
-		"less",
-		"node_modules",
-		"lang",
-		"test"
+        "less"
     ]
 }

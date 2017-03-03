@@ -35,18 +35,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var path = require("path");
 var ps = require("child_process");
 var buildPluginName = process.argv.length > 2 ? process.argv[2] : null;
 var dir = fs.realpathSync(__dirname);
 function compile(pluginName, pluginDir) {
-    console.log("Compile: %s ...", pluginName);
+    console.log("Compile: %s ...", pluginDir);
     var options = {
         cwd: pluginDir
     };
     return new Promise(function (resovle, reject) {
-        ps.exec("tsc *.ts --declaration --out ../../dist/plugins/" + pluginName + "/" + pluginName + ".js", options, function (error, stdout, stderr) {
+        ps.exec("tsc", options, function (error, stdout, stderr) {
             if (error) {
                 reject([error, stdout]);
             }

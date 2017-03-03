@@ -27,7 +27,7 @@ module tui.browser {
 	export function focusWithoutScroll(target: HTMLElement) {
 		setTimeout(function () {
 			if (tui.ieVer > 0) {
-				target.setActive();
+				(<any>target).setActive();
 			} else if (tui.ffVer > 0)
 				target.focus();
 			else {

@@ -2,17 +2,9 @@
 declare module tui {
     const UNDEFINED: string;
     var lang: string;
-    /**
-     * Register a translation dictionary.
-     */
     function dict(lang: string, dictionary: {
         [index: string]: string;
     }, replace?: boolean): void;
-    /**
-     * Multi-language support, translate source text to specified language(default use tui.lang setting)
-     * @param str {string} source text
-     * @param lang {string} if specified then use this parameter as objective language otherwise use tui.lang as objective language
-     */
     function str(str: string, lang?: string): string;
     var tuid: () => string;
     interface EventInfo {
@@ -23,100 +15,28 @@ declare module tui {
         (data: EventInfo): any;
         isOnce?: boolean;
     }
-    /**
-     * Base object, all other control extended from this base class.
-     */
     class EventObject {
         private _events;
-        /**
-         * Register event handler.
-         * @param {string} eventName
-         * @param {EventHandler} handler Which handler to be registered
-         * @param {boolean} atFirst If true then handler will be triggered firstly
-         */
         bind(eventName: string, handler: EventHandler, atFirst: boolean): EventObject;
-        /**
-         * Unregister event handler.
-         * @param eventName
-         * @param handler Which handler to be unregistered if don't specified then unregister all handler
-         */
         unbind(eventName: string, handler?: EventHandler): EventObject;
-        /**
-         * Register event handler.
-         * @param {string} eventName
-         * @param {callback} callback Which handler to be registered
-         * @param {boolean} atFirst If true then handler will be triggered firstly
-         */
         on(eventName: string, callback: EventHandler, atFirst?: boolean): EventObject;
-        /**
-         * Register event handler.
-         * @param eventName
-         * @param callback Which handler to be registered but event only can be trigered once
-         * @param atFirst If true then handler will be triggered firstly
-         */
         once(eventName: string, callback: EventHandler, atFirst?: boolean): EventObject;
-        /**
-         * Unregister event handler.
-         * @param eventName
-         * @param callback Which handler to be unregistered if don't specified then unregister all handler
-         */
         off(eventName: string, callback?: EventHandler): EventObject;
         offAll(): void;
-        /**
-         * Fire event. If some handler process return false then cancel the event channe and return false either
-         * @param {string} eventName
-         * @param {any[]} param
-         * @return {boolean} If any handler return false then stop other processing and return false either, otherwise return true
-         */
         fire(eventName: string, data?: any): boolean;
     }
     const event: EventObject;
-    /**
-     * Deeply copy an object to an other object, but only contain properties without methods
-     */
     function clone(obj: any, excludeProperties?: any): any;
-    /**
-     * Get IE version
-     * @return {Number}
-     */
     var ieVer: number;
-    /**
-     * Get Firefox version
-     * @return {Number}
-     */
     var ffVer: number;
 }
 declare module tui.text {
-    /**
-     * Convert anything to boolean
-     */
     function parseBoolean(value: any): boolean;
-    /**
-     * Format a string use a set of parameters
-     */
     function format(token: string, ...params: any[]): string;
-    /**
-     * Convert 'aaaBbbCcc' to 'aaa-bbb-ccc'
-     */
     function toDashSplit(word: string): string;
-    /**
-     * Convert 'aaa-bbb-ccc' or 'aaa_bbb_ccc' to 'aaaBbbCcc'
-     */
     function toCamel(word: string, strict?: boolean): string;
-    /**
-     * Format a number that padding it with '0'
-     */
     function paddingNumber(v: number, min: number, max?: number, alignLeft?: boolean): string;
-    /**
-     * Get the parameter of the URL query string.
-     * @param {String} url
-     * @param {String} key Parameter name
-     */
     function getUrlParam(url: string, key: string): string;
-    /**
-     * Get the anchor of the URL query string.
-     * @param {String} url
-     */
     function getUrlAnchor(url: string): string;
     function isAbsUrl(url: string): boolean;
     function getBaseUrl(url: string): string;
@@ -153,81 +73,25 @@ declare module tui.browser {
     function getRectOfParent(elem: HTMLElement): Rect;
     function getRectOfPage(elem: HTMLElement): Rect;
     function getRectOfScreen(elem: HTMLElement): Rect;
-    /**
-     * Get top window's body element
-     */
     function getTopBody(): Element;
-    /**
-     * Get element's owner window
-     */
     function getWindow(elem: HTMLElement): any;
     function getWindowScrollElement(): HTMLElement;
     function keepToTop(elem: HTMLElement, top?: number): void;
     function cancelKeepToTop(elem: HTMLElement): void;
     function getCurrentStyle(elem: HTMLElement): CSSStyleDeclaration;
-    /**
-     * Test whether the button code is indecated that the event is triggered by a left mouse button.
-     */
     function isLButton(e: any): boolean;
-    /**
-     * Prevent user press backspace key to go back to previous page
-     */
     function banBackspace(): void;
     function cancelDefault(event: any): boolean;
     function cancelBubble(event: any): boolean;
-    /**
-     * Detect whether the given parent element is the real ancestry element
-     * @param elem
-     * @param parent
-     */
     function isAncestry(elem: Node, parent: Node): boolean;
-    /**
-     * Detect whether the given child element is the real posterity element
-     * @param elem
-     * @param child
-     */
     function isPosterity(elem: Node, child: Node): boolean;
     function isFireInside(elem: Node, event: any): boolean;
-    /**
-     * Detect whether the element is inside the document
-     * @param {type} elem
-     */
     function isInDoc(elem: HTMLElement): boolean;
-    /**
-     * Set cookie value
-     * @param name
-     * @param value
-     * @param expires valid days
-     */
     function saveCookie(name: string, value: any, expires?: number, path?: string, domain?: string, secure?: boolean): void;
-    /**
-     * Get cookie value
-     * @param name
-     */
     function loadCookie(name: string): any;
-    /**
-     * Delete cookie
-     * @param name
-     */
     function deleteCookie(name: string, path?: string, domain?: string): void;
-    /**
-     * Save key value into local storage, if local storage doesn't usable then use local cookie instead.
-     * @param {String} key
-     * @param {String} value
-     * @param {Boolean} sessionOnly If true data only be keeped in this session
-     */
     function saveData(key: string, value: any, sessionOnly?: boolean): void;
-    /**
-     * Load value from local storage, if local storage doesn't usable then use local cookie instead.
-     * @param {String} key
-     * @param {Boolean} sessionOnly If true data only be keeped in this session
-     */
     function loadData(key: string, sessionOnly?: boolean): any;
-    /**
-     * Remove value from local storage, if local storage doesn't usable then use local cookie instead.
-     * @param key
-     * @param {Boolean} sessionOnly If true data only be keeped in this session
-     */
     function deleteData(key: string, sessionOnly?: boolean): void;
     function addAccelerate(key: string, actionId: string): void;
     function deleteAccelerate(key: string, actionId: string): void;
@@ -353,10 +217,6 @@ declare module tui.widget {
         x: number;
         y: number;
     }[];
-    /**
-     * Show a mask layer to prevent user drag or select document elements which don't want to be affected.
-     * It's very useful when user perform a dragging operation.
-     */
     function openDragMask(onMove: (e: JQueryEventObject) => void, onClose?: (e: JQueryEventObject) => void): HTMLDivElement;
 }
 declare module tui.widget {
@@ -384,10 +244,6 @@ declare module tui.widget {
         set(key: string, value: any): WidgetBase;
         _set(data: any): WidgetBase;
         _set(key: string, value: any): WidgetBase;
-        /**
-         * Only non-existing property will be set,
-         * this method usually be called in init() method and will not cause the object redraw.
-         */
         setInit(data: any): WidgetBase;
         setInit(key: string, value: any): WidgetBase;
     }
@@ -410,9 +266,6 @@ declare module tui.widget {
             [index: string]: any;
         });
     }
-    /**
-     * Any config element can extends from this class.
-     */
     class Item extends WidgetBase {
         _: HTMLElement;
         constructor(root: HTMLElement);
@@ -448,12 +301,6 @@ declare module tui.widget {
         className?: string;
         click?: (e: EventInfo) => void;
     }
-    /**
-     * <dialog>
-     * Attributes: content(element or html), opened(boolean), title, buttons(button array), esc(boolean)
-     * Method: open(buttonDef: string = null), close()
-     * Events: open, close, click-<button name>
-     */
     class Dialog extends Widget {
         private _sizeTimer;
         private _contentSize;
@@ -535,11 +382,6 @@ declare module tui.browser {
         deleteInput(): void;
         getInput(): HTMLInputElement;
         private clearInput();
-        /**
-        * Gets response from iframe and fires onComplete event when ready
-        * @param iframe
-        * @param file Filename to use in onComplete callback
-        */
         private processResponse(iframe, file);
         private fireInvalidError();
         private fireError(errorMessage?);
@@ -661,64 +503,16 @@ declare module tui.time {
     var weeks: string[];
     var shortMonths: string[];
     var months: string[];
-    /**
-     * Get today
-     */
     function now(): Date;
-    /**
-     * Input seconds and get a time description
-     * @param seconds Tims distance of seconds
-     * @param lang Display language
-     */
     function timespan(seconds: number, lang?: string): string;
-    /**
-     * Get the distance of dt2 compare to dt1 (dt2 - dt1) return in specified unit (d: day, h: hours, m: minutes, s: seconds, ms: milliseconds)
-     * @param dt1
-     * @param dt2
-     * @param unit "d", "h", "m", "s" or "ms"
-     */
     function dateDiff(dt1: Date, dt2: Date, unit?: string): number;
-    /**
-     * Get new date of dt add specified unit of values.
-     * @param dt The day of the target
-     * @param val Increased value
-     * @param unit "y", "M", "d", "h", "m", "s" or "ms"
-     */
     function dateAdd(dt: Date, val: number, unit?: string): Date;
-    /**
-     * Get day in year
-     * @param dt The day of the target
-     */
     function dayOfYear(dt: Date): number;
-    /**
-     * Get total days of month
-     * @param dt The day of the target
-     */
     function totalDaysOfMonth(dt: Date): number;
-    /**
-     * Parse string get date instance (
-     * try to parse format:
-     *		yyyy-MM-dd HH:mm:ss，
-     *		yyyy-MM-dd,
-     *		dd MMM yyyy,
-     *		MMM dd, yyyy,
-     *		ISO8601 format)
-     * @param {String} dtStr Data string
-     */
     function parseDate(dtStr: string, format?: string): Date;
-    /**
-     * Convert date to string and output can be formated to ISO8601, RFC2822, RFC3339 or other customized format
-     * @param dt {Date} Date object to be convert
-     * @param dateFmt {String} which format should be apply, default use ISO8601 standard format
-     */
     function formatDate(dt: Date, dateFmt?: string): string;
 }
 declare module tui.widget {
-    /**
-     * <button>
-     * Attributes: value, text, type, checked, group, disable
-     * Events: click, mousedown, mouseup, keydown, keyup
-     */
     class Button extends Widget {
         protected initChildren(childNodes: Node[]): void;
         protected initRestriction(): void;
@@ -746,11 +540,6 @@ declare module tui.widget {
     }
 }
 declare module tui.widget {
-    /**
-     * <group>
-     * Attributes: name, type(check,radio,toggle)
-     * Events:
-     */
     class Group extends Widget {
         protected initChildren(childNodes: Node[]): void;
         protected initRestriction(): void;
@@ -810,12 +599,6 @@ declare module tui.widget {
     }
 }
 declare module tui.widget {
-    /**
-     * <tui:date-picker>
-     * Attributes: value, text(value to string), format, timeBar
-     * Method: openSelect
-     * Events: change
-     */
     class DatePicker extends SelectPopupBase {
         protected initRestriction(): void;
         protected init(): void;
@@ -832,19 +615,14 @@ declare module tui.widget {
     }
 }
 declare module tui.widget {
-    enum ItemSize {
-        NORMAL = 0,
-        BIG = 1,
-        BLOCK = 2,
-    }
     interface FormItem {
         type: string;
         label: string | null;
         key: string | null;
         value: any | null;
         validate?: string[];
-        size?: ItemSize;
-        inline?: boolean;
+        size?: number;
+        newline?: boolean;
         disable?: boolean;
         important?: boolean;
     }
@@ -881,13 +659,6 @@ declare module tui.widget {
     abstract class BasicFormControl<T extends Widget> extends FormControl {
         protected _widget: T;
         protected _name: string;
-        /**
-         * Base class constructor of the simple form control.
-         * @param form Which form will contain this control.
-         * @param define Form item definition.
-         * @param type The name of what your tui control will be used.
-         * @param name The human friendly name of the form control.
-         */
         constructor(form: Form, define: FormItem, type: string, name: string);
         getName(): string;
         getValue(): any;
@@ -918,14 +689,6 @@ declare module tui.widget {
         prefixKey?: string;
         suffixKey?: string;
     }
-    /**
-     * <tui:gird>
-     * Attributes: data, list(array type data), tree(tree type data),
-     * columns, sortColumn, sortType, scrollTop, scrollLeft, activeRow,
-     * activeColumn
-     * Method: scrollTo, setSortFlag
-     * Events: sort, rowclick, rowdblclick, rowcheck, keyselect
-     */
     class Grid extends Widget {
         static CELL_SPACE: number;
         static LINE_HEIGHT: number;
@@ -946,10 +709,6 @@ declare module tui.widget {
         setSortFlag(col: number, type: string): void;
         scrollTo(index: number): void;
         iterate(func: (item: any, path: number[], treeNode: boolean) => boolean): void;
-        /**
-         * Search a row by condition, get field value by 'dataKey' and compare to value, if match then active it.
-         * Should only used in local data type, e.g. List or Tree, if used in RemoteList or RemoteTree may not work correctly.
-         */
         activeTo(dataKey: string, value: any): void;
         protected computeWidth(): number;
         protected computeScroll(): void;
@@ -965,9 +724,6 @@ declare module tui.widget {
         protected computeColumnWidth(): void;
         render(): void;
     }
-    /**
-     * <tui:list>
-     */
     class List extends Grid {
         private _column;
         static LINE_HEIGHT: number;
@@ -978,11 +734,6 @@ declare module tui.widget {
     }
 }
 declare module tui.widget {
-    /**
-     * <input>
-     * Attributes: value, text, type, iconLeft, iconRight, autoValidate
-     * Events: input, change, left-icon-mousedown, right-icon-mousedown, left-icon-click, right-icon-click
-     */
     class Input extends InputBase {
         static PADDING: number;
         protected initRestriction(): void;
@@ -994,12 +745,6 @@ declare module tui.widget {
 }
 declare module tui.widget {
     var popStack: Popup[];
-    /**
-     * <popup>
-     * Attributes: content, direction, referPos, referElement, opened
-     * Method: open(), close()
-     * Events: open, close
-     */
     class Popup extends Widget {
         private popIndex;
         private referRect;
@@ -1016,12 +761,6 @@ declare module tui.widget {
     }
 }
 declare module tui.widget {
-    /**
-     * <menu>
-     * Attributes: content, direction, referPos, referElement, opened
-     * Method: open(), close()
-     * Events: open, close, click
-     */
     class Menu extends Popup {
         private activeItem;
         protected initChildren(childNodes: Node[]): void;
@@ -1047,13 +786,6 @@ declare module tui.widget {
     }
 }
 declare module tui.widget {
-    /**
-     * <tui:select>
-     * Attributes: data, list, tree, multiSelect, checkKey, nameKey, canSearch, search
-     * iconKey, valueKey
-     * Method: openSelect
-     * Events: change, click
-     */
     class Select extends SelectPopupBase {
         private static LIST_LINE_HEIGHT;
         protected initRestriction(): void;
@@ -1073,11 +805,6 @@ declare module tui.widget {
     }
 }
 declare module tui.widget {
-    /**
-     * <input>
-     * Attributes: value, text, type, iconLeft, iconRight, autoValidate
-     * Events: input, change, left-icon-mousedown, right-icon-mousedown, left-icon-click, right-icon-click
-     */
     class Textarea extends InputBase {
         protected _lastTextHeight: number;
         protected initRestriction(): void;

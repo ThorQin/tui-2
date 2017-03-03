@@ -1,8 +1,5 @@
 /// <reference path="../../tui2.d.ts" />
 declare module tui.widget.ext {
-    /**
-     *
-     */
     class Location extends Widget implements Validatable {
         private _geocoder;
         private _selectedAddress;

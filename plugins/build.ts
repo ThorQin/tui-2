@@ -9,12 +9,12 @@ const buildPluginName = process.argv.length > 2 ? process.argv[2] : null;
 var dir = fs.realpathSync(__dirname);
 
 function compile(pluginName, pluginDir) {
-	console.log("Compile: %s ...", pluginName);
+	console.log("Compile: %s ...", pluginDir);
 	var options: ps.ExecOptions = {
 		cwd: pluginDir
 	};
 	return new Promise<any>((resovle, reject) => {
-		ps.exec("tsc *.ts --declaration --out ../../dist/plugins/" + pluginName + "/" + pluginName + ".js", options, (error: Error, stdout: string, stderr: string) => {
+		ps.exec("tsc", options, (error: Error, stdout: string, stderr: string) => {
 			if (error) {
 				reject([error, stdout]);
 			} else {

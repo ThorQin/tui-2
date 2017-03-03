@@ -4,20 +4,14 @@
 module tui.widget {
 	"use strict";
 
-	export enum ItemSize {
-		NORMAL,
-		BIG,
-		BLOCK
-	}
-
 	export interface FormItem {
 		type: string;
 		label: string | null;
 		key: string | null;
 		value: any | null;
 		validate?: string[];
-		size?: ItemSize;
-		inline?: boolean;
+		size?: number;
+		newline?: boolean;
 		disable?: boolean;
 		important?: boolean;
 	}
@@ -37,13 +31,13 @@ module tui.widget {
 			this.define = define;
 			this.div = document.createElement("div");
 			this.div.className = "tui-form-item-container";
-			if (define.size === ItemSize.BIG) {
+			if (define.size === 2) {
 				this.div.className += " tui-form-item-big-size"
-			} else if (define.size === ItemSize.BLOCK) {
+			} else if (define.size === 3) {
 				this.div.className += " tui-form-item-full-size"
 			} 
-			if (define.inline) {
-				this.div.className += " tui-form-item-inline";
+			if (define.newline) {
+				this.div.className += " tui-form-item-newline";
 			}
 			
 			this.label = document.createElement("label");
