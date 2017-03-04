@@ -607,8 +607,17 @@ declare module tui.widget {
 }
 declare module tui.widget {
     class File extends InputBase {
-        private static PADDING;
         private _uploader;
+        protected initRestriction(): void;
+        protected init(): void;
+        render(): void;
+    }
+}
+declare module tui.widget {
+    class Files extends Widget {
+        private _uploader;
+        private _uploadBox;
+        private _values;
         protected initRestriction(): void;
         protected init(): void;
         render(): void;
@@ -629,6 +638,16 @@ declare module tui.widget {
     interface FormControlConstructor {
         new (form: Form, define: FormItem): FormControl;
     }
+    class Form extends Widget {
+        private _definitionChanged;
+        private _items;
+        static register(type: string, controlType: FormControlConstructor): void;
+        private removeAll();
+        protected initRestriction(): void;
+        protected init(): void;
+        validate(): boolean;
+        render(): void;
+    }
     abstract class FormControl {
         div: HTMLDivElement;
         label: HTMLLabelElement;
@@ -645,16 +664,6 @@ declare module tui.widget {
         abstract render(): void;
         abstract showProperty(): void;
         abstract validate(): boolean;
-    }
-    class Form extends Widget {
-        private _definitionChanged;
-        private _items;
-        static register(type: string, controlType: FormControlConstructor): void;
-        private removeAll();
-        protected initRestriction(): void;
-        protected init(): void;
-        validate(): boolean;
-        render(): void;
     }
     abstract class BasicFormControl<T extends Widget> extends FormControl {
         protected _widget: T;

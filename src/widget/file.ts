@@ -4,7 +4,6 @@ module tui.widget {
 	"use strict";
 
 	export class File extends InputBase {
-		private static PADDING = 6;
 
 		private _uploader: browser.Uploader;
 		

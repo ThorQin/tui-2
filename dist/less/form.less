@@ -25,6 +25,17 @@ tui\:form {
 		display: inline-block;
 		vertical-align: top;
 
+		&>hr.tui-form-line-label {
+			margin-top: 5px;
+		}
+
+		& > tui\:button-group.tui-form-group-align-vertical > * {
+			display: block;
+			width: initial;
+			float: none;
+			text-align: left;
+		}
+
 		&.tui-form-item-newline {
 			display: block;
 		}
@@ -42,14 +53,62 @@ tui\:form {
 			padding: 2px 5px;
 		}
 
-		&.tui-form-item-big-size {
+		&.tui-form-item-size-2 {
 			width: 420px;
-			max-width: initial;
 		}
-		&.tui-form-item-full-size {
+		&.tui-form-item-size-3 {
+			width: 640px;
+		}
+		&.tui-form-item-size-4 {
+			width: 860px;
+		}
+		&.tui-form-item-size-full {
+			display: block;
+			width: initial;
+		}
+		&.tui-form-item-exceed {
 			display: block;
 			width: initial;
 		}
 	}
 
+	
+}
+
+tui\:form.tui-fix-screen {
+	width: 1100px;
+	&.tui-panel {
+		margin: 20px auto;
+	}
+}
+
+@media (max-width: 1140px) {
+	tui\:form.tui-fix-screen {
+		width: 880px;
+	}
+}
+
+@media (max-width: 920px) {
+	tui\:form.tui-fix-screen {
+		width: 660px;
+	}
+}
+
+@media (max-width: 700px) {
+	tui\:form.tui-fix-screen {
+		width: 440px;
+	}
+}
+
+@media (max-width: 480px) {
+	tui\:form.tui-fix-screen {
+		width: initial;
+		&.tui-panel {
+			margin: 0px;
+		}
+		div.tui-form-item-container {
+			width: initial;
+			display: block;
+		}
+	}
 }

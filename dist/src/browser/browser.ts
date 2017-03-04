@@ -87,6 +87,8 @@ module tui.browser {
 	}
     
 	export function toSafeText(text: string): string {
+		if (!text)
+			return "";
 		return text.replace(/<|>|&/g, function(str: string, ...args: any[]): string {
 			if (str === "<")
 				return "&lt;";

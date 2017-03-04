@@ -1,0 +1,77 @@
+@import 'commons.less';
+
+tui\:files {
+	display: block;
+	&>div.tui-files-upload-box,&>div.tui-files-item {
+		display: inline-block;
+		width: 90px;
+		height: 90px;
+		line-height: 90px;
+		text-align: center;
+		margin: 10px;
+		vertical-align: middle;
+	}
+	&>div.tui-files-upload-box {
+		border: 1px dashed #ccc;
+		.icon-base();
+		color: #ccc;
+		font-size: 30px;
+		&:before {
+			.fa-plus;
+		}
+	}
+
+	&>div.tui-files-item {
+		position: relative;
+		font-size: 40px;
+		border: 1px solid #ccc;
+		overflow: hidden;
+		&>div {
+			position: absolute;
+			left:0;
+			right: 0;
+			bottom: 0;
+			height: 20px;
+			font-size: 12px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			line-height: 20px;
+			background-color: #848484;
+			color: white;
+			white-space: nowrap;
+			padding:0 5px;
+		}
+		&>img {
+			max-width: 90px;
+		}
+		.icon-base();
+		&.file-type-image:before {
+			.fa-file-image-o;
+			color: #777;
+		}
+		&.file-type-word:before {
+			.fa-file-word-o;
+			color: #48c;
+		}
+		&.file-type-excel:before {
+			.fa-file-excel-o;
+			color: #2b6
+		}
+		&.file-type-ppt:before {
+			.fa-file-powerpoint-o;
+			color: #f57c0d;
+		}
+		&.file-type-txt:before {
+			.fa-file-text-o;
+			color: #777;
+		}
+		&.file-type-pdf:before {
+			.fa-file-pdf-o;
+			color: #dd2c00;
+		}
+		&.file-type-unknow:before {
+			.fa-file-o;
+			color: #777;
+		}
+	}
+}
