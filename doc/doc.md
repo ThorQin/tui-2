@@ -582,7 +582,7 @@ accept | 接受的文件类型：text/plain 或者 image/* 等 MIME 类型
 
 ## [](fa-file-image-o) 图片上传`(picture)`
 
-<tui:picture></tui:picture>
+<tui:picture action="/upload"></tui:picture>
 
 由于本文没有后台代码，所以无法演示图片上传。
 

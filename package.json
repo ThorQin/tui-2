@@ -24,7 +24,7 @@
   "devDependencies": {
     "uglifyjs": "latest",
     "fs-extra-cli": "latest",
-    "http-server": "latest",
+    "json-server": "latest",
     "less": "latest",
     "less-plugin-clean-css": "latest",
     "typescript": "latest",
@@ -47,7 +47,7 @@
     "watch:less": "watch \"npm run build:less\" less -d -u",
     "watch:ts": "watch \"npm run build:ts\" src -d -u",
 
-    "server": "http-server -a 0.0.0.0 -p 8000",
+    "server": "json-server ./doc/db.json --port 8000 --static . --middlewares ./doc/api.js ",
     "start": "npm-run-all --parallel watch:* server"
   }
 }

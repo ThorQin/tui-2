@@ -2,21 +2,69 @@
 
 tui\:form {
 	display: block;
+	position: relative;
 	padding: 10px;
 	padding-bottom: 20px;
 	margin: 0 auto;
 	background: white;
 
-	h1.tui-form-title {
+	@toolbarSize: 40px;
+	&.tui-form-show-toolbar {
+		padding-top: @toolbarSize + 10px;
+	}
+
+	div.tui-form-toolbar {
+		position: absolute;
 		display: block;
-		border-bottom: 1px solid #ccc;
-		padding: 20px 0;
 		margin: 0;
-		margin-bottom: 10px;
-		text-align: center;
-		color: #424242;
-		font-size: 20px;
-		font-weight: bold;
+		background-color: #636363;
+		left:0;
+		top:0;
+		height: @toolbarSize;
+		right: 0;
+		color: #ccc;
+		
+		&>div.tui-form-title {
+			font-size: 16px;
+			font-weight: bold;
+			position: absolute;
+			left:0;
+			top:0;
+			height: @toolbarSize;
+			right: 80px;
+			line-height: @toolbarSize;
+			padding: 0 20px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		&>div.tui-form-buttons {
+			position: absolute;
+			top:5px;
+			height: @toolbarSize;
+			right: 20px;
+			padding:0 0px;
+			span.tui-form-btn {
+				border: 1px solid #aaa;
+				.border-radius(@buttonBorderRadius);
+
+				display: inline-block;
+				height: @toolbarSize - 10px;
+				line-height: @toolbarSize - 10px;
+				text-align: center;
+				vertical-align: middle;
+				cursor: pointer;
+				padding: 0 10px;
+				font-size: 14px;
+				.icon-base();
+				&.tui-form-btn-print:before {
+					.fa-print;
+				}
+				&:hover {
+					background-color: #555;
+				}
+			}
+		}
 	}
 
 	div.tui-form-item-container {
@@ -24,6 +72,65 @@ tui\:form {
 		width: 200px;
 		display: inline-block;
 		vertical-align: top;
+		position: relative;
+
+		&>* {
+			display: block !important;
+			width: initial !important;
+		}
+
+		&>div.tui-form-item-mask {
+			position: absolute;
+			display: none !important;
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			background-color: #f5f5f5;
+			.opacity(0);
+			z-index: 20;
+		}
+		&.tui-form-in-design {
+			&>div.tui-form-item-mask {
+				display: block !important;
+			}
+			&:hover {
+				background-color: #f5f5f5;
+				&>div.tui-form-item-mask {
+					.opacity(0.3);
+				}
+			}
+		}
+		&.tui-form-item-selected {
+			background-color: #eee;
+			&:hover {
+				background-color: #eee;
+			}
+			&>div.tui-form-item-mask {
+				.opacity(0.4);
+				background-color: #eee;
+				border: 1px dashed #000;	
+			}
+		}
+
+		&>div.tui-form-item-toolbar {
+			position: absolute;
+			bottom: -20px;
+			left: 10px;
+			.shadow(1px, 1px, 2px);
+			z-index: 30;
+			background-color: #444;
+			transition: opacity .3s;
+			tui\:button {
+				padding:5px 10px;
+				font-size: 12px;
+				background-color: transparent;
+				color: #ccc;
+				height: initial;
+				border: none;
+				line-height: initial;
+			}
+		}
 
 		&>hr.tui-form-line-label {
 			margin-top: 5px;
@@ -38,11 +145,6 @@ tui\:form {
 
 		&.tui-form-item-newline {
 			display: block;
-		}
-
-		&>* {
-			display: block !important;
-			width: initial !important;
 		}
 
 		label.tui-form-item-label {
@@ -75,7 +177,7 @@ tui\:form {
 	
 }
 
-tui\:form.tui-fix-screen {
+tui\:form.tui-form-fixed {
 	width: 1100px;
 	&.tui-panel {
 		margin: 20px auto;
@@ -83,25 +185,25 @@ tui\:form.tui-fix-screen {
 }
 
 @media (max-width: 1140px) {
-	tui\:form.tui-fix-screen {
+	tui\:form.tui-form-fixed {
 		width: 880px;
 	}
 }
 
 @media (max-width: 920px) {
-	tui\:form.tui-fix-screen {
+	tui\:form.tui-form-fixed {
 		width: 660px;
 	}
 }
 
 @media (max-width: 700px) {
-	tui\:form.tui-fix-screen {
+	tui\:form.tui-form-fixed {
 		width: 440px;
 	}
 }
 
 @media (max-width: 480px) {
-	tui\:form.tui-fix-screen {
+	tui\:form.tui-form-fixed {
 		width: initial;
 		&.tui-panel {
 			margin: 0px;

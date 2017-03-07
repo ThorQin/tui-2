@@ -82,6 +82,38 @@ module tui.browser {
 		return elem.innerHTML;
 	}
 
+	export function addClass(elem: HTMLElement, classNames: string) {
+		var oldClass = elem.className;
+		if (oldClass && oldClass.trim()) {
+			var oldNames = oldClass.trim().split(/\s+/);
+			if (classNames && classNames.trim()) {
+				var names = classNames.trim().split(/\s+/);
+				for (let n of names) {
+					if (oldNames.indexOf(n) < 0)
+						oldNames.push(n);
+				}
+				elem.className = oldNames.join(" ");
+			}
+		} else
+			elem.className = classNames;
+	}
+
+	export function removeClass(elem: HTMLElement, classNames: string) {
+		var oldClass = elem.className;
+		if (oldClass && oldClass.trim()) {
+			var oldNames = oldClass.trim().split(/\s+/);
+			if (classNames && classNames.trim()) {
+				var names = classNames.trim().split(/\s+/);
+				var newClass = "";
+				for (let n of oldNames) {
+					if (names.indexOf(n) < 0)
+						newClass += " " + n
+				}
+				elem.className = newClass;
+			}
+		}
+	}
+
 	export function removeNode(node: Node): void {
 		node.parentNode && node.parentNode.removeChild(node);
 	}

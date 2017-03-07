@@ -2,17 +2,22 @@
 
 tui\:files {
 	display: block;
+
+	@size: 80px;
+
 	&>div.tui-files-upload-box,&>div.tui-files-item {
 		display: inline-block;
-		width: 90px;
-		height: 90px;
-		line-height: 90px;
+		position: relative;
+		width: @size;
+		height: @size;
+		line-height: 70px;
 		text-align: center;
-		margin: 10px;
+		margin: 8px;
 		vertical-align: middle;
 	}
 	&>div.tui-files-upload-box {
 		border: 1px dashed #ccc;
+		line-height: @size;
 		.icon-base();
 		color: #ccc;
 		font-size: 30px;
@@ -25,7 +30,6 @@ tui\:files {
 		position: relative;
 		font-size: 40px;
 		border: 1px solid #ccc;
-		overflow: hidden;
 		&>div {
 			position: absolute;
 			left:0;
@@ -42,9 +46,37 @@ tui\:files {
 			padding:0 5px;
 		}
 		&>img {
-			max-width: 90px;
+			display: inline-block;
+			max-width: @size;
+			max-height: @size;
+			vertical-align: middle;
+		}
+		&>span.tui-files-remove-icon {
+			display: block;
+			position: absolute;
+			width: 20px;
+			height: 20px;
+			text-align: center;
+			line-height: 20px;
+			right: -10px;
+			top: -10px;
+			background: #424242;
+			color: white;
+			font-size: 12px;
+			cursor: default;
+			//border:1px solid #ccc;
+			.border-radius(10px);
+			.shadow(1px, 1px, 2px);
+			.icon-base();
+			&:before {
+				.fa-times();
+			}
 		}
 		.icon-base();
+		&:before {
+			vertical-align: middle;
+			line-height: 40px;
+		}
 		&.file-type-image:before {
 			.fa-file-image-o;
 			color: #777;
@@ -55,7 +87,7 @@ tui\:files {
 		}
 		&.file-type-excel:before {
 			.fa-file-excel-o;
-			color: #2b6
+			color: #2b6;
 		}
 		&.file-type-ppt:before {
 			.fa-file-powerpoint-o;

@@ -23,17 +23,16 @@ module tui.widget {
 	var _controls: {[index: string]: FormControlConstructor} = {};
 
 	export class Form extends Widget {
-
-		private _definitionChanged: boolean;
-		private _items: FormControl[];
+		protected _definitionChanged: boolean;
+		protected _items: FormControl[];
 
 		public static register(type: string, controlType: FormControlConstructor): void {
 			_controls[type] = controlType;
 		}
 
-		private removeAll() {
+		protected removeAll() {
 			for (let item of this._items) {
-				item.gone();
+				item.hide();
 			}
 			this._items = [];
 		}
@@ -94,11 +93,31 @@ module tui.widget {
 		}
 
 		protected init(): void {
-			var title = this._components["title"] = document.createElement("h1");
+			var toolbar = this._components["toolbar"] = document.createElement("div");
+			toolbar.className = "tui-form-toolbar";
+			var title = document.createElement("div");
 			title.className = "tui-form-title";
-			this._.appendChild(title);
+			var buttons = document.createElement("div");
+			buttons.className = "tui-form-buttons";
+			var btnPrint = document.createElement("span");
+			btnPrint.className = "tui-form-btn tui-form-btn-print";
+			buttons.appendChild(btnPrint);
+			toolbar.appendChild(title);
+			toolbar.appendChild(buttons);
+			this._.appendChild(toolbar);
 			this.on("resize", () => {
 				this.render();
+			});
+			this.on("itemmousedown", (e: any) => {
+				
+			});
+			this.on("itemmouseup", (e: any) => {
+				for (let item of this._items) {
+					if (item !== e.data.control)
+						item.select(false);
+					else
+						item.select(true);
+				}
 			});
 		}
 
@@ -112,16 +131,29 @@ module tui.widget {
 		}
 		
 		render() {
-			var title = this._components["title"];
+			var toolbar = this._components["toolbar"];
 			var titleText = this.get("title");
-			if (titleText) {
-				title.innerHTML = browser.toSafeText(titleText);
-				title.style.display = "block";
-			} else
-				title.style.display = "none";
+			if (titleText || this.get("toolbar")) {
+				if (!titleText)
+					titleText = "";
+				toolbar.children[0].innerHTML = browser.toSafeText(titleText);
+				if (this.get("toolbar")) {
+					(<HTMLElement>toolbar.children[1]).style.display = "block";
+				} else
+					(<HTMLElement>toolbar.children[1]).style.display = "none";
+				toolbar.style.display = "block";
+				$(this._).addClass("tui-form-show-toolbar");
+			} else {
+				toolbar.style.display = "none";
+				$(this._).removeClass("tui-form-show-toolbar");
+			}
+			var designMode = (this.get("mode") === "design");
 			for (let item of this._items) {
 				if (!item.isPresent())
-					item.present();
+					item.show();
+				item.setDesign(designMode);
+				if (!designMode)
+					item.select(false);
 				item.render();
 				item.div.className = item.div.className.replace(/tui-form-item-exceed/g, "");
 				if (item.div.offsetWidth > this._.clientWidth - 20) {
@@ -136,16 +168,53 @@ module tui.widget {
 
 
 	export abstract class FormControl {
+		mask: HTMLDivElement;
 		div: HTMLDivElement;
 		label: HTMLLabelElement;
 		define: FormItem;
+		toolbar: HTMLDivElement;
+		btnEdit: Button;
+		btnDelete: Button;
+		btnAdd: Button;
+		btnMoveUp: Button;
+		btnMoveDown: Button;
+
 		protected form: Form;
+		protected selected: boolean;
 
 		constructor(form: Form, define: FormItem) {
+			this.selected = false;
 			this.form = form;
 			this.define = define;
 			this.div = document.createElement("div");
+			this.mask = document.createElement("div");
+			this.mask.setAttribute("unselectable", "on");
+			this.mask.className = "tui-form-item-mask";
+			this.mask.style.display = "none";
+			
+			var g1 = <ButtonGroup>create("button-group");
+			this.btnAdd = <Button>create("button", {text: "<i class='fa fa-plus'></i>"});
+			this.btnEdit = <Button>create("button", {text: "<i class='fa fa-pencil'></i>"});
+			this.btnAdd.appendTo(g1._);
+			this.btnEdit.appendTo(g1._);
+			
+			this.btnDelete = <Button>create("button", {text: "<i class='fa fa-trash'></i>"});
+
+			var g2 = <ButtonGroup>create("button-group");
+			this.btnMoveUp = <Button>create("button", {text: "<i class='fa fa-level-up'></i>"});
+			this.btnMoveDown = <Button>create("button", {text: "<i class='fa fa-level-down'></i>"});
+			this.btnMoveUp.appendTo(g2._);
+			this.btnMoveDown.appendTo(g2._);
+
+			this.toolbar = document.createElement("div");
+			this.toolbar.className = "tui-form-item-toolbar";
+			g1.appendTo(this.toolbar);
+			g2.appendTo(this.toolbar);
+			this.btnDelete.appendTo(this.toolbar);
+
+			this.div.appendChild(this.mask);
 			this.div.className = "tui-form-item-container";
+
 			if (define.size > 1 && define.size < 5)
 				this.div.className += " tui-form-item-size-" + Math.floor(define.size);
 			else if (define.size >= 5) {
@@ -166,18 +235,56 @@ module tui.widget {
 					this.label.className = "tui-form-item-important";
 				}
 			}
+			$(this.mask).mousedown((e: JQueryEventObject) => {
+				this.form.fire("itemmousedown", {e: e, control: this});
+			});
+			$(this.mask).mouseup((e: JQueryEventObject) => {
+				this.form.fire("itemmouseup", {e: e, control: this});
+			});
 		}
 
 		isPresent() {
 			return this.div.parentElement === this.form._;
 		}
 
-		gone() {
+		hide() {
 			this.form._.removeChild(this.div);
 		}
 
-		present() {
+		show() {
 			this.form._.appendChild(this.div);
+		}
+
+		setDesign(value: boolean) {
+			if (value) {
+				browser.addClass(this.div, "tui-form-in-design");
+			} else {
+				browser.removeClass(this.div, "tui-form-in-design");
+			}
+		}
+
+		select(value: boolean) {
+			this.selected = !!value;
+			if (this.selected) {
+				browser.addClass(this.div, "tui-form-item-selected");
+				this.toolbar.style.opacity = "0";
+				this.div.appendChild(this.toolbar);
+				setTimeout(() => {
+					if (this.selected)
+						this.toolbar.style.opacity = "1";
+				},16);
+			} else {
+				browser.removeClass(this.div, "tui-form-item-selected");
+				this.toolbar.style.opacity = "0";
+				setTimeout(() => {
+					if (!this.selected)
+						browser.removeNode(this.toolbar);
+				}, 500);
+				
+			}
+		}
+		isSelect(): boolean {
+			return this.selected;
 		}
 
 		getKey(): string {
@@ -299,10 +406,40 @@ module tui.widget {
 	}
 	Form.register("picture", FormPicture);
 
-
-	class FormLine extends FormControl {
-		private _hr: HTMLHRElement;
+	class FormFile extends BasicFormControl<File> {
 		constructor(form: Form, define: FormItem) {
+			super(form, define, "file", tui.str("form.file"));
+		}
+		showProperty(): void {
+			throw new Error('Method not implemented.');
+		}
+		validate(): boolean {
+			return this._widget.validate();
+		}
+	}
+	Form.register("file", FormFile);
+
+	class FormFiles extends BasicFormControl<Files> {
+		constructor(form: Form, define: FormItem) {
+			super(form, define, "files", tui.str("form.files"));
+		}
+		showProperty(): void {
+			throw new Error('Method not implemented.');
+		}
+		validate(): boolean {
+			return true;
+		}
+	}
+	Form.register("files", FormFiles);
+
+
+	interface SectionFormItem extends FormItem {
+		fontSize: number;
+		align: string;
+	}
+	class FormSection extends FormControl {
+		private _hr: HTMLHRElement;
+		constructor(form: Form, define: SectionFormItem) {
 			super(form, define);
 			this._hr = document.createElement("hr")
 			this.div.appendChild(this._hr);
@@ -310,13 +447,19 @@ module tui.widget {
 			this.div.style.width = "initial";
 			if (define.label) {
 				this._hr.className = "tui-form-line-label";
+				if (typeof define.fontSize === "number" && define.fontSize >= 12 && define.fontSize < 48)
+					this.label.style.fontSize = define.fontSize + "px";
+				if (typeof define.align == "string" && define.align.match(/^(left|right|center)$/i))
+					this.label.style.textAlign = define.align;
+				else
+					this.label.style.textAlign = "left";
 			} else {
 				this._hr.className = "";
 			}
 		}
 
 		getName(): string {
-			return tui.str("form.line");
+			return tui.str("form.section");
 		}
 		getValue(): any {
 			return null;
@@ -330,7 +473,7 @@ module tui.widget {
 			return true;
 		}
 	}
-	Form.register("line", FormLine);
+	Form.register("section", FormSection);
 
 
 	interface GroupFormItem extends FormItem {
@@ -437,7 +580,7 @@ module tui.widget {
 			this._btnDelete = <Button>create("button", {text: "<i class='fa fa-trash'></i>"});
 			this._btnDelete.appendTo(this._buttonBar);
 
-			this._buttonBar.style.paddingTop = "5px";
+			this._widget._.style.margin = "2px";
 			
 		}
 		showProperty(): void {
