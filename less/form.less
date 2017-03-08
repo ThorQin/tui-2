@@ -121,14 +121,24 @@ tui\:form {
 			z-index: 30;
 			background-color: #444;
 			transition: opacity .3s;
+			padding: 0px 2px;
 			tui\:button {
-				padding:5px 10px;
+				padding:7px 9px;
+				margin: 0px 0px;
 				font-size: 12px;
 				background-color: transparent;
 				color: #ccc;
 				height: initial;
 				border: none;
 				line-height: initial;
+			}
+			span {
+				display: inline-block;
+				height: 10px;
+				width: 1px;
+				background-color: #555;
+				vertical-align: middle;
+				margin: 0 3px;
 			}
 		}
 
@@ -174,6 +184,24 @@ tui\:form {
 		}
 	}
 
+	>div.tui-form-new-item-box {
+		margin: 10px 10px;
+		width: 200px;
+		height: 80px;
+		line-height: 80px;
+		text-align: center;
+		display: inline-block;
+		vertical-align: top;
+		position: relative;
+		border: 2px dashed #ccc;
+		color: #ccc;
+		cursor: pointer;
+		.icon-base();
+		font-size: 24px;
+		&:before {
+			.fa-plus();
+		}
+	}
 	
 }
 

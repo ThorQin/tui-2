@@ -150,12 +150,12 @@ var tui;
                         var mapUrl = "https://webapi.amap.com/maps?v=1.3&key=" + this.get("appKey") + "&callback=tui_widget_ext_Location_initApi";
                         $.getScript(mapUrl);
                     }
-                    var dialogContent = this._components["content"] = document.createElement("div");
+                    var dialogContent = this._components["content"] = tui.elem("div");
                     dialogContent.className = "tui-map-content";
-                    var address = this._components["address"] = document.createElement("div");
+                    var address = this._components["address"] = tui.elem("div");
                     address.className = "tui-map-address";
                     dialogContent.appendChild(address);
-                    var mapDiv = this._components["map"] = document.createElement("div");
+                    var mapDiv = this._components["map"] = tui.elem("div");
                     mapDiv.className = "tui-map-container";
                     dialogContent.appendChild(mapDiv);
                     var input = widget.get(this._components["input"]);

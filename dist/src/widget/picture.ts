@@ -43,7 +43,7 @@ module tui.widget {
 		}
 
 		protected init(): void {
-			var img = this._components["image"] = document.createElement("img");
+			var img = this._components["image"] = elem("img");
 			this._.appendChild(img);
 			this._uploader.on("success", (e: any) => {
 				this._set("value", e.data.response.fileId);

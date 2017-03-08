@@ -102,7 +102,7 @@ module tui.ajax {
 	function getHtmlBody(result: string): HTMLElement {
 		// To compatible IE 8~9 I must parse html by myself!
 		if (result == null || result.length == 0)
-			return document.createElement("body");
+			return elem("body");
 		TAG.lastIndex = 0;
 		// let len = result.length;
 		let m: RegExpExecArray;
@@ -132,7 +132,7 @@ module tui.ajax {
 				result = result.substring(bodyStart);
 			}
 		}
-		var body = document.createElement("body");
+		var body = elem("body");
 		body.innerHTML = result;
 		return body;
 	}

@@ -4,7 +4,7 @@ module tui.widget {
 	
 	export var dialogStack: Dialog[] = [];
 	
-	var _mask: HTMLDivElement = document.createElement("div");
+	var _mask = <HTMLDivElement>elem("div");
 	_mask.className = "tui-dialog-mask";
 	_mask.setAttribute("unselectable", "on");
 	var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
@@ -68,7 +68,7 @@ module tui.widget {
 
 		protected initChildren(childNodes: Node[]) {
 			if (childNodes.length > 0) {
-				var div = document.createElement("div");
+				var div = elem("div");
 				for (let node of childNodes) {
 					div.appendChild(node);
 				}

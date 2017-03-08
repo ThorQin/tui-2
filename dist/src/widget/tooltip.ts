@@ -2,7 +2,7 @@
 module tui.widget {
 	"use strict";
 	
-	var _tooltip: HTMLSpanElement = document.createElement("span");
+	var _tooltip = <HTMLSpanElement>elem("span");
 	_tooltip.className = "tui-tooltip";
 	_tooltip.setAttribute("unselectable", "on");
 	var _tooltipTarget: HTMLElement = null;

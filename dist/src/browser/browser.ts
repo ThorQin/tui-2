@@ -59,7 +59,7 @@ module tui.browser {
 	}
 
 	export function toElement(html: string, withParentDiv: boolean = false): HTMLElement {
-		var div = document.createElement("div");
+		var div = elem("div");
 		div.innerHTML = $.trim(html);
 		if (withParentDiv)
 			return div;
@@ -71,7 +71,7 @@ module tui.browser {
 	export function toHTML(node: Node[]): string;
 	export function toHTML(node: Node): string;
 	export function toHTML(node: any): string {
-		var elem = document.createElement("span");
+		var elem = tui.elem("div");
 		if (typeof node.nodeName === "string") {
 			elem.appendChild(node);
 		} else if (typeof node.length === "number") {
@@ -80,6 +80,38 @@ module tui.browser {
 			}
 		} 
 		return elem.innerHTML;
+	}
+
+	export function addClass(elem: HTMLElement, classNames: string) {
+		var oldClass = elem.className;
+		if (oldClass && oldClass.trim()) {
+			var oldNames = oldClass.trim().split(/\s+/);
+			if (classNames && classNames.trim()) {
+				var names = classNames.trim().split(/\s+/);
+				for (let n of names) {
+					if (oldNames.indexOf(n) < 0)
+						oldNames.push(n);
+				}
+				elem.className = oldNames.join(" ");
+			}
+		} else
+			elem.className = classNames;
+	}
+
+	export function removeClass(elem: HTMLElement, classNames: string) {
+		var oldClass = elem.className;
+		if (oldClass && oldClass.trim()) {
+			var oldNames = oldClass.trim().split(/\s+/);
+			if (classNames && classNames.trim()) {
+				var names = classNames.trim().split(/\s+/);
+				var newClass = "";
+				for (let n of oldNames) {
+					if (names.indexOf(n) < 0)
+						newClass += " " + n
+				}
+				elem.className = newClass;
+			}
+		}
 	}
 
 	export function removeNode(node: Node): void {
@@ -321,22 +353,22 @@ module tui.browser {
 		$(document).bind("keydown", ban);
 	}
 
-	export function cancelDefault(event: any): boolean {
-		if(event.preventDefault) {
-			event.preventDefault();
-		} else {
-			event.returnValue = false;
-		}
-		return false;
-	}
+	// export function cancelDefault(event: any): boolean {
+	// 	if(event.preventDefault) {
+	// 		event.preventDefault();
+	// 	} else {
+	// 		event.returnValue = false;
+	// 	}
+	// 	return false;
+	// }
 	
-	export function cancelBubble(event: any): boolean {
-		if (event && event.stopPropagation)
-			event.stopPropagation(); 
-		else
-			window.event.cancelBubble = true;
-		return false;
-	}
+	// export function cancelBubble(event: any): boolean {
+	// 	if (event && event.stopPropagation)
+	// 		event.stopPropagation(); 
+	// 	else
+	// 		window.event.cancelBubble = true;
+	// 	return false;
+	// }
 	
 	/**
 	 * Detect whether the given parent element is the real ancestry element
@@ -569,7 +601,7 @@ module tui.browser {
 	export function setInnerHtml(elem: HTMLElement, content: string) {
 		if (tui.ieVer > 0 && tui.ieVer < 9) {
 			elem.innerHTML = "";
-			var d = document.createElement("div");
+			var d = tui.elem("div");
 			d.innerHTML = content;
 			while (d.children.length > 0)
 				elem.appendChild(d.children[0]);

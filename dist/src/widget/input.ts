@@ -14,7 +14,7 @@ module tui.widget {
 		
 		protected initRestriction(): void {
 			super.initRestriction();
-			var textbox = this._components["textbox"] = document.createElement("input");
+			var textbox = this._components["textbox"] = <HTMLInputElement>elem("input");
 			this.setRestrictions({
 				"value": {
 					"set": (value: any) => {
@@ -55,12 +55,12 @@ module tui.widget {
 		
 		protected init(): void {
 			var $root = $(this._);
-			var placeholder = this._components["placeholder"] = document.createElement("span");
+			var placeholder = this._components["placeholder"] = elem("span");
 			var textbox = <HTMLInputElement>this._components["textbox"];
-			var iconLeft = this._components["iconLeft"] = document.createElement("i");
-			var iconRight = this._components["iconRight"] = document.createElement("i");
-			var iconInvalid = this._components["iconInvalid"] = document.createElement("i");
-			var clearButton = this._components["clearButton"] = document.createElement("i");
+			var iconLeft = this._components["iconLeft"] = elem("i");
+			var iconRight = this._components["iconRight"] = elem("i");
+			var iconInvalid = this._components["iconInvalid"] = elem("i");
+			var clearButton = this._components["clearButton"] = elem("i");
 			iconInvalid.className = "tui-invalid-icon";
 			clearButton.className = "tui-input-clear-button";
 			placeholder.className = "tui-placeholder";

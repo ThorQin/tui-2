@@ -415,7 +415,7 @@ module tui.widget {
 		var constructor = widgetRegistration["tui:" + type.toLowerCase()];
 		if (typeof constructor !== "function")
 			throw new Error("Undefined type: " + type);
-		var element = document.createElement("tui:" + type);
+		var element = elem("tui:" + type);
 		var obj: Widget;
 		if (typeof initParam !== UNDEFINED)
 			obj = new constructor(element, initParam);

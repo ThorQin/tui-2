@@ -99,7 +99,7 @@ module tui.browser {
 			if (this._input) {
 				return;
 			}
-			var input = document.createElement("input");
+			var input = <HTMLInputElement>elem("input");
 			input.setAttribute('type', 'file');
 			if (this._settings.accept)
 				input.setAttribute('accept', this._settings.accept);
@@ -329,7 +329,7 @@ module tui.browser {
 			if (extraData) {
 				for (var prop in extraData) {
 					if (extraData.hasOwnProperty(prop)) {
-						var el = document.createElement("input");
+						var el = elem("input");
 						el.setAttribute('type', 'hidden');
 						el.setAttribute('name', prop);
 						el.setAttribute('value', extraData[prop]);

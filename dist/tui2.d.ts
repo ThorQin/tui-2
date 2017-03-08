@@ -1,6 +1,7 @@
 /// <reference path="../src/jquery.d.ts" />
 declare module tui {
     const UNDEFINED: string;
+    function elem(nodeName: string): HTMLElement;
     var lang: string;
     function dict(lang: string, dictionary: {
         [index: string]: string;
@@ -55,6 +56,8 @@ declare module tui.browser {
     function toHTML(node: NodeList): string;
     function toHTML(node: Node[]): string;
     function toHTML(node: Node): string;
+    function addClass(elem: HTMLElement, classNames: string): void;
+    function removeClass(elem: HTMLElement, classNames: string): void;
     function removeNode(node: Node): void;
     function toSafeText(text: string): string;
     function getNodeText(elem: any): string;
@@ -81,8 +84,6 @@ declare module tui.browser {
     function getCurrentStyle(elem: HTMLElement): CSSStyleDeclaration;
     function isLButton(e: any): boolean;
     function banBackspace(): void;
-    function cancelDefault(event: any): boolean;
-    function cancelBubble(event: any): boolean;
     function isAncestry(elem: Node, parent: Node): boolean;
     function isPosterity(elem: Node, child: Node): boolean;
     function isFireInside(elem: Node, event: any): boolean;
@@ -620,6 +621,8 @@ declare module tui.widget {
         private _values;
         protected initRestriction(): void;
         protected init(): void;
+        private bindRemove(removeIcon, fileIndex);
+        private bindDownload(item, url);
         render(): void;
     }
 }
@@ -639,25 +642,39 @@ declare module tui.widget {
         new (form: Form, define: FormItem): FormControl;
     }
     class Form extends Widget {
-        private _definitionChanged;
-        private _items;
+        protected _definitionChanged: boolean;
+        protected _items: FormControl[];
         static register(type: string, controlType: FormControlConstructor): void;
-        private removeAll();
+        protected removeAll(): void;
+        protected hideAll(): void;
         protected initRestriction(): void;
         protected init(): void;
         validate(): boolean;
         render(): void;
     }
     abstract class FormControl {
-        div: HTMLDivElement;
-        label: HTMLLabelElement;
+        mask: HTMLElement;
+        div: HTMLElement;
+        label: HTMLElement;
         define: FormItem;
+        toolbar: HTMLElement;
+        btnEdit: Button;
+        btnDelete: Button;
+        btnAdd: Button;
+        btnMoveUp: Button;
+        btnMoveDown: Button;
+        btnSize: Button;
         protected form: Form;
+        protected selected: boolean;
         constructor(form: Form, define: FormItem);
         isPresent(): boolean;
-        gone(): void;
-        present(): void;
+        hide(): void;
+        show(): void;
+        setDesign(value: boolean): void;
+        select(value: boolean): void;
+        isSelect(): boolean;
         getKey(): string;
+        protected applySize(): void;
         abstract getName(): string;
         abstract getValue(): any;
         abstract setValue(value: any): void;

@@ -37,6 +37,12 @@ module tui.widget {
 			this._items = [];
 		}
 
+		protected hideAll() {
+			for (let item of this._items) {
+				item.hide();
+			}
+		}
+
 		protected initRestriction(): void {
 			super.initRestriction();
 			this._items = [];
@@ -93,20 +99,55 @@ module tui.widget {
 		}
 
 		protected init(): void {
-			var toolbar = this._components["toolbar"] = document.createElement("div");
+			var toolbar = this._components["toolbar"] = elem("div");
 			toolbar.className = "tui-form-toolbar";
-			var title = document.createElement("div");
+			var title = elem("div");
 			title.className = "tui-form-title";
-			var buttons = document.createElement("div");
+			var buttons = elem("div");
 			buttons.className = "tui-form-buttons";
-			var btnPrint = document.createElement("span");
+			var btnPrint = elem("span");
 			btnPrint.className = "tui-form-btn tui-form-btn-print";
+
+			var newItem = this._components["newitem"] = elem("div");
+			newItem.className = "tui-form-new-item-box";
+
 			buttons.appendChild(btnPrint);
 			toolbar.appendChild(title);
 			toolbar.appendChild(buttons);
 			this._.appendChild(toolbar);
 			this.on("resize", () => {
 				this.render();
+			});
+			this.on("itemremove", (e: any) => {
+				var pos = this._items.indexOf(e.data.control);
+				if (pos >= 0) {
+					this._items.splice(pos, 1);
+					e.data.control.hide();
+					this.render();
+				}
+			});
+			this.on("itemresize", (e: any) => {
+				this.render();
+			});
+			this.on("itemmoveup", (e: any) => {
+				var pos = this._items.indexOf(e.data.control);
+				if (pos > 0) {
+					var tmp = this._items[pos];
+					this._items[pos] = this._items[pos - 1];
+					this._items[pos - 1] = tmp;
+					this.hideAll();
+					this.render();
+				}
+			});
+			this.on("itemmovedown", (e: any) => {
+				var pos = this._items.indexOf(e.data.control);
+				if (pos >= 0 && pos < this._items.length - 1) {
+					var tmp = this._items[pos];
+					this._items[pos] = this._items[pos + 1];
+					this._items[pos + 1] = tmp;
+					this.hideAll();
+					this.render();
+				}
 			});
 			this.on("itemmousedown", (e: any) => {
 				
@@ -160,6 +201,11 @@ module tui.widget {
 					item.div.className += " tui-form-item-exceed";
 				}
 			}
+			var newItem = this._components["newitem"];
+			browser.removeNode(newItem);
+			if (designMode) {
+				this._.appendChild(newItem);
+			}
 		}
 	}
 
@@ -168,16 +214,17 @@ module tui.widget {
 
 
 	export abstract class FormControl {
-		mask: HTMLDivElement;
-		div: HTMLDivElement;
-		label: HTMLLabelElement;
+		mask: HTMLElement;
+		div: HTMLElement;
+		label: HTMLElement;
 		define: FormItem;
-		toolbar: HTMLDivElement;
+		toolbar: HTMLElement;
 		btnEdit: Button;
 		btnDelete: Button;
 		btnAdd: Button;
 		btnMoveUp: Button;
 		btnMoveDown: Button;
+		btnSize: Button;
 
 		protected form: Form;
 		protected selected: boolean;
@@ -186,45 +233,36 @@ module tui.widget {
 			this.selected = false;
 			this.form = form;
 			this.define = define;
-			this.div = document.createElement("div");
-			this.mask = document.createElement("div");
+			this.div = elem("div");
+			this.mask = elem("div");
 			this.mask.setAttribute("unselectable", "on");
 			this.mask.className = "tui-form-item-mask";
 			this.mask.style.display = "none";
 			
-			var g1 = <ButtonGroup>create("button-group");
-			this.btnAdd = <Button>create("button", {text: "<i class='fa fa-plus'></i>"});
-			this.btnEdit = <Button>create("button", {text: "<i class='fa fa-pencil'></i>"});
-			this.btnAdd.appendTo(g1._);
-			this.btnEdit.appendTo(g1._);
-			
-			this.btnDelete = <Button>create("button", {text: "<i class='fa fa-trash'></i>"});
-
-			var g2 = <ButtonGroup>create("button-group");
-			this.btnMoveUp = <Button>create("button", {text: "<i class='fa fa-level-up'></i>"});
-			this.btnMoveDown = <Button>create("button", {text: "<i class='fa fa-level-down'></i>"});
-			this.btnMoveUp.appendTo(g2._);
-			this.btnMoveDown.appendTo(g2._);
-
-			this.toolbar = document.createElement("div");
+			this.toolbar = elem("div");
 			this.toolbar.className = "tui-form-item-toolbar";
-			g1.appendTo(this.toolbar);
-			g2.appendTo(this.toolbar);
+
+			this.btnAdd = <Button>create("button", {text: "<i class='fa fa-plus'></i>"});
+			this.btnAdd.appendTo(this.toolbar);
+			this.btnEdit = <Button>create("button", {text: "<i class='fa fa-pencil'></i>"});
+			this.btnEdit.appendTo(this.toolbar);
+			this.btnSize = <Button>create("button", {text: "<i class='fa fa-arrows-alt'></i>"});
+			this.btnSize.appendTo(this.toolbar);
+			this.toolbar.appendChild(elem("span"))
+			this.btnMoveUp = <Button>create("button", {text: "<i class='fa fa-level-up'></i>"});
+			this.btnMoveUp.appendTo(this.toolbar);
+			this.btnMoveDown = <Button>create("button", {text: "<i class='fa fa-level-down'></i>"});
+			this.btnMoveDown.appendTo(this.toolbar);
+			this.toolbar.appendChild(elem("span"))
+			this.btnDelete = <Button>create("button", {text: "<i class='fa fa-trash'></i>"});
 			this.btnDelete.appendTo(this.toolbar);
 
 			this.div.appendChild(this.mask);
 			this.div.className = "tui-form-item-container";
 
-			if (define.size > 1 && define.size < 5)
-				this.div.className += " tui-form-item-size-" + Math.floor(define.size);
-			else if (define.size >= 5) {
-				this.div.className += " tui-form-item-size-full";
-			} 
-			if (define.newline) {
-				this.div.className += " tui-form-item-newline";
-			}
+			this.applySize();
 			
-			this.label = document.createElement("label");
+			this.label = elem("label");
 			this.label.className = "tui-form-item-label";
 			this.div.appendChild(this.label);
 			if (!define.label)
@@ -240,6 +278,37 @@ module tui.widget {
 			});
 			$(this.mask).mouseup((e: JQueryEventObject) => {
 				this.form.fire("itemmouseup", {e: e, control: this});
+			});
+			this.btnDelete.on("click", () => {
+				this.form.fire("itemremove", {control: this});
+			});
+			var menu = <Popup>create("menu");
+			this.btnSize.on("click", () => {
+				menu._set("items", [
+					{type: "radio", text: "1x", group: "size", value: 1, checked: this.define.size === 1},
+					{type: "radio", text: "2x", group: "size", value: 2, checked: this.define.size === 2},
+					{type: "radio", text: "3x", group: "size", value: 3, checked: this.define.size === 3},
+					{type: "radio", text: "4x", group: "size", value: 4, checked: this.define.size === 4},
+					{type: "radio", text: str("Fill"), group: "size", value: 5, checked: this.define.size === 5},
+					{type: "line"},
+					{type: "check", text: str("New Line"), value: "newline", checked: this.define.newline}
+				]);
+				menu.open(this.btnSize._);
+			});
+			menu.on("click", (e) => {
+				var v = e.data.item.value;
+				if (v >= 1 && v <= 5)
+					this.define.size = v;
+				else if (v === "newline")
+					this.define.newline = !this.define.newline;
+				this.applySize();
+				this.form.fire("itemresize", {e: e, control: this});
+			});
+			this.btnMoveUp.on("click", () => {
+				this.form.fire("itemmoveup", {control: this});
+			});
+			this.btnMoveDown.on("click", () => {
+				this.form.fire("itemmovedown", {control: this});
 			});
 		}
 
@@ -289,6 +358,25 @@ module tui.widget {
 
 		getKey(): string {
 			return this.define.key || null;
+		}
+
+		protected applySize() {
+			var define = this.define;
+			browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-full tui-form-item-newline");
+			if (define.size > 1 && define.size < 5) {
+				define.size = Math.floor(define.size);
+				browser.addClass(this.div, " tui-form-item-size-" + define.size);
+			} else if (define.size >= 5) {
+				browser.addClass(this.div, "tui-form-item-size-full");
+				define.size = 5;
+			} else
+				define.size = 1;
+			if (define.newline) {
+				define.newline = true;
+				browser.addClass(this.div, "tui-form-item-newline");
+			} else {
+				define.newline = false;
+			}
 		}
 
 		abstract getName(): string;
@@ -438,10 +526,10 @@ module tui.widget {
 		align: string;
 	}
 	class FormSection extends FormControl {
-		private _hr: HTMLHRElement;
+		private _hr: HTMLElement;
 		constructor(form: Form, define: SectionFormItem) {
 			super(form, define);
-			this._hr = document.createElement("hr")
+			this._hr = elem("hr")
 			this.div.appendChild(this._hr);
 			this.div.style.display = "block";
 			this.div.style.width = "initial";
@@ -544,7 +632,7 @@ module tui.widget {
 	}
 	class FormGrid extends BasicFormControl<Grid> {
 		private _values: any[];
-		private _buttonBar: HTMLDivElement;
+		private _buttonBar: HTMLElement;
 		private _btnAdd: Button;
 		private _btnEdit: Button;
 		private _btnDelete: Button;
@@ -564,7 +652,7 @@ module tui.widget {
 				}
 				this._widget._set("columns", columns);
 			}
-			this._buttonBar = document.createElement("div");
+			this._buttonBar = elem("div");
 			this.div.appendChild(this._buttonBar);
 
 			var gp = <ButtonGroup>create("button-group");

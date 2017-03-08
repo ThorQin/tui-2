@@ -91,9 +91,9 @@ var tui;
                 };
                 Navigator.prototype.init = function () {
                     var _this = this;
-                    var container = this._components["container"] = document.createElement("div");
-                    var up = this._components["up"] = document.createElement("div");
-                    var down = this._components["down"] = document.createElement("div");
+                    var container = this._components["container"] = tui.elem("div");
+                    var up = this._components["up"] = tui.elem("div");
+                    var down = this._components["down"] = tui.elem("div");
                     container.className = "tui-container";
                     up.className = "tui-up";
                     down.className = "tui-down";
@@ -205,7 +205,7 @@ var tui;
                 Navigator.prototype.drawItems = function (parent, items, level) {
                     for (var _i = 0, items_1 = items; _i < items_1.length; _i++) {
                         var item = items_1[_i];
-                        var line = document.createElement("div");
+                        var line = tui.elem("div");
                         line.item = item;
                         var $line = $(line);
                         $line.attr("unselectable", "on");
@@ -215,7 +215,7 @@ var tui;
                         if (level > 0)
                             $line.addClass("tui-child");
                         if (item.icon) {
-                            var icon = document.createElement("i");
+                            var icon = tui.elem("i");
                             icon.className = item.icon;
                             line.insertBefore(icon, line.firstChild);
                         }
@@ -223,13 +223,13 @@ var tui;
                             line.setAttribute("path", item.path);
                         if (item.name)
                             line.setAttribute("name", item.name);
-                        var space = document.createElement("span");
+                        var space = tui.elem("span");
                         space.style.display = "inline-block";
                         space.style.width = 20 * level + "px";
                         line.insertBefore(space, line.firstChild);
                         parent.appendChild(line);
                         if (item.children && item.children.length > 0) {
-                            var subArea = document.createElement("div");
+                            var subArea = tui.elem("div");
                             subArea.className = "tui-sub";
                             if (item.expand) {
                                 $line.addClass("tui-expand");

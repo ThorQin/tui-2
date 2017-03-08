@@ -41,8 +41,8 @@ module tui.widget {
 			this.setInit("iconRight", "fa-calendar");
 			var calendar = <Calendar>get(this._components["calendar"]);
 			
-			var container = document.createElement("div"); 
-			var toolbar = <HTMLElement>container.appendChild(document.createElement("div"));
+			var container = elem("div"); 
+			var toolbar = <HTMLElement>container.appendChild(elem("div"));
 			toolbar.className = "tui-select-toolbar";
 			container.insertBefore(calendar._, container.firstChild);
 			

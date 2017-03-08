@@ -60,5 +60,7 @@ tui.dict("zh-cn", {
     "please.select.point": "请选择地图上的点。",
 	"clear": "清除",
     "invalid.file.type": "无效的文件类型！",
-    "geo.location.failed": "获取当前位置失败，请检查您的浏览器是否可以使用定位服务。"
+    "geo.location.failed": "获取当前位置失败，请检查您的浏览器是否可以使用定位服务。",
+    "Fill": "填充",
+    "New Line": "换行"
 });

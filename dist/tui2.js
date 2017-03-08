@@ -37,6 +37,10 @@ var tui;
     tui.UNDEFINED = (function (undefined) {
         return typeof undefined;
     })();
+    function elem(nodeName) {
+        return document.createElement(nodeName);
+    }
+    tui.elem = elem;
     tui.lang = (function () {
         return (navigator.language || navigator.browserLanguage || navigator.userLanguage).toLowerCase();
     })();
@@ -514,7 +518,7 @@ var tui;
         browser.scrollToElement = scrollToElement;
         function toElement(html, withParentDiv) {
             if (withParentDiv === void 0) { withParentDiv = false; }
-            var div = document.createElement("div");
+            var div = tui.elem("div");
             div.innerHTML = $.trim(html);
             if (withParentDiv)
                 return div;
@@ -523,7 +527,7 @@ var tui;
         }
         browser.toElement = toElement;
         function toHTML(node) {
-            var elem = document.createElement("span");
+            var elem = tui.elem("div");
             if (typeof node.nodeName === "string") {
                 elem.appendChild(node);
             }
@@ -535,6 +539,41 @@ var tui;
             return elem.innerHTML;
         }
         browser.toHTML = toHTML;
+        function addClass(elem, classNames) {
+            var oldClass = elem.className;
+            if (oldClass && oldClass.trim()) {
+                var oldNames = oldClass.trim().split(/\s+/);
+                if (classNames && classNames.trim()) {
+                    var names = classNames.trim().split(/\s+/);
+                    for (var _i = 0, names_1 = names; _i < names_1.length; _i++) {
+                        var n = names_1[_i];
+                        if (oldNames.indexOf(n) < 0)
+                            oldNames.push(n);
+                    }
+                    elem.className = oldNames.join(" ");
+                }
+            }
+            else
+                elem.className = classNames;
+        }
+        browser.addClass = addClass;
+        function removeClass(elem, classNames) {
+            var oldClass = elem.className;
+            if (oldClass && oldClass.trim()) {
+                var oldNames = oldClass.trim().split(/\s+/);
+                if (classNames && classNames.trim()) {
+                    var names = classNames.trim().split(/\s+/);
+                    var newClass = "";
+                    for (var _i = 0, oldNames_1 = oldNames; _i < oldNames_1.length; _i++) {
+                        var n = oldNames_1[_i];
+                        if (names.indexOf(n) < 0)
+                            newClass += " " + n;
+                    }
+                    elem.className = newClass;
+                }
+            }
+        }
+        browser.removeClass = removeClass;
         function removeNode(node) {
             node.parentNode && node.parentNode.removeChild(node);
         }
@@ -743,24 +782,6 @@ var tui;
             $(document).bind("keydown", ban);
         }
         browser.banBackspace = banBackspace;
-        function cancelDefault(event) {
-            if (event.preventDefault) {
-                event.preventDefault();
-            }
-            else {
-                event.returnValue = false;
-            }
-            return false;
-        }
-        browser.cancelDefault = cancelDefault;
-        function cancelBubble(event) {
-            if (event && event.stopPropagation)
-                event.stopPropagation();
-            else
-                window.event.cancelBubble = true;
-            return false;
-        }
-        browser.cancelBubble = cancelBubble;
         function isAncestry(elem, parent) {
             while (elem) {
                 if (elem === parent)
@@ -951,7 +972,7 @@ var tui;
         function setInnerHtml(elem, content) {
             if (tui.ieVer > 0 && tui.ieVer < 9) {
                 elem.innerHTML = "";
-                var d = document.createElement("div");
+                var d = tui.elem("div");
                 d.innerHTML = content;
                 while (d.children.length > 0)
                     elem.appendChild(d.children[0]);
@@ -1192,7 +1213,7 @@ var tui;
     (function (widget) {
         "use strict";
         var _maskOpened = false;
-        var _mask = document.createElement("div");
+        var _mask = tui.elem("div");
         _mask.setAttribute("unselectable", "on");
         _mask.onselectstart = function () { return false; };
         var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
@@ -1333,8 +1354,8 @@ var tui;
                         if (!/^(id|name)$/i.test(attr.name.toLowerCase()))
                             names.push(attr.name);
                     }
-                    for (var _i = 0, names_1 = names; _i < names_1.length; _i++) {
-                        var name_2 = names_1[_i];
+                    for (var _i = 0, names_2 = names; _i < names_2.length; _i++) {
+                        var name_2 = names_2[_i];
                         elem.attributes.removeNamedItem(name_2);
                         if (/^(onclick|onmousedown|onmouseup|onmousemove|ondblclick|onkeydown|onkeyup|onkeypress)$/i.test(name_2))
                             elem[name_2.toLowerCase()] = null;
@@ -1638,7 +1659,7 @@ var tui;
             var constructor = widgetRegistration["tui:" + type.toLowerCase()];
             if (typeof constructor !== "function")
                 throw new Error("Undefined type: " + type);
-            var element = document.createElement("tui:" + type);
+            var element = tui.elem("tui:" + type);
             var obj;
             if (typeof initParam !== tui.UNDEFINED)
                 obj = new constructor(element, initParam);
@@ -1672,24 +1693,24 @@ var tui;
                 for (var i = 0; i < parent.childNodes.length; i++) {
                     var node = parent.childNodes[i];
                     if (node.nodeType === 1) {
-                        var elem = node;
-                        var constructor = widgetRegistration[getFullName(elem)];
+                        var elem_1 = node;
+                        var constructor = widgetRegistration[getFullName(elem_1)];
                         if (constructor) {
-                            var item = [elem, constructor];
+                            var item = [elem_1, constructor];
                             initSet.push(item);
                         }
                         else
-                            searchInitCtrls(elem);
+                            searchInitCtrls(elem_1);
                     }
                 }
             }
             searchInitCtrls(parent);
             for (var _i = 0, initSet_1 = initSet; _i < initSet_1.length; _i++) {
                 var item = initSet_1[_i];
-                var elem = item[0];
+                var elem_2 = item[0];
                 var constructor = item[1];
-                if (!elem.__widget__) {
-                    var widget_2 = new constructor(elem);
+                if (!elem_2.__widget__) {
+                    var widget_2 = new constructor(elem_2);
                     if (typeof initFunc === "function") {
                         if (initFunc(widget_2))
                             widget_2.set("autoRefresh", true);
@@ -1698,7 +1719,7 @@ var tui;
                         widget_2.set("autoRefresh", true);
                 }
                 else {
-                    var widget_3 = elem.__widget__;
+                    var widget_3 = elem_2.__widget__;
                     widget_3.refresh();
                 }
             }
@@ -1793,7 +1814,7 @@ var tui;
     (function (widget) {
         "use strict";
         widget.dialogStack = [];
-        var _mask = document.createElement("div");
+        var _mask = tui.elem("div");
         _mask.className = "tui-dialog-mask";
         _mask.setAttribute("unselectable", "on");
         var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
@@ -1843,7 +1864,7 @@ var tui;
             }
             Dialog.prototype.initChildren = function (childNodes) {
                 if (childNodes.length > 0) {
-                    var div = document.createElement("div");
+                    var div = tui.elem("div");
                     for (var _i = 0, childNodes_2 = childNodes; _i < childNodes_2.length; _i++) {
                         var node = childNodes_2[_i];
                         div.appendChild(node);
@@ -1935,8 +1956,8 @@ var tui;
                         });
                         btn.appendTo(buttonBar);
                     };
-                    for (var _i = 0, names_2 = names; _i < names_2.length; _i++) {
-                        var name_3 = names_2[_i];
+                    for (var _i = 0, names_3 = names; _i < names_3.length; _i++) {
+                        var name_3 = names_3[_i];
                         _loop_1(name_3);
                     }
                     buttonBar.style.display = "block";
@@ -2324,7 +2345,7 @@ var tui;
         var SCRIPT_END = /<\/\s*script(\s+[a-z0-9_\-]+(\s*=('[^']*'|"[^"]*"|[^\s>]+)))*>/img;
         function getHtmlBody(result) {
             if (result == null || result.length == 0)
-                return document.createElement("body");
+                return tui.elem("body");
             TAG.lastIndex = 0;
             var m;
             var bodyStart = null;
@@ -2357,7 +2378,7 @@ var tui;
                     result = result.substring(bodyStart);
                 }
             }
-            var body = document.createElement("body");
+            var body = tui.elem("body");
             body.innerHTML = result;
             return body;
         }
@@ -2550,7 +2571,7 @@ var tui;
                 if (this._input) {
                     return;
                 }
-                var input = document.createElement("input");
+                var input = tui.elem("input");
                 input.setAttribute('type', 'file');
                 if (this._settings.accept)
                     input.setAttribute('accept', this._settings.accept);
@@ -2750,7 +2771,7 @@ var tui;
                 if (extraData) {
                     for (var prop in extraData) {
                         if (extraData.hasOwnProperty(prop)) {
-                            var el = document.createElement("input");
+                            var el = tui.elem("input");
                             el.setAttribute('type', 'hidden');
                             el.setAttribute('name', prop);
                             el.setAttribute('value', extraData[prop]);
@@ -3867,8 +3888,8 @@ var tui;
                             });
                         }
                         for (var _i = 0, result_1 = result; _i < result_1.length; _i++) {
-                            var elem = result_1[_i];
-                            elem.set("checked", false);
+                            var elem_3 = result_1[_i];
+                            elem_3.set("checked", false);
                         }
                     }
                     var onclick = _this.get("onclick");
@@ -4107,7 +4128,7 @@ var tui;
                         if (k === tui.browser.KeyCode.TAB)
                             return;
                         e.preventDefault();
-                        tui.browser.cancelBubble(e);
+                        e.stopPropagation();
                         var input = o;
                         if (k === tui.browser.KeyCode.LEFT) {
                             if (o$.attr("name") === "seconds")
@@ -4160,13 +4181,14 @@ var tui;
                     setTimeout(function () {
                         o.select();
                     }, 0);
-                }).on("contextmenu", tui.browser.cancelDefault);
+                }).on("contextmenu", function (e) { e.preventDefault(); });
                 timebar$.children("a").mousedown(function (e) {
                     var now = tui.time.now();
                     var newTime = new Date(_this.get("year"), _this.get("month") - 1, _this.get("day"), now.getHours(), now.getMinutes(), now.getSeconds());
                     _this.set("time", newTime);
                     setTimeout(function () { _this._.focus(); });
-                    return tui.browser.cancelBubble(e);
+                    e.stopPropagation();
+                    return false;
                 }).click(function (e) {
                     _this.fire("click", { e: e, "time": _this.get("time"), "type": "refresh" });
                 });
@@ -4664,21 +4686,21 @@ var tui;
                         if (node.nodeType !== 1) {
                             continue;
                         }
-                        var elem = node;
-                        var widget_6 = elem.__widget__;
+                        var elem_4 = node;
+                        var widget_6 = elem_4.__widget__;
                         var name_4 = void 0;
-                        var fullName = widget_5.getFullName(elem);
+                        var fullName = widget_5.getFullName(elem_4);
                         if (fullName === "tui:component")
                             _this._noReadyCount++;
                         if (widget_6) {
-                            name_4 = tui.get(elem).get("name");
+                            name_4 = tui.get(elem_4).get("name");
                             if (typeof name_4 === "string" && name_4.trim().length > 0)
-                                _this._components[name_4] = elem;
+                                _this._components[name_4] = elem_4;
                         }
                         else {
-                            name_4 = elem.getAttribute("name");
+                            name_4 = elem_4.getAttribute("name");
                             if (typeof name_4 === "string" && name_4.trim().length > 0)
-                                _this._components[name_4] = elem;
+                                _this._components[name_4] = elem_4;
                             if (!fullName.match(/^tui:/i) || fullName.match(/^tui:(dialog-select|input-group|group|button-group)$/))
                                 searchElem(node);
                         }
@@ -4909,10 +4931,10 @@ var tui;
                 var $root = $(this._);
                 var popup = this.createPopup();
                 this._components["popup"] = popup._;
-                var label = this._components["label"] = document.createElement("span");
-                var iconRight = this._components["iconRight"] = document.createElement("i");
-                var iconInvalid = this._components["iconInvalid"] = document.createElement("i");
-                var clearButton = this._components["clearButton"] = document.createElement("i");
+                var label = this._components["label"] = tui.elem("span");
+                var iconRight = this._components["iconRight"] = tui.elem("i");
+                var iconInvalid = this._components["iconInvalid"] = tui.elem("i");
+                var clearButton = this._components["clearButton"] = tui.elem("i");
                 clearButton.className = "tui-input-clear-button";
                 iconInvalid.className = "tui-invalid-icon";
                 label.className = "tui-input-label";
@@ -5083,8 +5105,8 @@ var tui;
                 this.setInit("format", "yyyy-MM-dd");
                 this.setInit("iconRight", "fa-calendar");
                 var calendar = widget.get(this._components["calendar"]);
-                var container = document.createElement("div");
-                var toolbar = container.appendChild(document.createElement("div"));
+                var container = tui.elem("div");
+                var toolbar = container.appendChild(tui.elem("div"));
                 toolbar.className = "tui-select-toolbar";
                 container.insertBefore(calendar._, container.firstChild);
                 var popup = widget.get(this._components["popup"]);
@@ -5190,11 +5212,11 @@ var tui;
             };
             File.prototype.init = function () {
                 var _this = this;
-                this.setInit("iconRight", "fa-file-o");
+                this.setInit("iconRight", "fa-file-text-o");
                 var $root = $(this._);
-                var label = this._components["label"] = document.createElement("span");
-                var iconRight = this._components["iconRight"] = document.createElement("i");
-                var iconInvalid = this._components["iconInvalid"] = document.createElement("i");
+                var label = this._components["label"] = tui.elem("span");
+                var iconRight = this._components["iconRight"] = tui.elem("i");
+                var iconInvalid = this._components["iconInvalid"] = tui.elem("i");
                 iconInvalid.className = "tui-invalid-icon";
                 label.className = "tui-input-label";
                 label.setAttribute("unselectable", "on");
@@ -5341,7 +5363,7 @@ var tui;
             Files.prototype.initRestriction = function () {
                 var _this = this;
                 _super.prototype.initRestriction.call(this);
-                this._uploadBox = document.createElement("div");
+                this._uploadBox = tui.elem("div");
                 this._uploader = tui.browser.createUploader(this._uploadBox);
                 this._values = [];
                 this.setRestrictions({
@@ -5422,30 +5444,58 @@ var tui;
                     tui.errbox(e.data.response.error, tui.str("Error"));
                 });
             };
+            Files.prototype.bindRemove = function (removeIcon, fileIndex) {
+                var _this = this;
+                $(removeIcon).click(function (e) {
+                    _this._values.splice(fileIndex, 1);
+                    _this.render();
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            };
+            Files.prototype.bindDownload = function (item, url) {
+                $(item).click(function (e) {
+                    window.location.href = url;
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            };
             Files.prototype.render = function () {
                 tui.browser.removeNode(this._uploadBox);
                 this._.innerHTML = "";
+                var readonly = !!this.get("readonly");
+                var disable = !!this.get("disable");
                 for (var i = 0; i < this._values.length; i++) {
                     var fileItem = this._values[i];
-                    var item = document.createElement("div");
+                    var item = tui.elem("div");
                     item.className = "tui-files-item";
-                    var label = document.createElement("div");
+                    var label = tui.elem("div");
                     item.appendChild(label);
                     var nameText = tui.browser.toSafeText(fileItem.fileName);
                     item.setAttribute("tooltip", nameText);
                     label.innerHTML = nameText;
                     if (fileItem.url && (IMAGE_EXT.test(fileItem.fileName) || IMAGE_MIME.test(fileItem.mimeType))) {
-                        var image = document.createElement("img");
+                        var image = tui.elem("img");
                         image.src = fileItem.url;
                         item.appendChild(image);
                     }
                     else {
                         item.className += " " + getFileTypeIcon(fileItem);
                     }
+                    if (!readonly && !disable) {
+                        var removeIcon = tui.elem("span");
+                        removeIcon.className = "tui-files-remove-icon";
+                        item.appendChild(removeIcon);
+                        this.bindRemove(removeIcon, i);
+                    }
+                    if (!disable && fileItem.url) {
+                        this.bindDownload(item, fileItem.url);
+                    }
                     this._.appendChild(item);
                 }
-                if (!(this.get("disable") || typeof this.get("max") === "number" && this._values.length >= this.get("max")))
+                if (!(readonly || disable || typeof this.get("max") === "number" && this._values.length >= this.get("max")))
                     this._.appendChild(this._uploadBox);
+                this._uploader.createInput();
             };
             return Files;
         }(widget.Widget));
@@ -5470,9 +5520,15 @@ var tui;
             Form.prototype.removeAll = function () {
                 for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
                     var item = _a[_i];
-                    item.gone();
+                    item.hide();
                 }
                 this._items = [];
+            };
+            Form.prototype.hideAll = function () {
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    item.hide();
+                }
             };
             Form.prototype.initRestriction = function () {
                 var _this = this;
@@ -5538,11 +5594,64 @@ var tui;
             };
             Form.prototype.init = function () {
                 var _this = this;
-                var title = this._components["title"] = document.createElement("h1");
+                var toolbar = this._components["toolbar"] = tui.elem("div");
+                toolbar.className = "tui-form-toolbar";
+                var title = tui.elem("div");
                 title.className = "tui-form-title";
-                this._.appendChild(title);
+                var buttons = tui.elem("div");
+                buttons.className = "tui-form-buttons";
+                var btnPrint = tui.elem("span");
+                btnPrint.className = "tui-form-btn tui-form-btn-print";
+                var newItem = this._components["newitem"] = tui.elem("div");
+                newItem.className = "tui-form-new-item-box";
+                buttons.appendChild(btnPrint);
+                toolbar.appendChild(title);
+                toolbar.appendChild(buttons);
+                this._.appendChild(toolbar);
                 this.on("resize", function () {
                     _this.render();
+                });
+                this.on("itemremove", function (e) {
+                    var pos = _this._items.indexOf(e.data.control);
+                    if (pos >= 0) {
+                        _this._items.splice(pos, 1);
+                        e.data.control.hide();
+                        _this.render();
+                    }
+                });
+                this.on("itemresize", function (e) {
+                    _this.render();
+                });
+                this.on("itemmoveup", function (e) {
+                    var pos = _this._items.indexOf(e.data.control);
+                    if (pos > 0) {
+                        var tmp = _this._items[pos];
+                        _this._items[pos] = _this._items[pos - 1];
+                        _this._items[pos - 1] = tmp;
+                        _this.hideAll();
+                        _this.render();
+                    }
+                });
+                this.on("itemmovedown", function (e) {
+                    var pos = _this._items.indexOf(e.data.control);
+                    if (pos >= 0 && pos < _this._items.length - 1) {
+                        var tmp = _this._items[pos];
+                        _this._items[pos] = _this._items[pos + 1];
+                        _this._items[pos + 1] = tmp;
+                        _this.hideAll();
+                        _this.render();
+                    }
+                });
+                this.on("itemmousedown", function (e) {
+                });
+                this.on("itemmouseup", function (e) {
+                    for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
+                        var item = _a[_i];
+                        if (item !== e.data.control)
+                            item.select(false);
+                        else
+                            item.select(true);
+                    }
                 });
             };
             Form.prototype.validate = function () {
@@ -5555,23 +5664,42 @@ var tui;
                 return result;
             };
             Form.prototype.render = function () {
-                var title = this._components["title"];
+                var toolbar = this._components["toolbar"];
                 var titleText = this.get("title");
-                if (titleText) {
-                    title.innerHTML = tui.browser.toSafeText(titleText);
-                    title.style.display = "block";
+                if (titleText || this.get("toolbar")) {
+                    if (!titleText)
+                        titleText = "";
+                    toolbar.children[0].innerHTML = tui.browser.toSafeText(titleText);
+                    if (this.get("toolbar")) {
+                        toolbar.children[1].style.display = "block";
+                    }
+                    else
+                        toolbar.children[1].style.display = "none";
+                    toolbar.style.display = "block";
+                    $(this._).addClass("tui-form-show-toolbar");
                 }
-                else
-                    title.style.display = "none";
+                else {
+                    toolbar.style.display = "none";
+                    $(this._).removeClass("tui-form-show-toolbar");
+                }
+                var designMode = (this.get("mode") === "design");
                 for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
                     var item = _a[_i];
                     if (!item.isPresent())
-                        item.present();
+                        item.show();
+                    item.setDesign(designMode);
+                    if (!designMode)
+                        item.select(false);
                     item.render();
                     item.div.className = item.div.className.replace(/tui-form-item-exceed/g, "");
                     if (item.div.offsetWidth > this._.clientWidth - 20) {
                         item.div.className += " tui-form-item-exceed";
                     }
+                }
+                var newItem = this._components["newitem"];
+                tui.browser.removeNode(newItem);
+                if (designMode) {
+                    this._.appendChild(newItem);
                 }
             };
             return Form;
@@ -5581,19 +5709,35 @@ var tui;
         widget.registerResize("form");
         var FormControl = (function () {
             function FormControl(form, define) {
+                var _this = this;
+                this.selected = false;
                 this.form = form;
                 this.define = define;
-                this.div = document.createElement("div");
+                this.div = tui.elem("div");
+                this.mask = tui.elem("div");
+                this.mask.setAttribute("unselectable", "on");
+                this.mask.className = "tui-form-item-mask";
+                this.mask.style.display = "none";
+                this.toolbar = tui.elem("div");
+                this.toolbar.className = "tui-form-item-toolbar";
+                this.btnAdd = widget.create("button", { text: "<i class='fa fa-plus'></i>" });
+                this.btnAdd.appendTo(this.toolbar);
+                this.btnEdit = widget.create("button", { text: "<i class='fa fa-pencil'></i>" });
+                this.btnEdit.appendTo(this.toolbar);
+                this.btnSize = widget.create("button", { text: "<i class='fa fa-arrows-alt'></i>" });
+                this.btnSize.appendTo(this.toolbar);
+                this.toolbar.appendChild(tui.elem("span"));
+                this.btnMoveUp = widget.create("button", { text: "<i class='fa fa-level-up'></i>" });
+                this.btnMoveUp.appendTo(this.toolbar);
+                this.btnMoveDown = widget.create("button", { text: "<i class='fa fa-level-down'></i>" });
+                this.btnMoveDown.appendTo(this.toolbar);
+                this.toolbar.appendChild(tui.elem("span"));
+                this.btnDelete = widget.create("button", { text: "<i class='fa fa-trash'></i>" });
+                this.btnDelete.appendTo(this.toolbar);
+                this.div.appendChild(this.mask);
                 this.div.className = "tui-form-item-container";
-                if (define.size > 1 && define.size < 5)
-                    this.div.className += " tui-form-item-size-" + Math.floor(define.size);
-                else if (define.size >= 5) {
-                    this.div.className += " tui-form-item-size-full";
-                }
-                if (define.newline) {
-                    this.div.className += " tui-form-item-newline";
-                }
-                this.label = document.createElement("label");
+                this.applySize();
+                this.label = tui.elem("label");
                 this.label.className = "tui-form-item-label";
                 this.div.appendChild(this.label);
                 if (!define.label)
@@ -5604,18 +5748,108 @@ var tui;
                         this.label.className = "tui-form-item-important";
                     }
                 }
+                $(this.mask).mousedown(function (e) {
+                    _this.form.fire("itemmousedown", { e: e, control: _this });
+                });
+                $(this.mask).mouseup(function (e) {
+                    _this.form.fire("itemmouseup", { e: e, control: _this });
+                });
+                this.btnDelete.on("click", function () {
+                    _this.form.fire("itemremove", { control: _this });
+                });
+                var menu = widget.create("menu");
+                this.btnSize.on("click", function () {
+                    menu._set("items", [
+                        { type: "radio", text: "1x", group: "size", value: 1, checked: _this.define.size === 1 },
+                        { type: "radio", text: "2x", group: "size", value: 2, checked: _this.define.size === 2 },
+                        { type: "radio", text: "3x", group: "size", value: 3, checked: _this.define.size === 3 },
+                        { type: "radio", text: "4x", group: "size", value: 4, checked: _this.define.size === 4 },
+                        { type: "radio", text: tui.str("Fill"), group: "size", value: 5, checked: _this.define.size === 5 },
+                        { type: "line" },
+                        { type: "check", text: tui.str("New Line"), value: "newline", checked: _this.define.newline }
+                    ]);
+                    menu.open(_this.btnSize._);
+                });
+                menu.on("click", function (e) {
+                    var v = e.data.item.value;
+                    if (v >= 1 && v <= 5)
+                        _this.define.size = v;
+                    else if (v === "newline")
+                        _this.define.newline = !_this.define.newline;
+                    _this.applySize();
+                    _this.form.fire("itemresize", { e: e, control: _this });
+                });
+                this.btnMoveUp.on("click", function () {
+                    _this.form.fire("itemmoveup", { control: _this });
+                });
+                this.btnMoveDown.on("click", function () {
+                    _this.form.fire("itemmovedown", { control: _this });
+                });
             }
             FormControl.prototype.isPresent = function () {
                 return this.div.parentElement === this.form._;
             };
-            FormControl.prototype.gone = function () {
+            FormControl.prototype.hide = function () {
                 this.form._.removeChild(this.div);
             };
-            FormControl.prototype.present = function () {
+            FormControl.prototype.show = function () {
                 this.form._.appendChild(this.div);
+            };
+            FormControl.prototype.setDesign = function (value) {
+                if (value) {
+                    tui.browser.addClass(this.div, "tui-form-in-design");
+                }
+                else {
+                    tui.browser.removeClass(this.div, "tui-form-in-design");
+                }
+            };
+            FormControl.prototype.select = function (value) {
+                var _this = this;
+                this.selected = !!value;
+                if (this.selected) {
+                    tui.browser.addClass(this.div, "tui-form-item-selected");
+                    this.toolbar.style.opacity = "0";
+                    this.div.appendChild(this.toolbar);
+                    setTimeout(function () {
+                        if (_this.selected)
+                            _this.toolbar.style.opacity = "1";
+                    }, 16);
+                }
+                else {
+                    tui.browser.removeClass(this.div, "tui-form-item-selected");
+                    this.toolbar.style.opacity = "0";
+                    setTimeout(function () {
+                        if (!_this.selected)
+                            tui.browser.removeNode(_this.toolbar);
+                    }, 500);
+                }
+            };
+            FormControl.prototype.isSelect = function () {
+                return this.selected;
             };
             FormControl.prototype.getKey = function () {
                 return this.define.key || null;
+            };
+            FormControl.prototype.applySize = function () {
+                var define = this.define;
+                tui.browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-full tui-form-item-newline");
+                if (define.size > 1 && define.size < 5) {
+                    define.size = Math.floor(define.size);
+                    tui.browser.addClass(this.div, " tui-form-item-size-" + define.size);
+                }
+                else if (define.size >= 5) {
+                    tui.browser.addClass(this.div, "tui-form-item-size-full");
+                    define.size = 5;
+                }
+                else
+                    define.size = 1;
+                if (define.newline) {
+                    define.newline = true;
+                    tui.browser.addClass(this.div, "tui-form-item-newline");
+                }
+                else {
+                    define.newline = false;
+                }
             };
             return FormControl;
         }());
@@ -5720,39 +5954,73 @@ var tui;
             return FormPicture;
         }(BasicFormControl));
         Form.register("picture", FormPicture);
-        var FormLine = (function (_super) {
-            __extends(FormLine, _super);
-            function FormLine(form, define) {
+        var FormFile = (function (_super) {
+            __extends(FormFile, _super);
+            function FormFile(form, define) {
+                return _super.call(this, form, define, "file", tui.str("form.file")) || this;
+            }
+            FormFile.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormFile.prototype.validate = function () {
+                return this._widget.validate();
+            };
+            return FormFile;
+        }(BasicFormControl));
+        Form.register("file", FormFile);
+        var FormFiles = (function (_super) {
+            __extends(FormFiles, _super);
+            function FormFiles(form, define) {
+                return _super.call(this, form, define, "files", tui.str("form.files")) || this;
+            }
+            FormFiles.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormFiles.prototype.validate = function () {
+                return true;
+            };
+            return FormFiles;
+        }(BasicFormControl));
+        Form.register("files", FormFiles);
+        var FormSection = (function (_super) {
+            __extends(FormSection, _super);
+            function FormSection(form, define) {
                 var _this = _super.call(this, form, define) || this;
-                _this._hr = document.createElement("hr");
+                _this._hr = tui.elem("hr");
                 _this.div.appendChild(_this._hr);
                 _this.div.style.display = "block";
                 _this.div.style.width = "initial";
                 if (define.label) {
                     _this._hr.className = "tui-form-line-label";
+                    if (typeof define.fontSize === "number" && define.fontSize >= 12 && define.fontSize < 48)
+                        _this.label.style.fontSize = define.fontSize + "px";
+                    if (typeof define.align == "string" && define.align.match(/^(left|right|center)$/i))
+                        _this.label.style.textAlign = define.align;
+                    else
+                        _this.label.style.textAlign = "left";
                 }
                 else {
                     _this._hr.className = "";
                 }
                 return _this;
             }
-            FormLine.prototype.getName = function () {
-                return tui.str("form.line");
+            FormSection.prototype.getName = function () {
+                return tui.str("form.section");
             };
-            FormLine.prototype.getValue = function () {
+            FormSection.prototype.getValue = function () {
                 return null;
             };
-            FormLine.prototype.setValue = function (value) { };
-            FormLine.prototype.render = function () { };
-            FormLine.prototype.showProperty = function () {
+            FormSection.prototype.setValue = function (value) { };
+            FormSection.prototype.render = function () { };
+            FormSection.prototype.showProperty = function () {
                 throw new Error('Method not implemented.');
             };
-            FormLine.prototype.validate = function () {
+            FormSection.prototype.validate = function () {
                 return true;
             };
-            return FormLine;
+            return FormSection;
         }(FormControl));
-        Form.register("line", FormLine);
+        Form.register("section", FormSection);
         var FormOptions = (function (_super) {
             __extends(FormOptions, _super);
             function FormOptions(form, define) {
@@ -5824,7 +6092,7 @@ var tui;
                     }
                     _this._widget._set("columns", columns);
                 }
-                _this._buttonBar = document.createElement("div");
+                _this._buttonBar = tui.elem("div");
                 _this.div.appendChild(_this._buttonBar);
                 var gp = widget.create("button-group");
                 _this._btnAdd = widget.create("button", { text: "<i class='fa fa-plus'></i>" });
@@ -5834,7 +6102,7 @@ var tui;
                 gp.appendTo(_this._buttonBar);
                 _this._btnDelete = widget.create("button", { text: "<i class='fa fa-trash'></i>" });
                 _this._btnDelete.appendTo(_this._buttonBar);
-                _this._buttonBar.style.paddingTop = "5px";
+                _this._widget._.style.margin = "2px";
                 return _this;
             }
             FormGrid.prototype.showProperty = function () {
@@ -6145,7 +6413,7 @@ var tui;
                     this._gridStyle = document.createStyleSheet();
                 }
                 else {
-                    this._gridStyle = document.createElement("style");
+                    this._gridStyle = tui.elem("style");
                     document.head.appendChild(this._gridStyle);
                 }
                 this._buffer = { begin: 0, end: 0, lines: [] };
@@ -6857,7 +7125,7 @@ var tui;
                 if (line.childNodes.length != columns.length) {
                     line.innerHTML = "";
                     for (var i = 0; i < columns.length; i++) {
-                        var span = document.createElement("span");
+                        var span = tui.elem("span");
                         span.className = "tui-grid-" + this._tuid + "-" + i;
                         span.setAttribute("unselectable", "on");
                         span.col = i;
@@ -6916,14 +7184,14 @@ var tui;
                     tui.browser.setInnerHtml(cell, prefix);
                     var prefixContent = columns[i].prefixKey !== null ? item[columns[i].prefixKey] : null;
                     if (prefixContent) {
-                        var prefixSpan = document.createElement("span");
+                        var prefixSpan = tui.elem("span");
                         tui.browser.setInnerHtml(prefixSpan, prefixContent);
                         cell.appendChild(prefixSpan);
                     }
                     cell.appendChild(document.createTextNode(item[columns[i].key]));
                     var suffixContent = columns[i].suffixKey !== null ? item[columns[i].suffixKey] : null;
                     if (suffixContent) {
-                        var suffixSpan = document.createElement("span");
+                        var suffixSpan = tui.elem("span");
                         tui.browser.setInnerHtml(suffixSpan, suffixContent);
                         cell.appendChild(suffixSpan);
                     }
@@ -6934,7 +7202,7 @@ var tui;
                 line.style.width = this._contentWidth + "px";
             };
             Grid.prototype.createLine = function (parent) {
-                var line = document.createElement("div");
+                var line = tui.elem("div");
                 line.className = "tui-grid-line";
                 line.setAttribute("unselectable", "on");
                 return parent.appendChild(line);
@@ -6974,7 +7242,7 @@ var tui;
                         }
                         sortClass += " tui-sortable";
                     }
-                    var span = document.createElement("span");
+                    var span = tui.elem("span");
                     span.setAttribute("unselectable", "on");
                     span.className = "tui-grid-" + this._tuid + "-" + i + " " + sortClass;
                     span.col = i;
@@ -7111,7 +7379,7 @@ var tui;
                 var used = 0;
                 for (var i = 0; i < columns.length; i++) {
                     if (i >= this._vLines.length) {
-                        this._vLines[i] = document.createElement("div");
+                        this._vLines[i] = tui.elem("div");
                         this._vLines[i].className = "tui-grid-vline";
                     }
                     this._vLines[i].style.left = used + vval(columns[i].width) + (Grid.CELL_SPACE * 2) - this._hbar.get("value") + "px";
@@ -7127,7 +7395,7 @@ var tui;
                     used = 0;
                     for (var i = 0; i < columns.length; i++) {
                         if (i >= this._handlers.length) {
-                            this._handlers[i] = document.createElement("div");
+                            this._handlers[i] = tui.elem("div");
                             this._handlers[i].className = "tui-grid-handler";
                         }
                         this._handlers[i].style.left = used + vval(columns[i].width) + (Grid.CELL_SPACE) - this._hbar.get("value") + "px";
@@ -7343,7 +7611,7 @@ var tui;
             Input.prototype.initRestriction = function () {
                 var _this = this;
                 _super.prototype.initRestriction.call(this);
-                var textbox = this._components["textbox"] = document.createElement("input");
+                var textbox = this._components["textbox"] = tui.elem("input");
                 this.setRestrictions({
                     "value": {
                         "set": function (value) {
@@ -7383,12 +7651,12 @@ var tui;
             Input.prototype.init = function () {
                 var _this = this;
                 var $root = $(this._);
-                var placeholder = this._components["placeholder"] = document.createElement("span");
+                var placeholder = this._components["placeholder"] = tui.elem("span");
                 var textbox = this._components["textbox"];
-                var iconLeft = this._components["iconLeft"] = document.createElement("i");
-                var iconRight = this._components["iconRight"] = document.createElement("i");
-                var iconInvalid = this._components["iconInvalid"] = document.createElement("i");
-                var clearButton = this._components["clearButton"] = document.createElement("i");
+                var iconLeft = this._components["iconLeft"] = tui.elem("i");
+                var iconRight = this._components["iconRight"] = tui.elem("i");
+                var iconInvalid = this._components["iconInvalid"] = tui.elem("i");
+                var clearButton = this._components["clearButton"] = tui.elem("i");
                 iconInvalid.className = "tui-invalid-icon";
                 clearButton.className = "tui-input-clear-button";
                 placeholder.className = "tui-placeholder";
@@ -7626,7 +7894,7 @@ var tui;
             };
             Popup.prototype.initChildren = function (childNodes) {
                 if (childNodes.length > 0) {
-                    var div = document.createElement("div");
+                    var div = tui.elem("div");
                     for (var _i = 0, childNodes_5 = childNodes; _i < childNodes_5.length; _i++) {
                         var node = childNodes_5[_i];
                         div.appendChild(node);
@@ -7897,9 +8165,14 @@ var tui;
                         if (item.disable) {
                             $(div).addClass("tui-disabled");
                         }
-                        if (item.type === "check" || item.type === "radio") {
+                        if (item.type === "check") {
                             if (item.checked) {
                                 $(div).children(".tui-icon").addClass("fa-check");
+                            }
+                        }
+                        else if (item.type === "radio") {
+                            if (item.checked) {
+                                $(div).children(".tui-icon").addClass("radio-checked");
                             }
                         }
                         else if (item.icon) {
@@ -8235,7 +8508,7 @@ var tui;
             };
             Picture.prototype.init = function () {
                 var _this = this;
-                var img = this._components["image"] = document.createElement("img");
+                var img = this._components["image"] = tui.elem("img");
                 this._.appendChild(img);
                 this._uploader.on("success", function (e) {
                     _this._set("value", e.data.response.fileId);
@@ -8764,15 +9037,15 @@ var tui;
                 _super.prototype.init.call(this);
                 this.setInit("iconRight", "fa-caret-down");
                 var list = widget.get(this._components["list"]);
-                var container = document.createElement("div");
-                var searchbar = container.appendChild(document.createElement("div"));
+                var container = tui.elem("div");
+                var searchbar = container.appendChild(tui.elem("div"));
                 searchbar.className = "tui-select-searchbar";
                 var searchBox = widget.create("input");
                 searchBox._set("clearable", true);
                 searchBox._set("iconLeft", "fa-search");
                 searchbar.appendChild(searchBox._);
                 container.appendChild(list._);
-                var toolbar = container.appendChild(document.createElement("div"));
+                var toolbar = container.appendChild(tui.elem("div"));
                 toolbar.className = "tui-select-toolbar";
                 var popup = widget.get(this._components["popup"]);
                 popup._set("content", container);
@@ -8921,7 +9194,7 @@ var tui;
                 var _this = this;
                 _super.prototype.initChildren.call(this, childNodes);
                 this.dialog = widget.create("dialog");
-                this.content = document.createElement("div");
+                this.content = tui.elem("div");
                 childNodes.forEach(function (n) {
                     if (widget.getFullName(n) !== "tui:verify")
                         _this.content.appendChild(n);
@@ -8960,7 +9233,7 @@ var tui;
             Textarea.prototype.initRestriction = function () {
                 var _this = this;
                 _super.prototype.initRestriction.call(this);
-                var textbox = this._components["textbox"] = document.createElement("textarea");
+                var textbox = this._components["textbox"] = tui.elem("textarea");
                 textbox.setAttribute("wrap", "physical");
                 this.setRestrictions({
                     "value": {
@@ -8996,9 +9269,9 @@ var tui;
             Textarea.prototype.init = function () {
                 var _this = this;
                 var $root = $(this._);
-                var placeholder = this._components["placeholder"] = document.createElement("span");
+                var placeholder = this._components["placeholder"] = tui.elem("span");
                 var textbox = this._components["textbox"];
-                var iconInvalid = this._components["iconInvalid"] = document.createElement("i");
+                var iconInvalid = this._components["iconInvalid"] = tui.elem("i");
                 iconInvalid.className = "tui-invalid-icon";
                 placeholder.className = "tui-placeholder";
                 placeholder.setAttribute("unselectable", "on");
@@ -9122,7 +9395,7 @@ var tui;
     var widget;
     (function (widget) {
         "use strict";
-        var _tooltip = document.createElement("span");
+        var _tooltip = tui.elem("span");
         _tooltip.className = "tui-tooltip";
         _tooltip.setAttribute("unselectable", "on");
         var _tooltipTarget = null;

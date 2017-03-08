@@ -25,7 +25,7 @@ tui\:menu:before {
 	left:0px;
 	width:24px;
 	bottom:0;
-	background: #f0f0f0;
+	//background: #f0f0f0;
 	z-index: -1;
 }
 
@@ -54,6 +54,11 @@ tui\:menu>div {
 		text-align: center;
 		margin-right:5px;
 		float:left;
+		&.radio-checked:before {
+			font-family: Arial, Helvetica, sans-serif;
+			content: "\2022";
+			font-size: 22px;
+		}
 	}
 	>.tui-label {
 		float:left;

@@ -165,7 +165,7 @@ module tui.widget {
 					if (k === browser.KeyCode.TAB)
 						return;
 					e.preventDefault();
-					browser.cancelBubble(e);
+					e.stopPropagation();
 					var input = <HTMLInputElement>o;
 					if (k === browser.KeyCode.LEFT) {
 						if (o$.attr("name") === "seconds")
@@ -212,14 +212,15 @@ module tui.widget {
 				setTimeout(function (){
 					o.select();
 				},0);
-			}).on("contextmenu", browser.cancelDefault);
+			}).on("contextmenu", function(e){e.preventDefault();});
 			timebar$.children("a").mousedown((e) => {
 				let now = time.now();
 				let newTime = new Date(this.get("year"), this.get("month") - 1, this.get("day"),
 					now.getHours(), now.getMinutes(), now.getSeconds());
 				this.set("time", newTime);
 				setTimeout(() => { this._.focus(); });
-				return browser.cancelBubble(e);
+				e.stopPropagation();
+				return false;
 			}).click((e) => {
 				this.fire("click", {e:e, "time": this.get("time"), "type": "refresh"});
 			});

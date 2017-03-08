@@ -48,7 +48,7 @@ module tui.widget {
 		
 		protected initRestriction(): void {
 			super.initRestriction();
-			this._uploadBox = document.createElement("div");
+			this._uploadBox = <HTMLDivElement>elem("div");
 			this._uploader = browser.createUploader(this._uploadBox);
 			this._values = [];
 			this.setRestrictions({
@@ -128,30 +128,62 @@ module tui.widget {
 				tui.errbox(e.data.response.error, tui.str("Error"));
 			});
 		}
+
+		private bindRemove(removeIcon: HTMLElement, fileIndex: number) {
+			$(removeIcon).click((e: JQueryEventObject) => {
+				this._values.splice(fileIndex, 1);
+				this.render();
+				e.preventDefault();
+				e.stopPropagation();
+			});
+		}
+
+		private bindDownload(item: HTMLElement, url: string) {
+			$(item).click(function(e: JQueryEventObject){
+				window.location.href = url;
+				e.preventDefault();
+				e.stopPropagation();
+			});
+		}
 		
 		render(): void {
 			browser.removeNode(this._uploadBox);
 			this._.innerHTML = "";
+			var readonly = !!this.get("readonly"); 
+			var disable = !!this.get("disable");
 			for (let i = 0; i < this._values.length; i++) {
-				var fileItem = this._values[i];
-				var item = document.createElement("div");
+				let fileItem = this._values[i];
+				let item = elem("div");
 				item.className = "tui-files-item";
-				var label = document.createElement("div");
+				let label = elem("div");
 				item.appendChild(label);
-				var nameText = browser.toSafeText(fileItem.fileName);
+				let nameText = browser.toSafeText(fileItem.fileName);
 				item.setAttribute("tooltip", nameText)
 				label.innerHTML = nameText;
 				if (fileItem.url && (IMAGE_EXT.test(fileItem.fileName) || IMAGE_MIME.test(fileItem.mimeType))) {
-					var image = <HTMLImageElement>document.createElement("img");
+					let image = <HTMLImageElement>elem("img");
 					image.src = fileItem.url;
 					item.appendChild(image);
 				} else {
 					item.className += " " + getFileTypeIcon(fileItem);
 				}
+
+				if (!readonly && !disable) {
+					let removeIcon = <HTMLElement>elem("span");
+					removeIcon.className = "tui-files-remove-icon";
+					item.appendChild(removeIcon);
+					this.bindRemove(removeIcon, i);
+				}
+
+				if (!disable && fileItem.url) {
+					this.bindDownload(item, fileItem.url);
+				}
+
 				this._.appendChild(item);
 			}
-			if (!(this.get("disable") || typeof this.get("max") === "number" && this._values.length >= this.get("max")))
+			if (!(readonly || disable || typeof this.get("max") === "number" && this._values.length >= this.get("max")))
 				this._.appendChild(this._uploadBox);
+				this._uploader.createInput();
 		}
 	}
 	

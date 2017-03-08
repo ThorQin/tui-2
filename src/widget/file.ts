@@ -45,9 +45,9 @@ module tui.widget {
 		protected init(): void {
 			this.setInit("iconRight", "fa-file-text-o"); 
 			var $root = $(this._);
-			var label = this._components["label"] = document.createElement("span");
-			var iconRight = this._components["iconRight"] = document.createElement("i");
-			var iconInvalid = this._components["iconInvalid"] = document.createElement("i");
+			var label = this._components["label"] = elem("span");
+			var iconRight = this._components["iconRight"] = elem("i");
+			var iconInvalid = this._components["iconInvalid"] = elem("i");
 			
 			iconInvalid.className = "tui-invalid-icon";
 			label.className = "tui-input-label";

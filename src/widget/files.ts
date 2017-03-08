@@ -48,7 +48,7 @@ module tui.widget {
 		
 		protected initRestriction(): void {
 			super.initRestriction();
-			this._uploadBox = document.createElement("div");
+			this._uploadBox = <HTMLDivElement>elem("div");
 			this._uploader = browser.createUploader(this._uploadBox);
 			this._values = [];
 			this.setRestrictions({
@@ -153,15 +153,15 @@ module tui.widget {
 			var disable = !!this.get("disable");
 			for (let i = 0; i < this._values.length; i++) {
 				let fileItem = this._values[i];
-				let item = document.createElement("div");
+				let item = elem("div");
 				item.className = "tui-files-item";
-				let label = document.createElement("div");
+				let label = elem("div");
 				item.appendChild(label);
 				let nameText = browser.toSafeText(fileItem.fileName);
 				item.setAttribute("tooltip", nameText)
 				label.innerHTML = nameText;
 				if (fileItem.url && (IMAGE_EXT.test(fileItem.fileName) || IMAGE_MIME.test(fileItem.mimeType))) {
-					let image = <HTMLImageElement>document.createElement("img");
+					let image = <HTMLImageElement>elem("img");
 					image.src = fileItem.url;
 					item.appendChild(image);
 				} else {
@@ -169,7 +169,7 @@ module tui.widget {
 				}
 
 				if (!readonly && !disable) {
-					let removeIcon = <HTMLElement>document.createElement("span");
+					let removeIcon = <HTMLElement>elem("span");
 					removeIcon.className = "tui-files-remove-icon";
 					item.appendChild(removeIcon);
 					this.bindRemove(removeIcon, i);

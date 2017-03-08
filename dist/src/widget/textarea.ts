@@ -13,7 +13,7 @@ module tui.widget {
 		
 		protected initRestriction(): void {
 			super.initRestriction();
-			var textbox = this._components["textbox"] = document.createElement("textarea");
+			var textbox = this._components["textbox"] = <HTMLTextAreaElement>elem("textarea");
 			textbox.setAttribute("wrap", "physical");
 			this.setRestrictions({
 				"value": {
@@ -50,9 +50,9 @@ module tui.widget {
 		
 		protected init(): void {
 			var $root = $(this._);
-			var placeholder = this._components["placeholder"] = document.createElement("span");
+			var placeholder = this._components["placeholder"] = elem("span");
 			var textbox = <HTMLTextAreaElement>this._components["textbox"];
-			var iconInvalid = this._components["iconInvalid"] = document.createElement("i");
+			var iconInvalid = this._components["iconInvalid"] = elem("i");
 			iconInvalid.className = "tui-invalid-icon";
 			placeholder.className = "tui-placeholder";
 			placeholder.setAttribute("unselectable","on");

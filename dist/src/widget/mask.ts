@@ -3,7 +3,7 @@ module tui.widget {
 	"use strict";
 	
 	var _maskOpened: boolean = false;
-	var _mask: HTMLDivElement = document.createElement("div");
+	var _mask = <HTMLDivElement>elem("div");
 	_mask.setAttribute("unselectable", "on");
 	_mask.onselectstart = function(){return false;};
 	var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";

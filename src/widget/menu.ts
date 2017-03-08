@@ -101,9 +101,13 @@ module tui.widget {
 					if (item.disable) {
 						$(div).addClass("tui-disabled");
 					}
-					if (item.type === "check" || item.type === "radio") {
+					if (item.type === "check") {
 						if (item.checked) {
 							$(div).children(".tui-icon").addClass("fa-check");
+						}
+					} else if (item.type === "radio") {
+						if (item.checked) {
+							$(div).children(".tui-icon").addClass("radio-checked");
 						}
 					} else if (item.icon) {
 						$(div).children(".tui-icon").addClass(item.icon);

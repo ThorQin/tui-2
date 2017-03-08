@@ -5,6 +5,10 @@ module tui {
     export const UNDEFINED = ((undefined?: any): string => {
 		return typeof undefined;
 	})();
+
+	export function elem(nodeName: string) {
+		return document.createElement(nodeName);
+	}
     
     // Used to decide which language should be used to display UI control
     export var lang = ((): string => {

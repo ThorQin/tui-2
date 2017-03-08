@@ -57,7 +57,7 @@ module tui.widget {
 	
 		protected initChildren(childNodes: Node[]) {
 			if (childNodes.length > 0) {
-				var div = document.createElement("div");
+				var div = elem("div");
 				for (let node of childNodes) {
 					div.appendChild(node);
 				}

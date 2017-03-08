@@ -205,15 +205,15 @@ module tui.widget {
 			this.setInit("iconRight", "fa-caret-down");
 			var list = <List>get(this._components["list"]);
 			
-			var container = document.createElement("div"); 
-			var searchbar = <HTMLElement>container.appendChild(document.createElement("div"));
+			var container = elem("div"); 
+			var searchbar = <HTMLElement>container.appendChild(elem("div"));
 			searchbar.className = "tui-select-searchbar";
 			var searchBox = create("input");
 			searchBox._set("clearable", true);
 			searchBox._set("iconLeft", "fa-search");
 			searchbar.appendChild(searchBox._);
 			container.appendChild(list._);
-			var toolbar = <HTMLElement>container.appendChild(document.createElement("div"));
+			var toolbar = <HTMLElement>container.appendChild(elem("div"));
 			toolbar.className = "tui-select-toolbar";
 			
 			var popup = <Popup>get(this._components["popup"]);
@@ -364,7 +364,7 @@ module tui.widget {
 		protected initChildren(childNodes: Node[]) {
 			super.initChildren(childNodes);
 			this.dialog = <Dialog>create("dialog");
-			this.content = document.createElement("div");
+			this.content = elem("div");
 			childNodes.forEach(n => {
 				if (getFullName(n) !== "tui:verify")
 					this.content.appendChild(n);

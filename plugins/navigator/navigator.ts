@@ -87,9 +87,9 @@ module tui.widget.ext {
 		}
 
 		protected init(): void {
-			var container = this._components["container"] = document.createElement("div");
-			var up = this._components["up"] = document.createElement("div");
-			var down = this._components["down"] = document.createElement("div");
+			var container = this._components["container"] = elem("div");
+			var up = this._components["up"] = elem("div");
+			var down = this._components["down"] = elem("div");
 			container.className = "tui-container";
 			up.className = "tui-up";
 			down.className = "tui-down";
@@ -198,7 +198,7 @@ module tui.widget.ext {
 
 		private drawItems(parent: HTMLElement, items: NaviItem[], level: number) {
 			for (var item of items) {
-				var line = document.createElement("div");
+				var line = elem("div");
 				(<any>line).item = item;
 				var $line = $(line);
 				$line.attr("unselectable", "on");
@@ -208,7 +208,7 @@ module tui.widget.ext {
 				if (level > 0)
 					$line.addClass("tui-child");
 				if (item.icon) {
-					var icon = document.createElement("i");
+					var icon = elem("i");
 					icon.className = item.icon;
 					line.insertBefore(icon, line.firstChild);
 				}
@@ -216,13 +216,13 @@ module tui.widget.ext {
 					line.setAttribute("path", item.path);
 				if (item.name)
 					line.setAttribute("name", item.name);
-				var space = document.createElement("span");
+				var space = elem("span");
 				space.style.display = "inline-block";
 				space.style.width = 20 * level + "px";
 				line.insertBefore(space, line.firstChild);
 				parent.appendChild(line);
 				if (item.children && item.children.length > 0) {
-					var subArea = document.createElement("div");
+					var subArea = elem("div");
 					subArea.className = "tui-sub";
 					if (item.expand) {
 						$line.addClass("tui-expand");

@@ -240,7 +240,7 @@ module tui.widget {
 			if ((<any>document).createStyleSheet) {
 				this._gridStyle = (<any>document).createStyleSheet();
 			} else {
-				this._gridStyle = document.createElement("style");
+				this._gridStyle = <HTMLStyleElement>elem("style");
 				document.head.appendChild(this._gridStyle);
 			}
 			
@@ -943,7 +943,7 @@ module tui.widget {
 			if (line.childNodes.length != columns.length) {
 				line.innerHTML = "";
 				for (var i = 0; i < columns.length; i++) {
-					var span = document.createElement("span");
+					var span = elem("span");
 					span.className = "tui-grid-" + this._tuid + "-" + i;
 					span.setAttribute("unselectable", "on");
 					(<any>span).col = i;
@@ -1000,14 +1000,14 @@ module tui.widget {
 				browser.setInnerHtml(cell,prefix);
 				var prefixContent = columns[i].prefixKey !== null ? item[columns[i].prefixKey] : null;
 				if (prefixContent) {
-					var prefixSpan = document.createElement("span");
+					var prefixSpan = elem("span");
 					browser.setInnerHtml(prefixSpan, prefixContent);
 					cell.appendChild(prefixSpan);
 				}
 				cell.appendChild(document.createTextNode(item[columns[i].key]));
 				var suffixContent = columns[i].suffixKey !== null ? item[columns[i].suffixKey] : null;
 				if (suffixContent) {
-					var suffixSpan = document.createElement("span");
+					var suffixSpan = elem("span");
 					browser.setInnerHtml(suffixSpan, suffixContent);
 					cell.appendChild(suffixSpan);
 				}
@@ -1021,7 +1021,7 @@ module tui.widget {
 
 		private createLine(parent: HTMLElement): HTMLElement {
 			// var columns = <ColumnInfo[]>this.get("columns");
-			var line = document.createElement("div");
+			var line = elem("div");
 			line.className = "tui-grid-line";
 			line.setAttribute("unselectable", "on");
 			return <HTMLElement>parent.appendChild(line);
@@ -1063,7 +1063,7 @@ module tui.widget {
 					sortClass += " tui-sortable";
 				}
 					
-				let span = document.createElement("span");
+				let span = elem("span");
 				span.setAttribute("unselectable", "on");
 				span.className = "tui-grid-" + this._tuid + "-" + i + " " + sortClass;
 				(<any>span).col = i;
@@ -1211,7 +1211,7 @@ module tui.widget {
 			var used = 0;
 			for (var i = 0; i < columns.length; i++) {
 				if (i >= this._vLines.length) {
-					this._vLines[i] = document.createElement("div");
+					this._vLines[i] = elem("div");
 					this._vLines[i].className = "tui-grid-vline";
 				}
 				this._vLines[i].style.left = used + vval(columns[i].width) +  (Grid.CELL_SPACE * 2) - this._hbar.get("value") + "px";
@@ -1228,7 +1228,7 @@ module tui.widget {
 				used = 0;
 				for (var i = 0; i < columns.length; i++) {
 					if (i >= this._handlers.length) {
-						this._handlers[i] = document.createElement("div");
+						this._handlers[i] = elem("div");
 						this._handlers[i].className = "tui-grid-handler";
 					}
 					this._handlers[i].style.left = used + vval(columns[i].width) +  (Grid.CELL_SPACE) - this._hbar.get("value") + "px";
