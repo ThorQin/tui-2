@@ -230,7 +230,7 @@ var tui;
             var FormAddress = (function (_super) {
                 __extends(FormAddress, _super);
                 function FormAddress(form, define) {
-                    return _super.call(this, form, define, "location", tui.str("picture")) || this;
+                    return _super.call(this, form, define, "location") || this;
                 }
                 FormAddress.prototype.showProperty = function () {
                     throw new Error('Method not implemented.');
@@ -240,6 +240,9 @@ var tui;
                 };
                 return FormAddress;
             }(widget.BasicFormControl));
+            FormAddress.icon = "fa-map-marker";
+            FormAddress.desc = tui.str("form.address");
+            FormAddress.order = 10;
             widget.Form.register("address", FormAddress);
         })(ext = widget.ext || (widget.ext = {}));
     })(widget = tui.widget || (tui.widget = {}));

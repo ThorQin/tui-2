@@ -21,5 +21,16 @@ tui.dict("en-us", {
     "please.select.point": "Please select a point of the map.",
     "address": "Address",
     "invalid.file.type": "Invalid file type!",
-    "geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service."
+    "geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service.",
+    "form.section": "Title",
+    "form.textbox": "Textbox",
+    "form.textarea": "Textarea",
+    "form.options": "Options",
+    "form.select": "Select",
+    "form.datepicker": "Date",
+    "form.picture": "Picture",
+    "form.file": "File",
+    "form.files": "Files",
+    "form.grid": "Grid",
+    "form.address": "Address"
 });

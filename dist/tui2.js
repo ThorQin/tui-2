@@ -297,7 +297,18 @@ tui.dict("en-us", {
     "please.select.point": "Please select a point of the map.",
     "address": "Address",
     "invalid.file.type": "Invalid file type!",
-    "geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service."
+    "geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service.",
+    "form.section": "Title",
+    "form.textbox": "Textbox",
+    "form.textarea": "Textarea",
+    "form.options": "Options",
+    "form.select": "Select",
+    "form.datepicker": "Date",
+    "form.picture": "Picture",
+    "form.file": "File",
+    "form.files": "Files",
+    "form.grid": "Grid",
+    "form.address": "Address"
 });
 var tui;
 (function (tui) {
@@ -5530,6 +5541,15 @@ var tui;
                     item.hide();
                 }
             };
+            Form.prototype.selectItem = function (target) {
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    if (item !== target)
+                        item.select(false);
+                    else
+                        item.select(true);
+                }
+            };
             Form.prototype.initRestriction = function () {
                 var _this = this;
                 _super.prototype.initRestriction.call(this);
@@ -5645,14 +5665,63 @@ var tui;
                 this.on("itemmousedown", function (e) {
                 });
                 this.on("itemmouseup", function (e) {
-                    for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
-                        var item = _a[_i];
-                        if (item !== e.data.control)
-                            item.select(false);
-                        else
-                            item.select(true);
+                    _this.selectItem(e.data.control);
+                });
+                this.on("itemadd", function (e) {
+                    var pos = _this._items.indexOf(e.data.control);
+                    if (pos >= 0) {
+                        _this.addNewItem(e.data.button._, pos);
                     }
                 });
+                newItem.onclick = function () {
+                    _this.addNewItem(newItem, _this._items.length);
+                };
+            };
+            Form.prototype.bindNewItemClick = function (popup, newItemDiv, type, label, pos) {
+                var _this = this;
+                newItemDiv.onclick = function () {
+                    var newItem = new _controls[type](_this, { type: type, label: label });
+                    _this._items.splice(pos, 0, newItem);
+                    popup.close();
+                    _this._.style.height = _this._.offsetHeight + "px";
+                    _this.hideAll();
+                    _this.render();
+                    _this._.style.height = "";
+                    _this.selectItem(newItem);
+                };
+            };
+            Form.prototype.addNewItem = function (button, pos) {
+                var div = tui.elem("div");
+                div.className = "tui-form-new-item-menu";
+                var controls = [];
+                for (var type in _controls) {
+                    if (_controls.hasOwnProperty(type)) {
+                        controls.push({
+                            type: type,
+                            name: _controls[type].desc,
+                            icon: _controls[type].icon,
+                            order: _controls[type].order
+                        });
+                    }
+                }
+                controls.sort(function (a, b) {
+                    return a.order - b.order;
+                });
+                var popup = widget.create("popup");
+                for (var _i = 0, controls_1 = controls; _i < controls_1.length; _i++) {
+                    var c = controls_1[_i];
+                    var itemDiv = tui.elem("div");
+                    var itemIcon = tui.elem("span");
+                    var label = tui.elem("div");
+                    itemDiv.appendChild(itemIcon);
+                    itemDiv.appendChild(label);
+                    itemIcon.className = "fa " + c.icon;
+                    label.innerHTML = tui.browser.toSafeText(c.name);
+                    div.appendChild(itemDiv);
+                    this.bindNewItemClick(popup, itemDiv, c.type, c.name, pos);
+                }
+                popup._set("content", div);
+                popup.open(button);
             };
             Form.prototype.validate = function () {
                 var result = true;
@@ -5707,6 +5776,13 @@ var tui;
         widget.Form = Form;
         widget.register(Form, "form");
         widget.registerResize("form");
+    })(widget = tui.widget || (tui.widget = {}));
+})(tui || (tui = {}));
+var tui;
+(function (tui) {
+    var widget;
+    (function (widget) {
+        "use strict";
         var FormControl = (function () {
             function FormControl(form, define) {
                 var _this = this;
@@ -5785,12 +5861,15 @@ var tui;
                 this.btnMoveDown.on("click", function () {
                     _this.form.fire("itemmovedown", { control: _this });
                 });
+                this.btnAdd.on("click", function () {
+                    _this.form.fire("itemadd", { button: _this.btnAdd, control: _this });
+                });
             }
             FormControl.prototype.isPresent = function () {
                 return this.div.parentElement === this.form._;
             };
             FormControl.prototype.hide = function () {
-                this.form._.removeChild(this.div);
+                tui.browser.removeNode(this.div);
             };
             FormControl.prototype.show = function () {
                 this.form._.appendChild(this.div);
@@ -5856,7 +5935,7 @@ var tui;
         widget.FormControl = FormControl;
         var BasicFormControl = (function (_super) {
             __extends(BasicFormControl, _super);
-            function BasicFormControl(form, define, type, name) {
+            function BasicFormControl(form, define, type) {
                 var _this = _super.call(this, form, define) || this;
                 _this._name = name;
                 _this._widget = widget.create(type);
@@ -5869,9 +5948,6 @@ var tui;
                 }
                 return _this;
             }
-            BasicFormControl.prototype.getName = function () {
-                return this._name;
-            };
             BasicFormControl.prototype.getValue = function () {
                 return this._widget.get("value");
             };
@@ -5884,104 +5960,6 @@ var tui;
             return BasicFormControl;
         }(FormControl));
         widget.BasicFormControl = BasicFormControl;
-        var FormTextbox = (function (_super) {
-            __extends(FormTextbox, _super);
-            function FormTextbox(form, define) {
-                return _super.call(this, form, define, "input", tui.str("form.textbox")) || this;
-            }
-            FormTextbox.prototype.showProperty = function () {
-                throw new Error('Method not implemented.');
-            };
-            FormTextbox.prototype.validate = function () {
-                return this._widget.validate();
-            };
-            return FormTextbox;
-        }(BasicFormControl));
-        Form.register("textbox", FormTextbox);
-        var FormTextarea = (function (_super) {
-            __extends(FormTextarea, _super);
-            function FormTextarea(form, define) {
-                return _super.call(this, form, define, "textarea", tui.str("form.textarea")) || this;
-            }
-            FormTextarea.prototype.showProperty = function () {
-                throw new Error('Method not implemented.');
-            };
-            FormTextarea.prototype.validate = function () {
-                return this._widget.validate();
-            };
-            return FormTextarea;
-        }(BasicFormControl));
-        Form.register("textarea", FormTextarea);
-        var FormDatePicker = (function (_super) {
-            __extends(FormDatePicker, _super);
-            function FormDatePicker(form, define) {
-                return _super.call(this, form, define, "date-picker", tui.str("form.datepicker")) || this;
-            }
-            FormDatePicker.prototype.showProperty = function () {
-                throw new Error('Method not implemented.');
-            };
-            FormDatePicker.prototype.validate = function () {
-                return this._widget.validate();
-            };
-            return FormDatePicker;
-        }(BasicFormControl));
-        Form.register("datepicker", FormDatePicker);
-        var FormSelect = (function (_super) {
-            __extends(FormSelect, _super);
-            function FormSelect(form, define) {
-                return _super.call(this, form, define, "select", tui.str("form.select")) || this;
-            }
-            FormSelect.prototype.showProperty = function () {
-                throw new Error('Method not implemented.');
-            };
-            FormSelect.prototype.validate = function () {
-                return this._widget.validate();
-            };
-            return FormSelect;
-        }(BasicFormControl));
-        Form.register("select", FormSelect);
-        var FormPicture = (function (_super) {
-            __extends(FormPicture, _super);
-            function FormPicture(form, define) {
-                return _super.call(this, form, define, "picture", tui.str("form.picture")) || this;
-            }
-            FormPicture.prototype.showProperty = function () {
-                throw new Error('Method not implemented.');
-            };
-            FormPicture.prototype.validate = function () {
-                return true;
-            };
-            return FormPicture;
-        }(BasicFormControl));
-        Form.register("picture", FormPicture);
-        var FormFile = (function (_super) {
-            __extends(FormFile, _super);
-            function FormFile(form, define) {
-                return _super.call(this, form, define, "file", tui.str("form.file")) || this;
-            }
-            FormFile.prototype.showProperty = function () {
-                throw new Error('Method not implemented.');
-            };
-            FormFile.prototype.validate = function () {
-                return this._widget.validate();
-            };
-            return FormFile;
-        }(BasicFormControl));
-        Form.register("file", FormFile);
-        var FormFiles = (function (_super) {
-            __extends(FormFiles, _super);
-            function FormFiles(form, define) {
-                return _super.call(this, form, define, "files", tui.str("form.files")) || this;
-            }
-            FormFiles.prototype.showProperty = function () {
-                throw new Error('Method not implemented.');
-            };
-            FormFiles.prototype.validate = function () {
-                return true;
-            };
-            return FormFiles;
-        }(BasicFormControl));
-        Form.register("files", FormFiles);
         var FormSection = (function (_super) {
             __extends(FormSection, _super);
             function FormSection(form, define) {
@@ -6004,9 +5982,6 @@ var tui;
                 }
                 return _this;
             }
-            FormSection.prototype.getName = function () {
-                return tui.str("form.section");
-            };
             FormSection.prototype.getValue = function () {
                 return null;
             };
@@ -6020,7 +5995,44 @@ var tui;
             };
             return FormSection;
         }(FormControl));
-        Form.register("section", FormSection);
+        FormSection.icon = "fa-font";
+        FormSection.desc = tui.str("form.section");
+        FormSection.order = 0;
+        widget.Form.register("section", FormSection);
+        var FormTextbox = (function (_super) {
+            __extends(FormTextbox, _super);
+            function FormTextbox(form, define) {
+                return _super.call(this, form, define, "input") || this;
+            }
+            FormTextbox.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormTextbox.prototype.validate = function () {
+                return this._widget.validate();
+            };
+            return FormTextbox;
+        }(BasicFormControl));
+        FormTextbox.icon = "fa-pencil";
+        FormTextbox.desc = tui.str("form.textbox");
+        FormTextbox.order = 1;
+        widget.Form.register("textbox", FormTextbox);
+        var FormTextarea = (function (_super) {
+            __extends(FormTextarea, _super);
+            function FormTextarea(form, define) {
+                return _super.call(this, form, define, "textarea") || this;
+            }
+            FormTextarea.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormTextarea.prototype.validate = function () {
+                return this._widget.validate();
+            };
+            return FormTextarea;
+        }(BasicFormControl));
+        FormTextarea.icon = "fa-edit";
+        FormTextarea.desc = tui.str("form.textarea");
+        FormTextarea.order = 2;
+        widget.Form.register("textarea", FormTextarea);
         var FormOptions = (function (_super) {
             __extends(FormOptions, _super);
             function FormOptions(form, define) {
@@ -6032,28 +6044,34 @@ var tui;
                 _this._group._set("disable", define.disable);
                 var optionType = define.atMost === 1 ? "radio" : "check";
                 _this._group._set("type", optionType);
-                for (var i = 0; i < define.options.length; i++) {
-                    var option = define.options[i];
-                    if (!option)
-                        continue;
-                    var o = widget.create(optionType);
-                    if (typeof option === "string") {
-                        o._set("value", option);
-                        o._set("text", option);
+                _this._group._.innerHTML = "";
+                if (define.options) {
+                    for (var i = 0; i < define.options.length; i++) {
+                        var option = define.options[i];
+                        if (!option)
+                            continue;
+                        var o = widget.create(optionType);
+                        if (typeof option === "string") {
+                            o._set("value", option);
+                            o._set("text", option);
+                        }
+                        else {
+                            o._set("value", option.value);
+                            o._set("text", option.text);
+                        }
+                        _this._group._.appendChild(o._);
                     }
-                    else {
-                        o._set("value", option.value);
-                        o._set("text", option.text);
-                    }
-                    _this._group._.appendChild(o._);
+                }
+                if (!define.options || define.options.length == 0) {
+                    var padding = tui.elem("div");
+                    padding.style.padding = "10px";
+                    padding.innerHTML = "Empty";
+                    _this._group._.appendChild(padding);
                 }
                 _this._group._set("value", define.value);
                 _this._group.appendTo(_this.div);
                 return _this;
             }
-            FormOptions.prototype.getName = function () {
-                return tui.str("form.options");
-            };
             FormOptions.prototype.getValue = function () {
                 return this._group.get("value");
             };
@@ -6071,11 +6089,99 @@ var tui;
             };
             return FormOptions;
         }(FormControl));
-        Form.register("options", FormOptions);
+        FormOptions.icon = "fa-check-square-o";
+        FormOptions.desc = tui.str("form.options");
+        FormOptions.order = 3;
+        widget.Form.register("options", FormOptions);
+        var FormSelect = (function (_super) {
+            __extends(FormSelect, _super);
+            function FormSelect(form, define) {
+                return _super.call(this, form, define, "select") || this;
+            }
+            FormSelect.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormSelect.prototype.validate = function () {
+                return this._widget.validate();
+            };
+            return FormSelect;
+        }(BasicFormControl));
+        FormSelect.icon = "fa-toggle-down";
+        FormSelect.desc = tui.str("form.select");
+        FormSelect.order = 4;
+        widget.Form.register("select", FormSelect);
+        var FormDatePicker = (function (_super) {
+            __extends(FormDatePicker, _super);
+            function FormDatePicker(form, define) {
+                return _super.call(this, form, define, "date-picker") || this;
+            }
+            FormDatePicker.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormDatePicker.prototype.validate = function () {
+                return this._widget.validate();
+            };
+            return FormDatePicker;
+        }(BasicFormControl));
+        FormDatePicker.icon = "fa-calendar-o";
+        FormDatePicker.desc = tui.str("form.datepicker");
+        FormDatePicker.order = 5;
+        widget.Form.register("datepicker", FormDatePicker);
+        var FormPicture = (function (_super) {
+            __extends(FormPicture, _super);
+            function FormPicture(form, define) {
+                return _super.call(this, form, define, "picture") || this;
+            }
+            FormPicture.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormPicture.prototype.validate = function () {
+                return true;
+            };
+            return FormPicture;
+        }(BasicFormControl));
+        FormPicture.icon = "fa-file-image-o";
+        FormPicture.desc = tui.str("form.picture");
+        FormPicture.order = 6;
+        widget.Form.register("picture", FormPicture);
+        var FormFile = (function (_super) {
+            __extends(FormFile, _super);
+            function FormFile(form, define) {
+                return _super.call(this, form, define, "file") || this;
+            }
+            FormFile.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormFile.prototype.validate = function () {
+                return this._widget.validate();
+            };
+            return FormFile;
+        }(BasicFormControl));
+        FormFile.icon = "fa-file-text-o";
+        FormFile.desc = tui.str("form.file");
+        FormFile.order = 7;
+        widget.Form.register("file", FormFile);
+        var FormFiles = (function (_super) {
+            __extends(FormFiles, _super);
+            function FormFiles(form, define) {
+                return _super.call(this, form, define, "files") || this;
+            }
+            FormFiles.prototype.showProperty = function () {
+                throw new Error('Method not implemented.');
+            };
+            FormFiles.prototype.validate = function () {
+                return true;
+            };
+            return FormFiles;
+        }(BasicFormControl));
+        FormFiles.icon = "fa-copy";
+        FormFiles.desc = tui.str("form.files");
+        FormFiles.order = 8;
+        widget.Form.register("files", FormFiles);
         var FormGrid = (function (_super) {
             __extends(FormGrid, _super);
             function FormGrid(form, define) {
-                var _this = _super.call(this, form, define, "grid", tui.str("form.grid")) || this;
+                var _this = _super.call(this, form, define, "grid") || this;
                 if (define.value instanceof Array) {
                     _this._values = define.value;
                 }
@@ -6130,7 +6236,10 @@ var tui;
             };
             return FormGrid;
         }(BasicFormControl));
-        Form.register("grid", FormGrid);
+        FormGrid.icon = "fa-table";
+        FormGrid.desc = tui.str("form.grid");
+        FormGrid.order = 9;
+        widget.Form.register("grid", FormGrid);
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 var tui;

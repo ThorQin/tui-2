@@ -630,8 +630,8 @@ declare module tui.widget {
     interface FormItem {
         type: string;
         label: string | null;
-        key: string | null;
-        value: any | null;
+        key?: string | null;
+        value?: any;
         validate?: string[];
         size?: number;
         newline?: boolean;
@@ -640,6 +640,9 @@ declare module tui.widget {
     }
     interface FormControlConstructor {
         new (form: Form, define: FormItem): FormControl;
+        icon: string;
+        desc: string;
+        order: number;
     }
     class Form extends Widget {
         protected _definitionChanged: boolean;
@@ -647,11 +650,16 @@ declare module tui.widget {
         static register(type: string, controlType: FormControlConstructor): void;
         protected removeAll(): void;
         protected hideAll(): void;
+        protected selectItem(target: FormControl): void;
         protected initRestriction(): void;
         protected init(): void;
+        private bindNewItemClick(popup, newItemDiv, type, label, pos);
+        private addNewItem(button, pos);
         validate(): boolean;
         render(): void;
     }
+}
+declare module tui.widget {
     abstract class FormControl {
         mask: HTMLElement;
         div: HTMLElement;
@@ -675,7 +683,6 @@ declare module tui.widget {
         isSelect(): boolean;
         getKey(): string;
         protected applySize(): void;
-        abstract getName(): string;
         abstract getValue(): any;
         abstract setValue(value: any): void;
         abstract render(): void;
@@ -685,8 +692,7 @@ declare module tui.widget {
     abstract class BasicFormControl<T extends Widget> extends FormControl {
         protected _widget: T;
         protected _name: string;
-        constructor(form: Form, define: FormItem, type: string, name: string);
-        getName(): string;
+        constructor(form: Form, define: FormItem, type: string);
         getValue(): any;
         setValue(value: any): void;
         render(): void;

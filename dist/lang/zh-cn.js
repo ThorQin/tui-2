@@ -62,5 +62,16 @@ tui.dict("zh-cn", {
     "invalid.file.type": "无效的文件类型！",
     "geo.location.failed": "获取当前位置失败，请检查您的浏览器是否可以使用定位服务。",
     "Fill": "填充",
-    "New Line": "换行"
+    "New Line": "换行",
+    "form.section": "标题",
+    "form.textbox": "文本框",
+    "form.textarea": "多行文本",
+    "form.options": "选项",
+    "form.select": "下拉选择",
+    "form.datepicker": "日期",
+    "form.picture": "图片",
+    "form.file": "文件",
+    "form.files": "多个文件",
+    "form.grid": "网格",
+    "form.address": "地址"
 });

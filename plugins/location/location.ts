@@ -232,8 +232,11 @@ module tui.widget.ext {
 	register(Location, "location");
 
 	class FormAddress extends BasicFormControl<Location> {
+		static icon = "fa-map-marker";
+		static desc = tui.str("form.address");
+		static order = 10;
 		constructor(form: Form, define: FormItem) {
-			super(form, define, "location", tui.str("picture"));
+			super(form, define, "location");
 		}
 		showProperty(): void {
 			throw new Error('Method not implemented.');

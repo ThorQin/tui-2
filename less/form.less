@@ -186,7 +186,7 @@ tui\:form {
 
 	>div.tui-form-new-item-box {
 		margin: 10px 10px;
-		width: 200px;
+		width: 190px;
 		height: 80px;
 		line-height: 80px;
 		text-align: center;
@@ -203,6 +203,38 @@ tui\:form {
 		}
 	}
 	
+}
+
+div.tui-form-new-item-menu {
+	max-width: 340px;
+	> div {
+		position: relative;
+		display: inline-block;
+		width: 85px;
+		height: 70px;
+		line-height: 60px;
+		text-align: center;
+		color: #444;
+		cursor: pointer;
+		> span {
+			display: inline-block;
+			font-size: 24px;
+		}
+		> div {
+			position: absolute;
+			left: 0;
+			bottom: 0;
+			right: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			height: 30px;
+			line-height: 30px;
+			color: #777;
+		}
+		&:hover {
+			background-color: #f0f0f0;
+		}
+	}
 }
 
 tui\:form.tui-form-fixed {
