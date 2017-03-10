@@ -168,10 +168,43 @@ module tui.widget {
 					this.render();
 				}
 			});
+			var firstPoint: {x: number, y: number, ctrl: FormControl} = null;
+			var oldRect: browser.Rect = null;
+			this.on("itemmousemove", (e: any) => {
+				var ev = <JQueryEventObject>e.data.e;
+				ev.preventDefault();
+				if (!browser.isLButton(ev) || !firstPoint)
+					return;
+				if (e.data.control == firstPoint.ctrl && 
+						(Math.abs(ev.clientX -  firstPoint.x) >= 5 || 
+						Math.abs(ev.clientY -  firstPoint.y) >= 5)) {
+					var ctrl: FormControl = e.data.control;
+					oldRect = browser.getRectOfScreen(ctrl.div);
+					var oldWidth = ctrl.div.clientWidth;
+					ctrl.div.style.position = "fixed";
+					ctrl.div.style.zIndex = "100";
+					ctrl.div.style.opacity = "0.8";
+					ctrl.div.style.filter = "alpha(opacity=80)";
+					ctrl.div.style.left = oldRect.left + "px";
+					ctrl.div.style.top = oldRect.top + "px";
+					ctrl.div.style.width = oldWidth + "px";
+					tui.widget.openDragMask((e: JQueryEventObject) => {
+						ctrl.div.style.left = oldRect.left + e.clientX - firstPoint.x + "px";
+						ctrl.div.style.top = oldRect.top + e.clientY - firstPoint.y + "px";
+					}, (e: JQueryEventObject) => {
+						firstPoint = null;
+					});
+				}
+			});
 			this.on("itemmousedown", (e: any) => {
-				
+				var ev = <JQueryEventObject>e.data.e;
+				if (browser.isLButton(ev)) {
+					firstPoint = {x: ev.clientX, y: ev.clientY, ctrl: e.data.control};
+				} else
+					firstPoint = null;
 			});
 			this.on("itemmouseup", (e: any) => {
+				firstPoint = null;
 				this.selectItem(e.data.control);
 			});
 			this.on("itemadd", (e: any) => {

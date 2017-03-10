@@ -5662,9 +5662,44 @@ var tui;
                         _this.render();
                     }
                 });
+                var firstPoint = null;
+                var oldRect = null;
+                this.on("itemmousemove", function (e) {
+                    var ev = e.data.e;
+                    ev.preventDefault();
+                    if (!tui.browser.isLButton(ev) || !firstPoint)
+                        return;
+                    if (e.data.control == firstPoint.ctrl &&
+                        (Math.abs(ev.clientX - firstPoint.x) >= 5 ||
+                            Math.abs(ev.clientY - firstPoint.y) >= 5)) {
+                        var ctrl = e.data.control;
+                        oldRect = tui.browser.getRectOfScreen(ctrl.div);
+                        var oldWidth = ctrl.div.clientWidth;
+                        ctrl.div.style.position = "fixed";
+                        ctrl.div.style.zIndex = "100";
+                        ctrl.div.style.opacity = "0.8";
+                        ctrl.div.style.filter = "alpha(opacity=80)";
+                        ctrl.div.style.left = oldRect.left + "px";
+                        ctrl.div.style.top = oldRect.top + "px";
+                        ctrl.div.style.width = oldWidth + "px";
+                        tui.widget.openDragMask(function (e) {
+                            ctrl.div.style.left = oldRect.left + e.clientX - firstPoint.x + "px";
+                            ctrl.div.style.top = oldRect.top + e.clientY - firstPoint.y + "px";
+                        }, function (e) {
+                            firstPoint = null;
+                        });
+                    }
+                });
                 this.on("itemmousedown", function (e) {
+                    var ev = e.data.e;
+                    if (tui.browser.isLButton(ev)) {
+                        firstPoint = { x: ev.clientX, y: ev.clientY, ctrl: e.data.control };
+                    }
+                    else
+                        firstPoint = null;
                 });
                 this.on("itemmouseup", function (e) {
+                    firstPoint = null;
                     _this.selectItem(e.data.control);
                 });
                 this.on("itemadd", function (e) {
@@ -5826,6 +5861,9 @@ var tui;
                 }
                 $(this.mask).mousedown(function (e) {
                     _this.form.fire("itemmousedown", { e: e, control: _this });
+                });
+                $(this.mask).mousemove(function (e) {
+                    _this.form.fire("itemmousemove", { e: e, control: _this });
                 });
                 $(this.mask).mouseup(function (e) {
                     _this.form.fire("itemmouseup", { e: e, control: _this });

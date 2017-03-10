@@ -67,6 +67,9 @@ module tui.widget {
 			$(this.mask).mousedown((e: JQueryEventObject) => {
 				this.form.fire("itemmousedown", {e: e, control: this});
 			});
+			$(this.mask).mousemove((e: JQueryEventObject) => {
+				this.form.fire("itemmousemove", {e: e, control: this});
+			});
 			$(this.mask).mouseup((e: JQueryEventObject) => {
 				this.form.fire("itemmouseup", {e: e, control: this});
 			});
