@@ -24,9 +24,9 @@ module tui.widget {
 		findPopupToClose(<HTMLElement>document.activeElement);
 	}, 50);
 
-	// $(window).on("mousedown", function(){
-	// 	popStack[0] && popStack[0].close();
-	// });
+	$(window).on("mousedown", function(){
+		popStack[0] && popStack[0].close();
+	});
 	
 	/**
 	 * <popup>

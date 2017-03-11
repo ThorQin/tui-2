@@ -106,10 +106,6 @@ module tui.browser {
 			input.setAttribute('name', this._settings.name);
 			if (this._settings.multiple)
 				input.setAttribute('multiple', 'multiple');
-			if (tui.ieVer > 0)
-				input.title = "";
-			else
-				input.title = " ";
 			$(input).css({
 				'position': 'absolute',
 				'right': 0,

@@ -226,7 +226,7 @@ module tui.widget {
 	}
 	class FormSection extends FormControl {
 		static icon = "fa-font";
-		static desc = tui.str("form.section");
+		static desc = "form.section";
 		static order = 0;
 		
 		private _hr: HTMLElement;
@@ -235,7 +235,7 @@ module tui.widget {
 			this._hr = elem("hr")
 			this.div.appendChild(this._hr);
 			this.div.style.display = "block";
-			this.div.style.width = "initial";
+			this.div.style.width = "auto";
 			if (define.label) {
 				this._hr.className = "tui-form-line-label";
 				if (typeof define.fontSize === "number" && define.fontSize >= 12 && define.fontSize < 48)
@@ -265,7 +265,7 @@ module tui.widget {
 
 	class FormTextbox extends BasicFormControl<Input> {
 		static icon = "fa-pencil";
-		static desc = tui.str("form.textbox");
+		static desc = "form.textbox";
 		static order = 1;
 
 		constructor(form: Form, define: FormItem) {
@@ -282,7 +282,7 @@ module tui.widget {
 
 	class FormTextarea extends BasicFormControl<Textarea> {
 		static icon = "fa-edit";
-		static desc = tui.str("form.textarea");
+		static desc = "form.textarea";
 		static order = 2;
 
 		constructor(form: Form, define: FormItem) {
@@ -306,7 +306,7 @@ module tui.widget {
 	}
 	class FormOptions extends FormControl {
 		static icon = "fa-check-square-o";
-		static desc = tui.str("form.options");
+		static desc = "form.options";
 		static order = 3;
 
 		private _group: Group;
@@ -368,7 +368,7 @@ module tui.widget {
 	
 	class FormSelect extends BasicFormControl<Select> {
 		static icon = "fa-toggle-down";
-		static desc = tui.str("form.select");
+		static desc = "form.select";
 		static order = 4;
 
 		constructor(form: Form, define: FormItem) {
@@ -385,7 +385,7 @@ module tui.widget {
 
 	class FormDatePicker extends BasicFormControl<DatePicker> {
 		static icon = "fa-calendar-o";
-		static desc = tui.str("form.datepicker");
+		static desc = "form.datepicker";
 		static order = 5;
 
 		constructor(form: Form, define: FormItem) {
@@ -403,7 +403,7 @@ module tui.widget {
 
 	class FormPicture extends BasicFormControl<Picture> {
 		static icon = "fa-file-image-o";
-		static desc = tui.str("form.picture");
+		static desc = "form.picture";
 		static order = 6;
 
 		constructor(form: Form, define: FormItem) {
@@ -420,7 +420,7 @@ module tui.widget {
 
 	class FormFile extends BasicFormControl<File> {
 		static icon = "fa-file-text-o";
-		static desc = tui.str("form.file");
+		static desc = "form.file";
 		static order = 7;
 
 		constructor(form: Form, define: FormItem) {
@@ -437,7 +437,7 @@ module tui.widget {
 
 	class FormFiles extends BasicFormControl<Files> {
 		static icon = "fa-copy";
-		static desc = tui.str("form.files");
+		static desc = "form.files";
 		static order = 8;
 
 		constructor(form: Form, define: FormItem) {
@@ -460,7 +460,7 @@ module tui.widget {
 	}
 	class FormGrid extends BasicFormControl<Grid> {
 		static icon = "fa-table";
-		static desc = tui.str("form.grid");
+		static desc = "form.grid";
 		static order = 9;
 
 		private _values: any[];

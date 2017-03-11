@@ -32,7 +32,9 @@
     "npm-run-all": "latest"
   },
   "scripts": {
-    "build:ts": "tsc --sourceRoot src && cd dist && uglifyjs tui2.js > tui2.min.js --compress --support-ie8 --source-map tui2.min.js.map",
+    
+    "build:ts": "tsc --sourceRoot src",
+    "compress:ts": "cd dist && uglifyjs tui2.js > tui2.min.js --compress --support-ie8 --source-map tui2.min.js.map",
     
     "prebuild:less": "fsys --task=copy --filesFolders=less --destination=dist --clobber='true' --preserveTimestamps='false'",
     "build:less": "cd dist && lessc less/tui2.less tui2.css --clean-css=\"--s1 --advanced --compatibility=ie8\" --source-map",
@@ -41,7 +43,7 @@
     "build:plugins": "node --harmony plugins/build.js",
 
     "prebuild": "fsys --task=emptyDir --dir=dist",
-    "build": "npm run build:ts && npm run build:less && npm run build:plugins",
+    "build": "npm run build:ts && npm run compress:ts && npm run build:less && npm run build:plugins",
     "postbuild": "fsys --task=copy --filesFolders=lang,src --destination=dist --clobber='true' --preserveTimestamps='false'",
 
     "watch:less": "watch \"npm run build:less\" less -d -u",

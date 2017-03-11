@@ -651,6 +651,7 @@ declare module tui.widget {
         protected removeAll(): void;
         protected hideAll(): void;
         protected selectItem(target: FormControl): void;
+        protected updateSize(): void;
         protected initRestriction(): void;
         protected init(): void;
         private bindNewItemClick(popup, newItemDiv, type, label, pos);

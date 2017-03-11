@@ -62,6 +62,13 @@ module tui.widget {
 			}
 		}
 
+		protected updateSize() {
+			this._.style.height = this._.offsetHeight + "px";
+			this.hideAll();
+			this.render();
+			this._.style.height = null;
+		}
+
 		protected initRestriction(): void {
 			super.initRestriction();
 			this._items = [];
@@ -118,6 +125,7 @@ module tui.widget {
 		}
 
 		protected init(): void {
+			this._.setAttribute("unselectable", "on");
 			var toolbar = this._components["toolbar"] = elem("div");
 			toolbar.className = "tui-form-toolbar";
 			var title = elem("div");
@@ -154,8 +162,7 @@ module tui.widget {
 					var tmp = this._items[pos];
 					this._items[pos] = this._items[pos - 1];
 					this._items[pos - 1] = tmp;
-					this.hideAll();
-					this.render();
+					this.updateSize();
 				}
 			});
 			this.on("itemmovedown", (e: any) => {
@@ -164,28 +171,99 @@ module tui.widget {
 					var tmp = this._items[pos];
 					this._items[pos] = this._items[pos + 1];
 					this._items[pos + 1] = tmp;
-					this.hideAll();
-					this.render();
+					this.updateSize();
 				}
 			});
 			var firstPoint: {x: number, y: number, ctrl: FormControl} = null;
 			var oldRect: browser.Rect = null;
 			this.on("itemmousemove", (e: any) => {
 				var ev = <JQueryEventObject>e.data.e;
-				if (browser.isLButton(e) && e.data.control == firstPoint.ctrl && 
+				ev.preventDefault();
+				if (!browser.isLButton(ev) || !firstPoint)
+					return;
+				if (e.data.control == firstPoint.ctrl && 
 						(Math.abs(ev.clientX -  firstPoint.x) >= 5 || 
 						Math.abs(ev.clientY -  firstPoint.y) >= 5)) {
-					firstPoint = null;
+
 					var ctrl: FormControl = e.data.control;
+					var pos = this._items.indexOf(ctrl);
+					var placeholder = elem("div");
+					placeholder.className = "tui-form-item-placeholder";
+					
+					var divStyle = browser.getCurrentStyle(ctrl.div);
+					placeholder.style.display = divStyle.display;
+					placeholder.style.width = ctrl.div.offsetWidth + "px";
+					placeholder.style.height = ctrl.div.offsetHeight + "px";
+
 					oldRect = browser.getRectOfScreen(ctrl.div);
+					var curWidth = ctrl.div.offsetWidth - parseFloat(divStyle.paddingLeft) - parseFloat(divStyle.paddingRight);
 					ctrl.div.style.position = "fixed";
+					ctrl.div.style.zIndex = "100";
+					ctrl.div.style.opacity = "0.8";
+					ctrl.div.style.filter = "alpha(opacity=80)";
 					ctrl.div.style.left = oldRect.left + "px";
 					ctrl.div.style.top = oldRect.top + "px";
+					var savedWidth = ctrl.div.style.width;
+					ctrl.div.style.width = curWidth + "px";
+					browser.addClass(ctrl.div, "tui-form-item-moving");
+
+					this._.insertBefore(placeholder, ctrl.div);
+					var targetIndex: number = null;
+
 					tui.widget.openDragMask((e: JQueryEventObject) => {
 						ctrl.div.style.left = oldRect.left + e.clientX - firstPoint.x + "px";
 						ctrl.div.style.top = oldRect.top + e.clientY - firstPoint.y + "px";
+						for (var i = 0; i < this._items.length; i++) {
+							var item = this._items[i];
+							if (item !== ctrl) {
+								var testHeight = browser.getCurrentStyle(item.div).display === "block" || placeholder.style.display === "block";
+								var rc = browser.getRectOfScreen(item.div);
+								if (testHeight) {
+									if (e.clientX > rc.left && e.clientX < rc.left + rc.width && 
+											e.clientY > rc.top && e.clientY < rc.top + rc.height / 2) {
+										this._.insertBefore(placeholder, item.div);
+										targetIndex = i;
+										break;
+									} else if (e.clientX > rc.left && e.clientX < rc.left + rc.width && 
+											e.clientY > rc.top + rc.height / 2 && e.clientY < rc.top + rc.height) {
+										this._.insertBefore(placeholder, item.div.nextSibling);
+										targetIndex = i + 1;
+										break;
+									}
+								} else {
+									if (e.clientX > rc.left && e.clientX < rc.left + rc.width / 2 && 
+											e.clientY > rc.top && e.clientY < rc.top + rc.height) {
+										this._.insertBefore(placeholder, item.div);
+										targetIndex = i;
+										break;
+									} else if (e.clientX > rc.left + rc.width / 2 && e.clientX < rc.left + rc.width && 
+											e.clientY > rc.top && e.clientY < rc.top + rc.height) {
+										this._.insertBefore(placeholder, item.div.nextSibling);
+										targetIndex = i + 1;
+										break;
+									}
+								}
+							}
+						}
 					}, (e: JQueryEventObject) => {
-						
+						firstPoint = null;
+						ctrl.div.style.position = "";
+						ctrl.div.style.zIndex = "";
+						ctrl.div.style.opacity = "";
+						ctrl.div.style.filter = "";
+						ctrl.div.style.left = "";
+						ctrl.div.style.top = "";
+						ctrl.div.style.width = savedWidth;
+						browser.removeClass(ctrl.div, "tui-form-item-moving");
+						this._.removeChild(placeholder);
+						if (targetIndex != null && targetIndex != pos) {
+							this._items.splice(pos, 1);
+							if (targetIndex < pos)
+								this._items.splice(targetIndex, 0, ctrl);
+							else
+								this._items.splice(targetIndex - 1, 0, ctrl);
+							this.updateSize();
+						}
 					});
 				}
 			});
@@ -195,10 +273,10 @@ module tui.widget {
 					firstPoint = {x: ev.clientX, y: ev.clientY, ctrl: e.data.control};
 				} else
 					firstPoint = null;
+				this.selectItem(e.data.control);
 			});
 			this.on("itemmouseup", (e: any) => {
 				firstPoint = null;
-				this.selectItem(e.data.control);
 			});
 			this.on("itemadd", (e: any) => {
 				var pos = this._items.indexOf(e.data.control);
@@ -216,10 +294,7 @@ module tui.widget {
 				var newItem = new _controls[type](this, {type: type, label: label});
 				this._items.splice(pos, 0, newItem);
 				popup.close();
-				this._.style.height = this._.offsetHeight + "px";
-				this.hideAll();
-				this.render();
-				this._.style.height = "";
+				this.updateSize();
 				this.selectItem(newItem);
 			};
 		}
@@ -249,9 +324,9 @@ module tui.widget {
 				itemDiv.appendChild(itemIcon);
 				itemDiv.appendChild(label);
 				itemIcon.className = "fa " + c.icon;
-				label.innerHTML = browser.toSafeText(c.name);
+				label.innerHTML = browser.toSafeText(tui.str(c.name));
 				div.appendChild(itemDiv);
-				this.bindNewItemClick(popup, itemDiv, c.type, c.name, pos);
+				this.bindNewItemClick(popup, itemDiv, c.type, tui.str(c.name), pos);
 			}
 			popup._set("content", div);
 			popup.open(button);

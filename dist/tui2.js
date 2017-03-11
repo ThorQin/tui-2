@@ -2589,10 +2589,6 @@ var tui;
                 input.setAttribute('name', this._settings.name);
                 if (this._settings.multiple)
                     input.setAttribute('multiple', 'multiple');
-                if (tui.ieVer > 0)
-                    input.title = "";
-                else
-                    input.title = " ";
                 $(input).css({
                     'position': 'absolute',
                     'right': 0,
@@ -5550,6 +5546,12 @@ var tui;
                         item.select(true);
                 }
             };
+            Form.prototype.updateSize = function () {
+                this._.style.height = this._.offsetHeight + "px";
+                this.hideAll();
+                this.render();
+                this._.style.height = null;
+            };
             Form.prototype.initRestriction = function () {
                 var _this = this;
                 _super.prototype.initRestriction.call(this);
@@ -5614,6 +5616,7 @@ var tui;
             };
             Form.prototype.init = function () {
                 var _this = this;
+                this._.setAttribute("unselectable", "on");
                 var toolbar = this._components["toolbar"] = tui.elem("div");
                 toolbar.className = "tui-form-toolbar";
                 var title = tui.elem("div");
@@ -5648,8 +5651,7 @@ var tui;
                         var tmp = _this._items[pos];
                         _this._items[pos] = _this._items[pos - 1];
                         _this._items[pos - 1] = tmp;
-                        _this.hideAll();
-                        _this.render();
+                        _this.updateSize();
                     }
                 });
                 this.on("itemmovedown", function (e) {
@@ -5658,8 +5660,7 @@ var tui;
                         var tmp = _this._items[pos];
                         _this._items[pos] = _this._items[pos + 1];
                         _this._items[pos + 1] = tmp;
-                        _this.hideAll();
-                        _this.render();
+                        _this.updateSize();
                     }
                 });
                 var firstPoint = null;
@@ -5673,20 +5674,83 @@ var tui;
                         (Math.abs(ev.clientX - firstPoint.x) >= 5 ||
                             Math.abs(ev.clientY - firstPoint.y) >= 5)) {
                         var ctrl = e.data.control;
+                        var pos = _this._items.indexOf(ctrl);
+                        var placeholder = tui.elem("div");
+                        placeholder.className = "tui-form-item-placeholder";
+                        var divStyle = tui.browser.getCurrentStyle(ctrl.div);
+                        placeholder.style.display = divStyle.display;
+                        placeholder.style.width = ctrl.div.offsetWidth + "px";
+                        placeholder.style.height = ctrl.div.offsetHeight + "px";
                         oldRect = tui.browser.getRectOfScreen(ctrl.div);
-                        var oldWidth = ctrl.div.clientWidth;
+                        var curWidth = ctrl.div.offsetWidth - parseFloat(divStyle.paddingLeft) - parseFloat(divStyle.paddingRight);
                         ctrl.div.style.position = "fixed";
                         ctrl.div.style.zIndex = "100";
                         ctrl.div.style.opacity = "0.8";
                         ctrl.div.style.filter = "alpha(opacity=80)";
                         ctrl.div.style.left = oldRect.left + "px";
                         ctrl.div.style.top = oldRect.top + "px";
-                        ctrl.div.style.width = oldWidth + "px";
+                        var savedWidth = ctrl.div.style.width;
+                        ctrl.div.style.width = curWidth + "px";
+                        tui.browser.addClass(ctrl.div, "tui-form-item-moving");
+                        _this._.insertBefore(placeholder, ctrl.div);
+                        var targetIndex = null;
                         tui.widget.openDragMask(function (e) {
                             ctrl.div.style.left = oldRect.left + e.clientX - firstPoint.x + "px";
                             ctrl.div.style.top = oldRect.top + e.clientY - firstPoint.y + "px";
+                            for (var i = 0; i < _this._items.length; i++) {
+                                var item = _this._items[i];
+                                if (item !== ctrl) {
+                                    var testHeight = tui.browser.getCurrentStyle(item.div).display === "block" || placeholder.style.display === "block";
+                                    var rc = tui.browser.getRectOfScreen(item.div);
+                                    if (testHeight) {
+                                        if (e.clientX > rc.left && e.clientX < rc.left + rc.width &&
+                                            e.clientY > rc.top && e.clientY < rc.top + rc.height / 2) {
+                                            _this._.insertBefore(placeholder, item.div);
+                                            targetIndex = i;
+                                            break;
+                                        }
+                                        else if (e.clientX > rc.left && e.clientX < rc.left + rc.width &&
+                                            e.clientY > rc.top + rc.height / 2 && e.clientY < rc.top + rc.height) {
+                                            _this._.insertBefore(placeholder, item.div.nextSibling);
+                                            targetIndex = i + 1;
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        if (e.clientX > rc.left && e.clientX < rc.left + rc.width / 2 &&
+                                            e.clientY > rc.top && e.clientY < rc.top + rc.height) {
+                                            _this._.insertBefore(placeholder, item.div);
+                                            targetIndex = i;
+                                            break;
+                                        }
+                                        else if (e.clientX > rc.left + rc.width / 2 && e.clientX < rc.left + rc.width &&
+                                            e.clientY > rc.top && e.clientY < rc.top + rc.height) {
+                                            _this._.insertBefore(placeholder, item.div.nextSibling);
+                                            targetIndex = i + 1;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
                         }, function (e) {
                             firstPoint = null;
+                            ctrl.div.style.position = "";
+                            ctrl.div.style.zIndex = "";
+                            ctrl.div.style.opacity = "";
+                            ctrl.div.style.filter = "";
+                            ctrl.div.style.left = "";
+                            ctrl.div.style.top = "";
+                            ctrl.div.style.width = savedWidth;
+                            tui.browser.removeClass(ctrl.div, "tui-form-item-moving");
+                            _this._.removeChild(placeholder);
+                            if (targetIndex != null && targetIndex != pos) {
+                                _this._items.splice(pos, 1);
+                                if (targetIndex < pos)
+                                    _this._items.splice(targetIndex, 0, ctrl);
+                                else
+                                    _this._items.splice(targetIndex - 1, 0, ctrl);
+                                _this.updateSize();
+                            }
                         });
                     }
                 });
@@ -5697,10 +5761,10 @@ var tui;
                     }
                     else
                         firstPoint = null;
+                    _this.selectItem(e.data.control);
                 });
                 this.on("itemmouseup", function (e) {
                     firstPoint = null;
-                    _this.selectItem(e.data.control);
                 });
                 this.on("itemadd", function (e) {
                     var pos = _this._items.indexOf(e.data.control);
@@ -5718,10 +5782,7 @@ var tui;
                     var newItem = new _controls[type](_this, { type: type, label: label });
                     _this._items.splice(pos, 0, newItem);
                     popup.close();
-                    _this._.style.height = _this._.offsetHeight + "px";
-                    _this.hideAll();
-                    _this.render();
-                    _this._.style.height = "";
+                    _this.updateSize();
                     _this.selectItem(newItem);
                 };
             };
@@ -5751,9 +5812,9 @@ var tui;
                     itemDiv.appendChild(itemIcon);
                     itemDiv.appendChild(label);
                     itemIcon.className = "fa " + c.icon;
-                    label.innerHTML = tui.browser.toSafeText(c.name);
+                    label.innerHTML = tui.browser.toSafeText(tui.str(c.name));
                     div.appendChild(itemDiv);
-                    this.bindNewItemClick(popup, itemDiv, c.type, c.name, pos);
+                    this.bindNewItemClick(popup, itemDiv, c.type, tui.str(c.name), pos);
                 }
                 popup._set("content", div);
                 popup.open(button);
@@ -6005,7 +6066,7 @@ var tui;
                 _this._hr = tui.elem("hr");
                 _this.div.appendChild(_this._hr);
                 _this.div.style.display = "block";
-                _this.div.style.width = "initial";
+                _this.div.style.width = "auto";
                 if (define.label) {
                     _this._hr.className = "tui-form-line-label";
                     if (typeof define.fontSize === "number" && define.fontSize >= 12 && define.fontSize < 48)
@@ -6034,7 +6095,7 @@ var tui;
             return FormSection;
         }(FormControl));
         FormSection.icon = "fa-font";
-        FormSection.desc = tui.str("form.section");
+        FormSection.desc = "form.section";
         FormSection.order = 0;
         widget.Form.register("section", FormSection);
         var FormTextbox = (function (_super) {
@@ -6051,7 +6112,7 @@ var tui;
             return FormTextbox;
         }(BasicFormControl));
         FormTextbox.icon = "fa-pencil";
-        FormTextbox.desc = tui.str("form.textbox");
+        FormTextbox.desc = "form.textbox";
         FormTextbox.order = 1;
         widget.Form.register("textbox", FormTextbox);
         var FormTextarea = (function (_super) {
@@ -6068,7 +6129,7 @@ var tui;
             return FormTextarea;
         }(BasicFormControl));
         FormTextarea.icon = "fa-edit";
-        FormTextarea.desc = tui.str("form.textarea");
+        FormTextarea.desc = "form.textarea";
         FormTextarea.order = 2;
         widget.Form.register("textarea", FormTextarea);
         var FormOptions = (function (_super) {
@@ -6128,7 +6189,7 @@ var tui;
             return FormOptions;
         }(FormControl));
         FormOptions.icon = "fa-check-square-o";
-        FormOptions.desc = tui.str("form.options");
+        FormOptions.desc = "form.options";
         FormOptions.order = 3;
         widget.Form.register("options", FormOptions);
         var FormSelect = (function (_super) {
@@ -6145,7 +6206,7 @@ var tui;
             return FormSelect;
         }(BasicFormControl));
         FormSelect.icon = "fa-toggle-down";
-        FormSelect.desc = tui.str("form.select");
+        FormSelect.desc = "form.select";
         FormSelect.order = 4;
         widget.Form.register("select", FormSelect);
         var FormDatePicker = (function (_super) {
@@ -6162,7 +6223,7 @@ var tui;
             return FormDatePicker;
         }(BasicFormControl));
         FormDatePicker.icon = "fa-calendar-o";
-        FormDatePicker.desc = tui.str("form.datepicker");
+        FormDatePicker.desc = "form.datepicker";
         FormDatePicker.order = 5;
         widget.Form.register("datepicker", FormDatePicker);
         var FormPicture = (function (_super) {
@@ -6179,7 +6240,7 @@ var tui;
             return FormPicture;
         }(BasicFormControl));
         FormPicture.icon = "fa-file-image-o";
-        FormPicture.desc = tui.str("form.picture");
+        FormPicture.desc = "form.picture";
         FormPicture.order = 6;
         widget.Form.register("picture", FormPicture);
         var FormFile = (function (_super) {
@@ -6196,7 +6257,7 @@ var tui;
             return FormFile;
         }(BasicFormControl));
         FormFile.icon = "fa-file-text-o";
-        FormFile.desc = tui.str("form.file");
+        FormFile.desc = "form.file";
         FormFile.order = 7;
         widget.Form.register("file", FormFile);
         var FormFiles = (function (_super) {
@@ -6213,7 +6274,7 @@ var tui;
             return FormFiles;
         }(BasicFormControl));
         FormFiles.icon = "fa-copy";
-        FormFiles.desc = tui.str("form.files");
+        FormFiles.desc = "form.files";
         FormFiles.order = 8;
         widget.Form.register("files", FormFiles);
         var FormGrid = (function (_super) {
@@ -6275,7 +6336,7 @@ var tui;
             return FormGrid;
         }(BasicFormControl));
         FormGrid.icon = "fa-table";
-        FormGrid.desc = tui.str("form.grid");
+        FormGrid.desc = "form.grid";
         FormGrid.order = 9;
         widget.Form.register("grid", FormGrid);
     })(widget = tui.widget || (tui.widget = {}));
@@ -8012,6 +8073,9 @@ var tui;
         setInterval(function () {
             findPopupToClose(document.activeElement);
         }, 50);
+        $(window).on("mousedown", function () {
+            widget.popStack[0] && widget.popStack[0].close();
+        });
         var Popup = (function (_super) {
             __extends(Popup, _super);
             function Popup() {
