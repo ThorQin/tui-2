@@ -1,12 +1,12 @@
 // Place your settings in this file to overwrite default and user settings.
 {
 	"files.exclude": {
-        "**/.git": true,
+		"**/.git": true,
 		"depends": true,
-        "node_modules": true,
+		"node_modules": true,
 		"dist": true
-    }
-,
-"typescript.check.tscVersion": true,
-"vsicons.presets.angular": false
+	},
+	"editor.tabSize": 2,
+	"typescript.check.tscVersion": true,
+	"vsicons.presets.angular": false
 }

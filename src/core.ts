@@ -1,37 +1,37 @@
 /// <reference path="jquery.d.ts" />
 /// <reference path="animation.ts" />
 module tui {
-    "use strict";
-    export const UNDEFINED = ((undefined?: any): string => {
+	"use strict";
+	export const UNDEFINED = ((undefined?: any): string => {
 		return typeof undefined;
 	})();
 
 	export function elem(nodeName: string) {
 		return document.createElement(nodeName);
 	}
-    
-    // Used to decide which language should be used to display UI control
-    export var lang = ((): string => {
+
+	// Used to decide which language should be used to display UI control
+	export var lang = ((): string => {
 		return (navigator.language || (<any>navigator).browserLanguage || (<any>navigator).userLanguage).toLowerCase();
 	})();
 
 
 	class Translator {
-		dictionary: {[index:string]: string};
+		dictionary: { [index: string]: string };
 		constructor() {
 			this.dictionary = {};
 		}
-		translate (str: string) {
+		translate(str: string) {
 			return (this.dictionary && this.dictionary[(str + "").toLowerCase()]) || str;
 		}
 	}
 
-    var _dict: {[index: string]: Translator} = {};
+	var _dict: { [index: string]: Translator } = {};
 
 	/**
 	 * Register a translation dictionary.
 	 */
-	export function dict(lang: string, dictionary: {[index:string]: string}, replace: boolean = false): void {
+	export function dict(lang: string, dictionary: { [index: string]: string }, replace: boolean = false): void {
 		if (!lang)
 			return;
 		if (typeof lang === "string")
@@ -44,14 +44,14 @@ module tui {
 			if (replace) {
 				translator.dictionary = dictionary;
 			} else {
-				for(var k in dictionary) {
+				for (var k in dictionary) {
 					if (dictionary.hasOwnProperty(k))
 						translator.dictionary[k] = dictionary[k];
 				}
 			}
 		}
 	}
-    
+
     /**
 	 * Multi-language support, translate source text to specified language(default use tui.lang setting)
 	 * @param str {string} source text
@@ -68,18 +68,18 @@ module tui {
 		if (translator) {
 			return translator.translate(str);
 		} else {
-            translator = _dict["en-us"];
-            if (translator) {
+			translator = _dict["en-us"];
+			if (translator) {
 				return translator.translate(str);
 			} else {
 				return str;
 			}
-        }
+		}
 	}
 
-    export var tuid = (function() {
+	export var tuid = (function () {
 		var id = 0;
-		return function() {
+		return function () {
 			return ('tuid-' + id++);
 		};
 	})();
@@ -89,7 +89,7 @@ module tui {
 		data: any;
 	}
 
-    export interface EventHandler {
+	export interface EventHandler {
 		(data: EventInfo): any;
 		isOnce?: boolean;
 	}
@@ -118,7 +118,7 @@ module tui {
 					return this;
 			}
 			if (atFirst)
-                handlers.splice(0, 0, handler);
+				handlers.splice(0, 0, handler);
 			else
 				handlers.push(handler);
 			return this;
@@ -274,7 +274,7 @@ module tui {
 		} else
 			return JSON.parse(JSON.stringify(obj));
 	}
-	
+
 	/**
 	 * Get IE version
 	 * @return {Number}
@@ -313,6 +313,6 @@ module tui {
 		}
 		return rv;
 	})();
-	
-	
+
+
 }

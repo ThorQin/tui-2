@@ -21,7 +21,7 @@ module tui.ds {
 		setFilter(filter: Filter[]): void;
 		getFilter(): Filter[];
 	}
-	
+
 	export interface TreeDS extends DS {
 		expand(index: number): void;
 		collapse(index: number): void;
@@ -68,7 +68,7 @@ module tui.ds {
 						return false;
 				}
 			}
-		} 
+		}
 		return true;
 	}
 
@@ -89,7 +89,7 @@ module tui.ds {
 			});
 		}
 	}
-	
+
 	export class List extends DSBase implements DS {
 		private _data: any[];
 
@@ -112,13 +112,13 @@ module tui.ds {
 			else
 				return this._finalData[index];
 		}
-		
+
 		protected build(): void {
 			if (this._data == null) {
 				this._finalData = null;
 				return;
 			}
-			if ((this._filter == null || this._filter.length == 0) && 
+			if ((this._filter == null || this._filter.length == 0) &&
 				(this._order == null || this._order.length == 0))
 				this._finalData = null;
 			else {
@@ -127,28 +127,28 @@ module tui.ds {
 				});
 				sort(this._finalData, this._order, false);
 			}
-			this.fire("update", {"completely": true});
+			this.fire("update", { "completely": true });
 		}
 	}
-	
+
 	interface CachePage {
 		page: number;
 		data: any[];
 	}
-	
+
 	export interface QueryResult {
 		length: number; // total length
 		begin: number;
 		data: any[];
 	}
-	
+
 	export class RemoteList extends DSBase implements DS {
 		private _cache1: CachePage = null;
 		private _cache2: CachePage = null;
 		private _length: number = null;
 		private _cacheSize: number;
 		private _fillCache: number;
-		
+
 		constructor(cacheSize: number = 50, filter: Filter[] = null, order: Order[] = null) {
 			super();
 			this._cacheSize = cacheSize;
@@ -159,17 +159,17 @@ module tui.ds {
 
 		length(): number {
 			if (this._length === null) {
-				this.fire("query", { 
-					begin: 0, 
-					size: this._cacheSize, 
-					filter: this._filter, 
+				this.fire("query", {
+					begin: 0,
+					size: this._cacheSize,
+					filter: this._filter,
 					order: this._order
 				});
 				return 0;
 			} else
 				return this._length;
 		}
-		
+
 		get(index: number): any {
 			if (index >= 0 && index < this.length()) {
 				var item = this.getFromCache(index, this._cache1);
@@ -182,23 +182,23 @@ module tui.ds {
 					} else if (this._cache2 === null)
 						this._fillCache = 2;
 					else {
-						this._fillCache = Math.abs(page - this._cache1.page) > Math.abs(page - this._cache2.page) ? 1 : 2; 
+						this._fillCache = Math.abs(page - this._cache1.page) > Math.abs(page - this._cache2.page) ? 1 : 2;
 					}
-					this.fire("query", { 
-						begin: page * this._cacheSize, 
+					this.fire("query", {
+						begin: page * this._cacheSize,
 						size: this._cacheSize,
-						filter: this._filter, 
+						filter: this._filter,
 						rder: this._order
 					});
 				}
 			} else
 				return null;
 		}
-		
+
 		private getIndexPage(index: number): number {
 			return Math.ceil((index + 1) / this._cacheSize - 1);
 		}
-		
+
 		private getFromCache(index: number, cache: CachePage): any {
 			if (cache === null) return null;
 			var begin = cache.page * this._cacheSize;
@@ -208,18 +208,18 @@ module tui.ds {
 			else
 				return null;
 		}
-		
+
 		update(result: QueryResult) {
 			var completely = this._length != result.length;
 			this._length = result.length;
 			if (this._fillCache === 1) {
-				this._cache1 = {page: this.getIndexPage(result.begin), data: result.data};
+				this._cache1 = { page: this.getIndexPage(result.begin), data: result.data };
 			} else if (this._fillCache === 2) {
-				this._cache2 = {page: this.getIndexPage(result.begin), data: result.data};
+				this._cache2 = { page: this.getIndexPage(result.begin), data: result.data };
 			}
-			this.fire("update", {"completely": completely});
+			this.fire("update", { "completely": completely });
 		}
-		
+
 		reset() {
 			this._length = null;
 			this._cache1 = this._cache2 = null;
@@ -228,15 +228,15 @@ module tui.ds {
 
 		protected build(): void {
 			this.reset();
-			this.fire("query", { 
-				begin: 0, 
-				size: this._cacheSize, 
-				filter: this._filter, 
+			this.fire("query", {
+				begin: 0,
+				size: this._cacheSize,
+				filter: this._filter,
 				order: this._order
 			});
 		}
 	} // End of RemoteListSource
-	
+
 	export interface TreeNode {
 		parent: TreeNode;
 		hasChild: boolean; // whether has child nodes
@@ -244,18 +244,18 @@ module tui.ds {
 		level: number;
 		expand: boolean;
 	}
-	
+
 	export interface TreeConfig {
 		children: string;
 		expand: string;
 		hasChild?: string;
 	}
-	
+
 	export abstract class TreeBase extends DSBase implements TreeDS {
 		protected _config: TreeConfig;
 		protected _index: TreeNode[] = null;
 		protected _rawData: any[] = null;
-		
+
 		getConfig() {
 			return this._config;
 		}
@@ -268,11 +268,11 @@ module tui.ds {
 			else
 				return 0;
 		}
-		
+
 		getRawData(): any[] {
 			return this._rawData;
 		}
-		
+
 		get(index: number): TreeNode {
 			if (this._finalData) {
 				if (index >= 0 && index < this._finalData.length)
@@ -284,7 +284,7 @@ module tui.ds {
 			} else
 				return null;
 		}
-		
+
 		protected findNodeIndex(node: TreeNode): number {
 			for (var i = 0; i < this._index.length; i++) {
 				if (this._index[i] === node)
@@ -292,7 +292,7 @@ module tui.ds {
 			}
 			return -1;
 		}
-		
+
 		protected expandItems(parent: TreeNode, items: any[], index: TreeNode[], level: number, init: boolean = false) {
 			if (typeof items === tui.UNDEFINED || items === null)
 				items = [];
@@ -322,7 +322,7 @@ module tui.ds {
 				}
 			}
 		}
-		
+
 		protected getExpandCount(children: any[]): number {
 			if (!children)
 				return 0;
@@ -334,11 +334,11 @@ module tui.ds {
 			}
 			return delCount;
 		}
- 		
+
 		expand(index: number): void {
 			if (index >= 0 && index < this._index.length) {
 				var node = this._index[index];
-				if ( node.hasChild && !node.expand) {
+				if (node.hasChild && !node.expand) {
 					node.expand = true;
 					node.item[this._config.expand] = true;
 					var appendNodes: TreeNode[] = [];
@@ -347,11 +347,11 @@ module tui.ds {
 				}
 			}
 		}
-		
+
 		collapse(index: number): void {
 			if (index >= 0 && index < this._index.length) {
 				var node = this._index[index];
-				if ( node.hasChild && node.expand) {
+				if (node.hasChild && node.expand) {
 					node.expand = false;
 					node.item[this._config.expand] = false;
 					var delCount = this.getExpandCount(node.item[this._config.children]);
@@ -360,10 +360,10 @@ module tui.ds {
 			}
 		}
 	}
-	
+
 	export class Tree extends TreeBase {
-		constructor(data: any[], 
-			config: TreeConfig = {children: "children", expand: "expand"},
+		constructor(data: any[],
+			config: TreeConfig = { children: "children", expand: "expand" },
 			filter: Filter[] = null, order: Order[] = null) {
 			super();
 			this._config = config;
@@ -371,7 +371,7 @@ module tui.ds {
 			this._order = order;
 			this.update(data);
 		}
-		
+
 		update(data: any[]) {
 			// var config = this._config;
 			this._index = [];
@@ -385,7 +385,7 @@ module tui.ds {
 				this._finalData = null;
 				return;
 			}
-			if ((this._filter == null || this._filter.length == 0) && 
+			if ((this._filter == null || this._filter.length == 0) &&
 				(this._order == null || this._order.length == 0))
 				this._finalData = null;
 			else {
@@ -411,43 +411,43 @@ module tui.ds {
 				iterate(this._rawData);
 				sort(this._finalData, this._order, true);
 			}
-			this.fire("update", {"completely": true});
+			this.fire("update", { "completely": true });
 		}
 	}
-	
+
 	export interface TreeQueryResult {
 		parent: TreeNode;
 		data: any[];
 	}
-	
-	export class RemoteTree extends TreeBase  {
-		
+
+	export class RemoteTree extends TreeBase {
+
 		private _querying: boolean = false;
-		
-		constructor(config: TreeConfig = {children: "children", expand: "expand", hasChild: "hasChild"},
+
+		constructor(config: TreeConfig = { children: "children", expand: "expand", hasChild: "hasChild" },
 			filter: Filter[] = null, order: Order[] = null) {
 			super();
 			this._config = config;
 			this._filter = filter;
 			this._order = order;
 		}
-		
+
 		length(): number {
 			if (this._index)
 				return this._index.length;
 			else {
 				if (!this._querying) {
 					this._querying = true;
-					this.fire("query", {parent: null, filter: this._filter, order: this._order});
+					this.fire("query", { parent: null, filter: this._filter, order: this._order });
 				}
 				return 0;
 			}
 		}
- 		
+
 		expand(index: number): void {
 			if (index >= 0 && index < this._index.length) {
 				var node = this._index[index];
-				if ( node.hasChild && !node.expand) {
+				if (node.hasChild && !node.expand) {
 					node.expand = true;
 					node.item[this._config.expand] = true;
 					var children = node.item[this._config.children];
@@ -456,13 +456,13 @@ module tui.ds {
 						this.expandItems(node, children, appendNodes, node.level + 1);
 						this._index.splice(index + 1, 0, ...appendNodes);
 					} else {
-						this.fire("query", {parent: node, filter: this._filter, order: this._order});
+						this.fire("query", { parent: node, filter: this._filter, order: this._order });
 						this._querying = true;
 					}
 				}
 			}
 		}
-		
+
 		update(result: TreeQueryResult) {
 			this._querying = false;
 			if (result.parent === null) {
@@ -479,14 +479,14 @@ module tui.ds {
 					this.expand(index);
 				}
 			}
-			this.fire("update", {"completely": true});
+			this.fire("update", { "completely": true });
 		}
 
 		protected build(): void {
 			this._index = null;
 			this._rawData = null;
 			this._finalData = null;
-			this.fire("query", {parent: null, filter: this._filter, order: this._order});
+			this.fire("query", { parent: null, filter: this._filter, order: this._order });
 		}
 	}
 }
