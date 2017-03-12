@@ -14,10 +14,10 @@
   内部控件的绘制就是直接操作DOM对象，而重绘仅仅发生在变动的对象上，不会造成浪费。
 * 浏览器支持：**IE >= 8.0**，以及所有其他现代浏览器。
 
-# 作者`(author)`
+# 反馈`(author)`
 
-本框架作者是：秦诺，如要反馈问题，可以发邮件到 <a href="mailto:thor.qin@outlook.com">thor.qin@outlook.com</a> 
-或 <a href="mailto:thor.qin@qq.com">thor.qin@qq.com</a>
+本框架作者是：秦诺，如要反馈问题，可以发邮件到 [thor.qin@outlook.com](mailto:thor.qin@outlook.com)
+或 [thor.qin@qq.com](mailto:thor.qin@qq.com) 或提交 issue 到：[问题列表](https://git.oschina.net/thor.qin/TUI-2/issues)
 
 # 下载`(download)`
 使用 npm 进行安装：
@@ -1077,13 +1077,16 @@ HTML代码：
 ## [](fa-map) 地理位置`(location)`
 
 地址位置插件可以让你通过地图的点击快速的输入地址信息，它使用的是高德地图。受限于地图本身，如果想要输入的是国外地址就力所不及了。
+  地理位置控件也可以在表单控件中使用。
 
 <tui:location app-key="e8f7d3075fc92aea2cb27947ce567763" placeholder="请选择地点..." clearable={true}></tui:location>
 
 HTML代码：
 
 ```html
-<tui:location app-key="e8f7d3075fc92aea2cb27947ce567763" placeholder="请选择地点..." disable={true}></tui:location>
+<tui:location app-key="e8f7d3075fc92aea2cb27947ce567763" 
+  placeholder="请选择地点..." 
+  disable={true}></tui:location>
 ```
 
 属性：（Input 的子集）
@@ -1095,6 +1098,22 @@ validate | 定义验证规则，通过属性定义需要传递 JSON 格式的对
 autoValidate | 是否自动验证
 clearable | 是否可以清除
 placeholder | 占位信息
+
+
+# 表单控件`(form)`
+
+表单控件是一个美观而强大的、可以大大提高工作效率的综合型工具，它把 TUI2 提供的输入元素全部集中了起来，以可视化的方式让开发人员或用户进行编辑，
+  编辑的结果使用 `JSON` 格式进行保存后，可以随时提取出来渲染成表单，供用户录入数据。表单控件有两个模式：**设计模式**和**输入模式**，
+  设计模式供开发人员或表单设计人员（可能是某些高级用户）操作设计表单的数据项和外观，输入模式供一般的数据录入人员（普通用户）使用。
+  无论是设计模式还是输入模式都可以工作在移动设备的浏览器上，表单是支持响应式布局的。
+
+组件的使用：
+
+```html
+<tui:form mode="design" title="表单标题"></tui:form>
+```
+
+由于表单控件可能占用的面积较大，所以我以一个单独的页面来展示表单控件：[表单例子](form.html)
 
 
 # 工具和服务

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:tui>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv="content-type" content="text/html;charset=utf-8">
+		<meta name="apple-mobile-web-app-capable" content="yes" >
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" >
+		<link rel="apple-touch-icon" href="icon114.png" sizes="114x114">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>TUI2 手册</title>
+		
+		<link rel="stylesheet" href="../depends/font-awesome-4.7.0/css/font-awesome.css">
+		<link rel="stylesheet" href="../dist/tui2.css" />
+		<link rel="stylesheet" href="../dist/plugins/navigator/navigator.css" />
+		<link rel="stylesheet" href="../dist/plugins/location/location.css" />
+		<!--[if IE 8]>
+		<script type="text/javascript" src="../depends/es5-shim.min.js"></script>
+		<script type="text/javascript" src="../depends/json2.min.js"></script>
+		<![endif]-->
+		<script type="text/javascript" src="../depends/jquery-1.11.3.min.js"></script>
+        <script type="text/javascript" src="../dist/tui2.js"></script>
+		<script type="text/javascript" src="../dist/lang/zh-cn.js"></script>
+		<script type="text/javascript" src="../dist/plugins/navigator/navigator.min.js"></script>
+		<script type="text/javascript" src="../dist/plugins/location/location.js"></script>
+	</head>
+	<body>
+        <tui:component handler="form.js">
+            <tui:form name="form" class="tui-form-fixed tui-panel" mode="design" title="可选的标题"></tui:form>
+            <div style="text-align: center">
+                <tui:button-group name="mode" type="radio">
+                    <tui:button value="design" checked={true}>Design Mode</tui:button>
+                    <tui:button value="input">Input Mode</tui:button>
+                </tui:button-group>
+                <tui:button name="submit" class="tui-primary">Submit Form</tui:button>
+            </div>
+        </tui:component>
+	</body>
+</html>
