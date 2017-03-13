@@ -3278,6 +3278,197 @@ var tui;
 })(tui || (tui = {}));
 var tui;
 (function (tui) {
+    var text;
+    (function (text) {
+        var exp;
+        (function (exp) {
+            "use strict";
+            var Type;
+            (function (Type) {
+                Type[Type["INIT"] = 0] = "INIT";
+                Type[Type["SPACE"] = 1] = "SPACE";
+                Type[Type["AND"] = 2] = "AND";
+                Type[Type["OR"] = 3] = "OR";
+                Type[Type["OP"] = 4] = "OP";
+                Type[Type["VALUE"] = 5] = "VALUE";
+                Type[Type["ID"] = 6] = "ID";
+                Type[Type["L"] = 7] = "L";
+                Type[Type["R"] = 8] = "R";
+                Type[Type["BOOL"] = 9] = "BOOL";
+            })(Type || (Type = {}));
+            var SYMBOL = /([\r\n\s]+)|(and)|(or)|(<|<=|>|>=|=|!=)|("[^"]*"|'[^']*'|[+-]?[0-9]+(?:\.[0-9]+)?|true|false|null)|([a-zA-Z_][_$a-zA-Z0-9]*)|(\()|(\))/gm;
+            function error(match) {
+                if (match)
+                    throw new Error("Invalid expression! (Position: " + match.index + " )");
+                else
+                    throw new Error("Invalid expression!");
+            }
+            function getType(match) {
+                for (var i = Type.SPACE; i <= Type.R; i++) {
+                    if (match[i])
+                        return i;
+                }
+                error(match);
+            }
+            function evaluate(expression, evalFunc) {
+                if (!expression)
+                    error();
+                SYMBOL.lastIndex = 0;
+                var match;
+                function evalValue(key, op, value) {
+                    if (!evalFunc)
+                        return false;
+                    var kv = evalFunc(key);
+                    var v;
+                    if (value[0] === '"' || value[0] === "'") {
+                        v = value.substr(1, value.length - 2);
+                    }
+                    else if (value === "true" || value === "false") {
+                        v = text.parseBoolean(value);
+                    }
+                    else if (value === "null") {
+                        v = null;
+                    }
+                    else
+                        v = parseFloat(value);
+                    if (op == "=") {
+                        return kv == v;
+                    }
+                    else if (op == "<") {
+                        return kv < v;
+                    }
+                    else if (op == "<=") {
+                        return kv <= v;
+                    }
+                    else if (op == ">") {
+                        return kv > v;
+                    }
+                    else if (op == ">=") {
+                        return kv >= v;
+                    }
+                    else if (op == "!=") {
+                        return kv != v;
+                    }
+                    else
+                        return false;
+                }
+                function evalExp(sub) {
+                    var subEnd = false;
+                    var arr = [];
+                    function getLastType() {
+                        if (arr.length > 0)
+                            return arr[arr.length - 1].type;
+                        else
+                            return null;
+                    }
+                    function mergeAnd(v) {
+                        var lastType = getLastType();
+                        if (lastType == null || lastType == Type.OR)
+                            arr.push({ type: Type.BOOL, value: v });
+                        else if (lastType == Type.AND) {
+                            arr.pop();
+                            var lv = arr.pop().value;
+                            mergeAnd(lv && v);
+                        }
+                    }
+                    while ((match = SYMBOL.exec(expression)) != null) {
+                        var lastType = getLastType();
+                        var t = getType(match);
+                        if (t == Type.SPACE) {
+                            continue;
+                        }
+                        if (t == Type.R) {
+                            if (sub) {
+                                subEnd = true;
+                                break;
+                            }
+                            else
+                                error(match);
+                        }
+                        if (lastType == null) {
+                            if (t == Type.L) {
+                                arr.push({ type: Type.BOOL, value: evalExp(true) });
+                                if (SYMBOL.lastIndex == 0)
+                                    break;
+                            }
+                            else if (t == Type.ID) {
+                                arr.push({ type: Type.ID, value: match[Type.ID] });
+                            }
+                            else
+                                error(match);
+                        }
+                        else if (lastType == Type.ID) {
+                            if (t == Type.OP) {
+                                arr.push({ type: Type.OP, value: match[Type.OP] });
+                            }
+                            else
+                                error(match);
+                        }
+                        else if (lastType == Type.OP) {
+                            if (t == Type.VALUE) {
+                                var op = arr.pop();
+                                var id = arr.pop();
+                                var v_1 = false;
+                                if (evalFunc)
+                                    v_1 = evalValue(id.value, op.value, match[Type.VALUE]);
+                                mergeAnd(v_1);
+                            }
+                            else
+                                error(match);
+                        }
+                        else if (lastType == Type.BOOL) {
+                            if (t == Type.AND) {
+                                arr.push({ type: Type.AND });
+                            }
+                            else if (t == Type.OR) {
+                                arr.push({ type: Type.OR });
+                            }
+                            else
+                                error(match);
+                        }
+                        else if (lastType == Type.AND || lastType == Type.OR) {
+                            if (t == Type.L) {
+                                mergeAnd(evalExp(true));
+                                if (SYMBOL.lastIndex == 0)
+                                    break;
+                            }
+                            else if (t == Type.ID) {
+                                arr.push({ type: Type.ID, value: match[Type.ID] });
+                            }
+                            else
+                                error(match);
+                        }
+                        else
+                            error(match);
+                    }
+                    if (sub && !subEnd)
+                        error(match);
+                    if (arr.length % 2 != 1) {
+                        error(match);
+                    }
+                    var n = arr.pop();
+                    if (n.type != Type.BOOL)
+                        error(match);
+                    var v = n.value;
+                    while (arr.length > 0) {
+                        n = arr.pop();
+                        if (n.type != Type.OR)
+                            error(match);
+                        n = arr.pop();
+                        if (n.type != Type.BOOL)
+                            error(match);
+                        v = v || n.value;
+                    }
+                    return v;
+                }
+                return evalExp(false);
+            }
+            exp.evaluate = evaluate;
+        })(exp = text.exp || (text.exp = {}));
+    })(text = tui.text || (tui.text = {}));
+})(tui || (tui = {}));
+var tui;
+(function (tui) {
     var time;
     (function (time) {
         time.shortWeeks = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -5546,7 +5737,7 @@ var tui;
                         item.select(true);
                 }
             };
-            Form.prototype.updateSize = function () {
+            Form.prototype.update = function () {
                 this._.style.height = this._.offsetHeight + "px";
                 this.hideAll();
                 this.render();
@@ -5605,7 +5796,7 @@ var tui;
                             for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
                                 var item = _a[_i];
                                 var k = item.getKey();
-                                if (k) {
+                                if (k && item.available()) {
                                     value[k] = item.getValue();
                                 }
                             }
@@ -5651,7 +5842,7 @@ var tui;
                         var tmp = _this._items[pos];
                         _this._items[pos] = _this._items[pos - 1];
                         _this._items[pos - 1] = tmp;
-                        _this.updateSize();
+                        _this.update();
                     }
                 });
                 this.on("itemmovedown", function (e) {
@@ -5660,7 +5851,7 @@ var tui;
                         var tmp = _this._items[pos];
                         _this._items[pos] = _this._items[pos + 1];
                         _this._items[pos + 1] = tmp;
-                        _this.updateSize();
+                        _this.update();
                     }
                 });
                 var firstPoint = null;
@@ -5749,7 +5940,7 @@ var tui;
                                     _this._items.splice(targetIndex, 0, ctrl);
                                 else
                                     _this._items.splice(targetIndex - 1, 0, ctrl);
-                                _this.updateSize();
+                                _this.update();
                             }
                         });
                     }
@@ -5772,6 +5963,9 @@ var tui;
                         _this.addNewItem(e.data.button._, pos);
                     }
                 });
+                this.on("itemvaluechanged", function (e) {
+                    _this.render();
+                });
                 newItem.onclick = function () {
                     _this.addNewItem(newItem, _this._items.length);
                 };
@@ -5782,7 +5976,7 @@ var tui;
                     var newItem = new _controls[type](_this, { type: type, label: label });
                     _this._items.splice(pos, 0, newItem);
                     popup.close();
-                    _this.updateSize();
+                    _this.update();
                     _this.selectItem(newItem);
                 };
             };
@@ -5853,8 +6047,16 @@ var tui;
                     if (!item.isPresent())
                         item.show();
                     item.setDesign(designMode);
-                    if (!designMode)
+                    if (!designMode) {
                         item.select(false);
+                        if (!item.available()) {
+                            tui.browser.addClass(item.div, "tui-form-item-unavailable");
+                        }
+                        else
+                            tui.browser.removeClass(item.div, "tui-form-item-unavailable");
+                    }
+                    else
+                        tui.browser.removeClass(item.div, "tui-form-item-unavailable");
                     item.render();
                     item.div.className = item.div.className.replace(/tui-form-item-exceed/g, "");
                     if (item.div.offsetWidth > this._.clientWidth - 20) {
@@ -5916,8 +6118,8 @@ var tui;
                     this.label.style.display = "none";
                 else {
                     this.label.innerHTML = tui.browser.toSafeText(define.label);
-                    if (define.important) {
-                        this.label.className = "tui-form-item-important";
+                    if (define.required) {
+                        this.label.className = "tui-form-item-required";
                     }
                 }
                 $(this.mask).mousedown(function (e) {
@@ -6007,6 +6209,17 @@ var tui;
             };
             FormControl.prototype.getKey = function () {
                 return this.define.key || null;
+            };
+            FormControl.prototype.available = function () {
+                var _this = this;
+                if (this.define.condition) {
+                    return tui.text.exp.evaluate(this.define.condition, function (key) {
+                        return _this.form.get("value")[key] || null;
+                    });
+                }
+                else {
+                    return true;
+                }
             };
             FormControl.prototype.applySize = function () {
                 var define = this.define;
@@ -6101,7 +6314,11 @@ var tui;
         var FormTextbox = (function (_super) {
             __extends(FormTextbox, _super);
             function FormTextbox(form, define) {
-                return _super.call(this, form, define, "input") || this;
+                var _this = _super.call(this, form, define, "input") || this;
+                _this._widget.on("change", function (e) {
+                    form.fire("itemvaluechanged", { control: _this });
+                });
+                return _this;
             }
             FormTextbox.prototype.showProperty = function () {
                 throw new Error('Method not implemented.');
@@ -6118,7 +6335,11 @@ var tui;
         var FormTextarea = (function (_super) {
             __extends(FormTextarea, _super);
             function FormTextarea(form, define) {
-                return _super.call(this, form, define, "textarea") || this;
+                var _this = _super.call(this, form, define, "textarea") || this;
+                _this._widget.on("change", function (e) {
+                    form.fire("itemvaluechanged", { control: _this });
+                });
+                return _this;
             }
             FormTextarea.prototype.showProperty = function () {
                 throw new Error('Method not implemented.');
@@ -6137,13 +6358,25 @@ var tui;
             function FormOptions(form, define) {
                 var _this = _super.call(this, form, define) || this;
                 _this._group = widget.create("button-group");
+                _this._group.on("click", function (e) {
+                    form.fire("itemvaluechanged", { control: _this });
+                });
+                _this._group.appendTo(_this.div);
+                _this.build();
+                return _this;
+            }
+            FormOptions.prototype.build = function () {
+                var define = this.define;
                 if (define.align === "vertical") {
-                    _this._group._.className += " tui-form-group-align-vertical";
+                    tui.browser.addClass(this._group._, " tui-form-group-align-vertical");
                 }
-                _this._group._set("disable", define.disable);
+                else {
+                    tui.browser.removeClass(this._group._, " tui-form-group-align-vertical");
+                }
+                this._group._set("disable", !!define.disable);
                 var optionType = define.atMost === 1 ? "radio" : "check";
-                _this._group._set("type", optionType);
-                _this._group._.innerHTML = "";
+                this._group._set("type", optionType);
+                this._group._.innerHTML = "";
                 if (define.options) {
                     for (var i = 0; i < define.options.length; i++) {
                         var option = define.options[i];
@@ -6158,19 +6391,17 @@ var tui;
                             o._set("value", option.value);
                             o._set("text", option.text);
                         }
-                        _this._group._.appendChild(o._);
+                        this._group._.appendChild(o._);
                     }
                 }
                 if (!define.options || define.options.length == 0) {
                     var padding = tui.elem("div");
                     padding.style.padding = "10px";
                     padding.innerHTML = "Empty";
-                    _this._group._.appendChild(padding);
+                    this._group._.appendChild(padding);
                 }
-                _this._group._set("value", define.value);
-                _this._group.appendTo(_this.div);
-                return _this;
-            }
+                this._group._set("value", define.value);
+            };
             FormOptions.prototype.getValue = function () {
                 return this._group.get("value");
             };
@@ -6195,7 +6426,11 @@ var tui;
         var FormSelect = (function (_super) {
             __extends(FormSelect, _super);
             function FormSelect(form, define) {
-                return _super.call(this, form, define, "select") || this;
+                var _this = _super.call(this, form, define, "select") || this;
+                _this._widget.on("change", function (e) {
+                    form.fire("itemvaluechanged", { control: _this });
+                });
+                return _this;
             }
             FormSelect.prototype.showProperty = function () {
                 throw new Error('Method not implemented.');
@@ -6212,7 +6447,11 @@ var tui;
         var FormDatePicker = (function (_super) {
             __extends(FormDatePicker, _super);
             function FormDatePicker(form, define) {
-                return _super.call(this, form, define, "date-picker") || this;
+                var _this = _super.call(this, form, define, "date-picker") || this;
+                _this._widget.on("change", function (e) {
+                    form.fire("itemvaluechanged", { control: _this });
+                });
+                return _this;
             }
             FormDatePicker.prototype.showProperty = function () {
                 throw new Error('Method not implemented.');
@@ -6229,7 +6468,11 @@ var tui;
         var FormPicture = (function (_super) {
             __extends(FormPicture, _super);
             function FormPicture(form, define) {
-                return _super.call(this, form, define, "picture") || this;
+                var _this = _super.call(this, form, define, "picture") || this;
+                _this._widget.on("success", function (e) {
+                    form.fire("itemvaluechanged", { control: _this });
+                });
+                return _this;
             }
             FormPicture.prototype.showProperty = function () {
                 throw new Error('Method not implemented.');
@@ -6246,7 +6489,11 @@ var tui;
         var FormFile = (function (_super) {
             __extends(FormFile, _super);
             function FormFile(form, define) {
-                return _super.call(this, form, define, "file") || this;
+                var _this = _super.call(this, form, define, "file") || this;
+                _this._widget.on("success", function (e) {
+                    form.fire("itemvaluechanged", { control: _this });
+                });
+                return _this;
             }
             FormFile.prototype.showProperty = function () {
                 throw new Error('Method not implemented.');
@@ -6263,7 +6510,11 @@ var tui;
         var FormFiles = (function (_super) {
             __extends(FormFiles, _super);
             function FormFiles(form, define) {
-                return _super.call(this, form, define, "files") || this;
+                var _this = _super.call(this, form, define, "files") || this;
+                _this._widget.on("success", function (e) {
+                    form.fire("itemvaluechanged", { control: _this });
+                });
+                return _this;
             }
             FormFiles.prototype.showProperty = function () {
                 throw new Error('Method not implemented.');
@@ -6302,11 +6553,20 @@ var tui;
                 var gp = widget.create("button-group");
                 _this._btnAdd = widget.create("button", { text: "<i class='fa fa-plus'></i>" });
                 _this._btnAdd.appendTo(gp._);
+                _this._btnAdd.on("click", function () {
+                    form.fire("itemvaluechanged", { control: _this });
+                });
                 _this._btnEdit = widget.create("button", { text: "<i class='fa fa-pencil'></i>" });
                 _this._btnEdit.appendTo(gp._);
+                _this._btnEdit.on("click", function () {
+                    form.fire("itemvaluechanged", { control: _this });
+                });
                 gp.appendTo(_this._buttonBar);
                 _this._btnDelete = widget.create("button", { text: "<i class='fa fa-trash'></i>" });
                 _this._btnDelete.appendTo(_this._buttonBar);
+                _this._btnDelete.on("click", function () {
+                    form.fire("itemvaluechanged", { control: _this });
+                });
                 _this._widget._.style.margin = "2px";
                 return _this;
             }

@@ -499,6 +499,12 @@ declare module tui.ds {
         protected build(): void;
     }
 }
+declare module tui.text.exp {
+    interface EvalFunc {
+        (key: string): any;
+    }
+    function evaluate(expression: string, evalFunc: EvalFunc): boolean;
+}
 declare module tui.time {
     var shortWeeks: string[];
     var weeks: string[];
@@ -633,10 +639,11 @@ declare module tui.widget {
         key?: string | null;
         value?: any;
         validate?: string[];
+        condition?: string;
         size?: number;
         newline?: boolean;
         disable?: boolean;
-        important?: boolean;
+        required?: boolean;
     }
     interface FormControlConstructor {
         new (form: Form, define: FormItem): FormControl;
@@ -651,7 +658,7 @@ declare module tui.widget {
         protected removeAll(): void;
         protected hideAll(): void;
         protected selectItem(target: FormControl): void;
-        protected updateSize(): void;
+        protected update(): void;
         protected initRestriction(): void;
         protected init(): void;
         private bindNewItemClick(popup, newItemDiv, type, label, pos);
@@ -683,6 +690,7 @@ declare module tui.widget {
         select(value: boolean): void;
         isSelect(): boolean;
         getKey(): string;
+        available(): boolean;
         protected applySize(): void;
         abstract getValue(): any;
         abstract setValue(value: any): void;

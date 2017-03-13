@@ -10,10 +10,11 @@ module tui.widget {
 		key?: string | null;
 		value?: any;
 		validate?: string[];
+		condition?: string;
 		size?: number;
 		newline?: boolean;
 		disable?: boolean;
-		important?: boolean;
+		required?: boolean;
 	}
 
 	export interface FormControlConstructor {
@@ -62,7 +63,7 @@ module tui.widget {
 			}
 		}
 
-		protected updateSize() {
+		protected update() {
 			this._.style.height = this._.offsetHeight + "px";
 			this.hideAll();
 			this.render();
@@ -114,7 +115,7 @@ module tui.widget {
 						var value: {[index: string]: any} = {};
 						for (let item of this._items) {
 							let k = item.getKey();
-							if (k) {
+							if (k && item.available()) {
 								value[k] = item.getValue();
 							}
 						}
@@ -162,7 +163,7 @@ module tui.widget {
 					var tmp = this._items[pos];
 					this._items[pos] = this._items[pos - 1];
 					this._items[pos - 1] = tmp;
-					this.updateSize();
+					this.update();
 				}
 			});
 			this.on("itemmovedown", (e: any) => {
@@ -171,7 +172,7 @@ module tui.widget {
 					var tmp = this._items[pos];
 					this._items[pos] = this._items[pos + 1];
 					this._items[pos + 1] = tmp;
-					this.updateSize();
+					this.update();
 				}
 			});
 			var firstPoint: {x: number, y: number, ctrl: FormControl} = null;
@@ -262,7 +263,7 @@ module tui.widget {
 								this._items.splice(targetIndex, 0, ctrl);
 							else
 								this._items.splice(targetIndex - 1, 0, ctrl);
-							this.updateSize();
+							this.update();
 						}
 					});
 				}
@@ -284,6 +285,9 @@ module tui.widget {
 					this.addNewItem(e.data.button._, pos);
 				}
 			});
+			this.on("itemvaluechanged", (e: any) => {
+				this.render();
+			});
 			newItem.onclick = () => {
 				this.addNewItem(newItem, this._items.length);
 			};
@@ -294,7 +298,7 @@ module tui.widget {
 				var newItem = new _controls[type](this, {type: type, label: label});
 				this._items.splice(pos, 0, newItem);
 				popup.close();
-				this.updateSize();
+				this.update();
 				this.selectItem(newItem);
 			};
 		}
@@ -363,8 +367,15 @@ module tui.widget {
 				if (!item.isPresent())
 					item.show();
 				item.setDesign(designMode);
-				if (!designMode)
+				if (!designMode) {
 					item.select(false);
+					if (!item.available()) {
+						browser.addClass(item.div, "tui-form-item-unavailable");
+					} else 
+						browser.removeClass(item.div, "tui-form-item-unavailable");
+				} else
+					browser.removeClass(item.div, "tui-form-item-unavailable");
+
 				item.render();
 				item.div.className = item.div.className.replace(/tui-form-item-exceed/g, "");
 				if (item.div.offsetWidth > this._.clientWidth - 20) {

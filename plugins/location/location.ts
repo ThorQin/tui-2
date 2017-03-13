@@ -237,6 +237,9 @@ module tui.widget.ext {
 		static order = 10;
 		constructor(form: Form, define: FormItem) {
 			super(form, define, "location");
+			this._widget.on("change", (e) => {
+				form.fire("itemvaluechanged", {control: this});
+			});
 		}
 		showProperty(): void {
 			throw new Error('Method not implemented.');
