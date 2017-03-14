@@ -17,6 +17,17 @@ tui\:form {
 	&.tui-form-show-toolbar {
 		padding-top: @toolbarSize + 10px;
 	}
+
+	&>div.tui-form-error {
+		padding: 20px;
+		color: red;
+		&:before {
+			content: "ERROR";
+			font-weight: bold;
+			display: block;
+			padding-bottom: 20px;
+		}
+	}
 	
 	div.tui-form-toolbar {
 		position: absolute;

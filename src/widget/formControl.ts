@@ -156,15 +156,6 @@ module tui.widget {
 		getKey(): string {
 			return this.define.key || null;
 		}
-		available(): boolean {
-			if (this.define.condition) {
-				return text.exp.evaluate(this.define.condition, (key: string) => {
-					return this.form.get("value")[key] || null;
-				});
-			} else {
-				return true;
-			}
-		}
 
 		protected applySize() {
 			var define = this.define;

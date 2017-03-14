@@ -320,9 +320,9 @@ var tui;
                 return false;
             if (typeof value === "number")
                 return isNaN(value) && value != 0;
-            switch (String(tui.str).toLowerCase()) {
+            switch (String(value).toLowerCase()) {
                 case "true":
-                case "1":
+                case "t":
                 case "yes":
                 case "y":
                     return true;
@@ -2587,6 +2587,10 @@ var tui;
                 if (this._settings.accept)
                     input.setAttribute('accept', this._settings.accept);
                 input.setAttribute('name', this._settings.name);
+                if (tui.ieVer > 0)
+                    input.setAttribute("title", "");
+                else
+                    input.setAttribute("title", " ");
                 if (this._settings.multiple)
                     input.setAttribute('multiple', 'multiple');
                 $(input).css({
@@ -2710,9 +2714,11 @@ var tui;
                 this.fire("error", { "response": { error: tui.str("Upload failed: invalid response content!") } });
             };
             Uploader.prototype.fireError = function (errorMessage) {
-                this.fire("error", { "response": {
+                this.fire("error", {
+                    "response": {
                         error: tui.str("Upload failed!") + (errorMessage ? errorMessage : "")
-                    } });
+                    }
+                });
             };
             Uploader.prototype.uploadV5 = function (file, fileObject, extraData) {
                 var _this = this;
@@ -2736,9 +2742,11 @@ var tui;
                 xhr.addEventListener("load", function (e) {
                     waitbox.close();
                     if (e.target.status != 200) {
-                        _this.fire("error", { "file": file, "ext": getExt(file), "response": {
+                        _this.fire("error", {
+                            "file": file, "ext": getExt(file), "response": {
                                 error: tui.str(e.target.response || e.target.statusText || e.target.status)
-                            } });
+                            }
+                        });
                     }
                     else {
                         try {
@@ -3285,183 +3293,188 @@ var tui;
             "use strict";
             var Type;
             (function (Type) {
-                Type[Type["INIT"] = 0] = "INIT";
-                Type[Type["SPACE"] = 1] = "SPACE";
-                Type[Type["AND"] = 2] = "AND";
-                Type[Type["OR"] = 3] = "OR";
-                Type[Type["OP"] = 4] = "OP";
-                Type[Type["VALUE"] = 5] = "VALUE";
+                Type[Type["_"] = 0] = "_";
+                Type[Type["SP"] = 1] = "SP";
+                Type[Type["LOGIC"] = 2] = "LOGIC";
+                Type[Type["COMPARE"] = 3] = "COMPARE";
+                Type[Type["BOOL"] = 4] = "BOOL";
+                Type[Type["NULL"] = 5] = "NULL";
                 Type[Type["ID"] = 6] = "ID";
-                Type[Type["L"] = 7] = "L";
-                Type[Type["R"] = 8] = "R";
-                Type[Type["BOOL"] = 9] = "BOOL";
+                Type[Type["STR"] = 7] = "STR";
+                Type[Type["NUM"] = 8] = "NUM";
+                Type[Type["L"] = 9] = "L";
+                Type[Type["R"] = 10] = "R";
+                Type[Type["UNKNOW"] = 11] = "UNKNOW";
             })(Type || (Type = {}));
-            var SYMBOL = /([\r\n\s]+)|(and)|(or)|(<|<=|>|>=|=|!=)|("[^"]*"|'[^']*'|[+-]?[0-9]+(?:\.[0-9]+)?|true|false|null)|([a-zA-Z_][_$a-zA-Z0-9]*)|(\()|(\))/gm;
-            function error(match) {
-                if (match)
-                    throw new Error("Invalid expression! (Position: " + match.index + " )");
-                else
-                    throw new Error("Invalid expression!");
+            var LEVEL = {};
+            LEVEL[Type.LOGIC] = 1;
+            LEVEL[Type.COMPARE] = 2;
+            LEVEL[Type.L] = 0;
+            var SYMBOL = /([\r\n\s]+)|((?:and|or)(?=$|\s|\r|\n))|(<|<=|>|>=|=|!=|~|!~)|((?:true|false)(?=$|\s|\r|\n))|(null(?=$|\s|\r|\n))|([$_a-zA-Z][$_a-zA-Z0-9]*)|("[^"]*"|'[^']*')|([+-]?[0-9]+(?:\.[0-9]+)?)|(\()|(\))|(.+)/gm;
+            function error(match, msg) {
+                if (match) {
+                    if (msg)
+                        throw new Error("Invalid expression! (Position: " + match.index + ", cause: " + msg + " )");
+                    else
+                        throw new Error("Invalid expression! (Position: " + match.index + " )");
+                }
+                else {
+                    if (msg)
+                        throw new Error(msg);
+                    else
+                        throw new Error("Invalid expression!");
+                }
             }
-            function getType(match) {
-                for (var i = Type.SPACE; i <= Type.R; i++) {
+            function convert(type, value) {
+                var v;
+                if (type == Type.NUM) {
+                    v = parseFloat(value);
+                }
+                else if (type == Type.BOOL) {
+                    v = text.parseBoolean(value);
+                }
+                else if (type == Type.NULL) {
+                    v = null;
+                }
+                else if (type == Type.STR) {
+                    v = value.substr(1, value.length - 2);
+                }
+                else
+                    v = value;
+                return v;
+            }
+            function getNode(match) {
+                for (var i = Type.SP; i <= Type.UNKNOW; i++) {
                     if (match[i])
-                        return i;
+                        return { type: i, value: convert(i, match[i]) };
                 }
                 error(match);
             }
-            function evaluate(expression, evalFunc) {
+            function isData(node) {
+                switch (node.type) {
+                    case Type.BOOL:
+                    case Type.ID:
+                    case Type.NULL:
+                    case Type.NUM:
+                    case Type.STR:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+            function isOp(node) {
+                switch (node.type) {
+                    case Type.LOGIC:
+                    case Type.COMPARE:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+            function evaluate(expression, evaluator) {
                 if (!expression)
                     error();
-                SYMBOL.lastIndex = 0;
-                var match;
-                function evalValue(key, op, value) {
-                    if (!evalFunc)
-                        return false;
-                    var kv = evalFunc(key);
+                var data = [];
+                var op = [];
+                function getValue(n) {
                     var v;
-                    if (value[0] === '"' || value[0] === "'") {
-                        v = value.substr(1, value.length - 2);
-                    }
-                    else if (value === "true" || value === "false") {
-                        v = text.parseBoolean(value);
-                    }
-                    else if (value === "null") {
-                        v = null;
+                    if (n.type == Type.ID) {
+                        if (evaluator)
+                            v = evaluator(n.value);
+                        if (typeof v === tui.UNDEFINED)
+                            v = null;
                     }
                     else
-                        v = parseFloat(value);
-                    if (op == "=") {
-                        return kv == v;
-                    }
-                    else if (op == "<") {
-                        return kv < v;
-                    }
-                    else if (op == "<=") {
-                        return kv <= v;
-                    }
-                    else if (op == ">") {
-                        return kv > v;
-                    }
-                    else if (op == ">=") {
-                        return kv >= v;
-                    }
-                    else if (op == "!=") {
-                        return kv != v;
-                    }
-                    else
-                        return false;
-                }
-                function evalExp(sub) {
-                    var subEnd = false;
-                    var arr = [];
-                    function getLastType() {
-                        if (arr.length > 0)
-                            return arr[arr.length - 1].type;
-                        else
-                            return null;
-                    }
-                    function mergeAnd(v) {
-                        var lastType = getLastType();
-                        if (lastType == null || lastType == Type.OR)
-                            arr.push({ type: Type.BOOL, value: v });
-                        else if (lastType == Type.AND) {
-                            arr.pop();
-                            var lv = arr.pop().value;
-                            mergeAnd(lv && v);
-                        }
-                    }
-                    while ((match = SYMBOL.exec(expression)) != null) {
-                        var lastType = getLastType();
-                        var t = getType(match);
-                        if (t == Type.SPACE) {
-                            continue;
-                        }
-                        if (t == Type.R) {
-                            if (sub) {
-                                subEnd = true;
-                                break;
-                            }
-                            else
-                                error(match);
-                        }
-                        if (lastType == null) {
-                            if (t == Type.L) {
-                                arr.push({ type: Type.BOOL, value: evalExp(true) });
-                                if (SYMBOL.lastIndex == 0)
-                                    break;
-                            }
-                            else if (t == Type.ID) {
-                                arr.push({ type: Type.ID, value: match[Type.ID] });
-                            }
-                            else
-                                error(match);
-                        }
-                        else if (lastType == Type.ID) {
-                            if (t == Type.OP) {
-                                arr.push({ type: Type.OP, value: match[Type.OP] });
-                            }
-                            else
-                                error(match);
-                        }
-                        else if (lastType == Type.OP) {
-                            if (t == Type.VALUE) {
-                                var op = arr.pop();
-                                var id = arr.pop();
-                                var v_1 = false;
-                                if (evalFunc)
-                                    v_1 = evalValue(id.value, op.value, match[Type.VALUE]);
-                                mergeAnd(v_1);
-                            }
-                            else
-                                error(match);
-                        }
-                        else if (lastType == Type.BOOL) {
-                            if (t == Type.AND) {
-                                arr.push({ type: Type.AND });
-                            }
-                            else if (t == Type.OR) {
-                                arr.push({ type: Type.OR });
-                            }
-                            else
-                                error(match);
-                        }
-                        else if (lastType == Type.AND || lastType == Type.OR) {
-                            if (t == Type.L) {
-                                mergeAnd(evalExp(true));
-                                if (SYMBOL.lastIndex == 0)
-                                    break;
-                            }
-                            else if (t == Type.ID) {
-                                arr.push({ type: Type.ID, value: match[Type.ID] });
-                            }
-                            else
-                                error(match);
-                        }
-                        else
-                            error(match);
-                    }
-                    if (sub && !subEnd)
-                        error(match);
-                    if (arr.length % 2 != 1) {
-                        error(match);
-                    }
-                    var n = arr.pop();
-                    if (n.type != Type.BOOL)
-                        error(match);
-                    var v = n.value;
-                    while (arr.length > 0) {
-                        n = arr.pop();
-                        if (n.type != Type.OR)
-                            error(match);
-                        n = arr.pop();
-                        if (n.type != Type.BOOL)
-                            error(match);
-                        v = v || n.value;
-                    }
+                        v = n.value;
                     return v;
                 }
-                return evalExp(false);
+                function calculate(m) {
+                    if (data.length < 2)
+                        error(m);
+                    var b = data.pop();
+                    var a = data.pop();
+                    if (op.length < 1)
+                        error(m);
+                    var o = op.pop();
+                    var v1 = getValue(a);
+                    var v2 = getValue(b);
+                    if (o.type == Type.LOGIC) {
+                        if (o.value == "and")
+                            data.push({ type: Type.BOOL, value: v1 && v2 });
+                        else if (o.value == "or")
+                            data.push({ type: Type.BOOL, value: v1 || v2 });
+                    }
+                    else if (o.type == Type.COMPARE) {
+                        if (o.value == "=") {
+                            data.push({ type: Type.BOOL, value: v1 == v2 });
+                        }
+                        else if (o.value == "<") {
+                            data.push({ type: Type.BOOL, value: v1 < v2 });
+                        }
+                        else if (o.value == "<=") {
+                            data.push({ type: Type.BOOL, value: v1 <= v2 });
+                        }
+                        else if (o.value == ">") {
+                            data.push({ type: Type.BOOL, value: v1 > v2 });
+                        }
+                        else if (o.value == ">=") {
+                            data.push({ type: Type.BOOL, value: v1 >= v2 });
+                        }
+                        else if (o.value == "!=") {
+                            data.push({ type: Type.BOOL, value: v1 != v2 });
+                        }
+                        else if (o.value == "~") {
+                            if (typeof v2 != "string")
+                                error(m, "Invalid regular expression, must be a string value.");
+                            data.push({ type: Type.BOOL, value: String(v1).match(v2) });
+                        }
+                        else if (o.value == "!~") {
+                            if (typeof v2 != "string")
+                                error(m, "Invalid regular expression, must be a string value.");
+                            data.push({ type: Type.BOOL, value: !String(v1).match(v2) });
+                        }
+                    }
+                }
+                SYMBOL.lastIndex = 0;
+                var m;
+                var last = null;
+                while ((m = SYMBOL.exec(expression)) != null) {
+                    var node = getNode(m);
+                    if (node.type == Type.SP)
+                        continue;
+                    if (node.type == Type.UNKNOW)
+                        error(m);
+                    if (last != null) {
+                        if (isData(last) && isData(node))
+                            error(m);
+                        else if (isOp(last) && isOp(node))
+                            error(m);
+                    }
+                    last = node;
+                    if (isData(node)) {
+                        data.push(node);
+                    }
+                    else if (node.type == Type.L) {
+                        op.push(node);
+                    }
+                    else if (node.type == Type.R) {
+                        while (op[op.length - 1].type != Type.L) {
+                            calculate(m);
+                        }
+                        op.pop();
+                    }
+                    else {
+                        while (op.length > 0 && LEVEL[node.type] <= LEVEL[op[op.length - 1].type]) {
+                            calculate(m);
+                        }
+                        op.push(node);
+                    }
+                }
+                while (op.length > 0)
+                    calculate(m);
+                if (data.length != 1)
+                    error(m);
+                return data.pop().value;
             }
             exp.evaluate = evaluate;
         })(exp = text.exp || (text.exp = {}));
@@ -5747,6 +5760,7 @@ var tui;
                 var _this = this;
                 _super.prototype.initRestriction.call(this);
                 this._items = [];
+                this._valueCache = null;
                 this.setRestrictions({
                     "definition": {
                         "set": function (value) {
@@ -5763,6 +5777,7 @@ var tui;
                             else if (value === null) {
                                 _this.removeAll();
                             }
+                            _this._valueChanged = true;
                         },
                         "get": function () {
                             var result = [];
@@ -5790,17 +5805,66 @@ var tui;
                                     }
                                 }
                             }
+                            _this._valueChanged = true;
                         },
                         "get": function () {
-                            var value = {};
-                            for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
-                                var item = _a[_i];
-                                var k = item.getKey();
-                                if (k && item.available()) {
-                                    value[k] = item.getValue();
+                            var index;
+                            var me = _this;
+                            function computeValue(key, searchPath) {
+                                if (!index.hasOwnProperty(key)) {
+                                    throw new Error("Invalid expression: Field \"" + key + "\" not found in \"" + searchPath[searchPath.length - 1] + "\" condition.");
+                                }
+                                var exp = me._items[index[key]].define.condition;
+                                if (!exp) {
+                                    me._valueCache[key] = me._items[index[key]].getValue();
+                                    me._items[index[key]].define.available = true;
+                                }
+                                else {
+                                    if (searchPath.indexOf(key) >= 0)
+                                        throw new Error("Invalid expression: Cycle reference detected on \"" + key + "\"");
+                                    searchPath.push(key);
+                                    try {
+                                        if (tui.text.exp.evaluate(exp, function (k) {
+                                            if (me._valueCache.hasOwnProperty(k))
+                                                return me._valueCache[k];
+                                            else {
+                                                computeValue(k, searchPath);
+                                                return me._valueCache[k];
+                                            }
+                                        })) {
+                                            me._valueCache[key] = me._items[index[key]].getValue();
+                                            me._items[index[key]].define.available = true;
+                                        }
+                                        else {
+                                            me._valueCache[key] = null;
+                                            me._items[index[key]].define.available = false;
+                                        }
+                                    }
+                                    catch (e) {
+                                        throw new Error(e.message + " (" + key + ")");
+                                    }
+                                    searchPath.pop();
                                 }
                             }
-                            return value;
+                            if (_this._valueChanged || _this._valueCache === null) {
+                                _this._valueCache = {};
+                                index = {};
+                                for (var i = 0; i < _this._items.length; i++) {
+                                    var k = _this._items[i].getKey();
+                                    if (k) {
+                                        index[k] = i;
+                                    }
+                                }
+                                for (var k in index) {
+                                    if (index.hasOwnProperty(k)) {
+                                        computeValue(k, []);
+                                    }
+                                }
+                                _this._valueChanged = false;
+                                return _this._valueCache;
+                            }
+                            else
+                                return _this._valueCache;
                         }
                     }
                 });
@@ -5818,6 +5882,8 @@ var tui;
                 btnPrint.className = "tui-form-btn tui-form-btn-print";
                 var newItem = this._components["newitem"] = tui.elem("div");
                 newItem.className = "tui-form-new-item-box";
+                var errmsg = this._components["errmsg"] = tui.elem("div");
+                errmsg.className = "tui-form-error";
                 buttons.appendChild(btnPrint);
                 toolbar.appendChild(title);
                 toolbar.appendChild(buttons);
@@ -5830,6 +5896,7 @@ var tui;
                     if (pos >= 0) {
                         _this._items.splice(pos, 1);
                         e.data.control.hide();
+                        _this._valueChanged = true;
                         _this.render();
                     }
                 });
@@ -5964,6 +6031,7 @@ var tui;
                     }
                 });
                 this.on("itemvaluechanged", function (e) {
+                    _this._valueChanged = true;
                     _this.render();
                 });
                 newItem.onclick = function () {
@@ -5978,6 +6046,7 @@ var tui;
                     popup.close();
                     _this.update();
                     _this.selectItem(newItem);
+                    _this._valueChanged = true;
                 };
             };
             Form.prototype.addNewItem = function (button, pos) {
@@ -6041,7 +6110,22 @@ var tui;
                     toolbar.style.display = "none";
                     $(this._).removeClass("tui-form-show-toolbar");
                 }
+                var newItem = this._components["newitem"];
+                tui.browser.removeNode(newItem);
+                var errmsg = this._components["errmsg"];
+                tui.browser.removeNode(errmsg);
                 var designMode = (this.get("mode") === "design");
+                if (!designMode) {
+                    try {
+                        this.get("value");
+                    }
+                    catch (e) {
+                        this.hideAll();
+                        errmsg.innerHTML = tui.browser.toSafeText(e.message + "");
+                        this._.appendChild(errmsg);
+                        return;
+                    }
+                }
                 for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
                     var item = _a[_i];
                     if (!item.isPresent())
@@ -6049,7 +6133,7 @@ var tui;
                     item.setDesign(designMode);
                     if (!designMode) {
                         item.select(false);
-                        if (!item.available()) {
+                        if (!item.define.available) {
                             tui.browser.addClass(item.div, "tui-form-item-unavailable");
                         }
                         else
@@ -6063,8 +6147,6 @@ var tui;
                         item.div.className += " tui-form-item-exceed";
                     }
                 }
-                var newItem = this._components["newitem"];
-                tui.browser.removeNode(newItem);
                 if (designMode) {
                     this._.appendChild(newItem);
                 }
@@ -6209,17 +6291,6 @@ var tui;
             };
             FormControl.prototype.getKey = function () {
                 return this.define.key || null;
-            };
-            FormControl.prototype.available = function () {
-                var _this = this;
-                if (this.define.condition) {
-                    return tui.text.exp.evaluate(this.define.condition, function (key) {
-                        return _this.form.get("value")[key] || null;
-                    });
-                }
-                else {
-                    return true;
-                }
             };
             FormControl.prototype.applySize = function () {
                 var define = this.define;

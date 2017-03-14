@@ -4,28 +4,28 @@ module tui.text {
 	/**
      * Convert anything to boolean
      */
-    export function parseBoolean(value: any) {
-        if (typeof value === UNDEFINED)
-            return false;
+	export function parseBoolean(value: any) {
+		if (typeof value === UNDEFINED)
+			return false;
 		if (typeof value === "number")
 			return isNaN(value) && value != 0;
-        switch (String(str).toLowerCase()) {
-            case "true":
-            case "1":
-            case "yes":
-            case "y":
-                return true;
-            default:
-                return false;
-        }
-    }
-	
+		switch (String(value).toLowerCase()) {
+			case "true":
+			case "t":
+			case "yes":
+			case "y":
+				return true;
+			default:
+				return false;
+		}
+	}
+
 	/**
 	 * Format a string use a set of parameters
 	 */
 	export function format(token: string, ...params: any[]): string {
 		var formatrg = /\{(\d+)\}/g;
-		token && (typeof token === "string") && params.length && (token = token.replace(formatrg, function(str, i) {
+		token && (typeof token === "string") && params.length && (token = token.replace(formatrg, function (str, i) {
 			return params[i] === null ? "" : params[i];
 		}));
 		return token ? token : "";
@@ -48,7 +48,7 @@ module tui.text {
 		}
 		return buffer;
 	}
-	
+
 	/**
 	 * Convert 'aaa-bbb-ccc' or 'aaa_bbb_ccc' to 'aaaBbbCcc' 
 	 */
@@ -68,8 +68,8 @@ module tui.text {
 		}
 		return buffer;
 	}
-	
-	
+
+
 	/**
 	 * Format a number that padding it with '0'
 	 */
@@ -124,11 +124,11 @@ module tui.text {
 		if (matcher) {
 			prefix = matcher[0];
 			url = url.substr(matcher[0].length);
-		} 
+		}
 		var pos = url.indexOf("#");
 		if (pos >= 0) {
 			url = url.substring(0, pos);
-		} 
+		}
 		var pos = url.lastIndexOf("/");
 		if (pos >= 0) {
 			url = url.substring(0, pos + 1);

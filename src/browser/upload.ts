@@ -26,7 +26,7 @@ module tui.browser {
 		accept?: string;
 		// Submit file as soon as it's selected
 		autoSubmit?: boolean;
-    }
+	}
 
 	export class Uploader extends EventObject {
 		private _settings: UploadOptions = {
@@ -35,7 +35,7 @@ module tui.browser {
 			multiple: false,
 			autoSubmit: true
 		};
-        private _container: HTMLElement = null;       
+		private _container: HTMLElement = null;
 		private _input: HTMLInputElement = null;
 
 		constructor(container: HTMLElement, options?: UploadOptions) {
@@ -46,14 +46,14 @@ module tui.browser {
 			}
 			if ((<string>container.nodeName).toLowerCase() === 'a') {
 				// disable link
-				$(container).on('click', function(e){e.preventDefault()});
+				$(container).on('click', function (e) { e.preventDefault() });
 			}
 			// DOM element
 			this._container = container;
 			// DOM element                 
 			this._input = null;
 		}
-		
+
 		setOptions(options: UploadOptions) {
 			if (options) {
 				for (var i in options) {
@@ -63,7 +63,7 @@ module tui.browser {
 				}
 			}
 		}
-		
+
 		getOptions(): UploadOptions {
 			return this._settings;
 		}
@@ -77,12 +77,12 @@ module tui.browser {
 			var doc = iframe.contentDocument ? iframe.contentDocument : (<any>window.frames)[iframe.id].document;
 			try {
 				doc.charset = "utf-8";
-			} catch(e) {}
+			} catch (e) { }
 			return iframe;
 		}
 
 		private createForm(iframe: HTMLIFrameElement) {
-			var settings = this._settings;                  
+			var settings = this._settings;
 			var form = <HTMLFormElement>browser.toElement('<form method="post" enctype="multipart/form-data" accept-charset="UTF-8"></form>');
 			form.setAttribute('accept-charset', 'UTF-8');
 			if (settings.action)
@@ -91,9 +91,9 @@ module tui.browser {
 			form.style.display = 'none';
 			document.body.appendChild(form);
 			// Create hidden input element for each data key
-			
+
 			return form;
-        }
+		}
 
 		createInput() {
 			if (this._input) {
@@ -104,6 +104,10 @@ module tui.browser {
 			if (this._settings.accept)
 				input.setAttribute('accept', this._settings.accept);
 			input.setAttribute('name', this._settings.name);
+			if (ieVer > 0)
+				input.setAttribute("title", "");
+			else
+				input.setAttribute("title", " "); // Prevent browser to show the default tooltip.
 			if (this._settings.multiple)
 				input.setAttribute('multiple', 'multiple');
 			$(input).css({
@@ -120,7 +124,7 @@ module tui.browser {
 				'fontFamily': 'sans-serif',
 				'cursor': 'pointer'
 			});
-			
+
 			$(input).on('change', (e) => {
 				if (!input || input.value === '') {
 					return;
@@ -129,8 +133,8 @@ module tui.browser {
 				// as some browsers have path instead of it
 				var file = fileFromPath(input.value);
 				var fileExt = getExt(file);
-				
-				if (this.fire("change", {e:e, "file": file, "ext": fileExt }) === false) {
+
+				if (this.fire("change", { e: e, "file": file, "ext": fileExt }) === false) {
 					this.clearInput();
 					return;
 				}
@@ -146,10 +150,10 @@ module tui.browser {
 			this._container.style.overflow = "hidden";
 			this._container.appendChild(input);
 			this._input = input;
-			$(this._input).focus(()=>{
+			$(this._input).focus(() => {
 				this.fire("focus");
 			});
-			$(this._input).blur(()=>{
+			$(this._input).blur(() => {
 				this.fire("blur");
 			});
 		}
@@ -161,7 +165,7 @@ module tui.browser {
 			browser.removeNode(this._input);
 			this._input = null;
 		}
-		
+
 		getInput() {
 			return this._input;
 		}
@@ -237,7 +241,7 @@ module tui.browser {
 				} else {
 					this.fireError();
 				}
-				
+
 				// Reload blank page, so that reloading main page
 				// does not re-submit the post. Also, remember to
 				// delete the frame
@@ -246,22 +250,24 @@ module tui.browser {
 				iframe.src = "javascript:'<html></html>';";
 				browser.removeNode(iframe);
 			});
-        }
-		
+		}
+
 		private fireInvalidError() {
 			this.fire("error", { "response": { error: tui.str("Upload failed: invalid response content!") } });
 		}
-		
+
 		private fireError(errorMessage?: string) {
-			this.fire("error", { "response": { 
-				error: tui.str("Upload failed!") + (errorMessage ? errorMessage : "") 
-			} });
+			this.fire("error", {
+				"response": {
+					error: tui.str("Upload failed!") + (errorMessage ? errorMessage : "")
+				}
+			});
 		}
 
-		uploadV5(file: string, fileObject: File, extraData?: {[index: string]: string}) {
+		uploadV5(file: string, fileObject: File, extraData?: { [index: string]: string }) {
 			var waitbox = tui.waitbox(tui.str("Uploading..."));
 			var fd = new FormData();
-            fd.append(this._settings.name, fileObject);
+			fd.append(this._settings.name, fileObject);
 			if (extraData) {
 				for (let key in extraData) {
 					if (extraData.hasOwnProperty(key)) {
@@ -269,20 +275,22 @@ module tui.browser {
 					}
 				}
 			}
-			
-            var xhr = new XMLHttpRequest();
-            xhr.upload.addEventListener("progress", (e: any) => {
+
+			var xhr = new XMLHttpRequest();
+			xhr.upload.addEventListener("progress", (e: any) => {
 				if (e.lengthComputable) {
 					var percentComplete = Math.round(e.loaded * 100 / e.total);
 					waitbox.setMessage(tui.str("Uploading... ") + percentComplete.toString() + '%');
 				}
 			}, false);
-            xhr.addEventListener("load", (e: any) => {
+			xhr.addEventListener("load", (e: any) => {
 				waitbox.close();
 				if (e.target.status != 200) {
-					this.fire("error", { "file": file, "ext": getExt(file), "response": { 
-						error: tui.str(e.target.response || e.target.statusText || e.target.status) 
-					} });
+					this.fire("error", {
+						"file": file, "ext": getExt(file), "response": {
+							error: tui.str(e.target.response || e.target.statusText || e.target.status)
+						}
+					});
 				} else {
 					try {
 						var result = JSON.parse(e.target.responseText)
@@ -290,32 +298,32 @@ module tui.browser {
 							this.fire("success", { "file": file, "ext": getExt(file), "response": result });
 						else
 							this.fireError();
-					} catch(e) {
+					} catch (e) {
 						this.fireInvalidError();
 					}
 				}
 			}, false);
-            xhr.addEventListener("error", (e: any) => {
+			xhr.addEventListener("error", (e: any) => {
 				waitbox.close();
 				this.fireError();
 			}, false);
-            xhr.addEventListener("abort", (e: any) => {
+			xhr.addEventListener("abort", (e: any) => {
 				waitbox.close();
 				this.fireError();
 			}, false);
-            xhr.open("POST", this._settings.action);
-            xhr.send(fd);
+			xhr.open("POST", this._settings.action);
+			xhr.send(fd);
 		}
-		
-		private submitV5(file: string, extraData?: {[index: string]: string}) {
+
+		private submitV5(file: string, extraData?: { [index: string]: string }) {
 			if (this._input.files.length > 0) {
 				var fileObject = this._input.files[0];
 				this.uploadV5(file, fileObject, extraData);
 			}
 			this.clearInput();
 		}
-		
-		private submitV4(file: string, extraData?: {[index: string]: string}) {
+
+		private submitV4(file: string, extraData?: { [index: string]: string }) {
 			// sending request    
 			var iframe = this.createIframe();
 			var form = this.createForm(iframe);
@@ -341,7 +349,7 @@ module tui.browser {
 			this.clearInput();
 		}
 
-		submit(extraData?: {[index: string]: string}) {
+		submit(extraData?: { [index: string]: string }) {
 			if (!this._input || this._input.value === '') {
 				return;
 			}

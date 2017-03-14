@@ -500,10 +500,10 @@ declare module tui.ds {
     }
 }
 declare module tui.text.exp {
-    interface EvalFunc {
-        (key: string): any;
+    interface Evaluator {
+        (variable: string): any;
     }
-    function evaluate(expression: string, evalFunc: EvalFunc): boolean;
+    function evaluate(expression: string, evaluator: Evaluator): boolean;
 }
 declare module tui.time {
     var shortWeeks: string[];
@@ -644,6 +644,7 @@ declare module tui.widget {
         newline?: boolean;
         disable?: boolean;
         required?: boolean;
+        available?: boolean;
     }
     interface FormControlConstructor {
         new (form: Form, define: FormItem): FormControl;
@@ -653,7 +654,11 @@ declare module tui.widget {
     }
     class Form extends Widget {
         protected _definitionChanged: boolean;
+        protected _valueChanged: boolean;
         protected _items: FormControl[];
+        protected _valueCache: {
+            [index: string]: any;
+        };
         static register(type: string, controlType: FormControlConstructor): void;
         protected removeAll(): void;
         protected hideAll(): void;
@@ -690,7 +695,6 @@ declare module tui.widget {
         select(value: boolean): void;
         isSelect(): boolean;
         getKey(): string;
-        available(): boolean;
         protected applySize(): void;
         abstract getValue(): any;
         abstract setValue(value: any): void;
