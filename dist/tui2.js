@@ -308,7 +308,13 @@ tui.dict("en-us", {
     "form.file": "File",
     "form.files": "Files",
     "form.grid": "Grid",
-    "form.address": "Address"
+    "form.address": "Address",
+    "form.properties": "Properties",
+    "form.field.name": "Field Name",
+    "form.precondition": "Precondition",
+    "form.validation": "Validation",
+    "form.formula": "Formula",
+    "form.message": "Message"
 });
 var tui;
 (function (tui) {
@@ -1873,6 +1879,21 @@ var tui;
                 _this._init = true;
                 return _this;
             }
+            Dialog.prototype.initRestriction = function () {
+                var _this = this;
+                _super.prototype.initRestriction.call(this);
+                this.setRestrictions({
+                    "content": {
+                        "set": function (value) {
+                            _this._data["content"] = value;
+                            var contentDiv = _this._components["content"];
+                            if (contentDiv) {
+                                _this.setContent(value, false);
+                            }
+                        }
+                    }
+                });
+            };
             Dialog.prototype.initChildren = function (childNodes) {
                 if (childNodes.length > 0) {
                     var div = tui.elem("div");
@@ -1938,7 +1959,8 @@ var tui;
                     ev.stopPropagation();
                 });
             };
-            Dialog.prototype.setContent = function (content) {
+            Dialog.prototype.setContent = function (content, render) {
+                if (render === void 0) { render = true; }
                 var contentDiv = this._components["content"];
                 contentDiv.innerHTML = "";
                 if (typeof content === "object" && content.nodeName) {
@@ -1948,7 +1970,7 @@ var tui;
                 else if (typeof content === "string") {
                     contentDiv.innerHTML = content;
                 }
-                this.render();
+                render && this.render();
             };
             Dialog.prototype.setButtons = function (buttonDef) {
                 var _this = this;
@@ -1984,7 +2006,6 @@ var tui;
                 if (this.get("opened"))
                     return;
                 var contentDiv = this._components["content"];
-                widget.init(contentDiv);
                 this._init = true;
                 this._moved = false;
                 $(this._).css({
@@ -1994,7 +2015,9 @@ var tui;
                 this._set("opened", true);
                 push(this);
                 this.setButtons(buttonDef);
+                widget.init(contentDiv);
                 this._.focus();
+                this.render();
                 this.fire("open");
                 this._sizeTimer = setInterval(function () {
                     if (_this._contentSize == null)
@@ -4018,7 +4041,7 @@ var tui;
                     },
                     "value": {
                         "get": function () {
-                            if (_this._data["value"])
+                            if (typeof _this._data["value"] !== tui.UNDEFINED)
                                 return _this._data["value"];
                             return _this.get("text");
                         }
@@ -5860,6 +5883,31 @@ var tui;
                                         computeValue(k, []);
                                     }
                                 }
+                                var _loop_2 = function (i) {
+                                    var item = _this._items[i];
+                                    var k = item.getKey();
+                                    if (k === null) {
+                                        if (item.define.condition) {
+                                            if (tui.text.exp.evaluate(item.define.condition, function (k) {
+                                                if (me._valueCache.hasOwnProperty(k))
+                                                    return me._valueCache[k];
+                                                else {
+                                                    throw new Error("Invalid expression: Field \"" + k + "\" not found in control[" + i + "] condition.");
+                                                }
+                                            })) {
+                                                item.define.available = true;
+                                            }
+                                            else {
+                                                item.define.available = false;
+                                            }
+                                        }
+                                        else
+                                            item.define.available = true;
+                                    }
+                                };
+                                for (var i = 0; i < _this._items.length; i++) {
+                                    _loop_2(i);
+                                }
                                 _this._valueChanged = false;
                                 return _this._valueCache;
                             }
@@ -6181,7 +6229,9 @@ var tui;
                 this.btnEdit = widget.create("button", { text: "<i class='fa fa-pencil'></i>" });
                 this.btnEdit.appendTo(this.toolbar);
                 this.btnSize = widget.create("button", { text: "<i class='fa fa-arrows-alt'></i>" });
-                this.btnSize.appendTo(this.toolbar);
+                if (this.isResizable()) {
+                    this.btnSize.appendTo(this.toolbar);
+                }
                 this.toolbar.appendChild(tui.elem("span"));
                 this.btnMoveUp = widget.create("button", { text: "<i class='fa fa-level-up'></i>" });
                 this.btnMoveUp.appendTo(this.toolbar);
@@ -6238,6 +6288,9 @@ var tui;
                     _this.applySize();
                     _this.form.fire("itemresize", { e: e, control: _this });
                 });
+                this.btnEdit.on("click", function () {
+                    _this.showProperties();
+                });
                 this.btnMoveUp.on("click", function () {
                     _this.form.fire("itemmoveup", { control: _this });
                 });
@@ -6248,6 +6301,68 @@ var tui;
                     _this.form.fire("itemadd", { button: _this.btnAdd, control: _this });
                 });
             }
+            FormControl.prototype.showProperties = function () {
+                var properties = [
+                    {
+                        "type": "textbox",
+                        "label": tui.str("form.section"),
+                        "value": this.define.label
+                    }, {
+                        "type": "textbox",
+                        "label": tui.str("form.field.name"),
+                        "value": this.define.key
+                    }, {
+                        "type": "textarea",
+                        "label": tui.str("form.precondition"),
+                        "value": this.define.condition,
+                        "size": 5
+                    }
+                ];
+                var pages = [{ name: tui.str("form.properties"), properties: properties }];
+                var specificProperties = this.getProperties();
+                if (specificProperties) {
+                    for (var _i = 0, specificProperties_1 = specificProperties; _i < specificProperties_1.length; _i++) {
+                        var p = specificProperties_1[_i];
+                        if (p.type === "form") {
+                            pages.push({ name: p.label, properties: p.definitions });
+                        }
+                        else {
+                            properties.push(p);
+                        }
+                    }
+                }
+                var container = tui.elem("div");
+                var tab = widget.create("button-group");
+                tab._.className = "tui-tab";
+                tab._set("type", "radio");
+                container.appendChild(tab._);
+                for (var i = 0; i < pages.length; i++) {
+                    var page = pages[i];
+                    var btn = widget.create("radio");
+                    btn._set("text", page.name);
+                    btn._set("value", i);
+                    if (i == 0)
+                        btn._set("checked", true);
+                    tab._.appendChild(btn._);
+                    var form = widget.create("form");
+                    form._.className = "tui-form-property-form";
+                    if (i > 0)
+                        form._.style.display = "none";
+                    form._set("definition", page.properties);
+                    page.form = form;
+                    container.appendChild(form._);
+                }
+                tab.on("click", function () {
+                    var target = this.get("value");
+                    for (var i = 0; i < pages.length; i++) {
+                        var display = (i == target ? "block" : "none");
+                        pages[i].form._.style.display = display;
+                    }
+                });
+                var dialog = widget.create("dialog");
+                dialog.set("content", container);
+                dialog.open("ok#tui-primary");
+            };
             FormControl.prototype.isPresent = function () {
                 return this.div.parentElement === this.form._;
             };
@@ -6331,6 +6446,9 @@ var tui;
                 }
                 return _this;
             }
+            BasicFormControl.prototype.isResizable = function () {
+                return true;
+            };
             BasicFormControl.prototype.getValue = function () {
                 return this._widget.get("value");
             };
@@ -6365,13 +6483,33 @@ var tui;
                 }
                 return _this;
             }
+            FormSection.prototype.isResizable = function () {
+                return false;
+            };
             FormSection.prototype.getValue = function () {
                 return null;
             };
             FormSection.prototype.setValue = function (value) { };
             FormSection.prototype.render = function () { };
-            FormSection.prototype.showProperty = function () {
-                throw new Error('Method not implemented.');
+            FormSection.prototype.getProperties = function () {
+                return [
+                    {
+                        "type": "textbox",
+                        "label": tui.str("form.font.size"),
+                        "value": this.define.fontSize
+                    }, {
+                        "type": "options",
+                        "label": tui.str("form.align"),
+                        "options": [
+                            { value: "left", text: tui.str("form.left") },
+                            { value: "center", text: tui.str("form.center") },
+                            { value: "right", text: tui.str("form.right") }
+                        ],
+                        "value": this.define.align
+                    }
+                ];
+            };
+            FormSection.prototype.setProperties = function (properties) {
             };
             FormSection.prototype.validate = function () {
                 return true;
@@ -6391,8 +6529,26 @@ var tui;
                 });
                 return _this;
             }
-            FormTextbox.prototype.showProperty = function () {
-                throw new Error('Method not implemented.');
+            FormTextbox.prototype.getProperties = function () {
+                return [
+                    {
+                        "type": "grid",
+                        "label": tui.str("form.validation"),
+                        "size": 5,
+                        "height": 120,
+                        "definitions": [
+                            {
+                                "type": "textbox",
+                                "label": tui.str("form.formula")
+                            }, {
+                                "type": "textbox",
+                                "label": tui.str("form.message")
+                            }
+                        ]
+                    }
+                ];
+            };
+            FormTextbox.prototype.setProperties = function (properties) {
             };
             FormTextbox.prototype.validate = function () {
                 return this._widget.validate();
@@ -6412,8 +6568,10 @@ var tui;
                 });
                 return _this;
             }
-            FormTextarea.prototype.showProperty = function () {
+            FormTextarea.prototype.getProperties = function () {
                 throw new Error('Method not implemented.');
+            };
+            FormTextarea.prototype.setProperties = function (properties) {
             };
             FormTextarea.prototype.validate = function () {
                 return this._widget.validate();
@@ -6436,6 +6594,9 @@ var tui;
                 _this.build();
                 return _this;
             }
+            FormOptions.prototype.isResizable = function () {
+                return true;
+            };
             FormOptions.prototype.build = function () {
                 var define = this.define;
                 if (define.align === "vertical") {
@@ -6482,8 +6643,10 @@ var tui;
             FormOptions.prototype.render = function () {
                 this._group.render();
             };
-            FormOptions.prototype.showProperty = function () {
+            FormOptions.prototype.getProperties = function () {
                 throw new Error('Method not implemented.');
+            };
+            FormOptions.prototype.setProperties = function (properties) {
             };
             FormOptions.prototype.validate = function () {
                 return true;
@@ -6503,8 +6666,10 @@ var tui;
                 });
                 return _this;
             }
-            FormSelect.prototype.showProperty = function () {
+            FormSelect.prototype.getProperties = function () {
                 throw new Error('Method not implemented.');
+            };
+            FormSelect.prototype.setProperties = function (properties) {
             };
             FormSelect.prototype.validate = function () {
                 return this._widget.validate();
@@ -6524,8 +6689,10 @@ var tui;
                 });
                 return _this;
             }
-            FormDatePicker.prototype.showProperty = function () {
+            FormDatePicker.prototype.getProperties = function () {
                 throw new Error('Method not implemented.');
+            };
+            FormDatePicker.prototype.setProperties = function (properties) {
             };
             FormDatePicker.prototype.validate = function () {
                 return this._widget.validate();
@@ -6545,8 +6712,10 @@ var tui;
                 });
                 return _this;
             }
-            FormPicture.prototype.showProperty = function () {
+            FormPicture.prototype.getProperties = function () {
                 throw new Error('Method not implemented.');
+            };
+            FormPicture.prototype.setProperties = function (properties) {
             };
             FormPicture.prototype.validate = function () {
                 return true;
@@ -6566,8 +6735,10 @@ var tui;
                 });
                 return _this;
             }
-            FormFile.prototype.showProperty = function () {
+            FormFile.prototype.getProperties = function () {
                 throw new Error('Method not implemented.');
+            };
+            FormFile.prototype.setProperties = function (properties) {
             };
             FormFile.prototype.validate = function () {
                 return this._widget.validate();
@@ -6587,8 +6758,10 @@ var tui;
                 });
                 return _this;
             }
-            FormFiles.prototype.showProperty = function () {
+            FormFiles.prototype.getProperties = function () {
                 throw new Error('Method not implemented.');
+            };
+            FormFiles.prototype.setProperties = function (properties) {
             };
             FormFiles.prototype.validate = function () {
                 return true;
@@ -6619,6 +6792,9 @@ var tui;
                     }
                     _this._widget._set("columns", columns);
                 }
+                if (typeof define.height === "number" && !isNaN(define.height)) {
+                    _this._widget._.style.height = define.height + "px";
+                }
                 _this._buttonBar = tui.elem("div");
                 _this.div.appendChild(_this._buttonBar);
                 var gp = widget.create("button-group");
@@ -6641,8 +6817,10 @@ var tui;
                 _this._widget._.style.margin = "2px";
                 return _this;
             }
-            FormGrid.prototype.showProperty = function () {
+            FormGrid.prototype.getProperties = function () {
                 throw new Error('Method not implemented.');
+            };
+            FormGrid.prototype.setProperties = function (properties) {
             };
             FormGrid.prototype.getValue = function () {
                 return this._values;

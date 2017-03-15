@@ -307,9 +307,10 @@ declare module tui.widget {
         private _contentSize;
         private _moved;
         private _init;
+        protected initRestriction(): void;
         protected initChildren(childNodes: Node[]): void;
         protected init(): void;
-        setContent(content: any): void;
+        setContent(content: any, render?: boolean): void;
         setButtons(buttonDef?: string): void;
         open(buttonDef?: string): void;
         close(): void;
@@ -645,6 +646,7 @@ declare module tui.widget {
         disable?: boolean;
         required?: boolean;
         available?: boolean;
+        [index: string]: any;
     }
     interface FormControlConstructor {
         new (form: Form, define: FormItem): FormControl;
@@ -688,6 +690,7 @@ declare module tui.widget {
         protected form: Form;
         protected selected: boolean;
         constructor(form: Form, define: FormItem);
+        showProperties(): void;
         isPresent(): boolean;
         hide(): void;
         show(): void;
@@ -698,14 +701,17 @@ declare module tui.widget {
         protected applySize(): void;
         abstract getValue(): any;
         abstract setValue(value: any): void;
+        abstract isResizable(): boolean;
         abstract render(): void;
-        abstract showProperty(): void;
+        abstract getProperties(): FormItem[];
+        abstract setProperties(properties: FormItem[]): void;
         abstract validate(): boolean;
     }
     abstract class BasicFormControl<T extends Widget> extends FormControl {
         protected _widget: T;
         protected _name: string;
         constructor(form: Form, define: FormItem, type: string);
+        isResizable(): boolean;
         getValue(): any;
         setValue(value: any): void;
         render(): void;

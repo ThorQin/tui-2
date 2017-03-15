@@ -10,10 +10,12 @@ module tui.widget {
 		key?: string | null;
 		value?: any;
 		validate?: string[];
+		condition?: string;
 		size?: number;
 		newline?: boolean;
 		disable?: boolean;
-		important?: boolean;
+		required?: boolean;
+		available?: boolean;
 	}
 
 	export interface FormControlConstructor {
@@ -34,7 +36,9 @@ module tui.widget {
 
 	export class Form extends Widget {
 		protected _definitionChanged: boolean;
+		protected _valueChanged: boolean;
 		protected _items: FormControl[];
+		protected _valueCache: {[index: string]: any};
 
 		public static register(type: string, controlType: FormControlConstructor): void {
 			_controls[type] = controlType;
@@ -62,7 +66,7 @@ module tui.widget {
 			}
 		}
 
-		protected updateSize() {
+		protected update() {
 			this._.style.height = this._.offsetHeight + "px";
 			this.hideAll();
 			this.render();
@@ -72,6 +76,7 @@ module tui.widget {
 		protected initRestriction(): void {
 			super.initRestriction();
 			this._items = [];
+			this._valueCache = null;
 			this.setRestrictions({
 				"definition": {
 					"set": (value: any) => {
@@ -86,6 +91,7 @@ module tui.widget {
 						} else if (value === null) {
 							this.removeAll();
 						}
+						this._valueChanged = true;
 					},
 					"get": (): any => {
 						var result: FormItem[] = [];
@@ -109,16 +115,62 @@ module tui.widget {
 								}
 							}
 						}
+						this._valueChanged = true;
 					},
 					"get": (): any => {
-						var value: {[index: string]: any} = {};
-						for (let item of this._items) {
-							let k = item.getKey();
-							if (k) {
-								value[k] = item.getValue();
+						var index: {[index: string]: number};
+						var me = this;
+						function computeValue(key: string, searchPath: string[]) {
+							if (!index.hasOwnProperty(key)) {
+								throw new Error("Invalid expression: Field \"" + key + "\" not found in \"" + searchPath[searchPath.length - 1] + "\" condition.");
+							}
+							var exp = me._items[index[key]].define.condition;
+							if (!exp) {
+								me._valueCache[key] = me._items[index[key]].getValue();
+								me._items[index[key]].define.available = true;
+							} else {
+								if (searchPath.indexOf(key) >= 0)
+									throw new Error("Invalid expression: Cycle reference detected on \"" + key + "\"");
+								searchPath.push(key);
+								try {
+									if (text.exp.evaluate(exp, function(k: string){
+										if (me._valueCache.hasOwnProperty(k))
+											return me._valueCache[k];
+										else {
+											computeValue(k, searchPath);
+											return me._valueCache[k];
+										}
+									})) {
+										me._valueCache[key] = me._items[index[key]].getValue();
+										me._items[index[key]].define.available = true;
+									} else {
+										me._valueCache[key] = null;
+										me._items[index[key]].define.available = false;
+									}
+								} catch (e) {
+									throw new Error(e.message + " (" + key + ")");
+								}
+								searchPath.pop();
 							}
 						}
-						return value;
+						if (this._valueChanged || this._valueCache === null) {
+							this._valueCache = {};
+							index = {};
+							for (let i = 0; i < this._items.length; i++) {
+								let k = this._items[i].getKey();
+								if (k) {
+									index[k] = i;
+								}
+							}
+							for (let k in index) {
+								if (index.hasOwnProperty(k)) {
+									computeValue(k, []);
+								}
+							}
+							this._valueChanged = false;
+							return this._valueCache;
+						} else
+							return this._valueCache;
 					}
 				}
 			});
@@ -138,6 +190,9 @@ module tui.widget {
 			var newItem = this._components["newitem"] = elem("div");
 			newItem.className = "tui-form-new-item-box";
 
+			var errmsg = this._components["errmsg"] = elem("div");
+			errmsg.className = "tui-form-error";
+
 			buttons.appendChild(btnPrint);
 			toolbar.appendChild(title);
 			toolbar.appendChild(buttons);
@@ -150,6 +205,7 @@ module tui.widget {
 				if (pos >= 0) {
 					this._items.splice(pos, 1);
 					e.data.control.hide();
+					this._valueChanged = true;
 					this.render();
 				}
 			});
@@ -162,7 +218,7 @@ module tui.widget {
 					var tmp = this._items[pos];
 					this._items[pos] = this._items[pos - 1];
 					this._items[pos - 1] = tmp;
-					this.updateSize();
+					this.update();
 				}
 			});
 			this.on("itemmovedown", (e: any) => {
@@ -171,7 +227,7 @@ module tui.widget {
 					var tmp = this._items[pos];
 					this._items[pos] = this._items[pos + 1];
 					this._items[pos + 1] = tmp;
-					this.updateSize();
+					this.update();
 				}
 			});
 			var firstPoint: {x: number, y: number, ctrl: FormControl} = null;
@@ -262,7 +318,7 @@ module tui.widget {
 								this._items.splice(targetIndex, 0, ctrl);
 							else
 								this._items.splice(targetIndex - 1, 0, ctrl);
-							this.updateSize();
+							this.update();
 						}
 					});
 				}
@@ -284,6 +340,10 @@ module tui.widget {
 					this.addNewItem(e.data.button._, pos);
 				}
 			});
+			this.on("itemvaluechanged", (e: any) => {
+				this._valueChanged = true;
+				this.render();
+			});
 			newItem.onclick = () => {
 				this.addNewItem(newItem, this._items.length);
 			};
@@ -294,8 +354,9 @@ module tui.widget {
 				var newItem = new _controls[type](this, {type: type, label: label});
 				this._items.splice(pos, 0, newItem);
 				popup.close();
-				this.updateSize();
+				this.update();
 				this.selectItem(newItem);
+				this._valueChanged = true;
 			};
 		}
 
@@ -358,21 +419,40 @@ module tui.widget {
 				toolbar.style.display = "none";
 				$(this._).removeClass("tui-form-show-toolbar");
 			}
+			var newItem = this._components["newitem"];
+			browser.removeNode(newItem);
+			var errmsg = this._components["errmsg"];
+			browser.removeNode(errmsg);
 			var designMode = (this.get("mode") === "design");
+			if (!designMode) {
+				try {
+					this.get("value");
+				} catch (e) {
+					this.hideAll();
+					errmsg.innerHTML = browser.toSafeText(e.message + "");
+					this._.appendChild(errmsg);
+					return;
+				}
+			}
 			for (let item of this._items) {
 				if (!item.isPresent())
 					item.show();
 				item.setDesign(designMode);
-				if (!designMode)
+				if (!designMode) {
 					item.select(false);
+					if (!item.define.available) {
+						browser.addClass(item.div, "tui-form-item-unavailable");
+					} else 
+						browser.removeClass(item.div, "tui-form-item-unavailable");
+				} else
+					browser.removeClass(item.div, "tui-form-item-unavailable");
+
 				item.render();
 				item.div.className = item.div.className.replace(/tui-form-item-exceed/g, "");
 				if (item.div.offsetWidth > this._.clientWidth - 20) {
 					item.div.className += " tui-form-item-exceed";
 				}
 			}
-			var newItem = this._components["newitem"];
-			browser.removeNode(newItem);
 			if (designMode) {
 				this._.appendChild(newItem);
 			}

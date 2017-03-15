@@ -4,6 +4,12 @@
 module tui.widget {
 	"use strict";
 
+	interface PropertyPage {
+		name: string;
+		properties: FormItem[];
+		form?: Form;
+	}
+
 	export abstract class FormControl {
 		mask: HTMLElement;
 		div: HTMLElement;
@@ -38,7 +44,9 @@ module tui.widget {
 			this.btnEdit = <Button>create("button", {text: "<i class='fa fa-pencil'></i>"});
 			this.btnEdit.appendTo(this.toolbar);
 			this.btnSize = <Button>create("button", {text: "<i class='fa fa-arrows-alt'></i>"});
-			this.btnSize.appendTo(this.toolbar);
+			if (this.isResizable()) {
+				this.btnSize.appendTo(this.toolbar);
+			}
 			this.toolbar.appendChild(elem("span"))
 			this.btnMoveUp = <Button>create("button", {text: "<i class='fa fa-level-up'></i>"});
 			this.btnMoveUp.appendTo(this.toolbar);
@@ -60,8 +68,8 @@ module tui.widget {
 				this.label.style.display = "none";
 			else {
 				this.label.innerHTML = browser.toSafeText(define.label);
-				if (define.important) {
-					this.label.className = "tui-form-item-important";
+				if (define.required) {
+					this.label.className = "tui-form-item-required";
 				}
 			}
 			$(this.mask).mousedown((e: JQueryEventObject) => {
@@ -98,6 +106,9 @@ module tui.widget {
 				this.applySize();
 				this.form.fire("itemresize", {e: e, control: this});
 			});
+			this.btnEdit.on("click", () => {
+				this.showProperties();
+			});
 			this.btnMoveUp.on("click", () => {
 				this.form.fire("itemmoveup", {control: this});
 			});
@@ -107,6 +118,65 @@ module tui.widget {
 			this.btnAdd.on("click", () => {
 				this.form.fire("itemadd", {button: this.btnAdd, control: this});
 			});
+		}
+
+		showProperties() {
+			var properties: FormItem[] = [
+				{
+					"type": "textbox",
+					"label": str("form.section"),
+					"value": this.define.label
+				}, {
+					"type": "textbox",
+					"label": str("form.field.name"),
+					"value": this.define.key
+				}, {
+					"type": "textarea",
+					"label": str("form.field.condition"),
+					"value": this.define.key,
+					"size": 5
+				}
+			];
+			var pages: PropertyPage[] = [{name: str("form.general"), properties: properties}];
+			var specificProperties = this.getProperties();
+			if (specificProperties) {
+				for (let p of specificProperties) {
+					if (p.type === "form") {
+						pages.push({name: p.label, properties: (<any>p).definitions});
+					} else {
+						properties.push(p);
+					}
+				}
+			}
+			var container = elem("div");
+			var tab = create("button-group");
+			tab._.className = "tui-tab";
+			container.appendChild(tab._);
+			for (let i = 0; i < pages.length; i++) {
+				let page = pages[i];
+				let btn = create("button");
+				btn._set("text", page.name);
+				btn._set("value", i);
+				tab._.appendChild(btn._);
+				let form = <Form>create("form");
+				form._.className = "tui-form-property-form";
+				if (i > 0)
+					form._.style.display = "none";
+				form._set("definition", page.properties);
+				page.form = form;
+				container.appendChild(form._);
+			}
+			tab.on("click", function() {
+				var target: number = this.get("value");
+				for (let i = 0; i < pages.length; i++) {
+					let display = (i == target ? "block" : "none");
+					pages[i].form._.style.display = display;
+				}
+			});
+			var dialog = <Dialog>create("dialog");
+			dialog._set("content", container);
+			dialog.open("ok#tui-primary");
+
 		}
 
 		isPresent() {
@@ -178,9 +248,10 @@ module tui.widget {
 
 		abstract getValue(): any;
 		abstract setValue(value: any): void;
-
+		abstract isResizable(): boolean;
 		abstract render(): void;
-		abstract showProperty(): void;
+		abstract getProperties(): FormItem[];
+		abstract setProperties(properties: FormItem[]): void;
 		abstract validate(): boolean;
 	}
 
@@ -206,6 +277,10 @@ module tui.widget {
 				this._widget._set("validate", this.define.validate);
 				this._widget._set("autoValidate", true);
 			}
+		}
+
+		isResizable(): boolean {
+			return true;
 		}
 
 		getValue(): any {
@@ -249,13 +324,20 @@ module tui.widget {
 			}
 		}
 
+		isResizable(): boolean {
+			return false;
+		}
+
 		getValue(): any {
 			return null;
 		}
 		setValue(value: any): void {}
 		render(): void {}
-		showProperty(): void {
+		getProperties(): FormItem[] {
 			throw new Error('Method not implemented.');
+		}
+		setProperties(properties: FormItem[]) {
+
 		}
 		validate(): boolean {
 			return true;
@@ -270,9 +352,15 @@ module tui.widget {
 
 		constructor(form: Form, define: FormItem) {
 			super(form, define, "input");
+			this._widget.on("change", (e) => {
+				form.fire("itemvaluechanged", {control: this});
+			});
 		}
-		showProperty(): void {
+		getProperties(): FormItem[] {
 			throw new Error('Method not implemented.');
+		}
+		setProperties(properties: FormItem[]) {
+			
 		}
 		validate(): boolean {
 			return this._widget.validate();
@@ -287,9 +375,15 @@ module tui.widget {
 
 		constructor(form: Form, define: FormItem) {
 			super(form, define, "textarea");
+			this._widget.on("change", (e) => {
+				form.fire("itemvaluechanged", {control: this});
+			});
 		}
-		showProperty(): void {
+		getProperties(): FormItem[] {
 			throw new Error('Method not implemented.');
+		}
+		setProperties(properties: FormItem[]) {
+			
 		}
 		validate(): boolean {
 			return this._widget.validate();
@@ -314,10 +408,25 @@ module tui.widget {
 		constructor(form: Form, define: GroupFormItem) {
 			super(form, define);
 			this._group = <Group>create("button-group");
+			this._group.on("click", (e) => {
+				form.fire("itemvaluechanged", {control: this});
+			});
+			this._group.appendTo(this.div);
+			this.build();
+		}
+
+		isResizable(): boolean {
+			return true;
+		}
+
+		build() {
+			var define = <GroupFormItem>this.define;
 			if (define.align === "vertical") {
-				this._group._.className += " tui-form-group-align-vertical";
+				browser.addClass(this._group._, " tui-form-group-align-vertical");
+			} else {
+				browser.removeClass(this._group._, " tui-form-group-align-vertical");
 			}
-			this._group._set("disable", define.disable);
+			this._group._set("disable", !!define.disable);
 			var optionType = define.atMost === 1 ? "radio" : "check";
 			this._group._set("type", optionType);
 			this._group._.innerHTML = "";
@@ -344,7 +453,6 @@ module tui.widget {
 				this._group._.appendChild(padding);
 			}
 			this._group._set("value", define.value);
-			this._group.appendTo(this.div);
 		}
 
 		getValue(): any {
@@ -356,8 +464,11 @@ module tui.widget {
 		render(): void {
 			this._group.render();
 		}
-		showProperty(): void {
+		getProperties(): FormItem[] {
 			throw new Error('Method not implemented.');
+		}
+		setProperties(properties: FormItem[]) {
+			
 		}
 		validate(): boolean {
 			return true;
@@ -373,9 +484,15 @@ module tui.widget {
 
 		constructor(form: Form, define: FormItem) {
 			super(form, define, "select");
+			this._widget.on("change", (e) => {
+				form.fire("itemvaluechanged", {control: this});
+			});
 		}
-		showProperty(): void {
+		getProperties(): FormItem[] {
 			throw new Error('Method not implemented.');
+		}
+		setProperties(properties: FormItem[]) {
+			
 		}
 		validate(): boolean {
 			return this._widget.validate();
@@ -390,9 +507,15 @@ module tui.widget {
 
 		constructor(form: Form, define: FormItem) {
 			super(form, define, "date-picker");
+			this._widget.on("change", (e) => {
+				form.fire("itemvaluechanged", {control: this});
+			});
 		}
-		showProperty(): void {
+		getProperties(): FormItem[] {
 			throw new Error('Method not implemented.');
+		}
+		setProperties(properties: FormItem[]) {
+			
 		}
 		validate(): boolean {
 			return this._widget.validate();
@@ -408,9 +531,15 @@ module tui.widget {
 
 		constructor(form: Form, define: FormItem) {
 			super(form, define, "picture");
+			this._widget.on("success", (e) => {
+				form.fire("itemvaluechanged", {control: this});
+			});
 		}
-		showProperty(): void {
+		getProperties(): FormItem[] {
 			throw new Error('Method not implemented.');
+		}
+		setProperties(properties: FormItem[]) {
+			
 		}
 		validate(): boolean {
 			return true;
@@ -425,9 +554,15 @@ module tui.widget {
 
 		constructor(form: Form, define: FormItem) {
 			super(form, define, "file");
+			this._widget.on("success", (e) => {
+				form.fire("itemvaluechanged", {control: this});
+			});
 		}
-		showProperty(): void {
+		getProperties(): FormItem[] {
 			throw new Error('Method not implemented.');
+		}
+		setProperties(properties: FormItem[]) {
+			
 		}
 		validate(): boolean {
 			return this._widget.validate();
@@ -442,9 +577,15 @@ module tui.widget {
 
 		constructor(form: Form, define: FormItem) {
 			super(form, define, "files", );
+			this._widget.on("success", (e) => {
+				form.fire("itemvaluechanged", {control: this});
+			});
 		}
-		showProperty(): void {
+		getProperties(): FormItem[] {
 			throw new Error('Method not implemented.');
+		}
+		setProperties(properties: FormItem[]) {
+			
 		}
 		validate(): boolean {
 			return true;
@@ -491,20 +632,38 @@ module tui.widget {
 
 			this._btnAdd = <Button>create("button", {text: "<i class='fa fa-plus'></i>"});
 			this._btnAdd.appendTo(gp._);
+			this._btnAdd.on("click", () => {
+
+
+				form.fire("itemvaluechanged", {control: this});
+			});
 
 			this._btnEdit = <Button>create("button", {text: "<i class='fa fa-pencil'></i>"});
 			this._btnEdit.appendTo(gp._);
+			this._btnEdit.on("click", () => {
+
+				
+				form.fire("itemvaluechanged", {control: this});
+			});
 
 			gp.appendTo(this._buttonBar);
 
 			this._btnDelete = <Button>create("button", {text: "<i class='fa fa-trash'></i>"});
 			this._btnDelete.appendTo(this._buttonBar);
+			this._btnDelete.on("click", () => {
+
+				
+				form.fire("itemvaluechanged", {control: this});
+			});
 
 			this._widget._.style.margin = "2px";
 			
 		}
-		showProperty(): void {
+		getProperties(): FormItem[] {
 			throw new Error('Method not implemented.');
+		}
+		setProperties(properties: FormItem[]) {
+			
 		}
 		getValue(): any {
 			return this._values;

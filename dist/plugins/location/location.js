@@ -230,10 +230,16 @@ var tui;
             var FormAddress = (function (_super) {
                 __extends(FormAddress, _super);
                 function FormAddress(form, define) {
-                    return _super.call(this, form, define, "location") || this;
+                    var _this = _super.call(this, form, define, "location") || this;
+                    _this._widget.on("change", function (e) {
+                        form.fire("itemvaluechanged", { control: _this });
+                    });
+                    return _this;
                 }
-                FormAddress.prototype.showProperty = function () {
+                FormAddress.prototype.getProperties = function () {
                     throw new Error('Method not implemented.');
+                };
+                FormAddress.prototype.setProperties = function (properties) {
                 };
                 FormAddress.prototype.validate = function () {
                     return true;

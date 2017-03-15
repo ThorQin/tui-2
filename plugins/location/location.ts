@@ -241,8 +241,11 @@ module tui.widget.ext {
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
-		showProperty(): void {
+		getProperties(): FormItem[] {
 			throw new Error('Method not implemented.');
+		}
+		setProperties(properties: FormItem[]) {
+			
 		}
 		validate(): boolean {
 			return true;

@@ -28,7 +28,7 @@ module tui.widget {
 				},
 				"value": {
 					"get": (): any => {
-						if (this._data["value"])
+						if (typeof this._data["value"] !== UNDEFINED)
 							return this._data["value"];
 						return this.get("text");
 					}

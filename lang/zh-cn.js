@@ -73,5 +73,11 @@ tui.dict("zh-cn", {
     "form.file": "文件",
     "form.files": "多个文件",
     "form.grid": "网格",
-    "form.address": "地址"
+    "form.address": "地址",
+    "form.properties": "属性",
+    "form.field.name": "字段名",
+    "form.precondition": "前置条件",
+    "form.validation": "有效性验证",
+    "form.formula": "公式",
+    "form.message": "提示消息"
 });
