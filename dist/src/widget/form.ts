@@ -15,7 +15,9 @@ module tui.widget {
 		newline?: boolean;
 		disable?: boolean;
 		required?: boolean;
+		description?: string;
 		available?: boolean;
+		[index: string]: any;
 	}
 
 	export interface FormControlConstructor {
@@ -167,6 +169,28 @@ module tui.widget {
 									computeValue(k, []);
 								}
 							}
+							for (let i = 0; i < this._items.length; i++) {
+								let item = this._items[i];
+								let k = item.getKey();
+								
+								if (k === null) {
+									if (item.define.condition) {
+										if (text.exp.evaluate(item.define.condition, function(k: string){
+											if (me._valueCache.hasOwnProperty(k))
+												return me._valueCache[k];
+											else {
+												throw new Error("Invalid expression: Field \"" + k + "\" not found in control[" + i + "] condition.");
+											}
+										})) {
+											item.define.available = true;
+										} else {
+											item.define.available = false;
+										}
+									} else
+										item.define.available = true;
+								}
+							}
+							
 							this._valueChanged = false;
 							return this._valueCache;
 						} else

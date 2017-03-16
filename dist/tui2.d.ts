@@ -645,6 +645,7 @@ declare module tui.widget {
         newline?: boolean;
         disable?: boolean;
         required?: boolean;
+        description?: string;
         available?: boolean;
         [index: string]: any;
     }
@@ -675,6 +676,12 @@ declare module tui.widget {
     }
 }
 declare module tui.widget {
+    interface PropertyPage {
+        name: string;
+        properties: FormItem[];
+        designMode?: boolean;
+        form?: Form;
+    }
     abstract class FormControl {
         mask: HTMLElement;
         div: HTMLElement;
@@ -691,6 +698,7 @@ declare module tui.widget {
         protected selected: boolean;
         constructor(form: Form, define: FormItem);
         showProperties(): void;
+        update(): void;
         isPresent(): boolean;
         hide(): void;
         show(): void;
@@ -703,8 +711,8 @@ declare module tui.widget {
         abstract setValue(value: any): void;
         abstract isResizable(): boolean;
         abstract render(): void;
-        abstract getProperties(): FormItem[];
-        abstract setProperties(properties: FormItem[]): void;
+        abstract getProperties(): PropertyPage[];
+        abstract setProperties(properties: any[]): void;
         abstract validate(): boolean;
     }
     abstract class BasicFormControl<T extends Widget> extends FormControl {

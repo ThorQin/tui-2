@@ -33,10 +33,13 @@ tui.dict("en-us", {
     "form.files": "Files",
     "form.grid": "Grid",
     "form.address": "Address",
-    "form.properties": "Properties",
+    "form.properties": "PROPERTIES",
     "form.field.name": "Field Name",
     "form.precondition": "Precondition",
     "form.validation": "Validation",
     "form.formula": "Formula",
-    "form.message": "Message"
+    "form.message": "Message",
+    "form.required": "Required",
+    "form.disable": "Disabled",
+    "form.description": "Special Instructions"
 });

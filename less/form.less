@@ -95,13 +95,13 @@ tui\:form {
 		position: relative;
 
 		&>* {
-			display: block!important;
-			width: auto!important;
+			display: block !important;
+			width: auto !important;
 		}
 
 		&>div.tui-form-item-mask {
 			position: absolute;
-			display: none!important;
+			display: none !important;
 			left: 0;
 			top: 0;
 			right: 0;
@@ -163,7 +163,7 @@ tui\:form {
 		}
 
 		&.tui-form-item-moving>div.tui-form-item-toolbar {
-			display: none!important;
+			display: none !important;
 		}
 
 		&>hr.tui-form-line-label {
@@ -181,12 +181,30 @@ tui\:form {
 			display: block;
 		}
 
-		label.tui-form-item-label {
+		div.tui-form-item-label {
+			position: relative;
 			font-size: 14px;
 			font-weight: bold;
 			color: #424242;
 			cursor: default;
 			padding: 2px 5px;
+			padding-right: 22px;
+			&.tui-form-item-required:before {
+				content: "\2217";
+				margin-right: 4px;
+				color: red;
+			}
+			>span {
+				position: absolute;
+				top: 5px;
+				right: 5px;
+				.icon-base();
+				font-size: 18px;
+				color: @iconInfoColor;
+				&:before {
+					.fa-question-circle();
+				}
+			}
 		}
 
 		&.tui-form-item-size-2 {
@@ -267,9 +285,15 @@ div.tui-form-new-item-menu {
 }
 
 tui\:form.tui-form-fixed {
-	width: 1100px;
+	width: 1320px;
 	&.tui-panel {
 		margin: 20px auto;
+	}
+}
+
+@media (max-width: 1360px) {
+	tui\:form.tui-form-fixed {
+		width: 1100px;
 	}
 }
 
@@ -279,20 +303,49 @@ tui\:form.tui-form-fixed {
 	}
 }
 
+tui\:dialog>.tui-content tui\:form {
+	width: 880px;
+	padding: 0;
+}
+
 @media (max-width: 920px) {
-	tui\:form.tui-form-fixed {
+	tui\:form.tui-form-fixed,tui\:dialog>.tui-content tui\:form {
+		width: 660px;
+	}
+}
+@media (max-width: 960px) {
+	tui\:dialog>.tui-content tui\:form {
 		width: 660px;
 	}
 }
 
 @media (max-width: 700px) {
-	tui\:form.tui-form-fixed {
+	tui\:form.tui-form-fixed,tui\:dialog>.tui-content tui\:form {
+		width: 440px;
+	}
+}
+
+@media (max-width: 740px) {
+	tui\:dialog>.tui-content tui\:form {
 		width: 440px;
 	}
 }
 
 @media (max-width: 480px) {
-	tui\:form.tui-form-fixed {
+	tui\:form.tui-form-fixed,tui\:dialog>.tui-content tui\:form {
+		width: auto;
+		&.tui-panel {
+			margin: 0px;
+		}
+		div.tui-form-item-container {
+			width: auto;
+			display: block;
+		}
+	}
+}
+
+@media (max-width: 520px) {
+	tui\:dialog>.tui-content tui\:form {
 		width: auto;
 		&.tui-panel {
 			margin: 0px;

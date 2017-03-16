@@ -66,6 +66,21 @@ module tui.widget {
 		private _moved: boolean = false;
 		private _init: boolean = true;
 
+		protected initRestriction(): void {
+			super.initRestriction();
+			this.setRestrictions({
+				"content": {
+					"set":  (value: any) => {
+						this._data["content"] = value;
+						var contentDiv = this._components["content"];
+						if (contentDiv) {
+							this.setContent(value, false);
+						}
+					}
+				}
+			});
+		}
+
 		protected initChildren(childNodes: Node[]) {
 			if (childNodes.length > 0) {
 				var div = elem("div");
@@ -132,7 +147,7 @@ module tui.widget {
 			});
 		}
 		
-		setContent(content: any) {
+		setContent(content: any, render = true) {
 			var contentDiv = this._components["content"];
 			contentDiv.innerHTML = "";
 			if (typeof content === "object" && content.nodeName) {
@@ -142,7 +157,7 @@ module tui.widget {
 			else if (typeof content === "string") {
 				contentDiv.innerHTML = content;
 			}
-			this.render();
+			render && this.render();
 		}
 		
 		setButtons(buttonDef: string = null): void {
@@ -171,7 +186,7 @@ module tui.widget {
 			if (this.get("opened"))
 				return;
 			var contentDiv = this._components["content"];
-			init(contentDiv);
+			
 			this._init = true;
 			this._moved = false;
 			$(this._).css({
@@ -181,7 +196,9 @@ module tui.widget {
 			this._set("opened", true);
 			push(this);
 			this.setButtons(buttonDef);
+			init(contentDiv);
 			this._.focus();
+			this.render();
 			this.fire("open");
 			this._sizeTimer = setInterval( () => {
 				if (this._contentSize == null)
@@ -243,8 +260,9 @@ module tui.widget {
 			});
 			$(contentDiv).css({
 				//"maxWidth": winSize.width - $(contentDiv).outerWidth() + $(contentDiv).width() + "px",
-				"maxWidth": winSize.width - 80 + "px",
-				"maxHeight": winSize.height - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px"
+				"maxWidth": winSize.width - 40 + "px",
+				"maxHeight": winSize.height - 40 - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px",
+				"minWidth": winSize.width < 500 ? winSize.width - 80 + "px" : "none"
 			});
 			
 			var box: browser.Rect = {

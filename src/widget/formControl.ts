@@ -4,9 +4,10 @@
 module tui.widget {
 	"use strict";
 
-	interface PropertyPage {
+	export interface PropertyPage {
 		name: string;
 		properties: FormItem[];
+		designMode?: boolean;
 		form?: Form;
 	}
 
@@ -61,17 +62,10 @@ module tui.widget {
 
 			this.applySize();
 			
-			this.label = elem("label");
+			this.label = elem("div");
 			this.label.className = "tui-form-item-label";
 			this.div.appendChild(this.label);
-			if (!define.label)
-				this.label.style.display = "none";
-			else {
-				this.label.innerHTML = browser.toSafeText(define.label);
-				if (define.required) {
-					this.label.className = "tui-form-item-required";
-				}
-			}
+		
 			$(this.mask).mousedown((e: JQueryEventObject) => {
 				this.form.fire("itemmousedown", {e: e, control: this});
 			});
@@ -118,6 +112,7 @@ module tui.widget {
 			this.btnAdd.on("click", () => {
 				this.form.fire("itemadd", {button: this.btnAdd, control: this});
 			});
+			this.update();
 		}
 
 		showProperties() {
@@ -125,27 +120,42 @@ module tui.widget {
 				{
 					"type": "textbox",
 					"label": str("form.section"),
+					"key": "label",
 					"value": this.define.label
 				}, {
 					"type": "textbox",
 					"label": str("form.field.name"),
+					"key": "key",
 					"value": this.define.key
+				}, {
+					"type": "options",
+					"label": str("form.options"),
+					"key": "options",
+					"size": 2,
+					"options": [
+						{ "value": "required", "text": str("form.required") },
+						{ "value": "disable", "text": str("form.disable") }
+					],
+					"value": [this.define.required ? "required" : null, this.define.disable ? "disable" : null]
+				}, {
+					"type": "textarea",
+					"label": str("form.description"),
+					"key": "description",
+					"value": this.define.description,
+					"size": 2
 				}, {
 					"type": "textarea",
 					"label": str("form.precondition"),
+					"key": "condition",
 					"value": this.define.condition,
-					"size": 5
+					"size": 2
 				}
 			];
 			var pages: PropertyPage[] = [{name: str("form.properties"), properties: properties}];
 			var specificProperties = this.getProperties();
 			if (specificProperties) {
 				for (let p of specificProperties) {
-					if (p.type === "form") {
-						pages.push({name: p.label, properties: p.definitions});
-					} else {
-						properties.push(p);
-					}
+					pages.push(p);
 				}
 			}
 			var container = elem("div");
@@ -165,20 +175,75 @@ module tui.widget {
 				form._.className = "tui-form-property-form";
 				if (i > 0)
 					form._.style.display = "none";
-				form._set("definition", page.properties);
+				form.set("definition", page.properties);
+				if (page.designMode)
+					form.set("mode", "design");
 				page.form = form;
 				container.appendChild(form._);
 			}
 			tab.on("click", function() {
 				var target: number = this.get("value");
 				for (let i = 0; i < pages.length; i++) {
-					let display = (i == target ? "block" : "none");
-					pages[i].form._.style.display = display;
+					if (i != target)
+						pages[i].form._.style.display = "none";
+				}
+				for (let i = 0; i < pages.length; i++) {
+					if (i == target)
+						pages[i].form._.style.display = "block";
 				}
 			});
 			var dialog = <Dialog>create("dialog");
 			dialog.set("content", container);
 			dialog.open("ok#tui-primary");
+			dialog.on("btnclick", () => {
+				var values: {[index: string]: any} = pages[0].form.get("value");
+				var customValues: any[] = [];
+				for (let i = 1; i < pages.length; i++) {
+					if (pages[i].designMode) {
+						customValues.push(pages[i].form.get("definition"));
+					} else {
+						if (!pages[i].form.validate()) {
+							tab.set("value", i);
+							tab.fire("click");
+							return;
+						}
+						customValues.push(pages[i].form.get("value"));
+					}
+				}
+				this.define.label = values.label;
+				this.define.key = values.key;
+				this.define.condition = values.condition;
+				this.define.description = values.description;
+				this.define.disable = (values.options.indexOf("disable") >= 0);
+				this.define.required = (values.options.indexOf("required") >= 0);
+				this.update();
+				this.setProperties(customValues);
+				dialog.close();
+				
+			});
+		}
+
+		update() {
+			var d = this.define;
+			if (!d.label && !d.description) {
+				browser.addClass(this.label, "tui-hidden");
+			} else {
+				browser.removeClass(this.label, "tui-hidden");
+				if (!d.label)
+					this.label.innerHTML = " ";
+				else
+					this.label.innerHTML = browser.toSafeText(d.label);
+				if (d.required) {
+					browser.addClass(this.label,"tui-form-item-required");
+				} else {
+					browser.removeClass(this.label,"tui-form-item-required");
+				}
+				if (d.description) {
+					var desc = elem("span");
+					desc.setAttribute("tooltip", d.description);
+					this.label.appendChild(desc);
+				}
+			}
 		}
 
 		isPresent() {
@@ -252,8 +317,8 @@ module tui.widget {
 		abstract setValue(value: any): void;
 		abstract isResizable(): boolean;
 		abstract render(): void;
-		abstract getProperties(): FormItem[];
-		abstract setProperties(properties: FormItem[]): void;
+		abstract getProperties(): PropertyPage[];
+		abstract setProperties(properties: any[]): void;
 		abstract validate(): boolean;
 	}
 
@@ -335,25 +400,30 @@ module tui.widget {
 		}
 		setValue(value: any): void {}
 		render(): void {}
-		getProperties(): FormItem[] {
-			return [
-				{
-					"type": "textbox",
-					"label": str("form.font.size"),
-					"value": this.define.fontSize
-				}, {
-					"type": "options",
-					"label": str("form.align"),
-					"options": [
-						{value: "left", text: str("form.left")}, 
-						{value: "center", text: str("form.center")}, 
-						{value: "right", text: str("form.right")}
-					],
-					"value": this.define.align
-				}
-			];
+		getProperties(): PropertyPage[] {
+			return [{
+				name: str("form.section"),
+				properties: [
+					{
+						"type": "textbox",
+						"label": str("form.font.size"),
+						"key": "fontSize",
+						"value": this.define.fontSize
+					}, {
+						"type": "options",
+						"label": str("form.align"),
+						"options": [
+							{value: "left", text: str("form.left")}, 
+							{value: "center", text: str("form.center")}, 
+							{value: "right", text: str("form.right")}
+						],
+						"key": "align",
+						"value": this.define.align
+					}
+				]
+			}];
 		}
-		setProperties(properties: FormItem[]) {
+		setProperties(properties: any[]) {
 
 		}
 		validate(): boolean {
@@ -373,26 +443,31 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
-		getProperties(): FormItem[] {
-			return [
-				{
-					"type": "grid",
-					"label": str("form.validation"),
-					"size": 5,
-					"height": 120,
-					"definitions": [
-						{
-							"type": "textbox",
-							"label": str("form.formula")
-						}, {
-							"type": "textbox",
-							"label": str("form.message")
-						}
-					]
-				}
-			];
+		getProperties(): PropertyPage[] {
+			return [{
+				name: str("form.textbox"),
+				properties: [
+					{
+						"type": "grid",
+						"label": str("form.validation"),
+						"size": 5,
+						"height": 120,
+						"key": "validate",
+						"definitions": [
+							{
+								"type": "textbox",
+								"label": str("form.formula")
+							}, {
+								"type": "textbox",
+								"label": str("form.message")
+							}
+						],
+						"value": this.define.validate
+					}
+				]
+			}];
 		}
-		setProperties(properties: FormItem[]) {
+		setProperties(properties: any[]) {
 			
 		}
 		validate(): boolean {
@@ -412,10 +487,10 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
-		getProperties(): FormItem[] {
+		getProperties(): PropertyPage[] {
 			throw new Error('Method not implemented.');
 		}
-		setProperties(properties: FormItem[]) {
+		setProperties(properties: any[]) {
 			
 		}
 		validate(): boolean {
@@ -497,10 +572,10 @@ module tui.widget {
 		render(): void {
 			this._group.render();
 		}
-		getProperties(): FormItem[] {
+		getProperties(): PropertyPage[] {
 			throw new Error('Method not implemented.');
 		}
-		setProperties(properties: FormItem[]) {
+		setProperties(properties: any[]) {
 			
 		}
 		validate(): boolean {
@@ -521,10 +596,10 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
-		getProperties(): FormItem[] {
+		getProperties(): PropertyPage[] {
 			throw new Error('Method not implemented.');
 		}
-		setProperties(properties: FormItem[]) {
+		setProperties(properties: any[]) {
 			
 		}
 		validate(): boolean {
@@ -544,10 +619,10 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
-		getProperties(): FormItem[] {
+		getProperties(): PropertyPage[] {
 			throw new Error('Method not implemented.');
 		}
-		setProperties(properties: FormItem[]) {
+		setProperties(properties: any[]) {
 			
 		}
 		validate(): boolean {
@@ -568,10 +643,10 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
-		getProperties(): FormItem[] {
+		getProperties(): PropertyPage[] {
 			throw new Error('Method not implemented.');
 		}
-		setProperties(properties: FormItem[]) {
+		setProperties(properties: any[]) {
 			
 		}
 		validate(): boolean {
@@ -591,10 +666,10 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
-		getProperties(): FormItem[] {
+		getProperties(): PropertyPage[] {
 			throw new Error('Method not implemented.');
 		}
-		setProperties(properties: FormItem[]) {
+		setProperties(properties: any[]) {
 			
 		}
 		validate(): boolean {
@@ -614,10 +689,10 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
-		getProperties(): FormItem[] {
+		getProperties(): PropertyPage[] {
 			throw new Error('Method not implemented.');
 		}
-		setProperties(properties: FormItem[]) {
+		setProperties(properties: any[]) {
 			
 		}
 		validate(): boolean {
@@ -696,10 +771,10 @@ module tui.widget {
 			this._widget._.style.margin = "2px";
 			
 		}
-		getProperties(): FormItem[] {
+		getProperties(): PropertyPage[] {
 			throw new Error('Method not implemented.');
 		}
-		setProperties(properties: FormItem[]) {
+		setProperties(properties: any[]) {
 			
 		}
 		getValue(): any {

@@ -15,6 +15,7 @@ module tui.widget {
 		newline?: boolean;
 		disable?: boolean;
 		required?: boolean;
+		description?: string;
 		available?: boolean;
 		[index: string]: any;
 	}

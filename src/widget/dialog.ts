@@ -260,8 +260,9 @@ module tui.widget {
 			});
 			$(contentDiv).css({
 				//"maxWidth": winSize.width - $(contentDiv).outerWidth() + $(contentDiv).width() + "px",
-				"maxWidth": winSize.width - 80 + "px",
-				"maxHeight": winSize.height - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px"
+				"maxWidth": winSize.width - 40 + "px",
+				"maxHeight": winSize.height - 40 - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px",
+				"minWidth": winSize.width < 500 ? winSize.width - 80 + "px" : "none"
 			});
 			
 			var box: browser.Rect = {

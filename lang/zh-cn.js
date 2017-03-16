@@ -79,5 +79,8 @@ tui.dict("zh-cn", {
     "form.precondition": "前置条件",
     "form.validation": "有效性验证",
     "form.formula": "公式",
-    "form.message": "提示消息"
+    "form.message": "提示消息",
+    "form.required": "必须的",
+    "form.disable": "禁用的",
+    "form.description": "特殊说明"
 });
