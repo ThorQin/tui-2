@@ -33,7 +33,7 @@ tui.dict("en-us", {
     "form.files": "Files",
     "form.grid": "Grid",
     "form.address": "Address",
-    "form.properties": "PROPERTIES",
+    "form.properties": "Properties",
     "form.field.name": "Field Name",
     "form.precondition": "Precondition",
     "form.validation": "Validation",

@@ -160,7 +160,7 @@ module tui.widget {
 			render && this.render();
 		}
 		
-		setButtons(buttonDef: string = null): void {
+		setButtons(buttonDef: string = null, render = true): void {
 			var buttonBar = this._components["buttonBar"];
 			buttonBar.innerHTML = "";
 			if (typeof buttonDef === "string" && buttonDef.length > 0) {
@@ -179,7 +179,8 @@ module tui.widget {
 			} else {
 				buttonBar.style.display = "none";
 			}
-			this.render();
+			if (render)
+				this.render();
 		}
 
 		open(buttonDef: string = null): void {
@@ -190,24 +191,33 @@ module tui.widget {
 			this._init = true;
 			this._moved = false;
 			$(this._).css({
+				"top": "3000px",
+				"left": "0",
+				"right": "0",
 				"display": "block",
 				"position": "fixed"
 			});
 			this._set("opened", true);
 			push(this);
-			this.setButtons(buttonDef);
+			this.setButtons(buttonDef, false);
 			init(contentDiv);
 			this._.focus();
-			this.render();
-			this.fire("open");
-			this._sizeTimer = setInterval( () => {
-				if (this._contentSize == null)
-					return;
-				if (contentDiv.scrollHeight !== this._contentSize.height ||
-					contentDiv.scrollWidth !== this._contentSize.width) {
-					this.refresh();
-				}
-			}, 50);
+			setTimeout(()=>{
+				$(this._).css({
+					"left": "",
+					"right": ""
+				});
+				this.render();
+				this.fire("open");
+				this._sizeTimer = setInterval( () => {
+					if (this._contentSize == null)
+						return;
+					if (contentDiv.scrollHeight !== this._contentSize.height ||
+						contentDiv.scrollWidth !== this._contentSize.width) {
+						this.refresh();
+					}
+				}, 50);
+			});
 		}
 
 		close(): void {

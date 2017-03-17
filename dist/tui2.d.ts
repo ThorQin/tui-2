@@ -311,7 +311,7 @@ declare module tui.widget {
         protected initChildren(childNodes: Node[]): void;
         protected init(): void;
         setContent(content: any, render?: boolean): void;
-        setButtons(buttonDef?: string): void;
+        setButtons(buttonDef?: string, render?: boolean): void;
         open(buttonDef?: string): void;
         close(): void;
         render(): void;

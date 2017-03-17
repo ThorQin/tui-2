@@ -4,6 +4,8 @@
 module tui.widget {
 	"use strict";
 
+	const FULL = 6;
+
 	export interface PropertyPage {
 		name: string;
 		properties: FormItem[];
@@ -85,7 +87,8 @@ module tui.widget {
 					{type: "radio", text: "2x", group: "size", value: 2, checked: this.define.size === 2},
 					{type: "radio", text: "3x", group: "size", value: 3, checked: this.define.size === 3},
 					{type: "radio", text: "4x", group: "size", value: 4, checked: this.define.size === 4},
-					{type: "radio", text: str("Fill"), group: "size", value: 5, checked: this.define.size === 5},
+					{type: "radio", text: "5x", group: "size", value: 5, checked: this.define.size === 5},
+					{type: "radio", text: str("Fill"), group: "size", value: FULL, checked: this.define.size === FULL},
 					{type: "line"},
 					{type: "check", text: str("New Line"), value: "newline", checked: this.define.newline}
 				]);
@@ -93,7 +96,7 @@ module tui.widget {
 			});
 			menu.on("click", (e) => {
 				var v = e.data.item.value;
-				if (v >= 1 && v <= 5)
+				if (v >= 1 && v <= FULL)
 					this.define.size = v;
 				else if (v === "newline")
 					this.define.newline = !this.define.newline;
@@ -112,7 +115,6 @@ module tui.widget {
 			this.btnAdd.on("click", () => {
 				this.form.fire("itemadd", {button: this.btnAdd, control: this});
 			});
-			this.update();
 		}
 
 		showProperties() {
@@ -131,7 +133,7 @@ module tui.widget {
 					"type": "options",
 					"label": str("form.options"),
 					"key": "options",
-					"size": 2,
+					"size": 1,
 					"options": [
 						{ "value": "required", "text": str("form.required") },
 						{ "value": "disable", "text": str("form.disable") }
@@ -142,13 +144,13 @@ module tui.widget {
 					"label": str("form.description"),
 					"key": "description",
 					"value": this.define.description,
-					"size": 2
+					"size": FULL
 				}, {
 					"type": "textarea",
 					"label": str("form.precondition"),
 					"key": "condition",
 					"value": this.define.condition,
-					"size": 2
+					"size": FULL
 				}
 			];
 			var pages: PropertyPage[] = [{name: str("form.properties"), properties: properties}];
@@ -166,7 +168,7 @@ module tui.widget {
 			for (let i = 0; i < pages.length; i++) {
 				let page = pages[i];
 				let btn = create("radio");
-				btn._set("text", page.name);
+				btn._set("text", page.name.toUpperCase());
 				btn._set("value", i);
 				if (i == 0)
 					btn._set("checked", true);
@@ -216,8 +218,9 @@ module tui.widget {
 				this.define.description = values.description;
 				this.define.disable = (values.options.indexOf("disable") >= 0);
 				this.define.required = (values.options.indexOf("required") >= 0);
-				this.update();
 				this.setProperties(customValues);
+				this.update();
+				this.form.fire("itemvaluechanged", {control: this});
 				dialog.close();
 				
 			});
@@ -230,7 +233,7 @@ module tui.widget {
 			} else {
 				browser.removeClass(this.label, "tui-hidden");
 				if (!d.label)
-					this.label.innerHTML = " ";
+					this.label.innerHTML = "&nbsp;";
 				else
 					this.label.innerHTML = browser.toSafeText(d.label);
 				if (d.required) {
@@ -297,12 +300,12 @@ module tui.widget {
 		protected applySize() {
 			var define = this.define;
 			browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-full tui-form-item-newline");
-			if (define.size > 1 && define.size < 5) {
+			if (define.size > 1 && define.size < FULL) {
 				define.size = Math.floor(define.size);
 				browser.addClass(this.div, " tui-form-item-size-" + define.size);
-			} else if (define.size >= 5) {
+			} else if (define.size >= FULL) {
 				browser.addClass(this.div, "tui-form-item-size-full");
-				define.size = 5;
+				define.size = FULL;
 			} else
 				define.size = 1;
 			if (define.newline) {
@@ -338,11 +341,18 @@ module tui.widget {
 			this._name = name;
 			this._widget = <T>create(type);
 			this._widget.appendTo(this.div);
-			this._widget._set("disable", define.disable);
-			this._widget._set("value", define.value);
+		}
+
+		update() {
+			super.update();
+			this._widget._set("disable", !!this.define.disable);
+			this._widget._set("value", typeof this.define.value === UNDEFINED ? null : this.define.value);
 			if (this.define.validate instanceof Array) {
 				this._widget._set("validate", this.define.validate);
 				this._widget._set("autoValidate", true);
+			} else {
+				this._widget._set("validate", []);
+				this._widget._set("autoValidate", false);
 			}
 		}
 
@@ -417,6 +427,7 @@ module tui.widget {
 							{value: "center", text: str("form.center")}, 
 							{value: "right", text: str("form.right")}
 						],
+						"size": 2,
 						"key": "align",
 						"value": this.define.align
 					}
@@ -443,23 +454,43 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
+
+		update() {
+			super.update();
+			if (this.define.selection) {
+				
+			}
+		}
+
 		getProperties(): PropertyPage[] {
 			return [{
 				name: str("form.textbox"),
 				properties: [
 					{
+							"type": "textarea",
+							"label": str("form.textbox.menu"),
+							"description": str("form.textbox.menu.desc"),
+							"size": 2,
+					}, {
 						"type": "grid",
 						"label": str("form.validation"),
-						"size": 5,
-						"height": 120,
+						"size": 2,
+						"newline": true,
+						"height": 150,
 						"key": "validate",
 						"definitions": [
 							{
 								"type": "textbox",
-								"label": str("form.formula")
+								"label": str("form.formula"),
+								"selection": [
+									"*any", "*email", "*digital", "*integer", "*float", "*number", "*currency", "*date", "*key"
+								],
+								"size": 2
 							}, {
 								"type": "textbox",
-								"label": str("form.message")
+								"label": str("form.message"),
+								"size": 2,
+								"newline": true
 							}
 						],
 						"value": this.define.validate
@@ -520,14 +551,14 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 			this._group.appendTo(this.div);
-			this.build();
 		}
 
 		isResizable(): boolean {
 			return true;
 		}
 
-		build() {
+		update() {
+			super.update();
 			var define = <GroupFormItem>this.define;
 			if (define.align === "vertical") {
 				browser.addClass(this._group._, " tui-form-group-align-vertical");
@@ -745,9 +776,14 @@ module tui.widget {
 			this._btnAdd = <Button>create("button", {text: "<i class='fa fa-plus'></i>"});
 			this._btnAdd.appendTo(gp._);
 			this._btnAdd.on("click", () => {
-
-
-				form.fire("itemvaluechanged", {control: this});
+				var dialog = <Dialog>create("dialog");
+				var fm = <Form>create("form");
+				fm.set("definition", (<GridFormItem>this.define).definitions);
+				dialog.set("content", fm._);
+				dialog.open("ok#tui-primary");
+				dialog.on("btnclick", () => {
+					form.fire("itemvaluechanged", {control: this});
+				});
 			});
 
 			this._btnEdit = <Button>create("button", {text: "<i class='fa fa-pencil'></i>"});

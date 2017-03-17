@@ -309,7 +309,7 @@ tui.dict("en-us", {
     "form.files": "Files",
     "form.grid": "Grid",
     "form.address": "Address",
-    "form.properties": "PROPERTIES",
+    "form.properties": "Properties",
     "form.field.name": "Field Name",
     "form.precondition": "Precondition",
     "form.validation": "Validation",
@@ -1975,9 +1975,10 @@ var tui;
                 }
                 render && this.render();
             };
-            Dialog.prototype.setButtons = function (buttonDef) {
+            Dialog.prototype.setButtons = function (buttonDef, render) {
                 var _this = this;
                 if (buttonDef === void 0) { buttonDef = null; }
+                if (render === void 0) { render = true; }
                 var buttonBar = this._components["buttonBar"];
                 buttonBar.innerHTML = "";
                 if (typeof buttonDef === "string" && buttonDef.length > 0) {
@@ -2001,7 +2002,8 @@ var tui;
                 else {
                     buttonBar.style.display = "none";
                 }
-                this.render();
+                if (render)
+                    this.render();
             };
             Dialog.prototype.open = function (buttonDef) {
                 var _this = this;
@@ -2012,24 +2014,33 @@ var tui;
                 this._init = true;
                 this._moved = false;
                 $(this._).css({
+                    "top": "3000px",
+                    "left": "0",
+                    "right": "0",
                     "display": "block",
                     "position": "fixed"
                 });
                 this._set("opened", true);
                 push(this);
-                this.setButtons(buttonDef);
+                this.setButtons(buttonDef, false);
                 widget.init(contentDiv);
                 this._.focus();
-                this.render();
-                this.fire("open");
-                this._sizeTimer = setInterval(function () {
-                    if (_this._contentSize == null)
-                        return;
-                    if (contentDiv.scrollHeight !== _this._contentSize.height ||
-                        contentDiv.scrollWidth !== _this._contentSize.width) {
-                        _this.refresh();
-                    }
-                }, 50);
+                setTimeout(function () {
+                    $(_this._).css({
+                        "left": "",
+                        "right": ""
+                    });
+                    _this.render();
+                    _this.fire("open");
+                    _this._sizeTimer = setInterval(function () {
+                        if (_this._contentSize == null)
+                            return;
+                        if (contentDiv.scrollHeight !== _this._contentSize.height ||
+                            contentDiv.scrollWidth !== _this._contentSize.width) {
+                            _this.refresh();
+                        }
+                    }, 50);
+                });
             };
             Dialog.prototype.close = function () {
                 if (!this.get("opened"))
@@ -6191,12 +6202,23 @@ var tui;
                         else
                             tui.browser.removeClass(item.div, "tui-form-item-unavailable");
                     }
-                    else
+                    else {
                         tui.browser.removeClass(item.div, "tui-form-item-unavailable");
+                    }
+                    tui.browser.removeClass(item.div, "tui-form-item-exceed");
                     item.render();
-                    item.div.className = item.div.className.replace(/tui-form-item-exceed/g, "");
-                    if (item.div.offsetWidth > this._.clientWidth - 20) {
-                        item.div.className += " tui-form-item-exceed";
+                }
+                var cfs = tui.browser.getCurrentStyle(this._);
+                if (cfs.display != "none") {
+                    this._.style.width = "2000px";
+                    this._.style.width = "";
+                    var pad = parseFloat(cfs.paddingLeft) + parseFloat(cfs.paddingRight);
+                    for (var _b = 0, _c = this._items; _b < _c.length; _b++) {
+                        var item = _c[_b];
+                        if (item.div.offsetWidth > this._.clientWidth - pad) {
+                            tui.browser.addClass(item.div, "tui-form-item-exceed");
+                            item.render();
+                        }
                     }
                 }
                 if (designMode) {
@@ -6215,6 +6237,7 @@ var tui;
     var widget;
     (function (widget) {
         "use strict";
+        var FULL = 6;
         var FormControl = (function () {
             function FormControl(form, define) {
                 var _this = this;
@@ -6269,7 +6292,8 @@ var tui;
                         { type: "radio", text: "2x", group: "size", value: 2, checked: _this.define.size === 2 },
                         { type: "radio", text: "3x", group: "size", value: 3, checked: _this.define.size === 3 },
                         { type: "radio", text: "4x", group: "size", value: 4, checked: _this.define.size === 4 },
-                        { type: "radio", text: tui.str("Fill"), group: "size", value: 5, checked: _this.define.size === 5 },
+                        { type: "radio", text: "5x", group: "size", value: 5, checked: _this.define.size === 5 },
+                        { type: "radio", text: tui.str("Fill"), group: "size", value: FULL, checked: _this.define.size === FULL },
                         { type: "line" },
                         { type: "check", text: tui.str("New Line"), value: "newline", checked: _this.define.newline }
                     ]);
@@ -6277,7 +6301,7 @@ var tui;
                 });
                 menu.on("click", function (e) {
                     var v = e.data.item.value;
-                    if (v >= 1 && v <= 5)
+                    if (v >= 1 && v <= FULL)
                         _this.define.size = v;
                     else if (v === "newline")
                         _this.define.newline = !_this.define.newline;
@@ -6315,7 +6339,7 @@ var tui;
                         "type": "options",
                         "label": tui.str("form.options"),
                         "key": "options",
-                        "size": 2,
+                        "size": 1,
                         "options": [
                             { "value": "required", "text": tui.str("form.required") },
                             { "value": "disable", "text": tui.str("form.disable") }
@@ -6326,13 +6350,13 @@ var tui;
                         "label": tui.str("form.description"),
                         "key": "description",
                         "value": this.define.description,
-                        "size": 2
+                        "size": FULL
                     }, {
                         "type": "textarea",
                         "label": tui.str("form.precondition"),
                         "key": "condition",
                         "value": this.define.condition,
-                        "size": 2
+                        "size": FULL
                     }
                 ];
                 var pages = [{ name: tui.str("form.properties"), properties: properties }];
@@ -6351,7 +6375,7 @@ var tui;
                 for (var i = 0; i < pages.length; i++) {
                     var page = pages[i];
                     var btn = widget.create("radio");
-                    btn._set("text", page.name);
+                    btn._set("text", page.name.toUpperCase());
                     btn._set("value", i);
                     if (i == 0)
                         btn._set("checked", true);
@@ -6404,6 +6428,7 @@ var tui;
                     _this.define.required = (values.options.indexOf("required") >= 0);
                     _this.update();
                     _this.setProperties(customValues);
+                    _this.form.fire("itemvaluechanged", { control: _this });
                     dialog.close();
                 });
             };
@@ -6415,7 +6440,7 @@ var tui;
                 else {
                     tui.browser.removeClass(this.label, "tui-hidden");
                     if (!d.label)
-                        this.label.innerHTML = " ";
+                        this.label.innerHTML = "&nbsp;";
                     else
                         this.label.innerHTML = tui.browser.toSafeText(d.label);
                     if (d.required) {
@@ -6478,13 +6503,13 @@ var tui;
             FormControl.prototype.applySize = function () {
                 var define = this.define;
                 tui.browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-full tui-form-item-newline");
-                if (define.size > 1 && define.size < 5) {
+                if (define.size > 1 && define.size < FULL) {
                     define.size = Math.floor(define.size);
                     tui.browser.addClass(this.div, " tui-form-item-size-" + define.size);
                 }
-                else if (define.size >= 5) {
+                else if (define.size >= FULL) {
                     tui.browser.addClass(this.div, "tui-form-item-size-full");
-                    define.size = 5;
+                    define.size = FULL;
                 }
                 else
                     define.size = 1;
@@ -6576,6 +6601,7 @@ var tui;
                                     { value: "center", text: tui.str("form.center") },
                                     { value: "right", text: tui.str("form.right") }
                                 ],
+                                "size": 2,
                                 "key": "align",
                                 "value": this.define.align
                             }
@@ -6607,18 +6633,29 @@ var tui;
                         name: tui.str("form.textbox"),
                         properties: [
                             {
+                                "type": "textarea",
+                                "label": tui.str("form.textbox.menu"),
+                                "description": tui.str("form.textbox.menu.desc"),
+                                "size": 2,
+                            }, {
                                 "type": "grid",
                                 "label": tui.str("form.validation"),
-                                "size": 5,
-                                "height": 120,
+                                "size": 2,
+                                "newline": true,
+                                "height": 150,
                                 "key": "validate",
                                 "definitions": [
                                     {
                                         "type": "textbox",
-                                        "label": tui.str("form.formula")
+                                        "label": tui.str("form.formula"),
+                                        "selection": [
+                                            "*any", "*email", "*digital", "*integer", "*float", "*number", "*currency", "*date", "*key"
+                                        ]
                                     }, {
                                         "type": "textbox",
-                                        "label": tui.str("form.message")
+                                        "label": tui.str("form.message"),
+                                        "size": 2,
+                                        "newline": true
                                     }
                                 ],
                                 "value": this.define.validate
@@ -6879,7 +6916,14 @@ var tui;
                 _this._btnAdd = widget.create("button", { text: "<i class='fa fa-plus'></i>" });
                 _this._btnAdd.appendTo(gp._);
                 _this._btnAdd.on("click", function () {
-                    form.fire("itemvaluechanged", { control: _this });
+                    var dialog = widget.create("dialog");
+                    var fm = widget.create("form");
+                    fm.set("definition", _this.define.definitions);
+                    dialog.set("content", fm._);
+                    dialog.open("ok#tui-primary");
+                    dialog.on("btnclick", function () {
+                        form.fire("itemvaluechanged", { control: _this });
+                    });
                 });
                 _this._btnEdit = widget.create("button", { text: "<i class='fa fa-pencil'></i>" });
                 _this._btnEdit.appendTo(gp._);
