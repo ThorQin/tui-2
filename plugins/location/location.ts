@@ -231,11 +231,15 @@ module tui.widget.ext {
 
 	register(Location, "location");
 
-	class FormAddress extends BasicFormControl<Location> {
+	interface AddressFormItem extends FormItem {
+
+	}
+
+	class FormAddress extends BasicFormControl<Location, AddressFormItem> {
 		static icon = "fa-map-marker";
 		static desc = tui.str("form.address");
 		static order = 10;
-		constructor(form: Form, define: FormItem) {
+		constructor(form: Form, define: AddressFormItem) {
 			super(form, define, "location");
 			this._widget.on("change", (e) => {
 				form.fire("itemvaluechanged", {control: this});

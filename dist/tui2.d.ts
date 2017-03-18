@@ -6,7 +6,8 @@ declare module tui {
     function dict(lang: string, dictionary: {
         [index: string]: string;
     }, replace?: boolean): void;
-    function str(str: string, lang?: string): string;
+    function str(s: string, lang?: string): string;
+    function strp(s: string, ...params: any[]): string;
     var tuid: () => string;
     interface EventInfo {
         event: string;
@@ -639,7 +640,6 @@ declare module tui.widget {
         label: string | null;
         key?: string | null;
         value?: any;
-        validate?: string[];
         condition?: string;
         size?: number;
         newline?: boolean;
@@ -650,26 +650,29 @@ declare module tui.widget {
         [index: string]: any;
     }
     interface FormControlConstructor {
-        new (form: Form, define: FormItem): FormControl;
+        new (form: Form, define: FormItem): FormControl<FormItem>;
         icon: string;
         desc: string;
         order: number;
+        init?: {
+            [index: string]: any;
+        };
     }
     class Form extends Widget {
         protected _definitionChanged: boolean;
         protected _valueChanged: boolean;
-        protected _items: FormControl[];
+        protected _items: FormControl<FormItem>[];
         protected _valueCache: {
             [index: string]: any;
         };
         static register(type: string, controlType: FormControlConstructor): void;
         protected removeAll(): void;
         protected hideAll(): void;
-        protected selectItem(target: FormControl): void;
+        protected selectItem(target: FormControl<FormItem>): void;
         protected update(): void;
         protected initRestriction(): void;
         protected init(): void;
-        private bindNewItemClick(popup, newItemDiv, type, label, pos);
+        private bindNewItemClick(popup, newItemDiv, type, label, init, pos);
         private addNewItem(button, pos);
         validate(): boolean;
         render(): void;
@@ -682,11 +685,11 @@ declare module tui.widget {
         designMode?: boolean;
         form?: Form;
     }
-    abstract class FormControl {
+    abstract class FormControl<D extends FormItem> {
         mask: HTMLElement;
         div: HTMLElement;
         label: HTMLElement;
-        define: FormItem;
+        define: D;
         toolbar: HTMLElement;
         btnEdit: Button;
         btnDelete: Button;
@@ -696,7 +699,7 @@ declare module tui.widget {
         btnSize: Button;
         protected form: Form;
         protected selected: boolean;
-        constructor(form: Form, define: FormItem);
+        constructor(form: Form, define: D);
         showProperties(): void;
         update(): void;
         isPresent(): boolean;
@@ -715,10 +718,11 @@ declare module tui.widget {
         abstract setProperties(properties: any[]): void;
         abstract validate(): boolean;
     }
-    abstract class BasicFormControl<T extends Widget> extends FormControl {
+    abstract class BasicFormControl<T extends Widget, D extends FormItem> extends FormControl<D> {
         protected _widget: T;
         protected _name: string;
-        constructor(form: Form, define: FormItem, type: string);
+        constructor(form: Form, define: D, type: string);
+        update(): void;
         isResizable(): boolean;
         getValue(): any;
         setValue(value: any): void;

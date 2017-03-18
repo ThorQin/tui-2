@@ -9,7 +9,6 @@ module tui.widget {
 		label: string | null;
 		key?: string | null;
 		value?: any;
-		validate?: string[];
 		condition?: string;
 		size?: number;
 		newline?: boolean;
@@ -21,26 +20,28 @@ module tui.widget {
 	}
 
 	export interface FormControlConstructor {
-		new (form: Form, define: FormItem): FormControl;
+		new (form: Form, define: FormItem): FormControl<FormItem>;
 		icon: string;
 		desc: string;
 		order: number;
+		init?: {[index:string]: any};
 	}
 
-	var _controls: {[index: string]: FormControlConstructor} = {};
+	var _controls: { [index: string]: FormControlConstructor } = {};
 
 	interface ControlDesc {
 		type: string;
 		name: string;
 		icon: string;
 		order: number;
+		init?: {[index:string]: any};
 	}
 
 	export class Form extends Widget {
 		protected _definitionChanged: boolean;
 		protected _valueChanged: boolean;
-		protected _items: FormControl[];
-		protected _valueCache: {[index: string]: any};
+		protected _items: FormControl<FormItem>[];
+		protected _valueCache: { [index: string]: any };
 
 		public static register(type: string, controlType: FormControlConstructor): void {
 			_controls[type] = controlType;
@@ -59,7 +60,7 @@ module tui.widget {
 			}
 		}
 
-		protected selectItem(target: FormControl) {
+		protected selectItem(target: FormControl<FormItem>) {
 			for (let item of this._items) {
 				if (item !== target)
 					item.select(false);
@@ -87,7 +88,9 @@ module tui.widget {
 							for (let define of <FormItem[]>value) {
 								let cstor = _controls[define.type];
 								if (cstor) {
-									this._items.push(new cstor(this, define));
+									let item = new cstor(this, define);
+									item.update();
+									this._items.push(item);
 								}
 							}
 						} else if (value === null) {
@@ -120,7 +123,7 @@ module tui.widget {
 						this._valueChanged = true;
 					},
 					"get": (): any => {
-						var index: {[index: string]: number};
+						var index: { [index: string]: number };
 						var me = this;
 						function computeValue(key: string, searchPath: string[]) {
 							if (!index.hasOwnProperty(key)) {
@@ -135,7 +138,7 @@ module tui.widget {
 									throw new Error("Invalid expression: Cycle reference detected on \"" + key + "\"");
 								searchPath.push(key);
 								try {
-									if (text.exp.evaluate(exp, function(k: string){
+									if (text.exp.evaluate(exp, function (k: string) {
 										if (me._valueCache.hasOwnProperty(k))
 											return me._valueCache[k];
 										else {
@@ -172,10 +175,10 @@ module tui.widget {
 							for (let i = 0; i < this._items.length; i++) {
 								let item = this._items[i];
 								let k = item.getKey();
-								
+
 								if (k === null) {
 									if (item.define.condition) {
-										if (text.exp.evaluate(item.define.condition, function(k: string){
+										if (text.exp.evaluate(item.define.condition, function (k: string) {
 											if (me._valueCache.hasOwnProperty(k))
 												return me._valueCache[k];
 											else {
@@ -190,7 +193,7 @@ module tui.widget {
 										item.define.available = true;
 								}
 							}
-							
+
 							this._valueChanged = false;
 							return this._valueCache;
 						} else
@@ -254,22 +257,22 @@ module tui.widget {
 					this.update();
 				}
 			});
-			var firstPoint: {x: number, y: number, ctrl: FormControl} = null;
+			var firstPoint: { x: number, y: number, ctrl: FormControl<FormItem> } = null;
 			var oldRect: browser.Rect = null;
 			this.on("itemmousemove", (e: any) => {
 				var ev = <JQueryEventObject>e.data.e;
 				ev.preventDefault();
 				if (!browser.isLButton(ev) || !firstPoint)
 					return;
-				if (e.data.control == firstPoint.ctrl && 
-						(Math.abs(ev.clientX -  firstPoint.x) >= 5 || 
-						Math.abs(ev.clientY -  firstPoint.y) >= 5)) {
+				if (e.data.control == firstPoint.ctrl &&
+					(Math.abs(ev.clientX - firstPoint.x) >= 5 ||
+						Math.abs(ev.clientY - firstPoint.y) >= 5)) {
 
-					var ctrl: FormControl = e.data.control;
+					var ctrl: FormControl<FormItem> = e.data.control;
 					var pos = this._items.indexOf(ctrl);
 					var placeholder = elem("div");
 					placeholder.className = "tui-form-item-placeholder";
-					
+
 					var divStyle = browser.getCurrentStyle(ctrl.div);
 					placeholder.style.display = divStyle.display;
 					placeholder.style.width = ctrl.div.offsetWidth + "px";
@@ -299,25 +302,25 @@ module tui.widget {
 								var testHeight = browser.getCurrentStyle(item.div).display === "block" || placeholder.style.display === "block";
 								var rc = browser.getRectOfScreen(item.div);
 								if (testHeight) {
-									if (e.clientX > rc.left && e.clientX < rc.left + rc.width && 
-											e.clientY > rc.top && e.clientY < rc.top + rc.height / 2) {
+									if (e.clientX > rc.left && e.clientX < rc.left + rc.width &&
+										e.clientY > rc.top && e.clientY < rc.top + rc.height / 2) {
 										this._.insertBefore(placeholder, item.div);
 										targetIndex = i;
 										break;
-									} else if (e.clientX > rc.left && e.clientX < rc.left + rc.width && 
-											e.clientY > rc.top + rc.height / 2 && e.clientY < rc.top + rc.height) {
+									} else if (e.clientX > rc.left && e.clientX < rc.left + rc.width &&
+										e.clientY > rc.top + rc.height / 2 && e.clientY < rc.top + rc.height) {
 										this._.insertBefore(placeholder, item.div.nextSibling);
 										targetIndex = i + 1;
 										break;
 									}
 								} else {
-									if (e.clientX > rc.left && e.clientX < rc.left + rc.width / 2 && 
-											e.clientY > rc.top && e.clientY < rc.top + rc.height) {
+									if (e.clientX > rc.left && e.clientX < rc.left + rc.width / 2 &&
+										e.clientY > rc.top && e.clientY < rc.top + rc.height) {
 										this._.insertBefore(placeholder, item.div);
 										targetIndex = i;
 										break;
-									} else if (e.clientX > rc.left + rc.width / 2 && e.clientX < rc.left + rc.width && 
-											e.clientY > rc.top && e.clientY < rc.top + rc.height) {
+									} else if (e.clientX > rc.left + rc.width / 2 && e.clientX < rc.left + rc.width &&
+										e.clientY > rc.top && e.clientY < rc.top + rc.height) {
 										this._.insertBefore(placeholder, item.div.nextSibling);
 										targetIndex = i + 1;
 										break;
@@ -350,7 +353,7 @@ module tui.widget {
 			this.on("itemmousedown", (e: any) => {
 				var ev = <JQueryEventObject>e.data.e;
 				if (browser.isLButton(ev)) {
-					firstPoint = {x: ev.clientX, y: ev.clientY, ctrl: e.data.control};
+					firstPoint = { x: ev.clientX, y: ev.clientY, ctrl: e.data.control };
 				} else
 					firstPoint = null;
 				this.selectItem(e.data.control);
@@ -373,9 +376,18 @@ module tui.widget {
 			};
 		}
 
-		private bindNewItemClick(popup: Popup, newItemDiv: HTMLElement, type: string, label: string, pos: number) {
+		private bindNewItemClick(popup: Popup, newItemDiv: HTMLElement, type: string, label: string, init: {[index:string]:any}, pos: number) {
 			newItemDiv.onclick = () => {
-				var newItem = new _controls[type](this, {type: type, label: label});
+				var define: FormItem = { type: type, label: label };
+				if (init) {
+					for (var k in init) {
+						if (init.hasOwnProperty(k)) {
+							define[k] = init[k];
+						}
+					}
+				}
+				var newItem = new _controls[type](this, define);
+				newItem.update();
 				this._items.splice(pos, 0, newItem);
 				popup.close();
 				this.update();
@@ -394,11 +406,12 @@ module tui.widget {
 						type: type,
 						name: _controls[type].desc,
 						icon: _controls[type].icon,
-						order: _controls[type].order
+						order: _controls[type].order,
+						init: _controls[type].init
 					})
 				}
 			}
-			controls.sort(function(a: ControlDesc, b: ControlDesc) {
+			controls.sort(function (a: ControlDesc, b: ControlDesc) {
 				return a.order - b.order
 			});
 			var popup = <Popup>create("popup");
@@ -411,7 +424,7 @@ module tui.widget {
 				itemIcon.className = "fa " + c.icon;
 				label.innerHTML = browser.toSafeText(tui.str(c.name));
 				div.appendChild(itemDiv);
-				this.bindNewItemClick(popup, itemDiv, c.type, tui.str(c.name), pos);
+				this.bindNewItemClick(popup, itemDiv, c.type, tui.str(c.name), c.init, pos);
 			}
 			popup._set("content", div);
 			popup.open(button);
@@ -425,7 +438,7 @@ module tui.widget {
 			}
 			return result;
 		}
-		
+
 		render() {
 			var toolbar = this._components["toolbar"];
 			var titleText = this.get("title");
@@ -466,15 +479,24 @@ module tui.widget {
 					item.select(false);
 					if (!item.define.available) {
 						browser.addClass(item.div, "tui-form-item-unavailable");
-					} else 
+					} else
 						browser.removeClass(item.div, "tui-form-item-unavailable");
-				} else
+				} else {
 					browser.removeClass(item.div, "tui-form-item-unavailable");
-
+				}
+				browser.removeClass(item.div, "tui-form-item-exceed");
 				item.render();
-				item.div.className = item.div.className.replace(/tui-form-item-exceed/g, "");
-				if (item.div.offsetWidth > this._.clientWidth - 20) {
-					item.div.className += " tui-form-item-exceed";
+			}
+			var cfs = browser.getCurrentStyle(this._);
+			if (cfs.display != "none") {
+				this._.style.width = "2000px";
+				this._.style.width = "";
+				var pad = parseFloat(cfs.paddingLeft) + parseFloat(cfs.paddingRight);
+				for (let item of this._items) {
+					if (item.div.offsetWidth > this._.clientWidth - pad) {
+						browser.addClass(item.div, "tui-form-item-exceed");
+						item.render();
+					}
 				}
 			}
 			if (designMode) {

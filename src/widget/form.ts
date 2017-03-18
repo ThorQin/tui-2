@@ -9,7 +9,6 @@ module tui.widget {
 		label: string | null;
 		key?: string | null;
 		value?: any;
-		validate?: string[];
 		condition?: string;
 		size?: number;
 		newline?: boolean;
@@ -21,10 +20,11 @@ module tui.widget {
 	}
 
 	export interface FormControlConstructor {
-		new (form: Form, define: FormItem): FormControl;
+		new (form: Form, define: FormItem): FormControl<FormItem>;
 		icon: string;
 		desc: string;
 		order: number;
+		init?: {[index:string]: any};
 	}
 
 	var _controls: { [index: string]: FormControlConstructor } = {};
@@ -34,12 +34,13 @@ module tui.widget {
 		name: string;
 		icon: string;
 		order: number;
+		init?: {[index:string]: any};
 	}
 
 	export class Form extends Widget {
 		protected _definitionChanged: boolean;
 		protected _valueChanged: boolean;
-		protected _items: FormControl[];
+		protected _items: FormControl<FormItem>[];
 		protected _valueCache: { [index: string]: any };
 
 		public static register(type: string, controlType: FormControlConstructor): void {
@@ -59,7 +60,7 @@ module tui.widget {
 			}
 		}
 
-		protected selectItem(target: FormControl) {
+		protected selectItem(target: FormControl<FormItem>) {
 			for (let item of this._items) {
 				if (item !== target)
 					item.select(false);
@@ -256,7 +257,7 @@ module tui.widget {
 					this.update();
 				}
 			});
-			var firstPoint: { x: number, y: number, ctrl: FormControl } = null;
+			var firstPoint: { x: number, y: number, ctrl: FormControl<FormItem> } = null;
 			var oldRect: browser.Rect = null;
 			this.on("itemmousemove", (e: any) => {
 				var ev = <JQueryEventObject>e.data.e;
@@ -267,7 +268,7 @@ module tui.widget {
 					(Math.abs(ev.clientX - firstPoint.x) >= 5 ||
 						Math.abs(ev.clientY - firstPoint.y) >= 5)) {
 
-					var ctrl: FormControl = e.data.control;
+					var ctrl: FormControl<FormItem> = e.data.control;
 					var pos = this._items.indexOf(ctrl);
 					var placeholder = elem("div");
 					placeholder.className = "tui-form-item-placeholder";
@@ -375,9 +376,17 @@ module tui.widget {
 			};
 		}
 
-		private bindNewItemClick(popup: Popup, newItemDiv: HTMLElement, type: string, label: string, pos: number) {
+		private bindNewItemClick(popup: Popup, newItemDiv: HTMLElement, type: string, label: string, init: {[index:string]:any}, pos: number) {
 			newItemDiv.onclick = () => {
-				var newItem = new _controls[type](this, { type: type, label: label });
+				var define: FormItem = { type: type, label: label };
+				if (init) {
+					for (var k in init) {
+						if (init.hasOwnProperty(k)) {
+							define[k] = init[k];
+						}
+					}
+				}
+				var newItem = new _controls[type](this, define);
 				newItem.update();
 				this._items.splice(pos, 0, newItem);
 				popup.close();
@@ -397,7 +406,8 @@ module tui.widget {
 						type: type,
 						name: _controls[type].desc,
 						icon: _controls[type].icon,
-						order: _controls[type].order
+						order: _controls[type].order,
+						init: _controls[type].init
 					})
 				}
 			}
@@ -414,7 +424,7 @@ module tui.widget {
 				itemIcon.className = "fa " + c.icon;
 				label.innerHTML = browser.toSafeText(tui.str(c.name));
 				div.appendChild(itemDiv);
-				this.bindNewItemClick(popup, itemDiv, c.type, tui.str(c.name), pos);
+				this.bindNewItemClick(popup, itemDiv, c.type, tui.str(c.name), c.init, pos);
 			}
 			popup._set("content", div);
 			popup.open(button);

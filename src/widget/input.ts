@@ -18,7 +18,7 @@ module tui.widget {
 			this.setRestrictions({
 				"value": {
 					"set": (value: any) => {
-						textbox.value = value;
+						textbox.value = (value != null ? value : "");
 						this._isEmpty = (textbox.value === "");
 					},
 					"get": (): any => {

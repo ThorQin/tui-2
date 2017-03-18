@@ -77,7 +77,7 @@ var tui;
         }
     }
     tui.dict = dict;
-    function str(str, lang) {
+    function str(s, lang) {
         if (!lang) {
             if (!tui.lang)
                 lang = "en-us";
@@ -86,19 +86,28 @@ var tui;
         }
         var translator = _dict[lang];
         if (translator) {
-            return translator.translate(str);
+            return translator.translate(s);
         }
         else {
             translator = _dict["en-us"];
             if (translator) {
-                return translator.translate(str);
+                return translator.translate(s);
             }
             else {
-                return str;
+                return s;
             }
         }
     }
     tui.str = str;
+    function strp(s) {
+        var params = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            params[_i - 1] = arguments[_i];
+        }
+        var s = str(s);
+        return tui.text.format(s, params);
+    }
+    tui.strp = strp;
     tui.tuid = (function () {
         var id = 0;
         return function () {
@@ -279,6 +288,7 @@ tui.dict("en-us", {
     "success": "Success",
     "warning": "Warning",
     "confirm": "Confirm",
+    "normal": "Normal",
     "note": "Note",
     "notmodified": "Request's content has not been modified!",
     "error": "Error",
@@ -294,6 +304,7 @@ tui.dict("en-us", {
     "yes": "Yes",
     "no": "No",
     "select": "Select",
+    "vertical": "Vertical",
     "please.select.point": "Please select a point of the map.",
     "address": "Address",
     "invalid.file.type": "Invalid file type!",
@@ -302,22 +313,44 @@ tui.dict("en-us", {
     "form.textbox": "Textbox",
     "form.textarea": "Textarea",
     "form.options": "Options",
-    "form.select": "Select",
+    "form.option.group": "Option Group",
+    "form.selection": "Selection",
     "form.datepicker": "Date",
     "form.picture": "Picture",
     "form.file": "File",
     "form.files": "Files",
     "form.grid": "Grid",
     "form.address": "Address",
-    "form.properties": "Properties",
+    "form.common": "Common",
     "form.field.name": "Field Name",
     "form.precondition": "Precondition",
     "form.validation": "Validation",
-    "form.formula": "Formula",
+    "form.format": "Format",
     "form.message": "Message",
     "form.required": "Required",
     "form.disable": "Disabled",
-    "form.description": "Special Instructions"
+    "form.description": "Description",
+    "form.textbox.selection.desc": "A group predefined input content, separated with newline characters.",
+    "message.cannot.be.empty": "Cannot be empty!",
+    "message.invalid.format": "Invalid format!",
+    "message.invalid.value": "Invalid value!",
+    "form.text.align": "Text Align",
+    "form.align": "Align",
+    "form.align.left": "Left",
+    "form.align.center": "Center",
+    "form.align.right": "Right",
+    "form.font.size": "Font Size",
+    "form.input.type": "Input Type",
+    "form.text": "Text",
+    "form.password": "Password",
+    "form.email": "EMail",
+    "form.url": "URL",
+    "form.number": "Number",
+    "form.at.least": "At Least",
+    "form.at.most": "At Most",
+    "form.at.least.p": "At Least select {0} item(s).",
+    "form.at.most.p": "At Most select {0} item(s).",
+    "form.option.group.desc": "Options separated by newline, option can be a key:value pair or a string."
 });
 var tui;
 (function (tui) {
@@ -4735,10 +4768,13 @@ var tui;
                                     return value === v;
                                 }
                             }
+                            var radio = (_this.get("type") === "radio");
                             for (var _i = 0, children_4 = children; _i < children_4.length; _i++) {
                                 var button = children_4[_i];
                                 if (check(button.get("value"))) {
                                     button.set("checked", true);
+                                    if (radio)
+                                        break;
                                 }
                                 else
                                     button.set("checked", false);
@@ -5808,7 +5844,9 @@ var tui;
                                     var define = _a[_i];
                                     var cstor = _controls[define.type];
                                     if (cstor) {
-                                        _this._items.push(new cstor(_this, define));
+                                        var item = new cstor(_this, define);
+                                        item.update();
+                                        _this._items.push(item);
                                     }
                                 }
                             }
@@ -6101,10 +6139,19 @@ var tui;
                     _this.addNewItem(newItem, _this._items.length);
                 };
             };
-            Form.prototype.bindNewItemClick = function (popup, newItemDiv, type, label, pos) {
+            Form.prototype.bindNewItemClick = function (popup, newItemDiv, type, label, init, pos) {
                 var _this = this;
                 newItemDiv.onclick = function () {
-                    var newItem = new _controls[type](_this, { type: type, label: label });
+                    var define = { type: type, label: label };
+                    if (init) {
+                        for (var k in init) {
+                            if (init.hasOwnProperty(k)) {
+                                define[k] = init[k];
+                            }
+                        }
+                    }
+                    var newItem = new _controls[type](_this, define);
+                    newItem.update();
                     _this._items.splice(pos, 0, newItem);
                     popup.close();
                     _this.update();
@@ -6122,7 +6169,8 @@ var tui;
                             type: type,
                             name: _controls[type].desc,
                             icon: _controls[type].icon,
-                            order: _controls[type].order
+                            order: _controls[type].order,
+                            init: _controls[type].init
                         });
                     }
                 }
@@ -6140,7 +6188,7 @@ var tui;
                     itemIcon.className = "fa " + c.icon;
                     label.innerHTML = tui.browser.toSafeText(tui.str(c.name));
                     div.appendChild(itemDiv);
-                    this.bindNewItemClick(popup, itemDiv, c.type, tui.str(c.name), pos);
+                    this.bindNewItemClick(popup, itemDiv, c.type, tui.str(c.name), c.init, pos);
                 }
                 popup._set("content", div);
                 popup.open(button);
@@ -6320,7 +6368,6 @@ var tui;
                 this.btnAdd.on("click", function () {
                     _this.form.fire("itemadd", { button: _this.btnAdd, control: _this });
                 });
-                this.update();
             }
             FormControl.prototype.showProperties = function () {
                 var _this = this;
@@ -6344,6 +6391,7 @@ var tui;
                             { "value": "required", "text": tui.str("form.required") },
                             { "value": "disable", "text": tui.str("form.disable") }
                         ],
+                        "newline": true,
                         "value": [this.define.required ? "required" : null, this.define.disable ? "disable" : null]
                     }, {
                         "type": "textarea",
@@ -6359,7 +6407,7 @@ var tui;
                         "size": FULL
                     }
                 ];
-                var pages = [{ name: tui.str("form.properties"), properties: properties }];
+                var pages = [{ name: tui.str("form.common"), properties: properties }];
                 var specificProperties = this.getProperties();
                 if (specificProperties) {
                     for (var _i = 0, specificProperties_1 = specificProperties; _i < specificProperties_1.length; _i++) {
@@ -6369,7 +6417,7 @@ var tui;
                 }
                 var container = tui.elem("div");
                 var tab = widget.create("button-group");
-                tab._.className = "tui-tab";
+                tab._.className = "tui-tab tui-form-properties-tab";
                 tab._set("type", "radio");
                 container.appendChild(tab._);
                 for (var i = 0; i < pages.length; i++) {
@@ -6407,6 +6455,7 @@ var tui;
                 dialog.on("btnclick", function () {
                     var values = pages[0].form.get("value");
                     var customValues = [];
+                    customValues.push(values);
                     for (var i = 1; i < pages.length; i++) {
                         if (pages[i].designMode) {
                             customValues.push(pages[i].form.get("definition"));
@@ -6426,8 +6475,8 @@ var tui;
                     _this.define.description = values.description;
                     _this.define.disable = (values.options.indexOf("disable") >= 0);
                     _this.define.required = (values.options.indexOf("required") >= 0);
-                    _this.update();
                     _this.setProperties(customValues);
+                    _this.update();
                     _this.form.fire("itemvaluechanged", { control: _this });
                     dialog.close();
                 });
@@ -6531,14 +6580,19 @@ var tui;
                 _this._name = name;
                 _this._widget = widget.create(type);
                 _this._widget.appendTo(_this.div);
-                _this._widget._set("disable", define.disable);
-                _this._widget._set("value", define.value);
-                if (_this.define.validate instanceof Array) {
-                    _this._widget._set("validate", _this.define.validate);
-                    _this._widget._set("autoValidate", true);
-                }
                 return _this;
             }
+            BasicFormControl.prototype.update = function () {
+                _super.prototype.update.call(this);
+                this._widget._set("disable", !!this.define.disable);
+                this._widget._set("value", typeof this.define.value === tui.UNDEFINED ? null : this.define.value);
+                if (this.define.validation instanceof Array) {
+                    this._widget._set("validate", this.define.validation);
+                }
+                else {
+                    this._widget._set("validate", []);
+                }
+            };
             BasicFormControl.prototype.isResizable = function () {
                 return true;
             };
@@ -6562,20 +6616,26 @@ var tui;
                 _this.div.appendChild(_this._hr);
                 _this.div.style.display = "block";
                 _this.div.style.width = "auto";
-                if (define.label) {
-                    _this._hr.className = "tui-form-line-label";
-                    if (typeof define.fontSize === "number" && define.fontSize >= 12 && define.fontSize < 48)
-                        _this.label.style.fontSize = define.fontSize + "px";
-                    if (typeof define.align == "string" && define.align.match(/^(left|right|center)$/i))
-                        _this.label.style.textAlign = define.align;
-                    else
-                        _this.label.style.textAlign = "left";
-                }
-                else {
-                    _this._hr.className = "";
-                }
                 return _this;
             }
+            FormSection.prototype.update = function () {
+                _super.prototype.update.call(this);
+                var d = this.define;
+                if (d.label) {
+                    this._hr.className = "tui-form-line-label";
+                    if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48)
+                        this.label.style.fontSize = d.fontSize + "px";
+                    else
+                        this.label.style.fontSize = "";
+                    if (typeof d.align == "string" && d.align.match(/^(left|right|center)$/i))
+                        this.label.style.textAlign = d.align;
+                    else
+                        this.label.style.textAlign = "left";
+                }
+                else {
+                    this._hr.className = "";
+                }
+            };
             FormSection.prototype.isResizable = function () {
                 return false;
             };
@@ -6590,25 +6650,40 @@ var tui;
                         properties: [
                             {
                                 "type": "textbox",
-                                "label": tui.str("form.font.size"),
                                 "key": "fontSize",
-                                "value": this.define.fontSize
+                                "label": tui.str("form.font.size"),
+                                "value": this.define.fontSize,
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.format") },
+                                    { "format": "*min:12", "message": tui.str("message.invalid.value") },
+                                    { "format": "*max:48", "message": tui.str("message.invalid.value") }
+                                ]
                             }, {
                                 "type": "options",
-                                "label": tui.str("form.align"),
-                                "options": [
-                                    { value: "left", text: tui.str("form.left") },
-                                    { value: "center", text: tui.str("form.center") },
-                                    { value: "right", text: tui.str("form.right") }
-                                ],
-                                "size": 2,
                                 "key": "align",
-                                "value": this.define.align
+                                "label": tui.str("form.text.align"),
+                                "atMost": 1,
+                                "options": [
+                                    { value: "left", text: tui.str("form.align.left") },
+                                    { value: "center", text: tui.str("form.align.center") },
+                                    { value: "right", text: tui.str("form.align.right") }
+                                ],
+                                "size": 1,
+                                "value": this.define.align || "left"
                             }
                         ]
                     }];
             };
             FormSection.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                if (values.fontSize && /^\d+$/.test(values.fontSize))
+                    this.define.fontSize = parseInt(values.fontSize);
+                else
+                    this.define.fontSize = null;
+                if (values.align && /^(left|center|right)$/.test(values.align))
+                    this.define.align = values.align;
+                else
+                    this.define.align = "left";
             };
             FormSection.prototype.validate = function () {
                 return true;
@@ -6624,46 +6699,125 @@ var tui;
             function FormTextbox(form, define) {
                 var _this = _super.call(this, form, define, "input") || this;
                 _this._widget.on("change", function (e) {
+                    _this.define.value = _this.getValue();
                     form.fire("itemvaluechanged", { control: _this });
+                });
+                _this._widget.on("right-icon-click", function () {
+                    if (!_this.define.selection || !_this.define.selection.length)
+                        return;
+                    var menu = widget.create("menu");
+                    var items = [];
+                    for (var _i = 0, _a = _this.define.selection; _i < _a.length; _i++) {
+                        var s = _a[_i];
+                        items.push({
+                            text: s
+                        });
+                    }
+                    menu._set("items", items);
+                    menu.open(_this._widget._, "Rb");
+                    menu.on("click", function (e) {
+                        _this._widget.set("text", e.data.item.text);
+                        _this.define.value = _this.getValue();
+                        _this._widget.reset();
+                        _this._widget.focus();
+                        form.fire("itemvaluechanged", { control: _this });
+                    });
                 });
                 return _this;
             }
+            FormTextbox.prototype.update = function () {
+                _super.prototype.update.call(this);
+                if (/^(text|password|email|url|number)$/.test(this.define.inputType)) {
+                    this._widget._set("type", this.define.inputType);
+                }
+                else {
+                    this._widget._set("type", "text");
+                }
+                if (this.define.selection) {
+                    this._widget._set("iconRight", "fa-caret-down");
+                }
+                else {
+                    this._widget._set("iconRight", null);
+                }
+            };
             FormTextbox.prototype.getProperties = function () {
                 return [{
                         name: tui.str("form.textbox"),
                         properties: [
                             {
-                                "type": "textarea",
-                                "label": tui.str("form.textbox.menu"),
-                                "description": tui.str("form.textbox.menu.desc"),
+                                "type": "options",
+                                "key": "inputType",
+                                "label": tui.str("form.input.type"),
+                                "options": [
+                                    { "value": "text", "text": tui.str("form.text") },
+                                    { "value": "password", "text": tui.str("form.password") },
+                                    { "value": "email", "text": tui.str("form.email") },
+                                    { "value": "url", "text": tui.str("form.url") },
+                                    { "value": "number", "text": tui.str("form.number") }
+                                ],
+                                "atMost": 1,
+                                "value": this.define.inputType ? this.define.inputType : "text",
                                 "size": 2,
+                                "newline": true
+                            }, {
+                                "type": "textarea",
+                                "key": "selection",
+                                "label": tui.str("form.options"),
+                                "description": tui.str("form.textbox.selection.desc"),
+                                "value": this.define.selection ? this.define.selection.join("\n") : "",
+                                "size": 2
                             }, {
                                 "type": "grid",
+                                "key": "validation",
                                 "label": tui.str("form.validation"),
                                 "size": 2,
                                 "newline": true,
                                 "height": 150,
-                                "key": "validate",
                                 "definitions": [
                                     {
                                         "type": "textbox",
-                                        "label": tui.str("form.formula"),
+                                        "key": "format",
+                                        "required": true,
+                                        "label": tui.str("form.format"),
                                         "selection": [
-                                            "*any", "*email", "*digital", "*integer", "*float", "*number", "*currency", "*date", "*key"
-                                        ]
+                                            "*any", "*url", "*email", "*digital", "*integer", "*float", "*number", "*currency", "*date", "*key", "*max:<?>", "*min:<?>", "*maxlen:<?>", "*minlen:<?>"
+                                        ],
+                                        "validation": [
+                                            { "format": "*any", "message": tui.str("message.cannot.be.empty") },
+                                            { "format": "^(\\*(any|key|integer|number|digital|url|email|float|currency|date|max:\\d+|min:\\d+|maxlen:\\d+|minlen:\\d+)|[^\\*].*)$", "message": tui.str("message.invalid.format") }
+                                        ],
+                                        "size": 2
                                     }, {
-                                        "type": "textbox",
+                                        "type": "textarea",
+                                        "key": "message",
+                                        "required": true,
                                         "label": tui.str("form.message"),
                                         "size": 2,
-                                        "newline": true
+                                        "newline": true,
+                                        "validation": [
+                                            { "format": "*any", "message": tui.str("message.cannot.be.empty") }
+                                        ]
                                     }
                                 ],
-                                "value": this.define.validate
+                                "value": this.define.validation
                             }
                         ]
                     }];
             };
             FormTextbox.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                var selection = [];
+                if (values.selection) {
+                    var arr = (values.selection + "").split("\n");
+                    for (var i = 0; i < arr.length; i++) {
+                        var s = arr[i].trim();
+                        if (s)
+                            selection.push(s);
+                    }
+                }
+                this.define.selection = selection;
+                this.define.inputType = values.inputType;
+                this.define.validation = values.validation;
             };
             FormTextbox.prototype.validate = function () {
                 return this._widget.validate();
@@ -6679,14 +6833,56 @@ var tui;
             function FormTextarea(form, define) {
                 var _this = _super.call(this, form, define, "textarea") || this;
                 _this._widget.on("change", function (e) {
+                    _this.define.value = _this.getValue();
                     form.fire("itemvaluechanged", { control: _this });
                 });
                 return _this;
             }
             FormTextarea.prototype.getProperties = function () {
-                throw new Error('Method not implemented.');
+                return [{
+                        name: tui.str("form.textarea"),
+                        properties: [
+                            {
+                                "type": "grid",
+                                "key": "validation",
+                                "label": tui.str("form.validation"),
+                                "size": 2,
+                                "newline": true,
+                                "height": 150,
+                                "definitions": [
+                                    {
+                                        "type": "textbox",
+                                        "key": "format",
+                                        "required": true,
+                                        "label": tui.str("form.format"),
+                                        "selection": [
+                                            "*any", "*email", "*url", "*maxlen:<?>", "*minlen:<?>"
+                                        ],
+                                        "validation": [
+                                            { "format": "*any", "message": tui.str("message.cannot.be.empty") },
+                                            { "format": "^(\\*(any|url|email|maxlen:\\d+|minlen:\\d+)|[^\\*].*)$", "message": tui.str("message.invalid.format") }
+                                        ],
+                                        "size": 2
+                                    }, {
+                                        "type": "textarea",
+                                        "key": "message",
+                                        "required": true,
+                                        "label": tui.str("form.message"),
+                                        "size": 2,
+                                        "newline": true,
+                                        "validation": [
+                                            { "format": "*any", "message": tui.str("message.cannot.be.empty") }
+                                        ]
+                                    }
+                                ],
+                                "value": this.define.validation
+                            }
+                        ]
+                    }];
             };
             FormTextarea.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                this.define.validation = values.validation;
             };
             FormTextarea.prototype.validate = function () {
                 return this._widget.validate();
@@ -6703,16 +6899,66 @@ var tui;
                 var _this = _super.call(this, form, define) || this;
                 _this._group = widget.create("button-group");
                 _this._group.on("click", function (e) {
+                    _this.define.value = _this.getValue();
+                    _this._notifyBar.innerHTML = "";
                     form.fire("itemvaluechanged", { control: _this });
                 });
                 _this._group.appendTo(_this.div);
-                _this.build();
+                _this._notifyBar = tui.elem("div");
+                _this._notifyBar.className = "tui-form-options-notify";
+                _this.div.appendChild(_this._notifyBar);
                 return _this;
             }
+            FormOptions.optionsToText = function (options) {
+                var result = "";
+                if (!options)
+                    return result;
+                for (var _i = 0, options_1 = options; _i < options_1.length; _i++) {
+                    var o = options_1[_i];
+                    if (result.length > 0)
+                        result += "\n";
+                    if (typeof o === "string") {
+                        result += o;
+                    }
+                    else {
+                        if (o.value === o.text) {
+                            result += o;
+                        }
+                        else {
+                            result += o.value + ":" + o.text;
+                        }
+                    }
+                }
+                return result;
+            };
+            FormOptions.textToOptions = function (options) {
+                var result = [];
+                if (!options)
+                    return result;
+                var arr = options.split("\n");
+                for (var _i = 0, arr_1 = arr; _i < arr_1.length; _i++) {
+                    var s = arr_1[_i];
+                    if (s.trim().length > 0) {
+                        var pos = s.indexOf(":");
+                        if (pos > 0) {
+                            var v = s.substring(0, pos);
+                            var t = s.substring(pos + 1);
+                            if (v === t)
+                                result.push(v);
+                            else
+                                result.push({ value: v, text: t });
+                        }
+                        else
+                            result.push(s);
+                    }
+                }
+                return result;
+            };
             FormOptions.prototype.isResizable = function () {
                 return true;
             };
-            FormOptions.prototype.build = function () {
+            FormOptions.prototype.update = function () {
+                _super.prototype.update.call(this);
                 var define = this.define;
                 if (define.align === "vertical") {
                     tui.browser.addClass(this._group._, " tui-form-group-align-vertical");
@@ -6721,7 +6967,7 @@ var tui;
                     tui.browser.removeClass(this._group._, " tui-form-group-align-vertical");
                 }
                 this._group._set("disable", !!define.disable);
-                var optionType = define.atMost === 1 ? "radio" : "check";
+                var optionType = define.atMost == 1 ? "radio" : "check";
                 this._group._set("type", optionType);
                 this._group._.innerHTML = "";
                 if (define.options) {
@@ -6748,6 +6994,8 @@ var tui;
                     this._group._.appendChild(padding);
                 }
                 this._group._set("value", define.value);
+                define.value = this._group.get("value");
+                this._notifyBar.innerHTML = "";
             };
             FormOptions.prototype.getValue = function () {
                 return this._group.get("value");
@@ -6759,18 +7007,94 @@ var tui;
                 this._group.render();
             };
             FormOptions.prototype.getProperties = function () {
-                throw new Error('Method not implemented.');
+                return [{
+                        name: tui.str("form.option.group"),
+                        properties: [
+                            {
+                                "type": "textbox",
+                                "key": "atLeast",
+                                "label": tui.str("form.at.least"),
+                                "value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast : "",
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                ]
+                            }, {
+                                "type": "textbox",
+                                "key": "atMost",
+                                "label": tui.str("form.at.most"),
+                                "value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost : "",
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                ]
+                            }, {
+                                "type": "options",
+                                "key": "align",
+                                "label": tui.str("form.align"),
+                                "value": this.define.align === "vertical" ? "vertical" : "normal",
+                                "options": [
+                                    { "value": "normal", "text": tui.str("normal") },
+                                    { "value": "vertical", "text": tui.str("vertical") }
+                                ],
+                                "atMost": 1,
+                                "newline": true
+                            }, {
+                                "type": "textarea",
+                                "key": "options",
+                                "label": tui.str("form.options"),
+                                "description": tui.str("form.option.group.desc"),
+                                "value": FormOptions.optionsToText(this.define.options),
+                                "validation": [
+                                    { "format": "*any", "message": tui.str("message.cannot.be.empty") }
+                                ],
+                                "size": 6
+                            }
+                        ]
+                    }];
             };
             FormOptions.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                this.define.align = values.align;
+                this.define.atLeast = values.atLeast && values.atLeast.length > 0 ? parseInt(values.atLeast) : null;
+                this.define.atMost = values.atMost && values.atMost.length > 0 ? parseInt(values.atMost) : null;
+                this.define.options = FormOptions.textToOptions(values.options);
             };
             FormOptions.prototype.validate = function () {
+                var count;
+                if (this.define.value instanceof Array) {
+                    count = this.define.value.length;
+                }
+                else if (this.define.value) {
+                    count = 1;
+                }
+                else {
+                    count = 0;
+                }
+                if (this.define.atLeast) {
+                    var atLeast = parseInt(this.define.atLeast + "");
+                    if (count < atLeast) {
+                        this._notifyBar.innerHTML = tui.browser.toSafeText(tui.strp("form.at.least.p", atLeast));
+                        return false;
+                    }
+                }
+                if (this.define.atMost) {
+                    var atMost = parseInt(this.define.atMost + "");
+                    if (count > atMost) {
+                        this._notifyBar.innerHTML = tui.browser.toSafeText(tui.strp("form.at.most.p", atMost));
+                        return false;
+                    }
+                }
                 return true;
             };
             return FormOptions;
         }(FormControl));
         FormOptions.icon = "fa-check-square-o";
-        FormOptions.desc = "form.options";
+        FormOptions.desc = "form.option.group";
         FormOptions.order = 3;
+        FormOptions.init = { "options": [
+                { "value": "1", "text": "A" },
+                { "value": "2", "text": "B" },
+                "C", "D"
+            ] };
         widget.Form.register("options", FormOptions);
         var FormSelect = (function (_super) {
             __extends(FormSelect, _super);
@@ -6792,7 +7116,7 @@ var tui;
             return FormSelect;
         }(BasicFormControl));
         FormSelect.icon = "fa-toggle-down";
-        FormSelect.desc = "form.select";
+        FormSelect.desc = "form.selection";
         FormSelect.order = 4;
         widget.Form.register("select", FormSelect);
         var FormDatePicker = (function (_super) {
@@ -6891,25 +7215,7 @@ var tui;
             __extends(FormGrid, _super);
             function FormGrid(form, define) {
                 var _this = _super.call(this, form, define, "grid") || this;
-                if (define.value instanceof Array) {
-                    _this._values = define.value;
-                }
-                else {
-                    _this._values = [];
-                }
-                _this._widget._set("list", _this._values);
-                if (define.definitions) {
-                    var columns = [];
-                    for (var _i = 0, _a = define.definitions; _i < _a.length; _i++) {
-                        var subDef = _a[_i];
-                        var col = { name: subDef.label, key: subDef.key };
-                        columns.push(col);
-                    }
-                    _this._widget._set("columns", columns);
-                }
-                if (typeof define.height === "number" && !isNaN(define.height)) {
-                    _this._widget._.style.height = define.height + "px";
-                }
+                _this._widget._.style.margin = "2px";
                 _this._buttonBar = tui.elem("div");
                 _this.div.appendChild(_this._buttonBar);
                 var gp = widget.create("button-group");
@@ -6922,23 +7228,87 @@ var tui;
                     dialog.set("content", fm._);
                     dialog.open("ok#tui-primary");
                     dialog.on("btnclick", function () {
+                        if (!fm.validate())
+                            return;
+                        var v = fm.get("value");
+                        _this._values.push(v);
+                        dialog.close();
                         form.fire("itemvaluechanged", { control: _this });
                     });
                 });
                 _this._btnEdit = widget.create("button", { text: "<i class='fa fa-pencil'></i>" });
                 _this._btnEdit.appendTo(gp._);
                 _this._btnEdit.on("click", function () {
-                    form.fire("itemvaluechanged", { control: _this });
+                    _this.editRow();
+                });
+                _this._widget.on("rowdblclick", function () {
+                    _this.editRow();
                 });
                 gp.appendTo(_this._buttonBar);
                 _this._btnDelete = widget.create("button", { text: "<i class='fa fa-trash'></i>" });
                 _this._btnDelete.appendTo(_this._buttonBar);
                 _this._btnDelete.on("click", function () {
+                    var i = _this._widget.get("activeRow");
+                    if (i === null)
+                        return;
+                    _this._values.splice(i, 1);
                     form.fire("itemvaluechanged", { control: _this });
                 });
-                _this._widget._.style.margin = "2px";
                 return _this;
             }
+            FormGrid.prototype.editRow = function () {
+                var _this = this;
+                var i = this._widget.get("activeRow");
+                if (i === null)
+                    return;
+                var dialog = widget.create("dialog");
+                var fm = widget.create("form");
+                fm.set("definition", this.define.definitions);
+                dialog.set("content", fm._);
+                dialog.open("ok#tui-primary");
+                fm.set("value", this._values[i]);
+                dialog.on("btnclick", function () {
+                    if (!fm.validate())
+                        return;
+                    var v = fm.get("value");
+                    _this._values.splice(i, 1, v);
+                    dialog.close();
+                    _this.form.fire("itemvaluechanged", { control: _this });
+                });
+            };
+            FormGrid.prototype.update = function () {
+                _super.prototype.update.call(this);
+                var d = this.define;
+                if (d.value instanceof Array) {
+                    this._values = d.value;
+                }
+                else {
+                    d.value = this._values = [];
+                }
+                this._widget._set("list", this._values);
+                if (this.define.definitions) {
+                    var columns = [];
+                    for (var _i = 0, _a = d.definitions; _i < _a.length; _i++) {
+                        var subDef = _a[_i];
+                        if (!subDef.key)
+                            continue;
+                        var col = { name: subDef.label, key: subDef.key };
+                        columns.push(col);
+                    }
+                    this._widget._set("columns", columns);
+                }
+                else {
+                    this._widget._set("columns", []);
+                }
+                if (typeof d.height === "number" && !isNaN(d.height) ||
+                    typeof d.height === "string" && /^\d+$/.test(d.height)) {
+                    this._widget._.style.height = d.height + "px";
+                }
+                else {
+                    this._widget._.style.height = "";
+                    d.height = null;
+                }
+            };
             FormGrid.prototype.getProperties = function () {
                 throw new Error('Method not implemented.');
             };
@@ -8108,6 +8478,9 @@ var tui;
                         reusable.push(this._buffer.lines[i - this._buffer.begin]);
                     }
                 }
+                var activeRow = this.get("activeRow");
+                if (activeRow === null)
+                    this._set("activeRow", null);
                 for (var i = begin; i < end && i < length; i++) {
                     var line;
                     if (i >= this._buffer.begin && i < this._buffer.end) {
@@ -8122,7 +8495,7 @@ var tui;
                         else {
                             line = this.createLine(content);
                         }
-                        if (i === this.get("activeRow")) {
+                        if (i === activeRow) {
                             $(line).addClass("tui-actived");
                         }
                         else {
@@ -8454,7 +8827,7 @@ var tui;
                 this.setRestrictions({
                     "value": {
                         "set": function (value) {
-                            textbox.value = value;
+                            textbox.value = (value != null ? value : "");
                             _this._isEmpty = (textbox.value === "");
                         },
                         "get": function () {
@@ -10080,7 +10453,7 @@ var tui;
                 this.setRestrictions({
                     "value": {
                         "set": function (value) {
-                            textbox.value = value;
+                            textbox.value = (value != null ? value : "");
                             _this._isEmpty = (textbox.value === "");
                         },
                         "get": function () {

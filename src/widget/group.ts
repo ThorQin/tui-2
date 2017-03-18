@@ -79,9 +79,12 @@ module tui.widget {
 								return value === v;
 							}
 						}
+						var radio = (this.get("type") === "radio");
 						for (let button of children) {
 							if (check(button.get("value"))) {
 								button.set("checked", true);
+								if (radio)
+									break;
 							} else
 								button.set("checked", false);
 						}

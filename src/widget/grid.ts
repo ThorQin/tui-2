@@ -1092,6 +1092,9 @@ module tui.widget {
 				}
 			}
 			
+			var activeRow = this.get("activeRow");
+			if (activeRow === null)
+				this._set("activeRow", null);
 			for (var i = begin; i < end && i < length; i++) {
 				var line: HTMLElement;
 				if (i >= this._buffer.begin && i < this._buffer.end) { // Is buffered.
@@ -1104,7 +1107,7 @@ module tui.widget {
 					} else {
 						line = this.createLine(content);
 					}
-					if (i === this.get("activeRow")) {
+					if (i === activeRow) {
 						$(line).addClass("tui-actived");
 					} else {
 						$(line).removeClass("tui-actived");

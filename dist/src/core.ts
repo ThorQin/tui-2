@@ -54,10 +54,10 @@ module tui {
 
     /**
 	 * Multi-language support, translate source text to specified language(default use tui.lang setting)
-	 * @param str {string} source text
+	 * @param s {string} source text
 	 * @param lang {string} if specified then use this parameter as objective language otherwise use tui.lang as objective language
 	 */
-	export function str(str: string, lang?: string): string {
+	export function str(s: string, lang?: string): string {
 		if (!lang) {
 			if (!tui.lang)
 				lang = "en-us";
@@ -66,15 +66,20 @@ module tui {
 		}
 		var translator = _dict[lang];
 		if (translator) {
-			return translator.translate(str);
+			return translator.translate(s);
 		} else {
 			translator = _dict["en-us"];
 			if (translator) {
-				return translator.translate(str);
+				return translator.translate(s);
 			} else {
-				return str;
+				return s;
 			}
 		}
+	}
+
+	export function strp(s: string, ...params: any[]) {
+		var s = str(s);
+		return text.format(s, params);
 	}
 
 	export var tuid = (function () {
