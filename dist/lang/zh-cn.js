@@ -66,6 +66,7 @@ tui.dict("zh-cn", {
     "Fill": "填充",
     "New Line": "换行",
     "form.section": "标题",
+    "form.selection.desc": "允许有多个选择组，它可以使用条件表达式来决定哪一组会生效。",
     "form.textbox": "文本框",
     "form.textarea": "多行文本",
     "form.options": "选项",
@@ -106,5 +107,10 @@ tui.dict("zh-cn", {
     "form.at.most": "至多",
     "form.at.least.p": "至少选择 {0} 个！",
     "form.at.most.p": "至多选择 {0} 个！",
-    "form.option.group.desc": "多个选项由换行分割，选项可以是 'key:value' 或字符串。"
+    "form.option.group.desc": "多个选项由换行分割，选项可以是 'key:value' 或字符串。",
+    "form.value": "值",
+    "form.display": "显示",
+    "form.invisible": "不可见",
+    "form.visible": "可见",
+    "form.max.height": "最大高度"
 });

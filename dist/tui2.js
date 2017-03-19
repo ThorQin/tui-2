@@ -315,6 +315,7 @@ tui.dict("en-us", {
     "form.options": "Options",
     "form.option.group": "Option Group",
     "form.selection": "Selection",
+    "form.selection.desc": "Allow have multiple selection groups it can use condition expression to decide which group come into force.",
     "form.datepicker": "Date",
     "form.picture": "Picture",
     "form.file": "File",
@@ -350,7 +351,12 @@ tui.dict("en-us", {
     "form.at.most": "At Most",
     "form.at.least.p": "At Least select {0} item(s).",
     "form.at.most.p": "At Most select {0} item(s).",
-    "form.option.group.desc": "Options separated by newline, option can be a key:value pair or a string."
+    "form.option.group.desc": "Options separated by newline, option can be a key:value pair or a string.",
+    "form.value": "Value",
+    "form.display": "Display",
+    "form.invisible": "Invisible",
+    "form.visible": "Visible",
+    "form.max.height": "Max Height"
 });
 var tui;
 (function (tui) {
@@ -3381,7 +3387,7 @@ var tui;
             LEVEL[Type.LOGIC] = 1;
             LEVEL[Type.COMPARE] = 2;
             LEVEL[Type.L] = 0;
-            var SYMBOL = /([\r\n\s]+)|((?:and|or)(?=$|\s|\r|\n))|(<|<=|>|>=|=|!=|~|!~)|((?:true|false)(?=$|\s|\r|\n))|(null(?=$|\s|\r|\n))|([$_a-zA-Z][$_a-zA-Z0-9]*)|("[^"]*"|'[^']*')|([+-]?[0-9]+(?:\.[0-9]+)?)|(\()|(\))|(.+)/gm;
+            var SYMBOL = /([\r\n\s]+)|((?:and|or)(?=$|\s|\r|\n))|(<|<=|>|>=|=|!=|~|!~)|((?:true|false)(?=$|\s|\r|\n))|(null(?=$|\s|\r|\n))|([$_a-zA-Z][$_a-zA-Z0-9]*)|("[^"]*"|'[^']*'|`[^`]*`)|([+-]?[0-9]+(?:\.[0-9]+)?)|(\()|(\))|(.+)/gm;
             function error(match, msg) {
                 if (match) {
                     if (msg)
@@ -5892,7 +5898,11 @@ var tui;
                                 }
                                 var exp = me._items[index[key]].define.condition;
                                 if (!exp) {
-                                    me._valueCache[key] = me._items[index[key]].getValue();
+                                    me._valueCache[key] = me._items[index[key]].getValue({
+                                        cache: me._valueCache,
+                                        calc: computeValue,
+                                        path: searchPath
+                                    });
                                     me._items[index[key]].define.available = true;
                                 }
                                 else {
@@ -5908,7 +5918,11 @@ var tui;
                                                 return me._valueCache[k];
                                             }
                                         })) {
-                                            me._valueCache[key] = me._items[index[key]].getValue();
+                                            me._valueCache[key] = me._items[index[key]].getValue({
+                                                cache: me._valueCache,
+                                                calc: computeValue,
+                                                path: searchPath
+                                            });
                                             me._items[index[key]].define.available = true;
                                         }
                                         else {
@@ -5928,6 +5942,8 @@ var tui;
                                 for (var i = 0; i < _this._items.length; i++) {
                                     var k = _this._items[i].getKey();
                                     if (k) {
+                                        if (index.hasOwnProperty(k))
+                                            throw new Error("Duplicate field name was found: \"" + k + "\".");
                                         index[k] = i;
                                     }
                                 }
@@ -5949,13 +5965,24 @@ var tui;
                                                 }
                                             })) {
                                                 item.define.available = true;
+                                                item.getValue({
+                                                    cache: me._valueCache,
+                                                    calc: computeValue,
+                                                    path: []
+                                                });
                                             }
                                             else {
                                                 item.define.available = false;
                                             }
                                         }
-                                        else
+                                        else {
                                             item.define.available = true;
+                                            item.getValue({
+                                                cache: me._valueCache,
+                                                calc: computeValue,
+                                                path: []
+                                            });
+                                        }
                                     }
                                 };
                                 for (var i = 0; i < _this._items.length; i++) {
@@ -6200,6 +6227,7 @@ var tui;
                     if (!item.validate())
                         result = false;
                 }
+                this.render();
                 return result;
             };
             Form.prototype.render = function () {
@@ -6254,7 +6282,7 @@ var tui;
                         tui.browser.removeClass(item.div, "tui-form-item-unavailable");
                     }
                     tui.browser.removeClass(item.div, "tui-form-item-exceed");
-                    item.render();
+                    item.render(designMode);
                 }
                 var cfs = tui.browser.getCurrentStyle(this._);
                 if (cfs.display != "none") {
@@ -6265,7 +6293,7 @@ var tui;
                         var item = _c[_b];
                         if (item.div.offsetWidth > this._.clientWidth - pad) {
                             tui.browser.addClass(item.div, "tui-form-item-exceed");
-                            item.render();
+                            item.render(designMode);
                         }
                     }
                 }
@@ -6329,6 +6357,9 @@ var tui;
                 });
                 $(this.mask).mouseup(function (e) {
                     _this.form.fire("itemmouseup", { e: e, control: _this });
+                });
+                $(this.mask).dblclick(function () {
+                    _this.showProperties();
                 });
                 this.btnDelete.on("click", function () {
                     _this.form.fire("itemremove", { control: _this });
@@ -6395,12 +6426,14 @@ var tui;
                         "value": [this.define.required ? "required" : null, this.define.disable ? "disable" : null]
                     }, {
                         "type": "textarea",
+                        "maxHeight": 200,
                         "label": tui.str("form.description"),
                         "key": "description",
                         "value": this.define.description,
                         "size": FULL
                     }, {
                         "type": "textarea",
+                        "maxHeight": 200,
                         "label": tui.str("form.precondition"),
                         "key": "condition",
                         "value": this.define.condition,
@@ -6596,13 +6629,14 @@ var tui;
             BasicFormControl.prototype.isResizable = function () {
                 return true;
             };
-            BasicFormControl.prototype.getValue = function () {
+            BasicFormControl.prototype.getValue = function (cal) {
+                if (cal === void 0) { cal = null; }
                 return this._widget.get("value");
             };
             BasicFormControl.prototype.setValue = function (value) {
                 this._widget.set("value", value);
             };
-            BasicFormControl.prototype.render = function () {
+            BasicFormControl.prototype.render = function (designMode) {
                 this._widget.render();
             };
             return BasicFormControl;
@@ -6640,10 +6674,20 @@ var tui;
                 return false;
             };
             FormSection.prototype.getValue = function () {
-                return null;
+                return typeof this.define.value !== tui.UNDEFINED ? this.define.value : null;
             };
-            FormSection.prototype.setValue = function (value) { };
-            FormSection.prototype.render = function () { };
+            FormSection.prototype.setValue = function (value) {
+                if (typeof value !== tui.UNDEFINED)
+                    this.define.value = value;
+            };
+            FormSection.prototype.render = function (designMode) {
+                if (this.define.hidden && !designMode) {
+                    tui.browser.addClass(this.div, "tui-hidden");
+                }
+                else {
+                    tui.browser.removeClass(this.div, "tui-hidden");
+                }
+            };
             FormSection.prototype.getProperties = function () {
                 return [{
                         name: tui.str("form.section"),
@@ -6659,6 +6703,11 @@ var tui;
                                     { "format": "*max:48", "message": tui.str("message.invalid.value") }
                                 ]
                             }, {
+                                "type": "textbox",
+                                "key": "value",
+                                "label": tui.str("form.value"),
+                                "value": this.define.value
+                            }, {
                                 "type": "options",
                                 "key": "align",
                                 "label": tui.str("form.text.align"),
@@ -6668,8 +6717,19 @@ var tui;
                                     { value: "center", text: tui.str("form.align.center") },
                                     { value: "right", text: tui.str("form.align.right") }
                                 ],
-                                "size": 1,
+                                "size": 6,
                                 "value": this.define.align || "left"
+                            }, {
+                                "type": "options",
+                                "key": "hidden",
+                                "label": tui.str("form.display"),
+                                "atMost": 1,
+                                "options": [
+                                    { value: false, text: tui.str("form.visible") },
+                                    { value: true, text: tui.str("form.invisible") }
+                                ],
+                                "size": 6,
+                                "value": !!this.define.hidden
                             }
                         ]
                     }];
@@ -6684,6 +6744,8 @@ var tui;
                     this.define.align = values.align;
                 else
                     this.define.align = "left";
+                this.define.value = values.value;
+                this.define.hidden = tui.text.parseBoolean(values.hidden);
             };
             FormSection.prototype.validate = function () {
                 return true;
@@ -6761,6 +6823,7 @@ var tui;
                                 "newline": true
                             }, {
                                 "type": "textarea",
+                                "maxHeight": 300,
                                 "key": "selection",
                                 "label": tui.str("form.options"),
                                 "description": tui.str("form.textbox.selection.desc"),
@@ -6790,6 +6853,7 @@ var tui;
                                     }, {
                                         "type": "textarea",
                                         "key": "message",
+                                        "maxHeight": 300,
                                         "required": true,
                                         "label": tui.str("form.message"),
                                         "size": 2,
@@ -6843,6 +6907,16 @@ var tui;
                         name: tui.str("form.textarea"),
                         properties: [
                             {
+                                "type": "textbox",
+                                "key": "maxHeight",
+                                "label": tui.str("form.max.height"),
+                                "value": this.define.maxHeight,
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.format") }
+                                ],
+                                "size": 2,
+                                "newline": true
+                            }, {
                                 "type": "grid",
                                 "key": "validation",
                                 "label": tui.str("form.validation"),
@@ -6866,6 +6940,7 @@ var tui;
                                     }, {
                                         "type": "textarea",
                                         "key": "message",
+                                        "maxHeight": 300,
                                         "required": true,
                                         "label": tui.str("form.message"),
                                         "size": 2,
@@ -6880,9 +6955,20 @@ var tui;
                         ]
                     }];
             };
+            FormTextarea.prototype.update = function () {
+                _super.prototype.update.call(this);
+                if (/\d+/.test((this.define.maxHeight + "").trim()))
+                    this._widget._.style.maxHeight = (this.define.maxHeight + "").trim() + "px";
+                else
+                    this._widget._.style.maxHeight = "";
+            };
             FormTextarea.prototype.setProperties = function (properties) {
                 var values = properties[1];
                 this.define.validation = values.validation;
+                if (/\d+/.test(values.maxHeight + ""))
+                    this.define.maxHeight = values.maxHeight;
+                else
+                    this.define.maxHeight = null;
             };
             FormTextarea.prototype.validate = function () {
                 return this._widget.validate();
@@ -6892,6 +6978,9 @@ var tui;
         FormTextarea.icon = "fa-edit";
         FormTextarea.desc = "form.textarea";
         FormTextarea.order = 2;
+        FormTextarea.init = {
+            maxHeight: 300
+        };
         widget.Form.register("textarea", FormTextarea);
         var FormOptions = (function (_super) {
             __extends(FormOptions, _super);
@@ -7003,8 +7092,14 @@ var tui;
             FormOptions.prototype.setValue = function (value) {
                 this._group.get("value", value);
             };
-            FormOptions.prototype.render = function () {
+            FormOptions.prototype.render = function (designMode) {
                 this._group.render();
+                if (this._notifyBar.innerHTML == "") {
+                    tui.browser.addClass(this._notifyBar, "tui-hidden");
+                }
+                else {
+                    tui.browser.removeClass(this._notifyBar, "tui-hidden");
+                }
             };
             FormOptions.prototype.getProperties = function () {
                 return [{
@@ -7039,6 +7134,7 @@ var tui;
                                 "newline": true
                             }, {
                                 "type": "textarea",
+                                "maxHeight": 300,
                                 "key": "options",
                                 "label": tui.str("form.options"),
                                 "description": tui.str("form.option.group.desc"),
@@ -7054,8 +7150,8 @@ var tui;
             FormOptions.prototype.setProperties = function (properties) {
                 var values = properties[1];
                 this.define.align = values.align;
-                this.define.atLeast = values.atLeast && values.atLeast.length > 0 ? parseInt(values.atLeast) : null;
-                this.define.atMost = values.atMost && values.atMost.length > 0 ? parseInt(values.atMost) : null;
+                this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
+                this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
                 this.define.options = FormOptions.textToOptions(values.options);
             };
             FormOptions.prototype.validate = function () {
@@ -7105,10 +7201,199 @@ var tui;
                 });
                 return _this;
             }
+            FormSelect.selectionToText = function (selection) {
+                var result = "";
+                if (!selection)
+                    return result;
+                function addNodes(nodes, level) {
+                    if (level === void 0) { level = ""; }
+                    if (nodes) {
+                        var padding = (level ? level + " " : "");
+                        for (var _i = 0, nodes_1 = nodes; _i < nodes_1.length; _i++) {
+                            var item = nodes_1[_i];
+                            if (item.value == item.name) {
+                                result += padding + item.value + "\n";
+                            }
+                            else {
+                                result += padding + item.value + ": " + item.name + "\n";
+                            }
+                            addNodes(item.children, level + ">");
+                        }
+                    }
+                }
+                for (var _i = 0, selection_1 = selection; _i < selection_1.length; _i++) {
+                    var o = selection_1[_i];
+                    if (result.length > 0)
+                        result += "\n";
+                    if (o.condition) {
+                        result += "[" + o.condition + "]\n";
+                    }
+                    addNodes(o.data);
+                }
+                return result;
+            };
+            FormSelect.textToSelection = function (selection) {
+                var result = [];
+                if (!selection)
+                    return result;
+                function getLeve(s) {
+                    var count = 0;
+                    if (!s)
+                        return 0;
+                    for (var _i = 0, s_1 = s; _i < s_1.length; _i++) {
+                        var c = s_1[_i];
+                        if (c == '>')
+                            count++;
+                    }
+                    return count;
+                }
+                function getNode(s) {
+                    s = s.trim();
+                    var pos = s.indexOf(":");
+                    if (pos < 0) {
+                        return { value: s, name: s };
+                    }
+                    else {
+                        var value = s.substring(0, pos).trim();
+                        var name = s.substring(pos + 1).trim();
+                        return { value: value, name: name };
+                    }
+                }
+                function toTree(list) {
+                    var result = [];
+                    function getList(pos, nodes, level) {
+                        for (var i = pos; i < list.length; i++) {
+                            var s = list[i];
+                            var lv = getLeve(s);
+                            if (lv == level) {
+                                nodes.push(getNode(s.substr(lv)));
+                            }
+                            else if (lv == level + 1 && nodes.length > 0) {
+                                var children = [];
+                                nodes[nodes.length - 1].children = children;
+                                i = getList(i, children, level + 1);
+                            }
+                            else if (lv < level) {
+                                return i - 1;
+                            }
+                            else
+                                continue;
+                        }
+                        return i;
+                    }
+                    getList(0, result, 0);
+                    return result;
+                }
+                var tmp = [];
+                var arr = selection.split("\n");
+                var condition = null;
+                var nodeList = null;
+                for (var _i = 0, arr_2 = arr; _i < arr_2.length; _i++) {
+                    var s = arr_2[_i];
+                    if (s.trim().length > 0) {
+                        s = s.trim();
+                        if (s[0] === '[') {
+                            if (/^\[.+\]$/.test(s)) {
+                                if (nodeList) {
+                                    var data = { "condition": condition, "list": nodeList };
+                                    tmp.push(data);
+                                }
+                                condition = s.substr(1, s.length - 2);
+                                nodeList = null;
+                            }
+                        }
+                        else {
+                            if (nodeList == null)
+                                nodeList = [];
+                            nodeList.push(s);
+                        }
+                    }
+                }
+                if (nodeList) {
+                    var data = { "condition": condition, "list": nodeList };
+                    tmp.push(data);
+                }
+                for (var _a = 0, tmp_1 = tmp; _a < tmp_1.length; _a++) {
+                    var t = tmp_1[_a];
+                    result.push({ "condition": t.condition, "data": toTree(t.list) });
+                }
+                return result;
+            };
+            FormSelect.prototype.update = function () {
+                _super.prototype.update.call(this);
+            };
             FormSelect.prototype.getProperties = function () {
-                throw new Error('Method not implemented.');
+                return [{
+                        name: tui.str("form.selection"),
+                        properties: [
+                            {
+                                "type": "textbox",
+                                "key": "atLeast",
+                                "label": tui.str("form.at.least"),
+                                "value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast : "",
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                ]
+                            }, {
+                                "type": "textbox",
+                                "key": "atMost",
+                                "label": tui.str("form.at.most"),
+                                "value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost : "",
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                ]
+                            }, {
+                                "type": "textarea",
+                                "key": "selection",
+                                "maxHeight": 400,
+                                "label": tui.str("form.selection"),
+                                "description": tui.str("form.selection.desc"),
+                                "value": FormSelect.selectionToText(this.define.selection),
+                                "validation": [
+                                    { "format": "*any", "message": tui.str("message.cannot.be.empty") }
+                                ],
+                                "size": 6
+                            }
+                        ]
+                    }];
             };
             FormSelect.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                this.define.atLeast = values.atLeast > 0 ? parseInt(values.atLeast) : null;
+                this.define.atMost = values.atMost > 0 ? parseInt(values.atMost) : null;
+                this.define.selection = FormSelect.textToSelection(values.selection);
+            };
+            FormSelect.prototype.getValue = function (cal) {
+                if (cal === void 0) { cal = null; }
+                if (!cal)
+                    return this._widget.get("value");
+                var key = this.define.key;
+                var data = [];
+                if (this.define.selection) {
+                    if (cal.path.indexOf(key) >= 0)
+                        throw new Error("Invalid expression of select control: Cycle reference detected on \"" + key + "\"");
+                    cal.path.push(key);
+                    for (var _i = 0, _a = this.define.selection; _i < _a.length; _i++) {
+                        var d = _a[_i];
+                        if (d.condition) {
+                            if (tui.text.exp.evaluate(d.condition, function (k) {
+                                if (cal.cache.hasOwnProperty(k))
+                                    return cal.cache[k];
+                                else {
+                                    cal.calc(k, cal.path);
+                                    return cal.cache[k];
+                                }
+                            })) {
+                                data.splice.apply(data, [data.length, 0].concat(d.data));
+                            }
+                        }
+                        else {
+                            data.splice.apply(data, [data.length, 0].concat(d.data));
+                        }
+                    }
+                }
+                this._widget._set("tree", data);
+                return this._widget.get("value");
             };
             FormSelect.prototype.validate = function () {
                 return this._widget.validate();
@@ -10080,7 +10365,7 @@ var tui;
                     },
                     "data": {
                         "set": function (value) {
-                            list._set("data", value);
+                            list.set("data", value);
                             _this.updateTextByValue(list);
                         },
                         "get": function () {
@@ -10089,7 +10374,7 @@ var tui;
                     },
                     "list": {
                         "set": function (value) {
-                            list._set("list", value);
+                            list.set("list", value);
                             _this.updateTextByValue(list);
                         },
                         "get": function () {
@@ -10098,7 +10383,7 @@ var tui;
                     },
                     "tree": {
                         "set": function (value) {
-                            list._set("tree", value);
+                            list.set("tree", value);
                             _this.updateTextByValue(list);
                         },
                         "get": function () {
@@ -10238,8 +10523,10 @@ var tui;
                 if (textKey === null)
                     textKey = this.get("nameKey");
                 var selected = this.getSelection(list);
-                if (selected == null)
+                if (selected == null) {
                     this._set("text", null);
+                    this._data["value"] = null;
+                }
                 else if (selected instanceof Array)
                     this._set("text", selected.reduce(function (s, v, i) {
                         return i > 0 ? s + ", " + v[textKey] : v[textKey];

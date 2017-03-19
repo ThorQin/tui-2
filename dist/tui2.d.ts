@@ -685,6 +685,13 @@ declare module tui.widget {
         designMode?: boolean;
         form?: Form;
     }
+    interface Calculator {
+        cache: {
+            [index: string]: any;
+        };
+        calc: (key: string, searchPath: string[]) => void;
+        path: string[];
+    }
     abstract class FormControl<D extends FormItem> {
         mask: HTMLElement;
         div: HTMLElement;
@@ -710,10 +717,10 @@ declare module tui.widget {
         isSelect(): boolean;
         getKey(): string;
         protected applySize(): void;
-        abstract getValue(): any;
+        abstract getValue(cal: Calculator): any;
         abstract setValue(value: any): void;
         abstract isResizable(): boolean;
-        abstract render(): void;
+        abstract render(designMode: boolean): void;
         abstract getProperties(): PropertyPage[];
         abstract setProperties(properties: any[]): void;
         abstract validate(): boolean;
@@ -724,9 +731,9 @@ declare module tui.widget {
         constructor(form: Form, define: D, type: string);
         update(): void;
         isResizable(): boolean;
-        getValue(): any;
+        getValue(cal?: Calculator): any;
         setValue(value: any): void;
-        render(): void;
+        render(designMode: boolean): void;
     }
 }
 declare module tui.widget {

@@ -13,6 +13,12 @@ module tui.widget {
 		form?: Form;
 	}
 
+	export interface Calculator {
+		cache: {[index: string]: any};
+		calc: (key: string, searchPath: string[]) => void;
+		path: string[];
+	}
+
 	export abstract class FormControl<D extends FormItem> {
 		mask: HTMLElement;
 		div: HTMLElement;
@@ -76,6 +82,9 @@ module tui.widget {
 			});
 			$(this.mask).mouseup((e: JQueryEventObject) => {
 				this.form.fire("itemmouseup", {e: e, control: this});
+			});
+			$(this.mask).dblclick(() => {
+				this.showProperties();
 			});
 			this.btnDelete.on("click", () => {
 				this.form.fire("itemremove", {control: this});
@@ -318,10 +327,10 @@ module tui.widget {
 			}
 		}
 
-		abstract getValue(): any;
+		abstract getValue(cal: Calculator): any;
 		abstract setValue(value: any): void;
 		abstract isResizable(): boolean;
-		abstract render(): void;
+		abstract render(designMode: boolean): void;
 		abstract getProperties(): PropertyPage[];
 		abstract setProperties(properties: any[]): void;
 		abstract validate(): boolean;
@@ -360,13 +369,13 @@ module tui.widget {
 			return true;
 		}
 
-		getValue(): any {
+		getValue(cal: Calculator = null): any {
 			return this._widget.get("value");
 		}
 		setValue(value: any): void {
 			this._widget.set("value", value);
 		}
-		render(): void {
+		render(designMode: boolean): void {
 			this._widget.render();
 		}
 	}
@@ -380,6 +389,7 @@ module tui.widget {
 	interface SectionFormItem extends FormItem {
 		fontSize: number;
 		align: string;
+		hidden?: boolean;
 	}
 	class FormSection extends FormControl<SectionFormItem> {
 		static icon = "fa-font";
@@ -418,10 +428,21 @@ module tui.widget {
 		}
 
 		getValue(): any {
-			return null;
+			return typeof this.define.value !== UNDEFINED ? this.define.value : null;
 		}
-		setValue(value: any): void {}
-		render(): void {}
+		setValue(value: any): void {
+			if (typeof value !== UNDEFINED)
+				this.define.value = value;
+		}
+
+		render(designMode: boolean): void {
+			if (this.define.hidden && !designMode) {
+				browser.addClass(this.div, "tui-hidden");
+			} else {
+				browser.removeClass(this.div, "tui-hidden");
+			}
+		}
+
 		getProperties(): PropertyPage[] {
 			return [{
 				name: str("form.section"),
@@ -437,6 +458,11 @@ module tui.widget {
 							{ "format": "*max:48", "message": str("message.invalid.value") }
 						]
 					}, {
+						"type": "textbox",
+						"key": "value",
+						"label": str("form.value"),
+						"value": this.define.value
+					}, {
 						"type": "options",
 						"key": "align",
 						"label": str("form.text.align"),
@@ -446,8 +472,19 @@ module tui.widget {
 							{value: "center", text: str("form.align.center")}, 
 							{value: "right", text: str("form.align.right")}
 						],
-						"size": 1,
+						"size": 6,
 						"value": this.define.align || "left"
+					}, {
+						"type": "options",
+						"key": "hidden",
+						"label": str("form.display"),
+						"atMost": 1,
+						"options": [
+							{value: false, text: str("form.visible")}, 
+							{value: true, text: str("form.invisible")}
+						],
+						"size": 6,
+						"value": !!this.define.hidden
 					}
 				]
 			}];
@@ -462,6 +499,8 @@ module tui.widget {
 				this.define.align = values.align;
 			else
 				this.define.align = "left";
+			this.define.value = values.value;
+			this.define.hidden = text.parseBoolean(values.hidden);
 		}
 		validate(): boolean {
 			return true;
@@ -619,11 +658,15 @@ module tui.widget {
 	// ----------------------------------------------------------------------------------------------------------
 	interface TextareaFormItem extends FormItem {
 		validation?: {format: string, message: string}[];
+		maxHeight?: number;
 	}
 	class FormTextarea extends BasicFormControl<Textarea, TextareaFormItem> {
 		static icon = "fa-edit";
 		static desc = "form.textarea";
 		static order = 2;
+		static init = {
+			maxHeight: 300
+		};
 
 		constructor(form: Form, define: TextareaFormItem) {
 			super(form, define, "textarea");
@@ -637,6 +680,16 @@ module tui.widget {
 				name: str("form.textarea"),
 				properties: [
 					{
+						"type": "textbox",
+						"key": "maxHeight",
+						"label": str("form.max.height"),
+						"value": this.define.maxHeight,
+						"validation": [
+							{ "format": "*digital", "message": str("message.invalid.format") }
+						],
+						"size": 2,
+						"newline": true
+					}, {
 						"type": "grid",
 						"key": "validation",
 						"label": str("form.validation"),
@@ -674,9 +727,20 @@ module tui.widget {
 				]
 			}];
 		}
+		update() {
+			super.update();
+			if (/\d+/.test((this.define.maxHeight + "").trim()))
+				this._widget._.style.maxHeight = (this.define.maxHeight + "").trim() + "px";
+			else
+				this._widget._.style.maxHeight = "";
+		}
 		setProperties(properties: any[]) {
 			var values = properties[1];
 			this.define.validation = values.validation;
+			if (/\d+/.test(values.maxHeight + ""))
+				this.define.maxHeight = values.maxHeight;
+			else
+				this.define.maxHeight = null;
 		}
 		validate(): boolean {
 			return this._widget.validate();
@@ -804,6 +868,7 @@ module tui.widget {
 			}
 			this._group._set("value", define.value);
 			define.value = this._group.get("value");
+			this._notifyBar.innerHTML = "";
 		}
 
 		getValue(): any {
@@ -812,8 +877,13 @@ module tui.widget {
 		setValue(value: any): void {
 			this._group.get("value", value);
 		}
-		render(): void {
+		render(designMode: boolean): void {
 			this._group.render();
+			if (this._notifyBar.innerHTML == "") {
+				browser.addClass(this._notifyBar, "tui-hidden");
+			} else {
+				browser.removeClass(this._notifyBar, "tui-hidden");
+			}
 		}
 		getProperties(): PropertyPage[] {
 			return [{
@@ -879,14 +949,14 @@ module tui.widget {
 			if (this.define.atLeast) {
 				var atLeast = parseInt(this.define.atLeast + "");
 				if (count < atLeast) {
-					this._notifyBar.innerHTML = browser.toSafeText(strp("form.at.least", atLeast));
+					this._notifyBar.innerHTML = browser.toSafeText(strp("form.at.least.p", atLeast));
 					return false;
 				}
 			}
 			if (this.define.atMost) {
 				var atMost = parseInt(this.define.atMost + "");
 				if (count > atMost) {
-					this._notifyBar.innerHTML = browser.toSafeText(strp("form.at.most", atMost));
+					this._notifyBar.innerHTML = browser.toSafeText(strp("form.at.most.p", atMost));
 					return false;
 				}
 			}
@@ -900,14 +970,75 @@ module tui.widget {
 
 	// SELECT
 	// ----------------------------------------------------------------------------------------------------------
+	interface ListNode {
+		name: string;
+		value: string;
+		children?: ListNode[]
+	}
+	interface ListData {
+		condition: string;
+		data: ListNode[];
+	}
 	interface SelectFormItem extends FormItem {
 		validation?: {format: string, message: string}[];
-		selection?: any[];
+		selection?: ListData[];
+		atLeast?: number;
+		atMost?: number;
 	}
 	class FormSelect extends BasicFormControl<Select, SelectFormItem> {
 		static icon = "fa-toggle-down";
 		static desc = "form.selection";
 		static order = 4;
+
+		static selectionToText(selection: ListData[]): string {
+			var result = "";
+			if (!selection)
+				return result;
+			function addNodes(nodes: ListNode[], level: string = "") {
+				if (nodes) {
+					var padding = (level ? level + " " : "");
+					for (let item of nodes) {
+						if (item.value == item.name) {
+							result += padding + item.value + "\n";
+						} else {
+							result += padding + item.value + ": " + item.name + "\n";
+						}
+						addNodes(item.children, level + ">");
+					}
+				}
+			}
+			for (let o of selection) {
+				if (result.length > 0)
+					result += "\n";
+				if (o.condition) {
+					result += "[" + o.condition + "]\n";
+				}
+				addNodes(o.data);
+			}
+			return result;
+		}
+
+		static textToSelection(options: string): ({value: string, text: string}|string)[] {
+			var result:  ({value: string, text: string}|string)[] = [];
+			if (!options)
+				return result;
+			var arr = options.split("\n");
+			for (let s of arr) {
+				if (s.trim().length > 0) {
+					let pos = s.indexOf(":");
+					if (pos > 0) {
+						let v = s.substring(0, pos);
+						let t = s.substring(pos + 1);
+						if (v === t)
+							result.push(v);
+						else
+							result.push({value: v, text: t});
+					} else
+						result.push(s);
+				}
+			}
+			return result;
+		}
 
 		constructor(form: Form, define: SelectFormItem) {
 			super(form, define, "select");
@@ -915,12 +1046,79 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
+		update() {
+			super.update();
+		}
+
 		getProperties(): PropertyPage[] {
-			throw new Error('Method not implemented.');
+			return [{
+				name: str("form.selection"),
+				properties: [
+					{
+						"type": "textbox",
+						"key": "atLeast",
+						"label": str("form.at.least"),
+						"value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast: "",
+						"validation": [
+							{ "format": "*digital", "message": str("message.invalid.value") }
+						]
+					}, {
+						"type": "textbox",
+						"key": "atMost",
+						"label": str("form.at.most"),
+						"value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost: "",
+						"validation": [
+							{ "format": "*digital", "message": str("message.invalid.value") }
+						]
+					}, {
+						"type": "textarea",
+						"key": "options",
+						"label": str("form.selection"),
+						"description": str("form.selection.desc"),
+						"value": FormSelect.selectionToText(this.define.selection),
+						"validation": [
+							{ "format": "*any", "message": str("message.cannot.be.empty") }
+						],
+						"size": 6
+					}
+				]
+			}];
 		}
 		setProperties(properties: any[]) {
 			
 		}
+
+		getValue(cal: Calculator = null): any {
+			if (!cal)
+				return this._widget.get("value");
+
+			var key = this.define.key;
+			var data: ListNode[] = [];
+			if (this.define.selection) {
+				if (cal.path.indexOf(key) >= 0)
+					throw new Error("Invalid expression of select control: Cycle reference detected on \"" + key + "\"");
+				cal.path.push(key);				
+				for (let d of this.define.selection) {
+					if (d.condition) {
+						if (text.exp.evaluate(d.condition, function (k: string) {
+							if (cal.cache.hasOwnProperty(k))
+								return cal.cache[k];
+							else {
+								cal.calc(k, cal.path);
+								return cal.cache[k];
+							}
+						})) {
+							data.splice(data.length, 0, ...d.data);
+						}
+					} else {
+						data.splice(data.length, 0, ...d.data);
+					}
+				}
+			}
+			this._widget._set("tree", data);
+			return this._widget.get("value");
+		}
+
 		validate(): boolean {
 			return this._widget.validate();
 		}

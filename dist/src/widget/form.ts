@@ -131,7 +131,11 @@ module tui.widget {
 							}
 							var exp = me._items[index[key]].define.condition;
 							if (!exp) {
-								me._valueCache[key] = me._items[index[key]].getValue();
+								me._valueCache[key] = me._items[index[key]].getValue({
+									cache: me._valueCache,
+									calc: computeValue,
+									path: searchPath
+								});
 								me._items[index[key]].define.available = true;
 							} else {
 								if (searchPath.indexOf(key) >= 0)
@@ -146,7 +150,11 @@ module tui.widget {
 											return me._valueCache[k];
 										}
 									})) {
-										me._valueCache[key] = me._items[index[key]].getValue();
+										me._valueCache[key] = me._items[index[key]].getValue({
+											cache: me._valueCache,
+											calc: computeValue,
+											path: searchPath
+										});
 										me._items[index[key]].define.available = true;
 									} else {
 										me._valueCache[key] = null;
@@ -157,21 +165,28 @@ module tui.widget {
 								}
 								searchPath.pop();
 							}
-						}
+						} // end of computeValue
+
 						if (this._valueChanged || this._valueCache === null) {
 							this._valueCache = {};
 							index = {};
 							for (let i = 0; i < this._items.length; i++) {
 								let k = this._items[i].getKey();
 								if (k) {
+									if (index.hasOwnProperty(k))
+										throw new Error("Duplicate field name was found: \"" + k + "\".");
 									index[k] = i;
 								}
 							}
+
+							// Compute all items which has key defined.
 							for (let k in index) {
 								if (index.hasOwnProperty(k)) {
 									computeValue(k, []);
 								}
 							}
+
+							// Then compute all items which does not define the key.
 							for (let i = 0; i < this._items.length; i++) {
 								let item = this._items[i];
 								let k = item.getKey();
@@ -186,11 +201,22 @@ module tui.widget {
 											}
 										})) {
 											item.define.available = true;
+											item.getValue({
+												cache: me._valueCache,
+												calc: computeValue,
+												path: []
+											});
 										} else {
 											item.define.available = false;
 										}
-									} else
+									} else {
 										item.define.available = true;
+										item.getValue({
+											cache: me._valueCache,
+											calc: computeValue,
+											path: []
+										});
+									}
 								}
 							}
 
@@ -436,6 +462,7 @@ module tui.widget {
 				if (!item.validate())
 					result = false;
 			}
+			this.render();
 			return result;
 		}
 
@@ -485,7 +512,7 @@ module tui.widget {
 					browser.removeClass(item.div, "tui-form-item-unavailable");
 				}
 				browser.removeClass(item.div, "tui-form-item-exceed");
-				item.render();
+				item.render(designMode);
 			}
 			var cfs = browser.getCurrentStyle(this._);
 			if (cfs.display != "none") {
@@ -495,7 +522,7 @@ module tui.widget {
 				for (let item of this._items) {
 					if (item.div.offsetWidth > this._.clientWidth - pad) {
 						browser.addClass(item.div, "tui-form-item-exceed");
-						item.render();
+						item.render(designMode);
 					}
 				}
 			}

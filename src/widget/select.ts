@@ -29,7 +29,7 @@ module tui.widget {
 				},
 				"data": {
 					"set": (value: any) => {
-						list._set("data", value);
+						list.set("data", value);
 						this.updateTextByValue(<List>list);
 					},
 					"get": (): any => {
@@ -38,7 +38,7 @@ module tui.widget {
 				},
 				"list": {
 					"set": (value: any) => {
-						list._set("list", value);
+						list.set("list", value);
 						this.updateTextByValue(<List>list);
 					},
 					"get": (): any => {
@@ -47,7 +47,7 @@ module tui.widget {
 				},
 				"tree": {
 					"set": (value: any) => {
-						list._set("tree", value);
+						list.set("tree", value);
 						this.updateTextByValue(<List>list);
 					},
 					"get": (): any => {
@@ -188,9 +188,10 @@ module tui.widget {
 			if (textKey === null)
 				textKey = this.get("nameKey");
 			var selected = this.getSelection(list);
-			if (selected == null)
+			if (selected == null) {
 				this._set("text", null);
-			else if (selected instanceof Array)
+				this._data["value"] = null;
+			} else if (selected instanceof Array)
 				this._set("text", selected.reduce(
 					function(s: string, v: any, i: number){ 
 						return i > 0 ? s + ", " + v[textKey] : v[textKey]; 

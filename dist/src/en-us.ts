@@ -30,6 +30,7 @@ tui.dict("en-us", {
     "form.options": "Options",
     "form.option.group": "Option Group",
     "form.selection": "Selection",
+    "form.selection.desc": "Allow have multiple selection groups it can use condition expression to decide which group come into force.",
     "form.datepicker": "Date",
     "form.picture": "Picture",
     "form.file": "File",
@@ -65,5 +66,10 @@ tui.dict("en-us", {
     "form.at.most": "At Most",
     "form.at.least.p": "At Least select {0} item(s).",
     "form.at.most.p": "At Most select {0} item(s).",
-    "form.option.group.desc": "Options separated by newline, option can be a key:value pair or a string."
+    "form.option.group.desc": "Options separated by newline, option can be a key:value pair or a string.",
+    "form.value": "Value",
+    "form.display": "Display",
+    "form.invisible": "Invisible",
+    "form.visible": "Visible",
+    "form.max.height": "Max Height"
 });

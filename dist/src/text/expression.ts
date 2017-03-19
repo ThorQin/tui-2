@@ -30,7 +30,7 @@ module tui.text.exp {
 		value?: any;
 	}
 
-	const SYMBOL = /([\r\n\s]+)|((?:and|or)(?=$|\s|\r|\n))|(<|<=|>|>=|=|!=|~|!~)|((?:true|false)(?=$|\s|\r|\n))|(null(?=$|\s|\r|\n))|([$_a-zA-Z][$_a-zA-Z0-9]*)|("[^"]*"|'[^']*')|([+-]?[0-9]+(?:\.[0-9]+)?)|(\()|(\))|(.+)/gm;
+	const SYMBOL = /([\r\n\s]+)|((?:and|or)(?=$|\s|\r|\n))|(<|<=|>|>=|=|!=|~|!~)|((?:true|false)(?=$|\s|\r|\n))|(null(?=$|\s|\r|\n))|([$_a-zA-Z][$_a-zA-Z0-9]*)|("[^"]*"|'[^']*'|`[^`]*`)|([+-]?[0-9]+(?:\.[0-9]+)?)|(\()|(\))|(.+)/gm;
 
 	function error(match?: RegExpExecArray, msg?: string) {
 		if (match) {
