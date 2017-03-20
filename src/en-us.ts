@@ -45,6 +45,8 @@ tui.dict("en-us", {
     "form.message": "Message",
     "form.required": "Required",
     "form.disable": "Disabled",
+    "form.enable": "Enabled",
+    "form.use.search": "Enable Search",
     "form.description": "Description",
     "form.textbox.selection.desc": "A group predefined input content, separated with newline characters.",
     "message.cannot.be.empty": "Cannot be empty!",

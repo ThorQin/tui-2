@@ -31,6 +31,14 @@ module tui.widget {
 							return "";
 						return time.formatDate(value, this.get("format"));
 					}
+				},
+				"monthOnly": {
+					"set":  (value: any) => {
+						calendar.set("monthOnly", value);
+					},
+					"get": (): any => {
+						return calendar.get("monthOnly");
+					}
 				}
 			});
 		}

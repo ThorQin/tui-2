@@ -829,7 +829,7 @@ module tui.widget {
 			});
 			this._group.appendTo(this.div);
 			this._notifyBar = elem("div");
-			this._notifyBar.className = "tui-form-options-notify";
+			this._notifyBar.className = "tui-form-notify-bar";
 			this.div.appendChild(this._notifyBar);
 		}
 
@@ -895,6 +895,29 @@ module tui.widget {
 				name: str("form.option.group"),
 				properties: [
 					{
+						"type": "textarea",
+						"maxHeight": 300,
+						"key": "options",
+						"label": str("form.options"),
+						"description": str("form.option.group.desc"),
+						"value": FormOptions.optionsToText(this.define.options),
+						"validation": [
+							{ "format": "*any", "message": str("message.cannot.be.empty") }
+						],
+						"size": 6
+					}, {
+						"type": "options",
+						"key": "align",
+						"label": str("form.align"),
+						"value": this.define.align === "vertical" ? "vertical" : "normal",
+						"options": [
+							{ "value": "normal", "text": str("normal") },
+							{ "value": "vertical", "text": str("vertical") }
+						],
+						"atMost": 1,
+						"size": 2,
+						"newline": true
+					}, {
 						"type": "textbox",
 						"key": "atLeast",
 						"label": str("form.at.least"),
@@ -910,28 +933,6 @@ module tui.widget {
 						"validation": [
 							{ "format": "*digital", "message": str("message.invalid.value") }
 						]
-					}, {
-						"type": "options",
-						"key": "align",
-						"label": str("form.align"),
-						"value": this.define.align === "vertical" ? "vertical" : "normal",
-						"options": [
-							{ "value": "normal", "text": str("normal") },
-							{ "value": "vertical", "text": str("vertical") }
-						],
-						"atMost": 1,
-						"newline": true
-					}, {
-						"type": "textarea",
-						"maxHeight": 300,
-						"key": "options",
-						"label": str("form.options"),
-						"description": str("form.option.group.desc"),
-						"value": FormOptions.optionsToText(this.define.options),
-						"validation": [
-							{ "format": "*any", "message": str("message.cannot.be.empty") }
-						],
-						"size": 6
 					}
 				]
 			}];
@@ -979,6 +980,7 @@ module tui.widget {
 	interface ListNode {
 		name: string;
 		value: string;
+		check: boolean;
 		children?: ListNode[]
 	}
 	interface ListData {
@@ -988,6 +990,7 @@ module tui.widget {
 	interface SelectFormItem extends FormItem {
 		validation?: {format: string, message: string}[];
 		selection?: ListData[];
+		canSearch?: boolean;
 		atLeast?: number;
 		atMost?: number;
 	}
@@ -995,6 +998,17 @@ module tui.widget {
 		static icon = "fa-toggle-down";
 		static desc = "form.selection";
 		static order = 4;
+		static init = { 
+			"atMost": 1,
+			"selection": [{ 
+				"condition":<string>null,
+				"data": [
+					{"value":"A","name":"A", "check": false},
+					{"value":"B","name":"B", "check": false},
+					{"value":"C","name":"C", "check": false}
+				]
+			}]
+		};
 
 		static selectionToText(selection: ListData[]): string {
 			var result = "";
@@ -1042,11 +1056,11 @@ module tui.widget {
 				s = s.trim();
 				var pos = s.indexOf(":");
 				if (pos < 0) {
-					return { value: s, name: s};
+					return { value: s, name: s, check: false};
 				} else {
 					var value = s.substring(0, pos).trim();
 					var name = s.substring(pos + 1).trim();
-					return { value: value, name: name};
+					return { value: value, name: name, check: false};
 				}
 			}
 			function toTree(list: string[]) : ListNode[] {
@@ -1104,14 +1118,24 @@ module tui.widget {
 			return result;
 		}
 
+		private _notifyBar: HTMLElement;
+
 		constructor(form: Form, define: SelectFormItem) {
 			super(form, define, "select");
 			this._widget.on("change", (e) => {
+				this._notifyBar.innerHTML = "";
 				form.fire("itemvaluechanged", {control: this});
 			});
+			this._notifyBar = elem("div");
+			this._notifyBar.className = "tui-form-notify-bar";
+			this.div.appendChild(this._notifyBar);
 		}
 		update() {
 			super.update();
+			this._widget._set("multiSelect", this.define.atMost != 1);
+			this._widget._set("clearable", !this.define.atLeast || parseInt(this.define.atLeast + "") <= 0);
+			this._widget._set("canSearch", !!this.define.canSearch);
+			this._notifyBar.innerHTML = "";
 		}
 
 		getProperties(): PropertyPage[] {
@@ -1119,6 +1143,29 @@ module tui.widget {
 				name: str("form.selection"),
 				properties: [
 					{
+						"type": "textarea",
+						"key": "selection",
+						"maxHeight": 400,
+						"label": str("form.options"),
+						"description": str("form.selection.desc"),
+						"value": FormSelect.selectionToText(this.define.selection),
+						"validation": [
+							{ "format": "*any", "message": str("message.cannot.be.empty") }
+						],
+						"size": 6
+					}, {
+						"type": "options",
+						"key": "canSearch",
+						"label": str("form.use.search"),
+						"value": this.define.canSearch ? "true" : "false",
+						"options": [
+							{ "value": "true", "text": str("form.enable") },
+							{ "value": "false", "text": str("form.disable") }
+						],
+						"size": 2,
+						"atMost": 1,
+						"newline": true
+					}, {
 						"type": "textbox",
 						"key": "atLeast",
 						"label": str("form.at.least"),
@@ -1134,17 +1181,6 @@ module tui.widget {
 						"validation": [
 							{ "format": "*digital", "message": str("message.invalid.value") }
 						]
-					}, {
-						"type": "textarea",
-						"key": "selection",
-						"maxHeight": 400,
-						"label": str("form.selection"),
-						"description": str("form.selection.desc"),
-						"value": FormSelect.selectionToText(this.define.selection),
-						"validation": [
-							{ "format": "*any", "message": str("message.cannot.be.empty") }
-						],
-						"size": 6
 					}
 				]
 			}];
@@ -1154,6 +1190,7 @@ module tui.widget {
 			this.define.atLeast = values.atLeast  > 0 ? parseInt(values.atLeast) : null;
 			this.define.atMost = values.atMost > 0 ? parseInt(values.atMost) : null;
 			this.define.selection = FormSelect.textToSelection(values.selection);
+			this.define.canSearch = text.parseBoolean(values.canSearch);
 		}
 
 		getValue(cal: Calculator = null): any {
@@ -1184,11 +1221,34 @@ module tui.widget {
 				}
 			}
 			this._widget._set("tree", data);
+			this.define.value = this._widget.get("value");
 			return this._widget.get("value");
 		}
 
 		validate(): boolean {
-			return this._widget.validate();
+			var count: number;
+			if (this.define.value instanceof Array) {
+				count = this.define.value.length;
+			} else if (this.define.value) {
+				count = 1;
+			} else {
+				count = 0;
+			}
+			if (this.define.atLeast) {
+				var atLeast = parseInt(this.define.atLeast + "");
+				if (count < atLeast) {
+					this._notifyBar.innerHTML = browser.toSafeText(strp("form.at.least.p", atLeast));
+					return false;
+				}
+			}
+			if (this.define.atMost) {
+				var atMost = parseInt(this.define.atMost + "");
+				if (count > atMost) {
+					this._notifyBar.innerHTML = browser.toSafeText(strp("form.at.most.p", atMost));
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 	Form.register("select", FormSelect);

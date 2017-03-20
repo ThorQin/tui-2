@@ -466,7 +466,7 @@ module tui.widget {
 					this.fire("expand", {e:ev, line:target.line});
 				} else if ($(obj).hasClass("tui-grid-check")) {
 					var column = this.get("columns")[target.col];
-					var checkKey = column.checkKey ? column.checkKey : "checked";
+					var checkKey = column.checkKey ? column.checkKey : "check";
 					var checked: boolean;
 					if (this.get("dataType") === "tree") {
 						checked = data.get(target.line).item[checkKey] = !data.get(target.line).item[checkKey];

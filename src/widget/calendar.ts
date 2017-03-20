@@ -14,13 +14,11 @@ module tui.widget {
 		else
 			return v + "";
 	}
-	
-	function setText(tb: HTMLTableElement, line: number, column: number, content: string) {
-		var cell: HTMLTableCellElement = ((<any>tb.rows[line]).cells[column]);
-		if (tui.ieVer > 0 && tui.ieVer < 9) {
-			cell.innerText = content;
-		} else
-			cell.innerHTML = content;
+
+	function firstDay(date: Date): Date {
+		var y = date.getFullYear();
+		var m = date.getMonth();
+		return new Date(y, m, 1);
 	}
 
 	export class Calendar extends Widget {
@@ -110,31 +108,67 @@ module tui.widget {
 			});
 		}
 
-		protected init(): void {
-			$(this._).attr({ "tabIndex": "0", "unselectable": "on"});
-			var tb = this._components["table"] = <HTMLTableElement>browser.toElement(
-				"<table cellPadding='0' cellspacing='0' border='0'>" +
-				"<tr class='tui-yearbar'><td class='tui-pm'></td><td class='tui-py'>" +
-				"</td><td colspan='3' class='tui-ym'></td>" +
-				"<td class='tui-ny'></td><td class='tui-nm'></td></tr></table>");
-			// var yearLine = tb.rows[0];
-			
-			for (var i = 0; i < 7; i++) {
-				var line: HTMLTableRowElement = <HTMLTableRowElement>tb.insertRow(-1);
-				for (var j = 0; j < 7; j++) {
-					var cell: HTMLTableCellElement = <HTMLTableCellElement>line.insertCell(-1);
-					if (j === 0 || j === 6)
-						cell.className = "tui-week-end";
-					if (i === 0) {
-						cell.className = "tui-week";
-						setText(tb, i + 1, j, tui.str(time.shortWeeks[j]));
+		private _monthOnly: boolean;
+		protected makeTable() {
+			var monthOnly = !!this.get("monthOnly");
+			if (this._monthOnly === monthOnly)
+				return;
+
+			var tb = <HTMLTableElement>this._components["table"]
+			while(tb.children.length > 0)
+				tb.removeChild(tb.firstChild);
+			if (monthOnly) {
+				var bar = <HTMLTableRowElement>tb.insertRow(-1);
+				bar.className = "tui-yearbar";
+				bar.insertCell(-1).className = "tui-py";
+				var ym = bar.insertCell(-1);
+				ym.className = "tui-ym";
+				ym.setAttribute("colSpan", "2");
+				bar.insertCell(-1).className = "tui-ny";
+				for (let i = 0; i < 3; i++) {
+					var line = <HTMLTableRowElement>tb.insertRow(-1);
+					for (let j = 0; j < 4; j++) {
+						let cell = <HTMLTableCellElement>line.insertCell(-1);
+						cell.className = "tui-month";
+						let m = i * 4 + j;
+						cell.innerHTML = tui.str(time.shortMonths[m]);
+					}
+				}
+			} else {
+				var bar = <HTMLTableRowElement>tb.insertRow(-1);
+				bar.className = "tui-yearbar";
+				bar.insertCell(-1).className = "tui-pm";
+				bar.insertCell(-1).className = "tui-py";
+				var ym = bar.insertCell(-1);
+				ym.className = "tui-ym";
+				ym.setAttribute("colSpan", "3");
+				bar.insertCell(-1).className = "tui-ny";
+				bar.insertCell(-1).className = "tui-nm";
+				for (var i = 0; i < 7; i++) {
+					var line = <HTMLTableRowElement>tb.insertRow(-1);
+					for (var j = 0; j < 7; j++) {
+						var cell = <HTMLTableCellElement>line.insertCell(-1);
+						if (j === 0 || j === 6)
+							cell.className = "tui-week-end";
+						if (i === 0) {
+							cell.className = "tui-week";
+							cell.innerHTML = tui.str(time.shortWeeks[j]);
+						}
 					}
 				}
 			}
+			this._monthOnly = monthOnly;
+		}
+
+		protected init(): void {
+			$(this._).attr({ "tabIndex": "0", "unselectable": "on"});
+			var tb = this._components["table"] = <HTMLTableElement>browser.toElement(
+				"<table cellPadding='0' cellspacing='0' border='0'></table>");
 			this._.appendChild(tb);
+			this._monthOnly = null;
 			
 			var timebar = this._components["timeBar"] = <HTMLTableElement>browser.toElement(
-				"<div>" + tui.str("Choose Time") + ":<input name='hours' maxLength='2'>:<input name='minutes' maxLength='2'>:<input name='seconds' maxLength='2'>" +
+				"<div unselectable='on'>" + tui.str("Choose Time") + ":<input name='hours' maxLength='2'>:<input name='minutes' maxLength='2'>:<input name='seconds' maxLength='2'>" +
 				"<a class='tui-update'></a></div>");
 			this._.appendChild(timebar);
 			
@@ -353,55 +387,66 @@ module tui.widget {
 		}
 
 		render() {
-			function firstDay(date: Date): Date {
-				var y = date.getFullYear();
-				var m = date.getMonth();
-				return new Date(y, m, 1);
-			}
+			this.makeTable();
 			var tb = <HTMLTableElement>this._components["table"];
 			var tm = <Date>this.get("time");
 			var today = time.now();
-			var firstWeek = firstDay(tm).getDay();
-			var daysOfMonth = time.totalDaysOfMonth(tm);
-			var day = 0;
-			(<HTMLTableRowElement>tb.rows[0]).cells[2].innerHTML = tm.getFullYear() + " - " + this.get("month");
-			for (var i = 0; i < 6; i++) {
-				for (var j = 0; j < 7; j++) {
-					var cell: HTMLTableCellElement = <HTMLTableCellElement>(<HTMLTableRowElement>tb.rows[i + 2]).cells[j];
-					cell.className = "";
-					if (day === 0) {
-						if (j === firstWeek) {
-							day = 1;
-							(<HTMLTableCellElement>cell).innerHTML = day + "";
-							(<any>cell).offsetMonth = 0;
+			if (this._monthOnly) {
+				(<HTMLTableRowElement>tb.rows[0]).cells[1].innerHTML = tm.getFullYear() + "";
+				for (var i = 0; i < 3; i++) {
+					for (var j = 0; j < 4; j++) {
+						let cell = <HTMLElement>(<HTMLTableRowElement>tb.rows[i + 1]).cells[j];
+						let m = i * 4 + j + 1;
+						if (m == this.get("month")) {
+							browser.addClass(cell, "tui-actived");
 						} else {
-							var preMonthDay = new Date(firstDay(tm).valueOf() - ((firstWeek - j) * 1000 * 24 * 60 * 60));
-							(<HTMLTableCellElement>cell).innerHTML = preMonthDay.getDate() + "";
-							(<any>cell).offsetMonth = -1;
-							$(cell).addClass("tui-before");
-						}
-					} else {
-						day++;
-						if (day <= daysOfMonth) {
-							cell.innerHTML = day + "";
-							(<any>cell).offsetMonth = 0;
-						} else {
-							cell.innerHTML = (day - daysOfMonth) + "";
-							(<any>cell).offsetMonth = 1;
-							$(cell).addClass("tui-after");
+							browser.removeClass(cell, "tui-actived");
 						}
 					}
-					if (day === this.get("day"))
-						$(cell).addClass("tui-actived");
-					if (j === 0 || j === 6)
-						$(cell).addClass("tui-weekend");
-					if (this.get("year") === today.getFullYear() && this.get("month") === (today.getMonth() + 1) && day === today.getDate()) {
-						$(cell).addClass("tui-today");
+				}
+			} else {			
+				var firstWeek = firstDay(tm).getDay();
+				var daysOfMonth = time.totalDaysOfMonth(tm);
+				var day = 0;
+				(<HTMLTableRowElement>tb.rows[0]).cells[2].innerHTML = tm.getFullYear() + " - " + this.get("month");
+				for (let i = 0; i < 6; i++) {
+					for (let j = 0; j < 7; j++) {
+						let cell: HTMLTableCellElement = <HTMLTableCellElement>(<HTMLTableRowElement>tb.rows[i + 2]).cells[j];
+						cell.className = "";
+						if (day === 0) {
+							if (j === firstWeek) {
+								day = 1;
+								(<HTMLTableCellElement>cell).innerHTML = day + "";
+								(<any>cell).offsetMonth = 0;
+							} else {
+								var preMonthDay = new Date(firstDay(tm).valueOf() - ((firstWeek - j) * 1000 * 24 * 60 * 60));
+								(<HTMLTableCellElement>cell).innerHTML = preMonthDay.getDate() + "";
+								(<any>cell).offsetMonth = -1;
+								$(cell).addClass("tui-before");
+							}
+						} else {
+							day++;
+							if (day <= daysOfMonth) {
+								cell.innerHTML = day + "";
+								(<any>cell).offsetMonth = 0;
+							} else {
+								cell.innerHTML = (day - daysOfMonth) + "";
+								(<any>cell).offsetMonth = 1;
+								$(cell).addClass("tui-after");
+							}
+						}
+						if (day === this.get("day"))
+							$(cell).addClass("tui-actived");
+						if (j === 0 || j === 6)
+							$(cell).addClass("tui-weekend");
+						if (this.get("year") === today.getFullYear() && this.get("month") === (today.getMonth() + 1) && day === today.getDate()) {
+							$(cell).addClass("tui-today");
+						}
 					}
 				}
 			}
 			var timebar = <HTMLElement>this._components["timeBar"];
-			if (this.get("timeBar")) {
+			if (this.get("timeBar") && !this._monthOnly) {
 				timebar.style.display = "";
 				$(timebar).children("input[name=hours]").val(formatNumber(tm.getHours(), 23));
 				$(timebar).children("input[name=minutes]").val(formatNumber(tm.getMinutes(), 59));
@@ -410,7 +455,6 @@ module tui.widget {
 				timebar.style.display = "none";
 			}
 		}
-
 	}
 	
 	register(Calendar, "calendar");

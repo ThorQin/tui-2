@@ -538,6 +538,8 @@ declare module tui.widget {
 declare module tui.widget {
     class Calendar extends Widget {
         protected initRestriction(): void;
+        private _monthOnly;
+        protected makeTable(): void;
         protected init(): void;
         private onPicked(y, m, d);
         private makeTime(proc);

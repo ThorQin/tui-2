@@ -330,6 +330,8 @@ tui.dict("en-us", {
     "form.message": "Message",
     "form.required": "Required",
     "form.disable": "Disabled",
+    "form.enable": "Enabled",
+    "form.use.search": "Enable Search",
     "form.description": "Description",
     "form.textbox.selection.desc": "A group predefined input content, separated with newline characters.",
     "message.cannot.be.empty": "Cannot be empty!",
@@ -4269,13 +4271,10 @@ var tui;
             else
                 return v + "";
         }
-        function setText(tb, line, column, content) {
-            var cell = (tb.rows[line].cells[column]);
-            if (tui.ieVer > 0 && tui.ieVer < 9) {
-                cell.innerText = content;
-            }
-            else
-                cell.innerHTML = content;
+        function firstDay(date) {
+            var y = date.getFullYear();
+            var m = date.getMonth();
+            return new Date(y, m, 1);
         }
         var Calendar = (function (_super) {
             __extends(Calendar, _super);
@@ -4368,27 +4367,63 @@ var tui;
                     }
                 });
             };
-            Calendar.prototype.init = function () {
-                var _this = this;
-                $(this._).attr({ "tabIndex": "0", "unselectable": "on" });
-                var tb = this._components["table"] = tui.browser.toElement("<table cellPadding='0' cellspacing='0' border='0'>" +
-                    "<tr class='tui-yearbar'><td class='tui-pm'></td><td class='tui-py'>" +
-                    "</td><td colspan='3' class='tui-ym'></td>" +
-                    "<td class='tui-ny'></td><td class='tui-nm'></td></tr></table>");
-                for (var i = 0; i < 7; i++) {
-                    var line = tb.insertRow(-1);
-                    for (var j = 0; j < 7; j++) {
-                        var cell = line.insertCell(-1);
-                        if (j === 0 || j === 6)
-                            cell.className = "tui-week-end";
-                        if (i === 0) {
-                            cell.className = "tui-week";
-                            setText(tb, i + 1, j, tui.str(tui.time.shortWeeks[j]));
+            Calendar.prototype.makeTable = function () {
+                var monthOnly = !!this.get("monthOnly");
+                if (this._monthOnly === monthOnly)
+                    return;
+                var tb = this._components["table"];
+                while (tb.children.length > 0)
+                    tb.removeChild(tb.firstChild);
+                if (monthOnly) {
+                    var bar = tb.insertRow(-1);
+                    bar.className = "tui-yearbar";
+                    bar.insertCell(-1).className = "tui-py";
+                    var ym = bar.insertCell(-1);
+                    ym.className = "tui-ym";
+                    ym.setAttribute("colSpan", "2");
+                    bar.insertCell(-1).className = "tui-ny";
+                    for (var i_1 = 0; i_1 < 3; i_1++) {
+                        var line = tb.insertRow(-1);
+                        for (var j_1 = 0; j_1 < 4; j_1++) {
+                            var cell_1 = line.insertCell(-1);
+                            cell_1.className = "tui-month";
+                            var m = i_1 * 4 + j_1;
+                            cell_1.innerHTML = tui.str(tui.time.shortMonths[m]);
                         }
                     }
                 }
+                else {
+                    var bar = tb.insertRow(-1);
+                    bar.className = "tui-yearbar";
+                    bar.insertCell(-1).className = "tui-pm";
+                    bar.insertCell(-1).className = "tui-py";
+                    var ym = bar.insertCell(-1);
+                    ym.className = "tui-ym";
+                    ym.setAttribute("colSpan", "3");
+                    bar.insertCell(-1).className = "tui-ny";
+                    bar.insertCell(-1).className = "tui-nm";
+                    for (var i = 0; i < 7; i++) {
+                        var line = tb.insertRow(-1);
+                        for (var j = 0; j < 7; j++) {
+                            var cell = line.insertCell(-1);
+                            if (j === 0 || j === 6)
+                                cell.className = "tui-week-end";
+                            if (i === 0) {
+                                cell.className = "tui-week";
+                                cell.innerHTML = tui.str(tui.time.shortWeeks[j]);
+                            }
+                        }
+                    }
+                }
+                this._monthOnly = monthOnly;
+            };
+            Calendar.prototype.init = function () {
+                var _this = this;
+                $(this._).attr({ "tabIndex": "0", "unselectable": "on" });
+                var tb = this._components["table"] = tui.browser.toElement("<table cellPadding='0' cellspacing='0' border='0'></table>");
                 this._.appendChild(tb);
-                var timebar = this._components["timeBar"] = tui.browser.toElement("<div>" + tui.str("Choose Time") + ":<input name='hours' maxLength='2'>:<input name='minutes' maxLength='2'>:<input name='seconds' maxLength='2'>" +
+                this._monthOnly = null;
+                var timebar = this._components["timeBar"] = tui.browser.toElement("<div unselectable='on'>" + tui.str("Choose Time") + ":<input name='hours' maxLength='2'>:<input name='minutes' maxLength='2'>:<input name='seconds' maxLength='2'>" +
                     "<a class='tui-update'></a></div>");
                 this._.appendChild(timebar);
                 function getMaxValue(name) {
@@ -4620,58 +4655,71 @@ var tui;
                 });
             };
             Calendar.prototype.render = function () {
-                function firstDay(date) {
-                    var y = date.getFullYear();
-                    var m = date.getMonth();
-                    return new Date(y, m, 1);
-                }
+                this.makeTable();
                 var tb = this._components["table"];
                 var tm = this.get("time");
                 var today = tui.time.now();
-                var firstWeek = firstDay(tm).getDay();
-                var daysOfMonth = tui.time.totalDaysOfMonth(tm);
-                var day = 0;
-                tb.rows[0].cells[2].innerHTML = tm.getFullYear() + " - " + this.get("month");
-                for (var i = 0; i < 6; i++) {
-                    for (var j = 0; j < 7; j++) {
-                        var cell = tb.rows[i + 2].cells[j];
-                        cell.className = "";
-                        if (day === 0) {
-                            if (j === firstWeek) {
-                                day = 1;
-                                cell.innerHTML = day + "";
-                                cell.offsetMonth = 0;
+                if (this._monthOnly) {
+                    tb.rows[0].cells[1].innerHTML = tm.getFullYear() + "";
+                    for (var i = 0; i < 3; i++) {
+                        for (var j = 0; j < 4; j++) {
+                            var cell = tb.rows[i + 1].cells[j];
+                            var m = i * 4 + j + 1;
+                            if (m == this.get("month")) {
+                                tui.browser.addClass(cell, "tui-actived");
                             }
                             else {
-                                var preMonthDay = new Date(firstDay(tm).valueOf() - ((firstWeek - j) * 1000 * 24 * 60 * 60));
-                                cell.innerHTML = preMonthDay.getDate() + "";
-                                cell.offsetMonth = -1;
-                                $(cell).addClass("tui-before");
+                                tui.browser.removeClass(cell, "tui-actived");
                             }
                         }
-                        else {
-                            day++;
-                            if (day <= daysOfMonth) {
-                                cell.innerHTML = day + "";
-                                cell.offsetMonth = 0;
+                    }
+                }
+                else {
+                    var firstWeek = firstDay(tm).getDay();
+                    var daysOfMonth = tui.time.totalDaysOfMonth(tm);
+                    var day = 0;
+                    tb.rows[0].cells[2].innerHTML = tm.getFullYear() + " - " + this.get("month");
+                    for (var i_2 = 0; i_2 < 6; i_2++) {
+                        for (var j_2 = 0; j_2 < 7; j_2++) {
+                            var cell = tb.rows[i_2 + 2].cells[j_2];
+                            cell.className = "";
+                            if (day === 0) {
+                                if (j_2 === firstWeek) {
+                                    day = 1;
+                                    cell.innerHTML = day + "";
+                                    cell.offsetMonth = 0;
+                                }
+                                else {
+                                    var preMonthDay = new Date(firstDay(tm).valueOf() - ((firstWeek - j_2) * 1000 * 24 * 60 * 60));
+                                    cell.innerHTML = preMonthDay.getDate() + "";
+                                    cell.offsetMonth = -1;
+                                    $(cell).addClass("tui-before");
+                                }
                             }
                             else {
-                                cell.innerHTML = (day - daysOfMonth) + "";
-                                cell.offsetMonth = 1;
-                                $(cell).addClass("tui-after");
+                                day++;
+                                if (day <= daysOfMonth) {
+                                    cell.innerHTML = day + "";
+                                    cell.offsetMonth = 0;
+                                }
+                                else {
+                                    cell.innerHTML = (day - daysOfMonth) + "";
+                                    cell.offsetMonth = 1;
+                                    $(cell).addClass("tui-after");
+                                }
                             }
-                        }
-                        if (day === this.get("day"))
-                            $(cell).addClass("tui-actived");
-                        if (j === 0 || j === 6)
-                            $(cell).addClass("tui-weekend");
-                        if (this.get("year") === today.getFullYear() && this.get("month") === (today.getMonth() + 1) && day === today.getDate()) {
-                            $(cell).addClass("tui-today");
+                            if (day === this.get("day"))
+                                $(cell).addClass("tui-actived");
+                            if (j_2 === 0 || j_2 === 6)
+                                $(cell).addClass("tui-weekend");
+                            if (this.get("year") === today.getFullYear() && this.get("month") === (today.getMonth() + 1) && day === today.getDate()) {
+                                $(cell).addClass("tui-today");
+                            }
                         }
                     }
                 }
                 var timebar = this._components["timeBar"];
-                if (this.get("timeBar")) {
+                if (this.get("timeBar") && !this._monthOnly) {
                     timebar.style.display = "";
                     $(timebar).children("input[name=hours]").val(formatNumber(tm.getHours(), 23));
                     $(timebar).children("input[name=minutes]").val(formatNumber(tm.getMinutes(), 59));
@@ -5386,6 +5434,14 @@ var tui;
                             if (value === null)
                                 return "";
                             return tui.time.formatDate(value, _this.get("format"));
+                        }
+                    },
+                    "monthOnly": {
+                        "set": function (value) {
+                            calendar.set("monthOnly", value);
+                        },
+                        "get": function () {
+                            return calendar.get("monthOnly");
                         }
                     }
                 });
@@ -6994,7 +7050,7 @@ var tui;
                 });
                 _this._group.appendTo(_this.div);
                 _this._notifyBar = tui.elem("div");
-                _this._notifyBar.className = "tui-form-options-notify";
+                _this._notifyBar.className = "tui-form-notify-bar";
                 _this.div.appendChild(_this._notifyBar);
                 return _this;
             }
@@ -7106,6 +7162,29 @@ var tui;
                         name: tui.str("form.option.group"),
                         properties: [
                             {
+                                "type": "textarea",
+                                "maxHeight": 300,
+                                "key": "options",
+                                "label": tui.str("form.options"),
+                                "description": tui.str("form.option.group.desc"),
+                                "value": FormOptions.optionsToText(this.define.options),
+                                "validation": [
+                                    { "format": "*any", "message": tui.str("message.cannot.be.empty") }
+                                ],
+                                "size": 6
+                            }, {
+                                "type": "options",
+                                "key": "align",
+                                "label": tui.str("form.align"),
+                                "value": this.define.align === "vertical" ? "vertical" : "normal",
+                                "options": [
+                                    { "value": "normal", "text": tui.str("normal") },
+                                    { "value": "vertical", "text": tui.str("vertical") }
+                                ],
+                                "atMost": 1,
+                                "size": 2,
+                                "newline": true
+                            }, {
                                 "type": "textbox",
                                 "key": "atLeast",
                                 "label": tui.str("form.at.least"),
@@ -7121,28 +7200,6 @@ var tui;
                                 "validation": [
                                     { "format": "*digital", "message": tui.str("message.invalid.value") }
                                 ]
-                            }, {
-                                "type": "options",
-                                "key": "align",
-                                "label": tui.str("form.align"),
-                                "value": this.define.align === "vertical" ? "vertical" : "normal",
-                                "options": [
-                                    { "value": "normal", "text": tui.str("normal") },
-                                    { "value": "vertical", "text": tui.str("vertical") }
-                                ],
-                                "atMost": 1,
-                                "newline": true
-                            }, {
-                                "type": "textarea",
-                                "maxHeight": 300,
-                                "key": "options",
-                                "label": tui.str("form.options"),
-                                "description": tui.str("form.option.group.desc"),
-                                "value": FormOptions.optionsToText(this.define.options),
-                                "validation": [
-                                    { "format": "*any", "message": tui.str("message.cannot.be.empty") }
-                                ],
-                                "size": 6
                             }
                         ]
                     }];
@@ -7197,8 +7254,12 @@ var tui;
             function FormSelect(form, define) {
                 var _this = _super.call(this, form, define, "select") || this;
                 _this._widget.on("change", function (e) {
+                    _this._notifyBar.innerHTML = "";
                     form.fire("itemvaluechanged", { control: _this });
                 });
+                _this._notifyBar = tui.elem("div");
+                _this._notifyBar.className = "tui-form-notify-bar";
+                _this.div.appendChild(_this._notifyBar);
                 return _this;
             }
             FormSelect.selectionToText = function (selection) {
@@ -7251,12 +7312,12 @@ var tui;
                     s = s.trim();
                     var pos = s.indexOf(":");
                     if (pos < 0) {
-                        return { value: s, name: s };
+                        return { value: s, name: s, check: false };
                     }
                     else {
                         var value = s.substring(0, pos).trim();
                         var name = s.substring(pos + 1).trim();
-                        return { value: value, name: name };
+                        return { value: value, name: name, check: false };
                     }
                 }
                 function toTree(list) {
@@ -7321,12 +7382,39 @@ var tui;
             };
             FormSelect.prototype.update = function () {
                 _super.prototype.update.call(this);
+                this._widget._set("multiSelect", this.define.atMost != 1);
+                this._widget._set("clearable", !this.define.atLeast || parseInt(this.define.atLeast + "") <= 0);
+                this._widget._set("canSearch", !!this.define.canSearch);
+                this._notifyBar.innerHTML = "";
             };
             FormSelect.prototype.getProperties = function () {
                 return [{
                         name: tui.str("form.selection"),
                         properties: [
                             {
+                                "type": "textarea",
+                                "key": "selection",
+                                "maxHeight": 400,
+                                "label": tui.str("form.options"),
+                                "description": tui.str("form.selection.desc"),
+                                "value": FormSelect.selectionToText(this.define.selection),
+                                "validation": [
+                                    { "format": "*any", "message": tui.str("message.cannot.be.empty") }
+                                ],
+                                "size": 6
+                            }, {
+                                "type": "options",
+                                "key": "canSearch",
+                                "label": tui.str("form.use.search"),
+                                "value": this.define.canSearch ? "true" : "false",
+                                "options": [
+                                    { "value": "true", "text": tui.str("form.enable") },
+                                    { "value": "false", "text": tui.str("form.disable") }
+                                ],
+                                "size": 2,
+                                "atMost": 1,
+                                "newline": true
+                            }, {
                                 "type": "textbox",
                                 "key": "atLeast",
                                 "label": tui.str("form.at.least"),
@@ -7342,17 +7430,6 @@ var tui;
                                 "validation": [
                                     { "format": "*digital", "message": tui.str("message.invalid.value") }
                                 ]
-                            }, {
-                                "type": "textarea",
-                                "key": "selection",
-                                "maxHeight": 400,
-                                "label": tui.str("form.selection"),
-                                "description": tui.str("form.selection.desc"),
-                                "value": FormSelect.selectionToText(this.define.selection),
-                                "validation": [
-                                    { "format": "*any", "message": tui.str("message.cannot.be.empty") }
-                                ],
-                                "size": 6
                             }
                         ]
                     }];
@@ -7362,6 +7439,7 @@ var tui;
                 this.define.atLeast = values.atLeast > 0 ? parseInt(values.atLeast) : null;
                 this.define.atMost = values.atMost > 0 ? parseInt(values.atMost) : null;
                 this.define.selection = FormSelect.textToSelection(values.selection);
+                this.define.canSearch = tui.text.parseBoolean(values.canSearch);
             };
             FormSelect.prototype.getValue = function (cal) {
                 if (cal === void 0) { cal = null; }
@@ -7393,16 +7471,52 @@ var tui;
                     }
                 }
                 this._widget._set("tree", data);
+                this.define.value = this._widget.get("value");
                 return this._widget.get("value");
             };
             FormSelect.prototype.validate = function () {
-                return this._widget.validate();
+                var count;
+                if (this.define.value instanceof Array) {
+                    count = this.define.value.length;
+                }
+                else if (this.define.value) {
+                    count = 1;
+                }
+                else {
+                    count = 0;
+                }
+                if (this.define.atLeast) {
+                    var atLeast = parseInt(this.define.atLeast + "");
+                    if (count < atLeast) {
+                        this._notifyBar.innerHTML = tui.browser.toSafeText(tui.strp("form.at.least.p", atLeast));
+                        return false;
+                    }
+                }
+                if (this.define.atMost) {
+                    var atMost = parseInt(this.define.atMost + "");
+                    if (count > atMost) {
+                        this._notifyBar.innerHTML = tui.browser.toSafeText(tui.strp("form.at.most.p", atMost));
+                        return false;
+                    }
+                }
+                return true;
             };
             return FormSelect;
         }(BasicFormControl));
         FormSelect.icon = "fa-toggle-down";
         FormSelect.desc = "form.selection";
         FormSelect.order = 4;
+        FormSelect.init = {
+            "atMost": 1,
+            "selection": [{
+                    "condition": null,
+                    "data": [
+                        { "value": "A", "name": "A", "check": false },
+                        { "value": "B", "name": "B", "check": false },
+                        { "value": "C", "name": "C", "check": false }
+                    ]
+                }]
+        };
         widget.Form.register("select", FormSelect);
         var FormDatePicker = (function (_super) {
             __extends(FormDatePicker, _super);
@@ -8130,7 +8244,7 @@ var tui;
                     }
                     else if ($(obj).hasClass("tui-grid-check")) {
                         var column = _this.get("columns")[target.col];
-                        var checkKey = column.checkKey ? column.checkKey : "checked";
+                        var checkKey = column.checkKey ? column.checkKey : "check";
                         var checked;
                         if (_this.get("dataType") === "tree") {
                             checked = data.get(target.line).item[checkKey] = !data.get(target.line).item[checkKey];
@@ -8485,20 +8599,20 @@ var tui;
                 }
                 else if (dataType === "tree" && data._finalData) {
                     var list = data;
-                    for (var i_1 = 0; i_1 < list.length(); i_1++) {
-                        if (list.get(i_1).item[dataKey] === value) {
-                            this._set("activeRow", i_1);
-                            this.scrollTo(i_1);
+                    for (var i_3 = 0; i_3 < list.length(); i_3++) {
+                        if (list.get(i_3).item[dataKey] === value) {
+                            this._set("activeRow", i_3);
+                            this.scrollTo(i_3);
                             break;
                         }
                     }
                 }
                 else {
                     var list = data;
-                    for (var i_2 = 0; i_2 < list.length(); i_2++) {
-                        if (list.get(i_2)[dataKey] === value) {
-                            this._set("activeRow", i_2);
-                            this.scrollTo(i_2);
+                    for (var i_4 = 0; i_4 < list.length(); i_4++) {
+                        if (list.get(i_4)[dataKey] === value) {
+                            this._set("activeRow", i_4);
+                            this.scrollTo(i_4);
                             break;
                         }
                     }
@@ -8901,15 +9015,15 @@ var tui;
                     }
                 }
                 var cssText = "";
-                for (var i_3 = 0; i_3 < columns.length; i_3++) {
-                    cssText += (".tui-grid-" + this._tuid + "-" + i_3 + "{width:" + vval(columns[i_3].width) + "px;}");
+                for (var i_5 = 0; i_5 < columns.length; i_5++) {
+                    cssText += (".tui-grid-" + this._tuid + "-" + i_5 + "{width:" + vval(columns[i_5].width) + "px;}");
                 }
                 if (document.createStyleSheet)
                     this._gridStyle.cssText = cssText;
                 else
                     this._gridStyle.innerHTML = cssText;
-                for (var i_4 = 0; i_4 < this._buffer.lines.length; i_4++) {
-                    var line = this._buffer.lines[i_4];
+                for (var i_6 = 0; i_6 < this._buffer.lines.length; i_6++) {
+                    var line = this._buffer.lines[i_6];
                     line.style.width = this._contentWidth + "px";
                 }
             };
