@@ -125,12 +125,13 @@ module tui.widget {
 				ym.className = "tui-ym";
 				ym.setAttribute("colSpan", "2");
 				bar.insertCell(-1).className = "tui-ny";
-				for (var i = 0; i < 3; i++) {
+				for (let i = 0; i < 3; i++) {
 					var line = <HTMLTableRowElement>tb.insertRow(-1);
-					for (var j = 0; j < 4; j++) {
-						var cell = <HTMLTableCellElement>line.insertCell(-1);
+					for (let j = 0; j < 4; j++) {
+						let cell = <HTMLTableCellElement>line.insertCell(-1);
 						cell.className = "tui-month";
-						cell.innerHTML = tui.str(time.shortMonths[(i + 1) * (j + 1) - 1]);
+						let m = i * 4 + j;
+						cell.innerHTML = tui.str(time.shortMonths[m]);
 					}
 				}
 			} else {
@@ -387,17 +388,30 @@ module tui.widget {
 
 		render() {
 			this.makeTable();
-			if (!this._monthOnly) {
-				var tb = <HTMLTableElement>this._components["table"];
-				var tm = <Date>this.get("time");
-				var today = time.now();
+			var tb = <HTMLTableElement>this._components["table"];
+			var tm = <Date>this.get("time");
+			var today = time.now();
+			if (this._monthOnly) {
+				(<HTMLTableRowElement>tb.rows[0]).cells[1].innerHTML = tm.getFullYear() + "";
+				for (var i = 0; i < 3; i++) {
+					for (var j = 0; j < 4; j++) {
+						let cell = <HTMLElement>(<HTMLTableRowElement>tb.rows[i + 1]).cells[j];
+						let m = i * 4 + j + 1;
+						if (m == this.get("month")) {
+							browser.addClass(cell, "tui-actived");
+						} else {
+							browser.removeClass(cell, "tui-actived");
+						}
+					}
+				}
+			} else {			
 				var firstWeek = firstDay(tm).getDay();
 				var daysOfMonth = time.totalDaysOfMonth(tm);
 				var day = 0;
 				(<HTMLTableRowElement>tb.rows[0]).cells[2].innerHTML = tm.getFullYear() + " - " + this.get("month");
-				for (var i = 0; i < 6; i++) {
-					for (var j = 0; j < 7; j++) {
-						var cell: HTMLTableCellElement = <HTMLTableCellElement>(<HTMLTableRowElement>tb.rows[i + 2]).cells[j];
+				for (let i = 0; i < 6; i++) {
+					for (let j = 0; j < 7; j++) {
+						let cell: HTMLTableCellElement = <HTMLTableCellElement>(<HTMLTableRowElement>tb.rows[i + 2]).cells[j];
 						cell.className = "";
 						if (day === 0) {
 							if (j === firstWeek) {

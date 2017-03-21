@@ -104,13 +104,22 @@ module tui.widget {
 					"get": (): any => {
 						return (<Date>this.get("time")).getSeconds();
 					}
+				},
+				"mode": {
+					"set": (value: any): void => {
+						if (["date", "date-time", "month", "time"].indexOf(value) >= 0 )
+							this._data["mode"] = value;
+					},
+					"get": (): any => {
+						return this._data["mode"] ? this._data["mode"] : "date";
+					}
 				}
 			});
 		}
 
 		private _monthOnly: boolean;
 		protected makeTable() {
-			var monthOnly = !!this.get("monthOnly");
+			var monthOnly = (this.get("mode") === "month");
 			if (this._monthOnly === monthOnly)
 				return;
 
@@ -132,6 +141,7 @@ module tui.widget {
 						cell.className = "tui-month";
 						let m = i * 4 + j;
 						cell.innerHTML = tui.str(time.shortMonths[m]);
+						cell.setAttribute("month", m + 1 + "");
 					}
 				}
 			} else {
@@ -168,8 +178,17 @@ module tui.widget {
 			this._monthOnly = null;
 			
 			var timebar = this._components["timeBar"] = <HTMLTableElement>browser.toElement(
-				"<div unselectable='on'>" + tui.str("Choose Time") + ":<input name='hours' maxLength='2'>:<input name='minutes' maxLength='2'>:<input name='seconds' maxLength='2'>" +
-				"<a class='tui-update'></a></div>");
+`<div class="tui-calendar-timebar" unselectable='on'>
+<div><span name='hours-plus' class='plus' tabIndex='0' ></span>
+<input name='hours' maxLength='2'>
+<span name='hours-minus' class='minus' tabIndex='0'></span>
+</div> : <div><span name='minutes-plus' class='plus' tabIndex='0'></span>
+<input name='minutes' maxLength='2'>
+<span name='minutes-minus' class='minus' tabIndex='0'></span>
+</div> : <div><span name='seconds-plus' class='plus' tabIndex='0'></span>
+<input name='seconds' maxLength='2'>
+<span name='seconds-minus' class='minus' tabIndex='0'></span></div>
+<a class='tui-update'></a></div>`);
 			this._.appendChild(timebar);
 			
 			function getMaxValue(name: string): number {
@@ -181,7 +200,7 @@ module tui.widget {
 			
 			var getInputTime = () => {
 				function getInput(index:number): any {
-					return $(timebar).children("input")[index];
+					return $(timebar).find("input")[index];
 				}
 				var tm = <Date>this.get("time");
 				tm.setHours(parseInt(getInput(0).value));
@@ -189,6 +208,22 @@ module tui.widget {
 				tm.setSeconds(parseInt(getInput(2).value));
 				this.set("time", tm);
 			};
+
+			function plus(o$: JQuery, input: HTMLInputElement) {
+				let max = getMaxValue(o$.attr("name"));
+				let v = parseInt(input.value) + 1;
+				if (v > max) v = 0;
+				input.value = formatNumber(v, max);
+				getInputTime();
+			}
+
+			function minus(o$: JQuery, input: HTMLInputElement) {
+				let max = getMaxValue(o$.attr("name"));
+				let v = parseInt(input.value) - 1;
+				if (v < 0) v = max;
+				input.value = formatNumber(v, max);
+				getInputTime();
+			}
 			
 			var timebar$ = $(timebar);
 			timebar$.keydown((e) => {
@@ -203,27 +238,19 @@ module tui.widget {
 					var input = <HTMLInputElement>o;
 					if (k === browser.KeyCode.LEFT) {
 						if (o$.attr("name") === "seconds")
-							timebar$.children("input[name=minutes]").focus();
+							timebar$.find("input[name=minutes]").focus();
 						else if (o$.attr("name") === "minutes")
-							timebar$.children("input[name=hours]").focus();
+							timebar$.find("input[name=hours]").focus();
 					} else if (k === browser.KeyCode.RIGHT) {
 						if (o$.attr("name") === "hours")
-							timebar$.children("input[name=minutes]").focus();
+							timebar$.find("input[name=minutes]").focus();
 						else if (o$.attr("name") === "minutes")
-							timebar$.children("input[name=seconds]").focus();
+							timebar$.find("input[name=seconds]").focus();
 					} else if (k === browser.KeyCode.UP) {
-						let max = getMaxValue(o$.attr("name"));
-						let v = parseInt(input.value) + 1;
-						if (v > max) v = 0;
-						input.value = formatNumber(v, max);
-						getInputTime();
+						plus(o$, input);
 						input.select();
 					} else if (k === browser.KeyCode.DOWN) {
-						let max = getMaxValue(o$.attr("name"));
-						let v = parseInt(input.value) - 1;
-						if (v < 0) v = max;
-						input.value = formatNumber(v, max);
-						getInputTime();
+						minus(o$, input);
 						input.select();
 					} else if (k >= browser.KeyCode.KEY_0 && k <= browser.KeyCode.KEY_9) {
 						let max = getMaxValue(o$.attr("name"));
@@ -240,12 +267,50 @@ module tui.widget {
 						this.fire("click", {e:e,  "time": this.get("time"), "type": "pick" });
 				} 
 			});
-			
-			timebar$.children("input").on("focus mousedown mouseup", function(e){
+
+			timebar$.on("mousedown", (e) => {
 				var o = <any>(e.srcElement || e.target);
+				if (o.nodeName.toLowerCase() === "span") {
+					var name = o.getAttribute("name");
+					var arr = name.split("-");
+					var o$ = timebar$.find("input[name=" + arr[0] + "]");
+					var input = <HTMLInputElement>o$[0];
+					var timer: number = null;
+					var beginner: number = null;
+					if (arr[1] == "plus") {
+						plus(o$, input);
+						beginner = setTimeout(function(){
+							timer = setInterval(function(){
+								plus(o$, input);
+							}, 100);
+						}, 500);
+						openDragMask(null, function(){
+							clearTimeout(beginner);
+							clearInterval(timer);
+						});
+					} else {
+						minus(o$, input);
+						beginner = setTimeout(function(){
+							timer = setInterval(function(){
+								minus(o$, input);
+							}, 100);
+						}, 500);
+						openDragMask(null, function(){
+							clearTimeout(beginner);
+							clearInterval(timer);
+						});
+					}
+				}
+			});
+			
+			timebar$.find("input").on("focus mousedown mouseup", function(e){
+				var o = <any>(e.srcElement || e.target);
+				o.focus();
+				o.select();
+				e.preventDefault();
 				setTimeout(function (){
 					o.select();
-				},0);
+				});
 			}).on("contextmenu", function(e){e.preventDefault();});
 			timebar$.children("a").mousedown((e) => {
 				let now = time.now();
@@ -263,7 +328,7 @@ module tui.widget {
 				if (tui.ffVer > 0) {
 					setTimeout(() => { this._.focus(); });
 				}
-				var cell = <any>(e.target || e.srcElement);
+				var cell = <HTMLElement>(e.target || e.srcElement);
 				if (cell.nodeName.toLowerCase() !== "td")
 					return;
 				if ($(cell).hasClass("tui-pm")) {
@@ -274,10 +339,10 @@ module tui.widget {
 					this.nextYear();
 				} else if ($(cell).hasClass("tui-nm")) {
 					this.nextMonth();
-				} else if (typeof cell["offsetMonth"] === "number") {
-					var d = parseInt(cell.innerHTML, 10);
-					var y = this.get("year"), m = this.get("month");
-					var offset: number = cell["offsetMonth"];
+				} else if (typeof (<any>cell)["offsetMonth"] === "number") {
+					let d = parseInt(cell.innerHTML, 10);
+					let y = this.get("year"), m = this.get("month");
+					let offset: number = (<any>cell)["offsetMonth"];
 					if (offset < 0) {
 						if (m === 1) {
 							y--;
@@ -297,12 +362,16 @@ module tui.widget {
 					} else if (offset === 0) {
 						this.onPicked(y, m, d);
 					}
+				} else if (cell.hasAttribute("month")) {
+					let y = this.get("year");
+					let m = parseInt(cell.getAttribute("month"));
+					this.onPicked(y, m, 1);
 				}
 			}).click( (e: JQueryEventObject) => {
 				var cell = <any>(e.target || e.srcElement);
 				if (cell.nodeName.toLowerCase() !== "td")
 					return;
-				if (typeof cell["offsetMonth"] === "number") 
+				if (typeof cell["offsetMonth"] === "number" || cell.hasAttribute("month")) 
 					this.fire("click", {e:e, "time": this.get("time"), "type": "pick"});
 				else if(/^(tui-pm|tui-py|tui-nm|tui-ny)$/.test(cell.className))
 					this.fire("click", {e:e, "time": this.get("time"), "type": "change"});
@@ -310,28 +379,55 @@ module tui.widget {
 				var cell = <any>(e.target || e.srcElement);
 				if (cell.nodeName.toLowerCase() !== "td")
 					return;
-				if (typeof cell["offsetMonth"] === "number")
+				if (typeof cell["offsetMonth"] === "number" || cell.hasAttribute("month"))
 					this.fire("dblclick", {e:e, "time": this.get("time")});
 			});
 			$(this._).keydown( (e) => {
 				var k = e.keyCode;
+				var tm: Date;
 				if ([13, 33, 34, 37, 38, 39, 40].indexOf(k) >= 0) {
-					if (k === 37) {
-						var tm = time.dateAdd(this.get("time"), -1);
+					if (k === 37) { // LEFT
+						if (this._monthOnly) {
+							tm = time.dateAdd(this.get("time"), -1, "M");
+						} else {
+							tm = time.dateAdd(this.get("time"), -1);
+						}
 						this.set("time", tm);
-					} else if (k === 38) {
-						var tm = time.dateAdd(this.get("time"), -7);
+					} else if (k === 38) { // UP
+						if (this._monthOnly) {
+							tm = time.dateAdd(this.get("time"), -4, "M");
+						} else {
+							var tm = time.dateAdd(this.get("time"), -7);
+						}
 						this.set("time", tm);
-					} else if (k === 39) {
-						var tm = time.dateAdd(this.get("time"), 1);
+					} else if (k === 39) { // RIGHT
+						if (this._monthOnly) {
+							tm = time.dateAdd(this.get("time"), 1, "M");
+						} else {
+							tm = time.dateAdd(this.get("time"), 1);
+						}
 						this.set("time", tm);
-					} else if (k === 40) {
-						var tm = time.dateAdd(this.get("time"), 7);
+					} else if (k === 40) { // DOWN
+						if (this._monthOnly) {
+							tm = time.dateAdd(this.get("time"), 4, "M");
+						} else {
+							tm = time.dateAdd(this.get("time"), 7);
+						}
 						this.set("time", tm);
-					} else if (k === 33) {
-						this.prevMonth();
-					} else if (k === 34) {
-						this.nextMonth();
+					} else if (k === 33) { // PRIOR PAGE_UP
+						if (this._monthOnly) {
+							tm = time.dateAdd(this.get("time"), -1, "y");
+						} else {
+							tm = time.dateAdd(this.get("time"), -1, "M");
+						}
+						this.set("time", tm);
+					} else if (k === 34) { // NEXT PAGE_DOWN
+						if (this._monthOnly) {
+							tm = time.dateAdd(this.get("time"), 1, "y");
+						} else {
+							tm = time.dateAdd(this.get("time"), 1, "M");
+						}
+						this.set("time", tm);
 					} else if (k === 13) {
 						this.fire("click", {e:e, "time": this.get("time"), "type": "pick"});
 					}
@@ -391,66 +487,72 @@ module tui.widget {
 			var tb = <HTMLTableElement>this._components["table"];
 			var tm = <Date>this.get("time");
 			var today = time.now();
-			if (this._monthOnly) {
-				(<HTMLTableRowElement>tb.rows[0]).cells[1].innerHTML = tm.getFullYear() + "";
-				for (var i = 0; i < 3; i++) {
-					for (var j = 0; j < 4; j++) {
-						let cell = <HTMLElement>(<HTMLTableRowElement>tb.rows[i + 1]).cells[j];
-						let m = i * 4 + j + 1;
-						if (m == this.get("month")) {
-							browser.addClass(cell, "tui-actived");
-						} else {
-							browser.removeClass(cell, "tui-actived");
+			var mode = this.get("mode");
+			if (mode !== "time") {
+				if (this._monthOnly) {
+					(<HTMLTableRowElement>tb.rows[0]).cells[1].innerHTML = tm.getFullYear() + " - " + this.get("month");
+					for (var i = 0; i < 3; i++) {
+						for (var j = 0; j < 4; j++) {
+							let cell = <HTMLElement>(<HTMLTableRowElement>tb.rows[i + 1]).cells[j];
+							let m = i * 4 + j + 1;
+							if (m == this.get("month")) {
+								browser.addClass(cell, "tui-actived");
+							} else {
+								browser.removeClass(cell, "tui-actived");
+							}
+						}
+					}
+				} else {			
+					var firstWeek = firstDay(tm).getDay();
+					var daysOfMonth = time.totalDaysOfMonth(tm);
+					var day = 0;
+					(<HTMLTableRowElement>tb.rows[0]).cells[2].innerHTML = tm.getFullYear() + " - " + this.get("month");
+					for (let i = 0; i < 6; i++) {
+						for (let j = 0; j < 7; j++) {
+							let cell: HTMLTableCellElement = <HTMLTableCellElement>(<HTMLTableRowElement>tb.rows[i + 2]).cells[j];
+							cell.className = "";
+							if (day === 0) {
+								if (j === firstWeek) {
+									day = 1;
+									(<HTMLTableCellElement>cell).innerHTML = day + "";
+									(<any>cell).offsetMonth = 0;
+								} else {
+									var preMonthDay = new Date(firstDay(tm).valueOf() - ((firstWeek - j) * 1000 * 24 * 60 * 60));
+									(<HTMLTableCellElement>cell).innerHTML = preMonthDay.getDate() + "";
+									(<any>cell).offsetMonth = -1;
+									$(cell).addClass("tui-before");
+								}
+							} else {
+								day++;
+								if (day <= daysOfMonth) {
+									cell.innerHTML = day + "";
+									(<any>cell).offsetMonth = 0;
+								} else {
+									cell.innerHTML = (day - daysOfMonth) + "";
+									(<any>cell).offsetMonth = 1;
+									$(cell).addClass("tui-after");
+								}
+							}
+							if (day === this.get("day"))
+								$(cell).addClass("tui-actived");
+							if (j === 0 || j === 6)
+								$(cell).addClass("tui-weekend");
+							if (this.get("year") === today.getFullYear() && this.get("month") === (today.getMonth() + 1) && day === today.getDate()) {
+								$(cell).addClass("tui-today");
+							}
 						}
 					}
 				}
-			} else {			
-				var firstWeek = firstDay(tm).getDay();
-				var daysOfMonth = time.totalDaysOfMonth(tm);
-				var day = 0;
-				(<HTMLTableRowElement>tb.rows[0]).cells[2].innerHTML = tm.getFullYear() + " - " + this.get("month");
-				for (let i = 0; i < 6; i++) {
-					for (let j = 0; j < 7; j++) {
-						let cell: HTMLTableCellElement = <HTMLTableCellElement>(<HTMLTableRowElement>tb.rows[i + 2]).cells[j];
-						cell.className = "";
-						if (day === 0) {
-							if (j === firstWeek) {
-								day = 1;
-								(<HTMLTableCellElement>cell).innerHTML = day + "";
-								(<any>cell).offsetMonth = 0;
-							} else {
-								var preMonthDay = new Date(firstDay(tm).valueOf() - ((firstWeek - j) * 1000 * 24 * 60 * 60));
-								(<HTMLTableCellElement>cell).innerHTML = preMonthDay.getDate() + "";
-								(<any>cell).offsetMonth = -1;
-								$(cell).addClass("tui-before");
-							}
-						} else {
-							day++;
-							if (day <= daysOfMonth) {
-								cell.innerHTML = day + "";
-								(<any>cell).offsetMonth = 0;
-							} else {
-								cell.innerHTML = (day - daysOfMonth) + "";
-								(<any>cell).offsetMonth = 1;
-								$(cell).addClass("tui-after");
-							}
-						}
-						if (day === this.get("day"))
-							$(cell).addClass("tui-actived");
-						if (j === 0 || j === 6)
-							$(cell).addClass("tui-weekend");
-						if (this.get("year") === today.getFullYear() && this.get("month") === (today.getMonth() + 1) && day === today.getDate()) {
-							$(cell).addClass("tui-today");
-						}
-					}
-				}
+				tb.style.display = "";
+			} else {
+				tb.style.display = "none";
 			}
 			var timebar = <HTMLElement>this._components["timeBar"];
-			if (this.get("timeBar") && !this._monthOnly) {
+			if (mode === "date-time" || mode === "time") {
 				timebar.style.display = "";
-				$(timebar).children("input[name=hours]").val(formatNumber(tm.getHours(), 23));
-				$(timebar).children("input[name=minutes]").val(formatNumber(tm.getMinutes(), 59));
-				$(timebar).children("input[name=seconds]").val(formatNumber(tm.getSeconds(), 59));
+				$(timebar).find("input[name=hours]").val(formatNumber(tm.getHours(), 23));
+				$(timebar).find("input[name=minutes]").val(formatNumber(tm.getMinutes(), 59));
+				$(timebar).find("input[name=seconds]").val(formatNumber(tm.getSeconds(), 59));
 			} else {
 				timebar.style.display = "none";
 			}

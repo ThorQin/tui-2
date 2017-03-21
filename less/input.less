@@ -98,7 +98,7 @@ tui\:input {
 		color: @textColor;
 		&:focus {
 			-webkit-tap-highlight-color: transparent;
-    		-webkit-user-modify:read-write-plaintext-only; 
+    	-webkit-user-modify:read-write-plaintext-only; 
 		}
 		&:-ms-clear {
 			display: none;
@@ -159,6 +159,7 @@ tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		cursor: pointer;
+		white-space: pre;
 	}
 	i {
 		cursor: pointer;

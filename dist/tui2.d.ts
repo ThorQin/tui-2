@@ -57,6 +57,7 @@ declare module tui.browser {
     function toHTML(node: NodeList): string;
     function toHTML(node: Node[]): string;
     function toHTML(node: Node): string;
+    function hasClass(elem: HTMLElement, className: string): boolean;
     function addClass(elem: HTMLElement, classNames: string): void;
     function removeClass(elem: HTMLElement, classNames: string): void;
     function removeNode(node: Node): void;

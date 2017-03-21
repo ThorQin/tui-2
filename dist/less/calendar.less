@@ -93,32 +93,69 @@ tui\:calendar {
 	.tui-month {
 		font-size:12px;
 	}
-	>div {
-		margin-top: 6px;
+	>div.tui-calendar-timebar {
+		margin-top: 2px;
 		font-family: Microsoft Yahei;
-		font-size:14px;
+		font-size:20px;
 		font-weight: bold;
 		padding:2px 2px;
 		text-align:center;
-		color:#aaa;
-		>input {
-			border:0;
-			background-color: transparent;
-			padding: 0px 4px;
-			margin:0px;
-			width:18px;
+		color: #bbb;
+		height: 100px;
+		line-height: 100px;
+
+		>div {
+			display: inline-block;
+			width: 50px;
 			vertical-align: middle;
+		}	
+
+		input {
+			display: block;
+			width: 100%;
+			box-sizing: border-box; /* css3 rec */
+			-moz-box-sizing: border-box; /* ff2 */
+			-ms-box-sizing: border-box; /* ie8 */
+			-webkit-box-sizing: border-box; /* safari3 */
+			-khtml-box-sizing: border-box; /* konqueror */
+			border:0;
+			height: 36px;
+			line-height: 36px;
+			font-size: 22px;
+			background-color: transparent;
+			margin:0px;
 			text-align: center;
 			outline:none;
+			color: #424242;
+		}
+
+		span {
+			.icon-base();
+			display: block;
+			height: 20px;
+			line-height: 20px;
+			font-size: 15px;
+			border: 1px solid #ddd;
+			cursor: pointer;
+			&.plus:before {
+				.fa-angle-up();
+			}
+			&.minus:before {
+				.fa-angle-down();
+			}
+			&:hover {
+				background-color: #eee;
+			}
 		}
 		>a {
 			font-weight:normal;
 			cursor:pointer;
 			margin-left:5px;
+			.icon-base();
+			font-size: 20px;
 			&:before {
 				padding:0px 5px;
 				display:inline-block;
-				.icon();
 				.fa-refresh;
 			}
 		}

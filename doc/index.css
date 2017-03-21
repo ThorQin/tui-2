@@ -114,7 +114,9 @@ code[class] {
 	border-bottom: 1px solid #ccc;
 }
 
-
+tui\:date-picker.big {
+	width: 250px;
+}
 
 @media (max-width: 780px) {
 	#navi {
@@ -144,12 +146,15 @@ code[class] {
 		display: block;
 		margin-top: 10px;
 		margin-top: 10px;
-		width: inherit;
+		width: auto;
 	}
 	tui\:calendar {
 		/*width: 231px;*/
 		display: block;
 		margin: 0 auto;
+	}
+	tui\:date-picker.big {
+		width: auto;
 	}
 	
 	h1 {

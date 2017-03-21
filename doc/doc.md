@@ -613,13 +613,26 @@ HTML代码：
 <tui:date-picker placeholder="选择日期"></tui:date-picker>
 ```
 
-<tui:date-picker placeholder="选择日期和时间" format="yyyy-MM-dd hh:mm:ss" time-bar={true}></tui:date-picker>
+<tui:date-picker id="testDate" placeholder="选择日期和时间" mode="date-time" class="big"></tui:date-picker>
 
 HTML代码：
 
 ```html
-<tui:date-picker placeholder="选择日期和时间" 
-  format="yyyy-MM-dd hh:mm:ss" time-bar={true}>
+<tui:date-picker placeholder="选择日期和时间" mode="date-time">
+</tui:date-picker>
+```
+
+<tui:date-picker placeholder="选择年月"  mode="month"></tui:date-picker>
+
+```html
+<tui:date-picker placeholder="选择年月" mode="month">
+</tui:date-picker>
+```
+
+<tui:date-picker placeholder="选择时间"  mode="time"></tui:date-picker>
+
+```html
+<tui:date-picker placeholder="选择时间" mode="time">
 </tui:date-picker>
 ```
 
@@ -628,16 +641,16 @@ HTML代码：
 属性名 | 描述
 --- | ---
 format | 显示的日期格式
-time-bar | boolean, 是否显示时间输入框
+mode | 日期类型（date, date-time, time, month），如果没有设置 format 的话，不同的 mode 会设置不同的缺省 format
 
 ## [](fa-calendar) 日历`(calendar)`
 外观：
-<tui:calendar time-bar="{true}" style="display:block;"></tui:calendar>
+<tui:calendar mode="date-time" style="display:block;"></tui:calendar>
 
 HTML代码：
 
 ```html
-<tui:calendar time-bar="{true}" style="display:block;"></tui:calendar>
+<tui:calendar mode="date-time" style="display:block;"></tui:calendar>
 ```
 事件
 
