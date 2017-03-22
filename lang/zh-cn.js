@@ -126,5 +126,18 @@ tui.dict("zh-cn", {
     "form.display": "显示",
     "form.invisible": "不可见",
     "form.visible": "可见",
-    "form.max.height": "最大高度"
+    "form.max.height": "最大高度",
+    "form.date": "日期",
+    "form.date.time": "日期时间",
+    "form.time": "时间",
+    "form.month": "年月",
+    "form.custom.format": "自定义格式",
+    "form.date.desc": "比如: 'yyyy-MM-dd HH:mm:sszz' 或 'dd MMM yy hh:mm:ss A' 等。",
+    "form.timezone": "时区",
+    "form.tz.utc": "UTC",
+    "form.tz.locale": "本地",
+    "form.tz.none": "无",
+    "form.upload.url": "上传地址",
+    "form.file.type": "文件类型",
+    "message.must.be.image": "必须是合法的图片 MIME 类型"
 });

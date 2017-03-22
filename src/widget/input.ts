@@ -74,9 +74,11 @@ module tui.widget {
 			
 			$(textbox).focus(() => {
 				$root.addClass("tui-active");
+				this.render();
 			});
 			$(textbox).blur(() => {
 				$root.removeClass("tui-active");
+				this.render();
 				if (this.get("disable"))
 					return;
 				if (this.get("autoValidate")) {
@@ -208,7 +210,7 @@ module tui.widget {
 					marginRight = Input.PADDING;
 			}
 
-			if (this.get("clearable") && this.get("value").length > 0) {
+			if (this.get("clearable") && this.get("value").length > 0 && $root.hasClass("tui-active") && !this.get("disable") ) {
 				clearButton.style.display = "";
 				clearButton.style.right = iconRight.offsetWidth + iconInvalid.offsetWidth + "px";  
 			} else {

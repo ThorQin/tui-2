@@ -15,10 +15,44 @@ module tui.widget {
 			this._components["calendar"] = calendar._;
 			super.initRestriction();
 			this.setRestrictions({
+				"time": {
+					"set":  (value: any) => {
+						if (value instanceof Date || typeof value === "string") {
+							calendar.set("time", value);
+							this._data["value"] = calendar.get("value");
+						} else {
+							calendar.set("time", new Date());
+							this._data["value"] = null;
+						}
+					},
+					"get": (): any => {
+						if (!this._data["value"])
+							return null;
+						else
+							return calendar.get("time");
+					}
+				},
+				"value": {
+					"set":  (value: any) => {
+						if (value instanceof Date || typeof value === "string") {
+							calendar.set("value", value);
+							this._data["value"] = calendar.get("value");
+						} else {
+							calendar.set("value", new Date());
+							this._data["value"] = null;
+						}
+					},
+					"get": (): any => {
+						if (!this._data["value"])
+							return null;
+						else
+							return calendar.get("value");
+					}
+				},
 				"text": {
 					"set":  (value: any) => {},
 					"get": (): any => {
-						var value = this.get("value");
+						var value = this.get("time");
 						if (value === null)
 							return "";
 						return time.formatDate(value, this.get("format"));
@@ -42,16 +76,24 @@ module tui.widget {
 						if (this._data["format"])
 							return this._data["format"];
 						else if (mode === "month") {
-							return "yyyy - MM";
+							return "yyyy-MM";
 						} else if (mode === "date-time") {
-							return "yyyy - MM - dd   HH : mm : ss";
+							return "yyyy-MM-dd HH:mm:ss";
 						} else if (mode === "time") {
-							return "HH : mm : ss";
+							return "HH:mm:ss";
 						} else {
-							return "yyyy - MM - dd";
+							return "yyyy-MM-dd";
 						}
 					}
-				}
+				},
+				"timezone": {
+					"set":  (value: any) => {
+						calendar.set("timezone", value);
+					},
+					"get": (): any => {
+						return calendar.get("timezone");
+					}
+				},
 			});
 		}
 		
@@ -66,6 +108,7 @@ module tui.widget {
 			var container = elem("div"); 
 			var toolbar = <HTMLElement>container.appendChild(elem("div"));
 			toolbar.className = "tui-select-toolbar";
+			toolbar.setAttribute("unselectable", "on");
 			container.insertBefore(calendar._, container.firstChild);
 			
 			var popup = <Popup>get(this._components["popup"]);
@@ -87,13 +130,11 @@ module tui.widget {
 				var name = obj.getAttribute("name");
 				if (name === "today") {
 					this.set("value", time.now());
-					calendar.set("value", this.get("value"));
 					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this.closeSelect();
 					this._.focus();
 				} else if (name === "clear") {
 					this.set("value", null);
-					calendar.set("value", this.get("value"));
 					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this.closeSelect();
 					this._.focus();
@@ -114,7 +155,7 @@ module tui.widget {
 			var toolbar = this._components["toolbar"];
 			var todayButton = "<a name='today'>" + tui.str("Today") + "</a>";
 			var okButton = "<a name='ok'>" + tui.str("ok") + "</a>";
-			var clearButton = "<a name='clear'><i class='fa fa-trash-o'></i> " + tui.str("Clear") + "</a>";
+			var clearButton = "<a name='clear'>" + tui.str("Clear") + "</a>";
 			var clearable = this.get("clearable");
 			calendar._.style.outline = "none";
 			toolbar.style.display = "";
@@ -126,7 +167,6 @@ module tui.widget {
 			popup.open(this._, "Lb");
 			setTimeout(() => {
 				calendar._.focus();
-				calendar.set("value", this.get("value"));
 			});
 		}
 	}

@@ -73,5 +73,11 @@ tui.dict("en-us", {
     "form.display": "Display",
     "form.invisible": "Invisible",
     "form.visible": "Visible",
-    "form.max.height": "Max Height"
+    "form.max.height": "Max Height",
+    "form.date": "Date",
+    "form.date.time": "Date And Time",
+    "form.time": "Time",
+    "form.month": "Year And Month",
+    "form.custom.format": "Custom Format",
+    "form.date.desc": "e.g.: 'yyyy-MM-dd HH:mm:sszz' or 'dd MMM yy hh:mm:ss A', etc.."
 });

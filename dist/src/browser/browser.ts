@@ -82,6 +82,18 @@ module tui.browser {
 		return elem.innerHTML;
 	}
 
+	export function hasClass(elem: HTMLElement, className: string) {
+		var oldClass = elem.className;
+		if (oldClass && oldClass.trim() && className && className.trim()) {
+			var oldNames = oldClass.trim().split(/\s+/);
+			for (let n of oldNames) {
+				if (n === className.trim())
+					return true;
+			}
+		}
+		return false;
+	}
+
 	export function addClass(elem: HTMLElement, classNames: string) {
 		var oldClass = elem.className;
 		if (oldClass && oldClass.trim()) {

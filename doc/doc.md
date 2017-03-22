@@ -605,7 +605,7 @@ url | 图片展示的地址
 
 ## [](fa-calendar-o) 日期选择`(datePicker)`
 外观：
-<tui:date-picker placeholder="选择日期"></tui:date-picker>
+<tui:date-picker id="mytest" placeholder="选择日期"></tui:date-picker>
 
 HTML代码：
 

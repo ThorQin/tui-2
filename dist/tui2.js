@@ -358,7 +358,20 @@ tui.dict("en-us", {
     "form.display": "Display",
     "form.invisible": "Invisible",
     "form.visible": "Visible",
-    "form.max.height": "Max Height"
+    "form.max.height": "Max Height",
+    "form.date": "Date",
+    "form.date.time": "Date And Time",
+    "form.time": "Time",
+    "form.month": "Year And Month",
+    "form.custom.format": "Custom Format",
+    "form.date.desc": "e.g.: 'yyyy-MM-dd HH:mm:sszz' or 'dd MMM yy hh:mm:ss A', etc..",
+    "form.timezone": "Timezone",
+    "form.tz.utc": "UTC",
+    "form.tz.locale": "Locale",
+    "form.tz.none": "None",
+    "form.upload.url": "Upload URL",
+    "form.file.type": "File Type",
+    "message.must.be.image": "Must be valid image mime types."
 });
 var tui;
 (function (tui) {
@@ -3966,6 +3979,9 @@ var tui;
                 dt = parseDateInternal(dtStr, "dd MMM yyyy");
                 if (dt !== null)
                     return dt;
+                dt = parseDateInternal(dtStr, "HH:mm:ss");
+                if (dt !== null)
+                    return dt;
             }
             return null;
         }
@@ -4310,10 +4326,9 @@ var tui;
                         "get": function () {
                             var tm = _this._data["time"];
                             if (typeof tm === tui.UNDEFINED || tm === null) {
-                                return _this._data["time"] = tui.time.now();
+                                tm = _this._data["time"] = tui.time.now();
                             }
-                            else
-                                return tm;
+                            return tm;
                         }
                     },
                     "value": {
@@ -4321,7 +4336,37 @@ var tui;
                             _this._set("time", value);
                         },
                         "get": function () {
-                            return _this.get("time");
+                            var tm = _this.get("time");
+                            var md = _this.get("mode");
+                            var tz = _this.get("timezone");
+                            var fmt;
+                            if (md === "date") {
+                                fmt = "yyyy-MM-dd";
+                                if (tz === "utc")
+                                    fmt += "Z";
+                                else if (tz === "locale")
+                                    fmt += "Zzzz";
+                            }
+                            else if (md === "month") {
+                                fmt = "yyyy-MM";
+                                if (tz === "utc")
+                                    fmt += "Z";
+                                else if (tz === "locale")
+                                    fmt += "Zzzz";
+                            }
+                            else if (md === "time") {
+                                fmt = "HH:mm:ss";
+                            }
+                            else {
+                                fmt = "yyyy-MM-ddTHH:mm:ss";
+                                if (tz === "utc")
+                                    fmt += "Z";
+                                else if (tz === "locale")
+                                    fmt += "zzz";
+                                else
+                                    fmt = "yyyy-MM-dd HH:mm:ss";
+                            }
+                            return tui.time.formatDate(tm, fmt);
                         }
                     },
                     "year": {
@@ -4385,6 +4430,15 @@ var tui;
                         },
                         "get": function () {
                             return _this._data["mode"] ? _this._data["mode"] : "date";
+                        }
+                    },
+                    "timezone": {
+                        "set": function (value) {
+                            if (["utc", "locale", "none"].indexOf(value) >= 0)
+                                _this._data["timezone"] = value;
+                        },
+                        "get": function () {
+                            return _this._data["timezone"] ? _this._data["timezone"] : "utc";
                         }
                     }
                 });
@@ -5530,10 +5584,46 @@ var tui;
                 this._components["calendar"] = calendar._;
                 _super.prototype.initRestriction.call(this);
                 this.setRestrictions({
+                    "time": {
+                        "set": function (value) {
+                            if (value instanceof Date || typeof value === "string") {
+                                calendar.set("time", value);
+                                _this._data["value"] = calendar.get("value");
+                            }
+                            else {
+                                calendar.set("time", new Date());
+                                _this._data["value"] = null;
+                            }
+                        },
+                        "get": function () {
+                            if (!_this._data["value"])
+                                return null;
+                            else
+                                return calendar.get("time");
+                        }
+                    },
+                    "value": {
+                        "set": function (value) {
+                            if (value instanceof Date || typeof value === "string") {
+                                calendar.set("value", value);
+                                _this._data["value"] = calendar.get("value");
+                            }
+                            else {
+                                calendar.set("value", new Date());
+                                _this._data["value"] = null;
+                            }
+                        },
+                        "get": function () {
+                            if (!_this._data["value"])
+                                return null;
+                            else
+                                return calendar.get("value");
+                        }
+                    },
                     "text": {
                         "set": function (value) { },
                         "get": function () {
-                            var value = _this.get("value");
+                            var value = _this.get("time");
                             if (value === null)
                                 return "";
                             return tui.time.formatDate(value, _this.get("format"));
@@ -5558,19 +5648,27 @@ var tui;
                             if (_this._data["format"])
                                 return _this._data["format"];
                             else if (mode === "month") {
-                                return "yyyy - MM";
+                                return "yyyy-MM";
                             }
                             else if (mode === "date-time") {
-                                return "yyyy - MM - dd  HH : mm : ss";
+                                return "yyyy-MM-dd HH:mm:ss";
                             }
                             else if (mode === "time") {
-                                return "HH : mm : ss";
+                                return "HH:mm:ss";
                             }
                             else {
-                                return "yyyy - MM - dd";
+                                return "yyyy-MM-dd";
                             }
                         }
-                    }
+                    },
+                    "timezone": {
+                        "set": function (value) {
+                            calendar.set("timezone", value);
+                        },
+                        "get": function () {
+                            return calendar.get("timezone");
+                        }
+                    },
                 });
             };
             DatePicker.prototype.init = function () {
@@ -5585,6 +5683,7 @@ var tui;
                 var container = tui.elem("div");
                 var toolbar = container.appendChild(tui.elem("div"));
                 toolbar.className = "tui-select-toolbar";
+                toolbar.setAttribute("unselectable", "on");
                 container.insertBefore(calendar._, container.firstChild);
                 var popup = widget.get(this._components["popup"]);
                 popup._set("content", container);
@@ -5604,14 +5703,12 @@ var tui;
                     var name = obj.getAttribute("name");
                     if (name === "today") {
                         _this.set("value", tui.time.now());
-                        calendar.set("value", _this.get("value"));
                         _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this.closeSelect();
                         _this._.focus();
                     }
                     else if (name === "clear") {
                         _this.set("value", null);
-                        calendar.set("value", _this.get("value"));
                         _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this.closeSelect();
                         _this._.focus();
@@ -5625,13 +5722,12 @@ var tui;
                 });
             };
             DatePicker.prototype.openSelect = function () {
-                var _this = this;
                 var calendar = widget.get(this._components["calendar"]);
                 var popup = widget.get(this._components["popup"]);
                 var toolbar = this._components["toolbar"];
                 var todayButton = "<a name='today'>" + tui.str("Today") + "</a>";
                 var okButton = "<a name='ok'>" + tui.str("ok") + "</a>";
-                var clearButton = "<a name='clear'><i class='fa fa-trash-o'></i> " + tui.str("Clear") + "</a>";
+                var clearButton = "<a name='clear'>" + tui.str("Clear") + "</a>";
                 var clearable = this.get("clearable");
                 calendar._.style.outline = "none";
                 toolbar.style.display = "";
@@ -5642,7 +5738,6 @@ var tui;
                 popup.open(this._, "Lb");
                 setTimeout(function () {
                     calendar._.focus();
-                    calendar.set("value", _this.get("value"));
                 });
             };
             return DatePicker;
@@ -5686,12 +5781,14 @@ var tui;
                             return _this._uploader.getOptions().accept;
                         }
                     },
-                    "value": {
-                        "set": function (value) {
-                            _this._data["value"] = value;
-                            if (value === null || typeof value === tui.UNDEFINED) {
-                                _this._set("text", "");
-                            }
+                    "text": {
+                        "set": function (value) { },
+                        "get": function () {
+                            var v = _this.get("value");
+                            if (v && v.fileName)
+                                return v.fileName;
+                            else
+                                return "";
                         }
                     }
                 });
@@ -5740,8 +5837,7 @@ var tui;
                     return _this.fire("change", e);
                 });
                 this._uploader.on("success", function (e) {
-                    _this._set("value", e.data.response.fileId);
-                    _this.set("text", e.data.response.fileName);
+                    _this._set("value", e.data.response);
                     _this.fire("success", e);
                 });
                 this._uploader.on("error", function (e) {
@@ -6820,6 +6916,11 @@ var tui;
                 else {
                     this._widget._set("validate", []);
                 }
+                if (this.define.required) {
+                    this._widget._set("clearable", false);
+                }
+                else
+                    this._widget._set("clearable", true);
             };
             BasicFormControl.prototype.isResizable = function () {
                 return true;
@@ -6832,6 +6933,9 @@ var tui;
                 this._widget.set("value", value);
             };
             BasicFormControl.prototype.render = function (designMode) {
+                if (designMode && typeof this._widget.reset === "function") {
+                    this._widget.reset();
+                }
                 this._widget.render();
             };
             return BasicFormControl;
@@ -6990,12 +7094,13 @@ var tui;
                 else {
                     this._widget._set("type", "text");
                 }
-                if (this.define.selection) {
+                if (this.define.selection instanceof Array && this.define.selection.length > 0) {
                     this._widget._set("iconRight", "fa-caret-down");
                 }
                 else {
                     this._widget._set("iconRight", null);
                 }
+                this._widget._set("clearable", true);
             };
             FormTextbox.prototype.getProperties = function () {
                 return [{
@@ -7662,14 +7767,71 @@ var tui;
             function FormDatePicker(form, define) {
                 var _this = _super.call(this, form, define, "date-picker") || this;
                 _this._widget.on("change", function (e) {
+                    _this.define.value = _this.getValue();
                     form.fire("itemvaluechanged", { control: _this });
                 });
                 return _this;
             }
+            FormDatePicker.prototype.update = function () {
+                _super.prototype.update.call(this);
+                this._widget._set("format", this.define.format || null);
+                this._widget._set("mode", /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : null);
+                if (!/^(utc|locale|none)$/.test(this.define.timezone))
+                    this.define.timezone = "utc";
+                this._widget._set("timezone", this.define.timezone);
+            };
             FormDatePicker.prototype.getProperties = function () {
-                throw new Error('Method not implemented.');
+                return [{
+                        name: tui.str("form.datepicker"),
+                        properties: [
+                            {
+                                "type": "options",
+                                "key": "mode",
+                                "label": tui.str("form.format"),
+                                "options": [
+                                    { "value": "date", "text": tui.str("form.date") },
+                                    { "value": "date-time", "text": tui.str("form.date.time") },
+                                    { "value": "time", "text": tui.str("form.time") },
+                                    { "value": "month", "text": tui.str("form.month") }
+                                ],
+                                "atMost": 1,
+                                "value": /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : "date",
+                                "size": 2,
+                                "newline": true
+                            }, {
+                                "type": "options",
+                                "key": "timezone",
+                                "label": tui.str("form.timezone"),
+                                "options": [
+                                    { "value": "utc", "text": tui.str("form.tz.utc") },
+                                    { "value": "locale", "text": tui.str("form.tz.locale") },
+                                    { "value": "none", "text": tui.str("form.tz.none") }
+                                ],
+                                "atMost": 1,
+                                "value": /^(utc|locale|none)$/.test(this.define.timezone) ? this.define.timezone : "utc",
+                                "size": 2,
+                                "newline": true
+                            }, {
+                                "type": "textbox",
+                                "key": "format",
+                                "label": tui.str("form.custom.format"),
+                                "description": tui.str("form.date.desc"),
+                                "value": this.define.format ? this.define.format : null,
+                                "size": 2
+                            }
+                        ]
+                    }];
             };
             FormDatePicker.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                this.define.format = values.format ? values.format : null;
+                this.define.mode = values.mode;
+                if (this.define.required) {
+                    this.define.validation = [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }];
+                }
+                else
+                    this.define.validation = null;
+                this.define.timezone = values.timezone;
             };
             FormDatePicker.prototype.validate = function () {
                 return this._widget.validate();
@@ -7685,37 +7847,130 @@ var tui;
             function FormPicture(form, define) {
                 var _this = _super.call(this, form, define, "picture") || this;
                 _this._widget.on("success", function (e) {
+                    _this._notifyBar.innerHTML = "";
+                    _this.define.value = _this._widget.get("value");
                     form.fire("itemvaluechanged", { control: _this });
                 });
+                _this._notifyBar = tui.elem("div");
+                _this._notifyBar.className = "tui-form-notify-bar";
+                _this.div.appendChild(_this._notifyBar);
                 return _this;
             }
+            FormPicture.prototype.update = function () {
+                _super.prototype.update.call(this);
+                this._notifyBar.innerHTML = "";
+                var rx = new RegExp(FormPicture.MIME);
+                if (rx.test(this.define.accept)) {
+                    this._widget._set("accept", this.define.accept);
+                }
+                else {
+                    this.define.accept = this._widget.get("accept");
+                }
+                if (this.define.action) {
+                    this._widget._set("action", this.define.action);
+                }
+                else {
+                    this.define.action = this._widget.get("action");
+                }
+            };
             FormPicture.prototype.getProperties = function () {
-                throw new Error('Method not implemented.');
+                return [{
+                        name: tui.str("form.picture"),
+                        properties: [
+                            {
+                                "type": "textbox",
+                                "key": "action",
+                                "label": tui.str("form.upload.url"),
+                                "value": this.define.action,
+                                "validation": [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }],
+                                "size": 2,
+                                "newline": true
+                            }, {
+                                "type": "textbox",
+                                "key": "accept",
+                                "label": tui.str("form.file.type"),
+                                "value": this.define.accept,
+                                "validation": [{ "format": FormPicture.MIME, "message": tui.str("message.must.be.image") }],
+                                "size": 2,
+                                "newline": true
+                            }
+                        ]
+                    }];
             };
             FormPicture.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                this.define.accept = values.accept;
+                this.define.action = values.action;
             };
             FormPicture.prototype.validate = function () {
-                return true;
+                if (this.define.required && this.getValue() === null) {
+                    this._notifyBar.innerHTML = tui.browser.toSafeText(tui.str("message.cannot.be.empty"));
+                    return false;
+                }
+                else {
+                    this._notifyBar.innerHTML = "";
+                    return true;
+                }
             };
             return FormPicture;
         }(BasicFormControl));
         FormPicture.icon = "fa-file-image-o";
         FormPicture.desc = "form.picture";
         FormPicture.order = 6;
+        FormPicture.MIME = "^image/(png|jpeg|gif)(\\s*,\\s*image/(png|jpeg|gif))*$";
         widget.Form.register("picture", FormPicture);
         var FormFile = (function (_super) {
             __extends(FormFile, _super);
             function FormFile(form, define) {
                 var _this = _super.call(this, form, define, "file") || this;
                 _this._widget.on("success", function (e) {
+                    _this.define.value = _this._widget.get("value");
                     form.fire("itemvaluechanged", { control: _this });
                 });
                 return _this;
             }
+            FormFile.prototype.update = function () {
+                _super.prototype.update.call(this);
+                this._widget._set("accept", this.define.accept);
+                if (this.define.action) {
+                    this._widget._set("action", this.define.action);
+                }
+                else {
+                    this.define.action = this._widget.get("action");
+                }
+            };
             FormFile.prototype.getProperties = function () {
-                throw new Error('Method not implemented.');
+                return [{
+                        name: tui.str("form.picture"),
+                        properties: [
+                            {
+                                "type": "textbox",
+                                "key": "action",
+                                "label": tui.str("form.upload.url"),
+                                "value": this.define.action,
+                                "validation": [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }],
+                                "size": 2,
+                                "newline": true
+                            }, {
+                                "type": "textbox",
+                                "key": "accept",
+                                "label": tui.str("form.file.type"),
+                                "value": this.define.accept,
+                                "size": 2,
+                                "newline": true
+                            }
+                        ]
+                    }];
             };
             FormFile.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                this.define.accept = values.accept;
+                this.define.action = values.action;
+                if (this.define.required) {
+                    this.define.validation = [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }];
+                }
+                else
+                    this.define.validation = null;
             };
             FormFile.prototype.validate = function () {
                 return this._widget.validate();
@@ -7731,16 +7986,97 @@ var tui;
             function FormFiles(form, define) {
                 var _this = _super.call(this, form, define, "files") || this;
                 _this._widget.on("success", function (e) {
+                    _this._notifyBar.innerHTML = "";
+                    _this.define.value = _this._widget.get("value");
                     form.fire("itemvaluechanged", { control: _this });
                 });
+                _this._notifyBar = tui.elem("div");
+                _this._notifyBar.className = "tui-form-notify-bar";
+                _this.div.appendChild(_this._notifyBar);
                 return _this;
             }
+            FormFiles.prototype.update = function () {
+                _super.prototype.update.call(this);
+                this._notifyBar.innerHTML = "";
+                this._widget._set("accept", this.define.accept);
+                if (this.define.action) {
+                    this._widget._set("action", this.define.action);
+                }
+                else {
+                    this.define.action = this._widget.get("action");
+                }
+            };
             FormFiles.prototype.getProperties = function () {
-                throw new Error('Method not implemented.');
+                return [{
+                        name: tui.str("form.picture"),
+                        properties: [
+                            {
+                                "type": "textbox",
+                                "key": "action",
+                                "label": tui.str("form.upload.url"),
+                                "value": this.define.action,
+                                "validation": [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }],
+                                "size": 2,
+                                "newline": true
+                            }, {
+                                "type": "textbox",
+                                "key": "accept",
+                                "label": tui.str("form.file.type"),
+                                "value": this.define.accept,
+                                "size": 2,
+                                "newline": true
+                            }, {
+                                "type": "textbox",
+                                "key": "atLeast",
+                                "label": tui.str("form.at.least"),
+                                "value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast : "",
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                ]
+                            }, {
+                                "type": "textbox",
+                                "key": "atMost",
+                                "label": tui.str("form.at.most"),
+                                "value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost : "",
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                ]
+                            }
+                        ]
+                    }];
             };
             FormFiles.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                this.define.accept = values.accept;
+                this.define.action = values.action;
+                this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
+                this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
             };
             FormFiles.prototype.validate = function () {
+                var count;
+                if (this.define.value instanceof Array) {
+                    count = this.define.value.length;
+                }
+                else if (this.define.value) {
+                    count = 1;
+                }
+                else {
+                    count = 0;
+                }
+                if (this.define.atLeast) {
+                    var atLeast = parseInt(this.define.atLeast + "");
+                    if (count < atLeast) {
+                        this._notifyBar.innerHTML = tui.browser.toSafeText(tui.strp("form.at.least.p", atLeast));
+                        return false;
+                    }
+                }
+                if (this.define.atMost) {
+                    var atMost = parseInt(this.define.atMost + "");
+                    if (count > atMost) {
+                        this._notifyBar.innerHTML = tui.browser.toSafeText(tui.strp("form.at.most.p", atMost));
+                        return false;
+                    }
+                }
                 return true;
             };
             return FormFiles;
@@ -9419,9 +9755,11 @@ var tui;
                 this._.appendChild(clearButton);
                 $(textbox).focus(function () {
                     $root.addClass("tui-active");
+                    _this.render();
                 });
                 $(textbox).blur(function () {
                     $root.removeClass("tui-active");
+                    _this.render();
                     if (_this.get("disable"))
                         return;
                     if (_this.get("autoValidate")) {
@@ -9549,7 +9887,7 @@ var tui;
                     if (marginRight === 0)
                         marginRight = Input.PADDING;
                 }
-                if (this.get("clearable") && this.get("value").length > 0) {
+                if (this.get("clearable") && this.get("value").length > 0 && $root.hasClass("tui-active") && !this.get("disable")) {
                     clearButton.style.display = "";
                     clearButton.style.right = iconRight.offsetWidth + iconInvalid.offsetWidth + "px";
                 }
@@ -10248,24 +10586,17 @@ var tui;
                         "get": function () {
                             return _this._uploader.getOptions().accept;
                         }
-                    },
-                    "value": {
-                        "set": function (value) {
-                            _this._data["value"] = value;
-                            if (value === null || typeof value === tui.UNDEFINED) {
-                                _this._set("url", "");
-                            }
-                        }
                     }
                 });
             };
             Picture.prototype.init = function () {
                 var _this = this;
                 var img = this._components["image"] = tui.elem("img");
+                var toolbar = this._components["toolbar"] = tui.elem("div");
                 this._.appendChild(img);
+                this._.appendChild(toolbar);
                 this._uploader.on("success", function (e) {
-                    _this._set("value", e.data.response.fileId);
-                    _this.set("url", e.data.response.url);
+                    _this._set("value", e.data.response);
                     _this.fire("success", e);
                 });
                 this._uploader.on("error", function (e) {
@@ -10308,6 +10639,22 @@ var tui;
                     }
                     $root.removeClass("tui-drag-enter");
                 });
+                $root.on("mouseenter mouseover", function () {
+                    if (_this.get("disable"))
+                        return;
+                    var v = _this.get("value");
+                    if (v && v.url)
+                        tui.browser.addClass(toolbar, "tui-toolbar-show");
+                });
+                $root.on("mouseleave mouseout", function () {
+                    tui.browser.removeClass(toolbar, "tui-toolbar-show");
+                });
+                $(toolbar).click(function (e) {
+                    if (_this.get("disable"))
+                        return;
+                    _this.set("value", null);
+                    tui.browser.removeClass(toolbar, "tui-toolbar-show");
+                });
             };
             Picture.prototype.render = function () {
                 var $root = $(this._);
@@ -10319,11 +10666,13 @@ var tui;
                     this._uploader.createInput();
                     this._.removeAttribute("tabIndex");
                 }
-                var url = this.get("url");
+                var v = this.get("value");
+                var url = v && v.url;
                 var img = this._components["image"];
                 if (url) {
-                    img.setAttribute("src", url);
                     $root.removeClass("tui-picture-empty");
+                    if (url !== img.getAttribute("src"))
+                        img.setAttribute("src", url);
                 }
                 else {
                     $root.addClass("tui-picture-empty");
@@ -10802,6 +11151,7 @@ var tui;
                 container.appendChild(list._);
                 var toolbar = container.appendChild(tui.elem("div"));
                 toolbar.className = "tui-select-toolbar";
+                toolbar.setAttribute("unselectable", "on");
                 var popup = widget.get(this._components["popup"]);
                 popup._set("content", container);
                 this._components["searchbar"] = searchbar;
@@ -10890,8 +11240,8 @@ var tui;
                     searchbar.style.display = "none";
                 var checkButtons = "<a name='selectAll'>" + tui.str("Select all") + "</a> | " +
                     "<a name='deselectAll'>" + tui.str("Deselect all") +
-                    "</a> | <a name='ok'><i class='fa fa-check'></i> " + tui.str("OK") + "</a>";
-                var clearButton = "<a name='clear'><i class='fa fa-trash-o'></i> " + tui.str("Clear") + "</a>";
+                    "</a> | <a name='ok'>" + tui.str("OK") + "</a>";
+                var clearButton = "<a name='clear'>" + tui.str("Clear") + "</a>";
                 var multiSelect = this.get("multiSelect");
                 var clearable = !multiSelect && this.get("clearable");
                 toolbar.style.display = "";

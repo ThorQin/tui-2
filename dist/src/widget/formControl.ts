@@ -1258,7 +1258,8 @@ module tui.widget {
 	// DATE PICKER
 	// ----------------------------------------------------------------------------------------------------------
 	interface DatePickerFormItem extends FormItem {
-
+		mode: string;
+		format: string;
 	}
 	class FormDatePicker extends BasicFormControl<DatePicker, DatePickerFormItem> {
 		static icon = "fa-calendar-o";
@@ -1271,11 +1272,48 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
+		update() {
+			super.update();
+			this._widget._set("format", this.define.format || null);
+			this._widget._set("mode", /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : null);
+		}
 		getProperties(): PropertyPage[] {
-			throw new Error('Method not implemented.');
+			return [{
+				name: str("form.textbox"),
+				properties: [
+					{
+						"type": "options",
+						"key": "mode",
+						"label": str("form.format"),
+						"options": [
+							{"value": "date", "text": str("form.date") },
+							{"value": "date-time", "text": str("form.date.time") },
+							{"value": "time", "text": str("form.time") },
+							{"value": "month", "text": str("form.month") }
+						],
+						"atMost": 1,
+						"value": /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : "date",
+						"size": 2,
+						"newline": true
+					}, {
+						"type": "textbox",
+						"key": "format",
+						"label": str("form.custom.format"),
+						"description": str("form.date.desc"),
+						"value": this.define.format ? this.define.format : null,
+						"size": 2
+					}
+				]
+			}];
 		}
 		setProperties(properties: any[]) {
-			
+			var values = properties[1];
+			this.define.format = values.format ? values.format : null;
+			this.define.mode = values.mode;
+			if (this.define.required) {
+				this.define.validation = [{ "format": "*any", "message": str("message.cannot.be.empty")}];
+			} else
+				this.define.validation = null;
 		}
 		validate(): boolean {
 			return this._widget.validate();

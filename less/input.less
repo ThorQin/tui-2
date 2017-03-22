@@ -172,6 +172,23 @@ tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file {
 	padding: 10px 0px;
 	a {
 		cursor: pointer;
+		margin: 0 4px;
+
+		&[name=ok]:before {
+			.icon-base();
+			.fa-check();
+			margin-right: 4px;
+		}
+		&[name=clear]:before {
+			.icon-base();
+			.fa-trash-o();
+			margin-right: 4px;
+		}
+		&[name=today]:before {
+			.icon-base();
+			.fa-clock-o();
+			margin-right: 4px;
+		}
 	}
 	border-top: 1px dotted #ccc;
 }

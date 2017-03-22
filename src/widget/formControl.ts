@@ -365,6 +365,10 @@ module tui.widget {
 			} else {
 				this._widget._set("validate", []);
 			}
+			if (this.define.required) {
+				this._widget._set("clearable", false);
+			} else
+				this._widget._set("clearable", true);
 		}
 
 		isResizable(): boolean {
@@ -378,6 +382,9 @@ module tui.widget {
 			this._widget.set("value", value);
 		}
 		render(designMode: boolean): void {
+			if (designMode && typeof (<any>this._widget).reset === "function") {
+				 (<any>this._widget).reset();	
+			}
 			this._widget.render();
 		}
 	}
@@ -562,11 +569,12 @@ module tui.widget {
 			} else {
 				this._widget._set("type", "text");
 			}
-			if (this.define.selection) {
+			if (this.define.selection instanceof Array && this.define.selection.length > 0) {
 				this._widget._set("iconRight", "fa-caret-down");
 			} else {
 				this._widget._set("iconRight", null);
 			}
+			this._widget._set("clearable", true);
 		}
 
 		getProperties(): PropertyPage[] {
@@ -1258,7 +1266,9 @@ module tui.widget {
 	// DATE PICKER
 	// ----------------------------------------------------------------------------------------------------------
 	interface DatePickerFormItem extends FormItem {
-
+		mode: string;
+		format: string;
+		timezone: string;
 	}
 	class FormDatePicker extends BasicFormControl<DatePicker, DatePickerFormItem> {
 		static icon = "fa-calendar-o";
@@ -1268,14 +1278,69 @@ module tui.widget {
 		constructor(form: Form, define: DatePickerFormItem) {
 			super(form, define, "date-picker");
 			this._widget.on("change", (e) => {
+				this.define.value = this.getValue();
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
+		update() {
+			super.update();
+			this._widget._set("format", this.define.format || null);
+			this._widget._set("mode", /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : null);
+			if (!/^(utc|locale|none)$/.test(this.define.timezone))
+				this.define.timezone = "utc";
+			this._widget._set("timezone", this.define.timezone);
+		}
 		getProperties(): PropertyPage[] {
-			throw new Error('Method not implemented.');
+			return [{
+				name: str("form.datepicker"),
+				properties: [
+					{
+						"type": "options",
+						"key": "mode",
+						"label": str("form.format"),
+						"options": [
+							{"value": "date", "text": str("form.date") },
+							{"value": "date-time", "text": str("form.date.time") },
+							{"value": "time", "text": str("form.time") },
+							{"value": "month", "text": str("form.month") }
+						],
+						"atMost": 1,
+						"value": /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : "date",
+						"size": 2,
+						"newline": true
+					}, {
+						"type": "options",
+						"key": "timezone",
+						"label": str("form.timezone"),
+						"options": [
+							{"value": "utc", "text": str("form.tz.utc") },
+							{"value": "locale", "text": str("form.tz.locale") },
+							{"value": "none", "text": str("form.tz.none") }
+						],
+						"atMost": 1,
+						"value": /^(utc|locale|none)$/.test(this.define.timezone) ? this.define.timezone : "utc",
+						"size": 2,
+						"newline": true
+					}, {
+						"type": "textbox",
+						"key": "format",
+						"label": str("form.custom.format"),
+						"description": str("form.date.desc"),
+						"value": this.define.format ? this.define.format : null,
+						"size": 2
+					}
+				]
+			}];
 		}
 		setProperties(properties: any[]) {
-			
+			var values = properties[1];
+			this.define.format = values.format ? values.format : null;
+			this.define.mode = values.mode;
+			if (this.define.required) {
+				this.define.validation = [{ "format": "*any", "message": str("message.cannot.be.empty")}];
+			} else
+				this.define.validation = null;
+			this.define.timezone = values.timezone;
 		}
 		validate(): boolean {
 			return this._widget.validate();
@@ -1289,27 +1354,80 @@ module tui.widget {
 	// PICTURE
 	// ----------------------------------------------------------------------------------------------------------
 	interface PictureFormItem extends FormItem {
-
+		action: string;
+		accept: string;
 	}
 	class FormPicture extends BasicFormControl<Picture, PictureFormItem> {
 		static icon = "fa-file-image-o";
 		static desc = "form.picture";
 		static order = 6;
 
+		static MIME = "^image/(png|jpeg|gif)(\\s*,\\s*image/(png|jpeg|gif))*$";
+		private _notifyBar: HTMLElement;
+
 		constructor(form: Form, define: PictureFormItem) {
 			super(form, define, "picture");
 			this._widget.on("success", (e) => {
+				this._notifyBar.innerHTML = "";
+				this.define.value = this._widget.get("value");
 				form.fire("itemvaluechanged", {control: this});
 			});
+			this._notifyBar = elem("div");
+			this._notifyBar.className = "tui-form-notify-bar";
+			this.div.appendChild(this._notifyBar);
+		}
+		update() {
+			super.update();
+			this._notifyBar.innerHTML = "";
+			var rx = new RegExp(FormPicture.MIME);
+			if (rx.test(this.define.accept)) {
+				this._widget._set("accept", this.define.accept);
+			} else {
+				this.define.accept = this._widget.get("accept");
+			}
+			if (this.define.action) {
+				this._widget._set("action", this.define.action);
+			} else {
+				this.define.action = this._widget.get("action");
+			}
 		}
 		getProperties(): PropertyPage[] {
-			throw new Error('Method not implemented.');
+			return [{
+				name: str("form.picture"),
+				properties: [
+					{
+						"type": "textbox",
+						"key": "action",
+						"label": str("form.upload.url"),
+						"value": this.define.action,
+						"validation": [{ "format": "*any", "message": str("message.cannot.be.empty")}],
+						"size": 2,
+						"newline": true
+					}, {
+						"type": "textbox",
+						"key": "accept",
+						"label": str("form.file.type"),
+						"value": this.define.accept,
+						"validation": [{ "format": FormPicture.MIME, "message": str("message.must.be.image")}],
+						"size": 2,
+						"newline": true
+					}
+				]
+			}];
 		}
 		setProperties(properties: any[]) {
-			
+			var values = properties[1];
+			this.define.accept = values.accept;
+			this.define.action = values.action;
 		}
 		validate(): boolean {
-			return true;
+			if (this.define.required && this.getValue() === null) {
+				this._notifyBar.innerHTML = browser.toSafeText(str("message.cannot.be.empty"));
+				return false;
+			} else {
+				this._notifyBar.innerHTML = "";
+				return true;
+			}
 		}
 	}
 	Form.register("picture", FormPicture);
@@ -1319,7 +1437,8 @@ module tui.widget {
 	// FILE
 	// ----------------------------------------------------------------------------------------------------------
 	interface FileFormItem extends FormItem {
-
+		action: string;
+		accept: string;
 	}
 	class FormFile extends BasicFormControl<File, FileFormItem> {
 		static icon = "fa-file-text-o";
@@ -1329,14 +1448,52 @@ module tui.widget {
 		constructor(form: Form, define: FileFormItem) {
 			super(form, define, "file");
 			this._widget.on("success", (e) => {
+				this.define.value = this._widget.get("value");
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
+
+		update() {
+			super.update();
+			this._widget._set("accept", this.define.accept);
+			if (this.define.action) {
+				this._widget._set("action", this.define.action);
+			} else {
+				this.define.action = this._widget.get("action");
+			}
+		}
+
 		getProperties(): PropertyPage[] {
-			throw new Error('Method not implemented.');
+			return [{
+				name: str("form.picture"),
+				properties: [
+					{
+						"type": "textbox",
+						"key": "action",
+						"label": str("form.upload.url"),
+						"value": this.define.action,
+						"validation": [{ "format": "*any", "message": str("message.cannot.be.empty")}],
+						"size": 2,
+						"newline": true
+					}, {
+						"type": "textbox",
+						"key": "accept",
+						"label": str("form.file.type"),
+						"value": this.define.accept,
+						"size": 2,
+						"newline": true
+					}
+				]
+			}];
 		}
 		setProperties(properties: any[]) {
-			
+			var values = properties[1];
+			this.define.accept = values.accept;
+			this.define.action = values.action;
+			if (this.define.required) {
+				this.define.validation = [{ "format": "*any", "message": str("message.cannot.be.empty")}];
+			} else
+				this.define.validation = null;
 		}
 		validate(): boolean {
 			return this._widget.validate();
@@ -1350,26 +1507,110 @@ module tui.widget {
 	// MULTIPLE FILES
 	// ----------------------------------------------------------------------------------------------------------
 	interface FilesFormItem extends FormItem {
-
+		action: string;
+		accept: string;
+		atLeast?: number;
+		atMost?: number;
 	}
 	class FormFiles extends BasicFormControl<Files, FilesFormItem> {
 		static icon = "fa-copy";
 		static desc = "form.files";
 		static order = 8;
 
+		private _notifyBar: HTMLElement;
+
 		constructor(form: Form, define: FilesFormItem) {
 			super(form, define, "files", );
 			this._widget.on("success", (e) => {
+				this._notifyBar.innerHTML = "";
+				this.define.value = this._widget.get("value");
 				form.fire("itemvaluechanged", {control: this});
 			});
+			this._notifyBar = elem("div");
+			this._notifyBar.className = "tui-form-notify-bar";
+			this.div.appendChild(this._notifyBar);
 		}
+
+		update() {
+			super.update();
+			this._notifyBar.innerHTML = "";
+			this._widget._set("accept", this.define.accept);
+			if (this.define.action) {
+				this._widget._set("action", this.define.action);
+			} else {
+				this.define.action = this._widget.get("action");
+			}
+		}
+
 		getProperties(): PropertyPage[] {
-			throw new Error('Method not implemented.');
+			return [{
+				name: str("form.picture"),
+				properties: [
+					{
+						"type": "textbox",
+						"key": "action",
+						"label": str("form.upload.url"),
+						"value": this.define.action,
+						"validation": [{ "format": "*any", "message": str("message.cannot.be.empty")}],
+						"size": 2,
+						"newline": true
+					}, {
+						"type": "textbox",
+						"key": "accept",
+						"label": str("form.file.type"),
+						"value": this.define.accept,
+						"size": 2,
+						"newline": true
+					}, {
+						"type": "textbox",
+						"key": "atLeast",
+						"label": str("form.at.least"),
+						"value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast: "",
+						"validation": [
+							{ "format": "*digital", "message": str("message.invalid.value") }
+						]
+					}, {
+						"type": "textbox",
+						"key": "atMost",
+						"label": str("form.at.most"),
+						"value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost: "",
+						"validation": [
+							{ "format": "*digital", "message": str("message.invalid.value") }
+						]
+					}
+				]
+			}];
 		}
 		setProperties(properties: any[]) {
-			
+			var values = properties[1];
+			this.define.accept = values.accept;
+			this.define.action = values.action;
+			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
+			this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
 		}
 		validate(): boolean {
+			var count: number;
+			if (this.define.value instanceof Array) {
+				count = this.define.value.length;
+			} else if (this.define.value) {
+				count = 1;
+			} else {
+				count = 0;
+			}
+			if (this.define.atLeast) {
+				var atLeast = parseInt(this.define.atLeast + "");
+				if (count < atLeast) {
+					this._notifyBar.innerHTML = browser.toSafeText(strp("form.at.least.p", atLeast));
+					return false;
+				}
+			}
+			if (this.define.atMost) {
+				var atMost = parseInt(this.define.atMost + "");
+				if (count > atMost) {
+					this._notifyBar.innerHTML = browser.toSafeText(strp("form.at.most.p", atMost));
+					return false;
+				}
+			}
 			return true;
 		}
 	}

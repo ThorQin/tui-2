@@ -14,6 +14,7 @@ module tui.time {
 		return new Date();
 	}
 
+	
 	/**
 	 * Input seconds and get a time description
 	 * @param seconds Tims distance of seconds
@@ -412,6 +413,9 @@ module tui.time {
 			if (dt !== null)
 				return dt;
 			dt = parseDateInternal(dtStr, "dd MMM yyyy");
+			if (dt !== null)
+				return dt;
+			dt = parseDateInternal(dtStr, "HH:mm:ss");
 			if (dt !== null)
 				return dt;
 		} 

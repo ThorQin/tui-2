@@ -73,5 +73,18 @@ tui.dict("en-us", {
     "form.display": "Display",
     "form.invisible": "Invisible",
     "form.visible": "Visible",
-    "form.max.height": "Max Height"
+    "form.max.height": "Max Height",
+    "form.date": "Date",
+    "form.date.time": "Date And Time",
+    "form.time": "Time",
+    "form.month": "Year And Month",
+    "form.custom.format": "Custom Format",
+    "form.date.desc": "e.g.: 'yyyy-MM-dd HH:mm:sszz' or 'dd MMM yy hh:mm:ss A', etc..",
+    "form.timezone": "Timezone",
+    "form.tz.utc": "UTC",
+    "form.tz.locale": "Locale",
+    "form.tz.none": "None",
+    "form.upload.url": "Upload URL",
+    "form.file.type": "File Type",
+    "message.must.be.image": "Must be valid image mime types."
 });
