@@ -660,6 +660,7 @@ declare module tui.widget {
         init?: {
             [index: string]: any;
         };
+        translator?: (value: any) => string;
     }
     class Form extends Widget {
         protected _definitionChanged: boolean;
@@ -669,9 +670,15 @@ declare module tui.widget {
             [index: string]: any;
         };
         static register(type: string, controlType: FormControlConstructor): void;
-        protected removeAll(): void;
+        static getType(type: string): FormControlConstructor;
+        removeAll(): void;
         protected hideAll(): void;
-        protected selectItem(target: FormControl<FormItem>): void;
+        selectItem(target: FormControl<FormItem>): void;
+        getItem(index: number): FormControl<FormItem>;
+        getSelectedItem(): FormControl<FormItem>;
+        removeItem(target: FormControl<FormItem>): void;
+        selectNext(): boolean;
+        protected selectPrevious(): boolean;
         protected update(): void;
         protected initRestriction(): void;
         protected init(): void;
@@ -761,6 +768,7 @@ declare module tui.widget {
         checkKey?: string;
         prefixKey?: string;
         suffixKey?: string;
+        translator?: (value: any) => string;
     }
     class Grid extends Widget {
         static CELL_SPACE: number;

@@ -25,6 +25,7 @@ module tui.widget {
 		desc: string;
 		order: number;
 		init?: {[index:string]: any};
+		translator?: (value: any) => string;
 	}
 
 	var _controls: { [index: string]: FormControlConstructor } = {};
@@ -45,6 +46,10 @@ module tui.widget {
 
 		public static register(type: string, controlType: FormControlConstructor): void {
 			_controls[type] = controlType;
+		}
+
+		public static getType(type: string): FormControlConstructor {
+			return _controls[type];
 		}
 
 		protected removeAll() {
@@ -127,7 +132,7 @@ module tui.widget {
 						var me = this;
 						function computeValue(key: string, searchPath: string[]) {
 							if (!index.hasOwnProperty(key)) {
-								throw new Error("Invalid expression: Field \"" + key + "\" not found in \"" + searchPath[searchPath.length - 1] + "\" condition.");
+								throw new Error("Invalid expression: Field \"" + key + "\" was not found in \"" + searchPath[searchPath.length - 1] + "\"'s condition expression.");
 							}
 							var exp = me._items[index[key]].define.condition;
 							if (!exp) {
@@ -139,7 +144,7 @@ module tui.widget {
 								me._items[index[key]].define.available = true;
 							} else {
 								if (searchPath.indexOf(key) >= 0)
-									throw new Error("Invalid expression: Cycle reference detected on \"" + key + "\"");
+									throw new Error("Invalid expression: Cycle reference was detected on field: \"" + key + "\"");
 								searchPath.push(key);
 								try {
 									if (text.exp.evaluate(exp, function (k: string) {
@@ -528,6 +533,9 @@ module tui.widget {
 			}
 			if (designMode) {
 				this._.appendChild(newItem);
+				browser.addClass(this._, "tui-form-design-mode");
+			} else {
+				browser.removeClass(this._, "tui-form-design-mode");
 			}
 		}
 	}

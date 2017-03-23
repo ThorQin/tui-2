@@ -158,7 +158,7 @@ module tui.widget.ext {
 			mapDiv.className = "tui-map-container";
 			dialogContent.appendChild(mapDiv);
 
-			var input = get(this._components["input"]);
+			var input = <Input>get(this._components["input"]);
 			input.set("iconRight", "fa-map-marker");
 			input.appendTo(this._);
 
@@ -168,6 +168,17 @@ module tui.widget.ext {
 				_initFunctions.push({context:this, func:this.initMap});
 			}
 			
+			input.on("change", (e) => {
+				this.fire("change", e);
+			});
+
+			input.on("input", (e) => {
+				this.fire("input", e);
+			});
+
+			input.on("enter", (e) => {
+				this.fire("enter", e);
+			});
 
 			input.on("right-icon-mousedown", () => {
 				var dlg = <Dialog>create("dialog");
@@ -202,8 +213,9 @@ module tui.widget.ext {
 
 				dlg.on("btnclick", () => {
 					if (this._selectedAddress) {
+						input.reset();
 						input.set("value", this._selectedAddress);
-						this.fire("change", {value: this._selectedAddress});
+						this.fire("change");
 						dlg.close();
 					} else {
 						tui.msgbox(tui.str("please.select.point"));
@@ -232,7 +244,8 @@ module tui.widget.ext {
 	register(Location, "location");
 
 	interface AddressFormItem extends FormItem {
-
+		validation?: {format: string, message: string}[];
+		appKey?: string;
 	}
 
 	class FormAddress extends BasicFormControl<Location, AddressFormItem> {
@@ -242,17 +255,73 @@ module tui.widget.ext {
 		constructor(form: Form, define: AddressFormItem) {
 			super(form, define, "location");
 			this._widget.on("change", (e) => {
+				this.define.value = this.getValue();
 				form.fire("itemvaluechanged", {control: this});
 			});
 		}
+
+		update() {
+			super.update();
+			this._widget._set("appKey", this.define.appKey);
+			this._widget._set("clearable", true);
+		}
+
 		getProperties(): PropertyPage[] {
-			throw new Error('Method not implemented.');
+			return [{
+				name: str("form.address"),
+				properties: [
+					{
+						"type": "textbox",
+						"key": "appKey",
+						"label": str("form.app.key"),
+						"value": this.define.appKey ? this.define.appKey + "" : null,
+						"size": 2
+					}, {
+						"type": "grid",
+						"key": "validation",
+						"label": str("form.validation"),
+						"size": 2,
+						"newline": true,
+						"height": 150,
+						"definitions": [
+							{
+								"type": "textbox",
+								"key": "format",
+								"required": true,
+								"label": str("form.format"),
+								"selection": [
+									"*any", "*maxlen:<?>", "*minlen:<?>"
+								],
+								"validation": [
+									{ "format": "*any", "message": str("message.cannot.be.empty")},
+									{ "format": "^(\\*(any|key|integer|number|digital|url|email|float|currency|date|max:\\d+|min:\\d+|maxlen:\\d+|minlen:\\d+)|[^\\*].*)$", "message": str("message.invalid.format")}
+								],
+								"size": 2
+							}, {
+								"type": "textarea",
+								"key": "message",
+								"maxHeight": 300,
+								"required": true,
+								"label": str("form.message"),
+								"size": 2,
+								"newline": true,
+								"validation": [
+									{ "format": "*any", "message": str("message.cannot.be.empty")}
+								]
+							}
+						],
+						"value": this.define.validation
+					}
+				]
+			}];
 		}
 		setProperties(properties: any[]) {
-			
+			var values = properties[1];
+			this.define.appKey = values.appKey ? values.appKey : null;
+			this.define.validation = values.validation;
 		}
 		validate(): boolean {
-			return true;
+			return this._widget.validate();
 		}
 	}
 	Form.register("address", FormAddress);

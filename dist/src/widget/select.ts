@@ -216,6 +216,7 @@ module tui.widget {
 			container.appendChild(list._);
 			var toolbar = <HTMLElement>container.appendChild(elem("div"));
 			toolbar.className = "tui-select-toolbar";
+			toolbar.setAttribute("unselectable", "on");
 			
 			var popup = <Popup>get(this._components["popup"]);
 			popup._set("content", container);
@@ -307,8 +308,8 @@ module tui.widget {
 				searchbar.style.display = "none";
 			var checkButtons = "<a name='selectAll'>" + tui.str("Select all") + "</a> | " +
 				"<a name='deselectAll'>" + tui.str("Deselect all") + 
-				"</a> | <a name='ok'><i class='fa fa-check'></i> " + tui.str("OK") + "</a>";
-			var clearButton = "<a name='clear'><i class='fa fa-trash-o'></i> " + tui.str("Clear") + "</a>";
+				"</a> | <a name='ok'>" + tui.str("OK") + "</a>";
+			var clearButton = "<a name='clear'>" + tui.str("Clear") + "</a>";
 			var multiSelect = this.get("multiSelect");
 			var clearable = !multiSelect && this.get("clearable");
 			

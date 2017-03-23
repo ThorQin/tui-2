@@ -167,6 +167,15 @@ var tui;
                     else {
                         _initFunctions.push({ context: this, func: this.initMap });
                     }
+                    input.on("change", function (e) {
+                        _this.fire("change", e);
+                    });
+                    input.on("input", function (e) {
+                        _this.fire("input", e);
+                    });
+                    input.on("enter", function (e) {
+                        _this.fire("enter", e);
+                    });
                     input.on("right-icon-mousedown", function () {
                         var dlg = widget.create("dialog");
                         dlg._set("title", tui.str("address"));
@@ -200,8 +209,9 @@ var tui;
                         }
                         dlg.on("btnclick", function () {
                             if (_this._selectedAddress) {
+                                input.reset();
                                 input.set("value", _this._selectedAddress);
-                                _this.fire("change", { value: _this._selectedAddress });
+                                _this.fire("change");
                                 dlg.close();
                             }
                             else {
@@ -232,17 +242,72 @@ var tui;
                 function FormAddress(form, define) {
                     var _this = _super.call(this, form, define, "location") || this;
                     _this._widget.on("change", function (e) {
+                        _this.define.value = _this.getValue();
                         form.fire("itemvaluechanged", { control: _this });
                     });
                     return _this;
                 }
+                FormAddress.prototype.update = function () {
+                    _super.prototype.update.call(this);
+                    this._widget._set("appKey", this.define.appKey);
+                    this._widget._set("clearable", true);
+                };
                 FormAddress.prototype.getProperties = function () {
-                    throw new Error('Method not implemented.');
+                    return [{
+                            name: tui.str("form.address"),
+                            properties: [
+                                {
+                                    "type": "textbox",
+                                    "key": "appKey",
+                                    "label": tui.str("form.app.key"),
+                                    "value": this.define.appKey ? this.define.appKey + "" : null,
+                                    "size": 2
+                                }, {
+                                    "type": "grid",
+                                    "key": "validation",
+                                    "label": tui.str("form.validation"),
+                                    "size": 2,
+                                    "newline": true,
+                                    "height": 150,
+                                    "definitions": [
+                                        {
+                                            "type": "textbox",
+                                            "key": "format",
+                                            "required": true,
+                                            "label": tui.str("form.format"),
+                                            "selection": [
+                                                "*any", "*maxlen:<?>", "*minlen:<?>"
+                                            ],
+                                            "validation": [
+                                                { "format": "*any", "message": tui.str("message.cannot.be.empty") },
+                                                { "format": "^(\\*(any|key|integer|number|digital|url|email|float|currency|date|max:\\d+|min:\\d+|maxlen:\\d+|minlen:\\d+)|[^\\*].*)$", "message": tui.str("message.invalid.format") }
+                                            ],
+                                            "size": 2
+                                        }, {
+                                            "type": "textarea",
+                                            "key": "message",
+                                            "maxHeight": 300,
+                                            "required": true,
+                                            "label": tui.str("form.message"),
+                                            "size": 2,
+                                            "newline": true,
+                                            "validation": [
+                                                { "format": "*any", "message": tui.str("message.cannot.be.empty") }
+                                            ]
+                                        }
+                                    ],
+                                    "value": this.define.validation
+                                }
+                            ]
+                        }];
                 };
                 FormAddress.prototype.setProperties = function (properties) {
+                    var values = properties[1];
+                    this.define.appKey = values.appKey ? values.appKey : null;
+                    this.define.validation = values.validation;
                 };
                 FormAddress.prototype.validate = function () {
-                    return true;
+                    return this._widget.validate();
                 };
                 return FormAddress;
             }(widget.BasicFormControl));

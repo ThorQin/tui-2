@@ -105,7 +105,7 @@ module tui.widget {
 					if (isNaN(imax))
 						throw new Error("Invalid validator: '*max:...' must follow a number");
 					let ival = parseFloat(text);
-					if (isNaN(ival) || ival > imax) {
+					if (ival > imax) {
 						this._valid = false;
 					}
 				} else if (k.substr(0, 5) === "*min:") {
@@ -113,7 +113,7 @@ module tui.widget {
 					if (isNaN(imin))
 						throw new Error("Invalid validator: '*min:...' must follow a number");
 					let ival = parseFloat(text);
-					if (isNaN(ival) || ival < imin) {
+					if (ival < imin) {
 						this._valid = false;
 					}
 				} else if (k.substr(0, 6) === "*same:") {

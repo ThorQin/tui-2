@@ -121,6 +121,8 @@ tui.dict("zh-cn", {
     "form.at.most": "至多",
     "form.at.least.p": "至少选择 {0} 个！",
     "form.at.most.p": "至多选择 {0} 个！",
+    "file.count.p": "{0} 个文件",
+    "item.count.p": "{0} 个条目",
     "form.option.group.desc": "多个选项由换行分割，选项可以是 'key:value' 或字符串。",
     "form.value": "值",
     "form.display": "显示",
@@ -132,5 +134,16 @@ tui.dict("zh-cn", {
     "form.time": "时间",
     "form.month": "年月",
     "form.custom.format": "自定义格式",
-    "form.date.desc": "比如: 'yyyy-MM-dd HH:mm:sszz' 或 'dd MMM yy hh:mm:ss A' 等。"
+    "form.date.desc": "比如: 'yyyy-MM-dd HH:mm:sszz' 或 'dd MMM yy hh:mm:ss A' 等。",
+    "form.timezone": "时区",
+    "form.tz.utc": "UTC",
+    "form.tz.locale": "本地",
+    "form.tz.none": "无",
+    "form.upload.url": "上传地址",
+    "form.file.type": "文件类型",
+    "message.must.be.image": "必须是合法的图片 MIME 类型",
+    "form.newline": "只换行",
+    "form.height": "高度",
+    "form.design": "设计",
+    "form.app.key": "高德地图授权码"
 });

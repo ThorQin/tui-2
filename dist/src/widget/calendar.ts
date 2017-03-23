@@ -38,9 +38,9 @@ module tui.widget {
 					"get": (): any => {
 						var tm = this._data["time"];
 						if (typeof tm === UNDEFINED || tm === null) {
-							return this._data["time"] = time.now();
-						} else
-							return tm;
+							tm = this._data["time"] = time.now();
+						}
+						return tm;
 					}
 				},
 				"value": {
@@ -48,7 +48,34 @@ module tui.widget {
 						this._set("time", value);
 					},
 					"get": (): any => {
-						return this.get("time");
+						var tm = this.get("time");
+						var md = this.get("mode");
+						var tz = this.get("timezone");
+						var fmt;
+						if (md === "date") {
+							fmt = "yyyy-MM-dd";
+							if (tz === "utc")
+								fmt += "Z";
+							else if (tz === "locale")
+								fmt += "Zzzz";
+						} else if (md === "month") {
+							fmt = "yyyy-MM";
+							if (tz === "utc")
+								fmt += "Z";
+							else if (tz === "locale")
+								fmt += "Zzzz";
+						} else if (md === "time") {
+							fmt = "HH:mm:ss";
+						} else {
+							fmt = "yyyy-MM-ddTHH:mm:ss";
+							if (tz === "utc")
+								fmt += "Z";
+							else if (tz === "locale")
+								fmt += "zzz";
+							else
+								fmt = "yyyy-MM-dd HH:mm:ss";
+						}
+						return time.formatDate(tm, fmt);
 					}
 				},
 				"year": {
@@ -112,6 +139,15 @@ module tui.widget {
 					},
 					"get": (): any => {
 						return this._data["mode"] ? this._data["mode"] : "date";
+					}
+				},
+				"timezone": {
+					"set": (value: any): void => {
+						if (["utc", "locale", "none"].indexOf(value) >= 0 )
+							this._data["timezone"] = value;
+					},
+					"get": (): any => {
+						return this._data["timezone"] ? this._data["timezone"] : "utc";
 					}
 				}
 			});

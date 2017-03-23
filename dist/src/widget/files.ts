@@ -133,6 +133,7 @@ module tui.widget {
 			$(removeIcon).click((e: JQueryEventObject) => {
 				this._values.splice(fileIndex, 1);
 				this.render();
+				this.fire("delete", e);
 				e.preventDefault();
 				e.stopPropagation();
 			});
@@ -140,7 +141,7 @@ module tui.widget {
 
 		private bindDownload(item: HTMLElement, url: string) {
 			$(item).click(function(e: JQueryEventObject){
-				window.location.href = url;
+				window.open(url);
 				e.preventDefault();
 				e.stopPropagation();
 			});

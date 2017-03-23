@@ -30,24 +30,17 @@ module tui.widget {
 					"get": (): any => {
 						return this._uploader.getOptions().accept;
 					}
-				},
-				"value": {
-					"set": (value: any) => {
-						this._data["value"] = value;
-						if (value === null || typeof value === tui.UNDEFINED) {
-							this._set("url", "");
-						}
-					}
 				}
 			});
 		}
 
 		protected init(): void {
 			var img = this._components["image"] = elem("img");
+			var toolbar = this._components["toolbar"] = elem("div");
 			this._.appendChild(img);
+			this._.appendChild(toolbar);
 			this._uploader.on("success", (e: any) => {
-				this._set("value", e.data.response.fileId);
-				this.set("url", e.data.response.url);
+				this._set("value", e.data.response);
 				this.fire("success", e);
 			});
 			this._uploader.on("error", (e: any) => {
@@ -94,6 +87,23 @@ module tui.widget {
 				}
 				$root.removeClass("tui-drag-enter");
 			});
+
+			$root.on("mouseenter mouseover", () => {
+				if (this.get("disable"))
+					return;
+				var v = this.get("value");
+				if (v && v.url)
+					browser.addClass(toolbar, "tui-toolbar-show");
+			});
+			$root.on("mouseleave mouseout", function(){
+				browser.removeClass(toolbar, "tui-toolbar-show");
+			});
+			$(toolbar).click((e) => {
+				if (this.get("disable"))
+					return;
+				this.set("value", null);
+				browser.removeClass(toolbar, "tui-toolbar-show");
+			});
 		}
 
 		render() {
@@ -105,11 +115,13 @@ module tui.widget {
 				this._uploader.createInput();
 				this._.removeAttribute("tabIndex");
 			}
-			var url = this.get("url");
+			var v = this.get("value");
+			var url = v && v.url;
 			var img = this._components["image"]
 			if (url) {
-				img.setAttribute("src", url);
 				$root.removeClass("tui-picture-empty");
+				if (url !== img.getAttribute("src"))
+					img.setAttribute("src", url);
 			} else {
 				$root.addClass("tui-picture-empty");
 			}

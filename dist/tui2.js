@@ -353,6 +353,8 @@ tui.dict("en-us", {
     "form.at.most": "At Most",
     "form.at.least.p": "At Least select {0} item(s).",
     "form.at.most.p": "At Most select {0} item(s).",
+    "file.count.p": "{0} file(s)",
+    "item.count.p": "{0} item(s)",
     "form.option.group.desc": "Options separated by newline, option can be a key:value pair or a string.",
     "form.value": "Value",
     "form.display": "Display",
@@ -360,9 +362,9 @@ tui.dict("en-us", {
     "form.visible": "Visible",
     "form.max.height": "Max Height",
     "form.date": "Date",
-    "form.date.time": "Date And Time",
+    "form.date.time": "Date Time",
     "form.time": "Time",
-    "form.month": "Year And Month",
+    "form.month": "Year Month",
     "form.custom.format": "Custom Format",
     "form.date.desc": "e.g.: 'yyyy-MM-dd HH:mm:sszz' or 'dd MMM yy hh:mm:ss A', etc..",
     "form.timezone": "Timezone",
@@ -371,7 +373,11 @@ tui.dict("en-us", {
     "form.tz.none": "None",
     "form.upload.url": "Upload URL",
     "form.file.type": "File Type",
-    "message.must.be.image": "Must be valid image mime types."
+    "message.must.be.image": "Must be valid image mime types.",
+    "form.newline": "Newline Only",
+    "form.height": "Height",
+    "form.design": "Design",
+    "form.app.key": "Map App Key"
 });
 var tui;
 (function (tui) {
@@ -5355,7 +5361,7 @@ var tui;
                         if (isNaN(imax))
                             throw new Error("Invalid validator: '*max:...' must follow a number");
                         var ival = parseFloat(text);
-                        if (isNaN(ival) || ival > imax) {
+                        if (ival > imax) {
                             this._valid = false;
                         }
                     }
@@ -5364,7 +5370,7 @@ var tui;
                         if (isNaN(imin))
                             throw new Error("Invalid validator: '*min:...' must follow a number");
                         var ival = parseFloat(text);
-                        if (isNaN(ival) || ival < imin) {
+                        if (ival < imin) {
                             this._valid = false;
                         }
                     }
@@ -6031,13 +6037,14 @@ var tui;
                 $(removeIcon).click(function (e) {
                     _this._values.splice(fileIndex, 1);
                     _this.render();
+                    _this.fire("delete", e);
                     e.preventDefault();
                     e.stopPropagation();
                 });
             };
             Files.prototype.bindDownload = function (item, url) {
                 $(item).click(function (e) {
-                    window.location.href = url;
+                    window.open(url);
                     e.preventDefault();
                     e.stopPropagation();
                 });
@@ -6099,6 +6106,9 @@ var tui;
             Form.register = function (type, controlType) {
                 _controls[type] = controlType;
             };
+            Form.getType = function (type) {
+                return _controls[type];
+            };
             Form.prototype.removeAll = function () {
                 for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
                     var item = _a[_i];
@@ -6120,6 +6130,65 @@ var tui;
                     else
                         item.select(true);
                 }
+            };
+            Form.prototype.getItem = function (index) {
+                if (index >= 0 && index < this._items.length)
+                    return this._items[index];
+                else
+                    return null;
+            };
+            Form.prototype.getSelectedItem = function () {
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    if (item.isSelect())
+                        return item;
+                }
+                return null;
+            };
+            Form.prototype.removeItem = function (target) {
+                var pos = this._items.indexOf(target);
+                if (pos >= 0) {
+                    this._items.splice(pos, 1);
+                    target.hide();
+                    this._valueChanged = true;
+                    this.render();
+                }
+            };
+            Form.prototype.selectNext = function () {
+                var found = false;
+                for (var i = 0; i < this._items.length; i++) {
+                    if (this._items[i].isSelect()) {
+                        found = true;
+                        if (i < this._items.length - 1) {
+                            this._items[i].select(false);
+                            this._items[i + 1].select(true);
+                            return true;
+                        }
+                    }
+                }
+                if (!found && this._items.length > 0) {
+                    this._items[0].select(true);
+                    return true;
+                }
+                return false;
+            };
+            Form.prototype.selectPrevious = function () {
+                var found = false;
+                for (var i = 0; i < this._items.length; i++) {
+                    if (this._items[i].isSelect()) {
+                        found = true;
+                        if (i > 0) {
+                            this._items[i].select(false);
+                            this._items[i - 1].select(true);
+                            return true;
+                        }
+                    }
+                }
+                if (!found && this._items.length > 0) {
+                    this._items[0].select(true);
+                    return true;
+                }
+                return false;
             };
             Form.prototype.update = function () {
                 this._.style.height = this._.offsetHeight + "px";
@@ -6185,7 +6254,7 @@ var tui;
                             var me = _this;
                             function computeValue(key, searchPath) {
                                 if (!index.hasOwnProperty(key)) {
-                                    throw new Error("Invalid expression: Field \"" + key + "\" not found in \"" + searchPath[searchPath.length - 1] + "\" condition.");
+                                    throw new Error("Invalid expression: Field \"" + key + "\" was not found in \"" + searchPath[searchPath.length - 1] + "\"'s condition expression.");
                                 }
                                 var exp = me._items[index[key]].define.condition;
                                 if (!exp) {
@@ -6198,7 +6267,7 @@ var tui;
                                 }
                                 else {
                                     if (searchPath.indexOf(key) >= 0)
-                                        throw new Error("Invalid expression: Cycle reference detected on \"" + key + "\"");
+                                        throw new Error("Invalid expression: Cycle reference was detected on field: \"" + key + "\"");
                                     searchPath.push(key);
                                     try {
                                         if (tui.text.exp.evaluate(exp, function (k) {
@@ -6307,17 +6376,28 @@ var tui;
                 toolbar.appendChild(title);
                 toolbar.appendChild(buttons);
                 this._.appendChild(toolbar);
+                $(this._).on("keydown", function (e) {
+                    if (_this.get("mode") !== "design")
+                        return;
+                    if (e.keyCode === 9) {
+                        if (e.shiftKey) {
+                            _this.selectPrevious();
+                        }
+                        else {
+                            _this.selectNext();
+                        }
+                        e.preventDefault();
+                    }
+                    else if (e.keyCode === tui.browser.KeyCode.DELETE) {
+                        _this.removeItem(_this.getSelectedItem());
+                        e.preventDefault();
+                    }
+                });
                 this.on("resize", function () {
                     _this.render();
                 });
                 this.on("itemremove", function (e) {
-                    var pos = _this._items.indexOf(e.data.control);
-                    if (pos >= 0) {
-                        _this._items.splice(pos, 1);
-                        e.data.control.hide();
-                        _this._valueChanged = true;
-                        _this.render();
-                    }
+                    _this.removeItem(e.data.control);
                 });
                 this.on("itemresize", function (e) {
                     _this.render();
@@ -6590,6 +6670,12 @@ var tui;
                 }
                 if (designMode) {
                     this._.appendChild(newItem);
+                    this._.setAttribute("tabIndex", "0");
+                    tui.browser.addClass(this._, "tui-form-design-mode");
+                }
+                else {
+                    this._.removeAttribute("tabIndex");
+                    tui.browser.removeClass(this._, "tui-form-design-mode");
                 }
             };
             return Form;
@@ -6954,13 +7040,15 @@ var tui;
             FormSection.prototype.update = function () {
                 _super.prototype.update.call(this);
                 var d = this.define;
+                if (!/^(visible|invisible|newline)$/.test(this.define.display))
+                    this.define.display = "visible";
                 if (d.label) {
                     this._hr.className = "tui-form-line-label";
                     if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48)
                         this.label.style.fontSize = d.fontSize + "px";
                     else
                         this.label.style.fontSize = "";
-                    if (typeof d.align == "string" && d.align.match(/^(left|right|center)$/i))
+                    if (/^(left|right|center)$/.test(d.align))
                         this.label.style.textAlign = d.align;
                     else
                         this.label.style.textAlign = "left";
@@ -6980,11 +7068,29 @@ var tui;
                     this.define.value = value;
             };
             FormSection.prototype.render = function (designMode) {
-                if (this.define.hidden && !designMode) {
-                    tui.browser.addClass(this.div, "tui-hidden");
+                if (designMode) {
+                    tui.browser.removeClass(this.div, "tui-hidden");
+                    tui.browser.removeClass(this._hr, "tui-hidden");
+                    tui.browser.removeClass(this.div, "tui-form-section-newline");
+                    if (!this.define.label && !this.define.description) {
+                        tui.browser.addClass(this.label, "tui-hidden");
+                    }
+                    else
+                        tui.browser.removeClass(this.label, "tui-hidden");
                 }
                 else {
-                    tui.browser.removeClass(this.div, "tui-hidden");
+                    if (this.define.display === "invisible") {
+                        tui.browser.addClass(this.div, "tui-hidden");
+                    }
+                    else {
+                        tui.browser.removeClass(this.div, "tui-hidden");
+                        if (this.define.display === "newline") {
+                            tui.browser.addClass(this.div, "tui-form-section-newline");
+                        }
+                        else {
+                            tui.browser.removeClass(this.div, "tui-form-section-newline");
+                        }
+                    }
                 }
             };
             FormSection.prototype.getProperties = function () {
@@ -7020,15 +7126,16 @@ var tui;
                                 "value": this.define.align || "left"
                             }, {
                                 "type": "options",
-                                "key": "hidden",
+                                "key": "display",
                                 "label": tui.str("form.display"),
                                 "atMost": 1,
                                 "options": [
-                                    { value: false, text: tui.str("form.visible") },
-                                    { value: true, text: tui.str("form.invisible") }
+                                    { value: "visible", text: tui.str("form.visible") },
+                                    { value: "invisible", text: tui.str("form.invisible") },
+                                    { value: "newline", text: tui.str("form.newline") }
                                 ],
                                 "size": 6,
-                                "value": !!this.define.hidden
+                                "value": /^(visible|invisible|newline)$/.test(this.define.display) ? this.define.display : "visible"
                             }
                         ]
                     }];
@@ -7044,7 +7151,7 @@ var tui;
                 else
                     this.define.align = "left";
                 this.define.value = values.value;
-                this.define.hidden = tui.text.parseBoolean(values.hidden);
+                this.define.display = values.display;
             };
             FormSection.prototype.validate = function () {
                 return true;
@@ -7390,7 +7497,7 @@ var tui;
                 return this._group.get("value");
             };
             FormOptions.prototype.setValue = function (value) {
-                this._group.get("value", value);
+                this._group.set("value", value);
             };
             FormOptions.prototype.render = function (designMode) {
                 this._group.render();
@@ -7492,6 +7599,15 @@ var tui;
                 { "value": "2", "text": "B" },
                 "C", "D"
             ] };
+        FormOptions.translator = function (value) {
+            if (value instanceof Array) {
+                return value.join(", ");
+            }
+            else if (value != null)
+                return value + "";
+            else
+                return "";
+        };
         widget.Form.register("options", FormOptions);
         var FormSelect = (function (_super) {
             __extends(FormSelect, _super);
@@ -7761,6 +7877,15 @@ var tui;
                     ]
                 }]
         };
+        FormSelect.translator = function (value) {
+            if (value instanceof Array) {
+                return value.join(", ");
+            }
+            else if (value != null)
+                return value + "";
+            else
+                return "";
+        };
         widget.Form.register("select", FormSelect);
         var FormDatePicker = (function (_super) {
             __extends(FormDatePicker, _super);
@@ -7777,7 +7902,7 @@ var tui;
                 this._widget._set("format", this.define.format || null);
                 this._widget._set("mode", /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : null);
                 if (!/^(utc|locale|none)$/.test(this.define.timezone))
-                    this.define.timezone = "utc";
+                    this.define.timezone = "none";
                 this._widget._set("timezone", this.define.timezone);
             };
             FormDatePicker.prototype.getProperties = function () {
@@ -7790,8 +7915,8 @@ var tui;
                                 "label": tui.str("form.format"),
                                 "options": [
                                     { "value": "date", "text": tui.str("form.date") },
-                                    { "value": "date-time", "text": tui.str("form.date.time") },
                                     { "value": "time", "text": tui.str("form.time") },
+                                    { "value": "date-time", "text": tui.str("form.date.time") },
                                     { "value": "month", "text": tui.str("form.month") }
                                 ],
                                 "atMost": 1,
@@ -7917,6 +8042,16 @@ var tui;
         FormPicture.icon = "fa-file-image-o";
         FormPicture.desc = "form.picture";
         FormPicture.order = 6;
+        FormPicture.translator = function (value) {
+            if (value != null) {
+                if (value.fileName)
+                    return value.fileName;
+                else
+                    return "[ " + tui.str("form.picture") + " ]";
+            }
+            else
+                return "";
+        };
         FormPicture.MIME = "^image/(png|jpeg|gif)(\\s*,\\s*image/(png|jpeg|gif))*$";
         widget.Form.register("picture", FormPicture);
         var FormFile = (function (_super) {
@@ -7980,12 +8115,22 @@ var tui;
         FormFile.icon = "fa-file-text-o";
         FormFile.desc = "form.file";
         FormFile.order = 7;
+        FormFile.translator = function (value) {
+            if (value != null) {
+                if (value.fileName)
+                    return value.fileName;
+                else
+                    return "[ " + tui.str("form.file") + " ]";
+            }
+            else
+                return "";
+        };
         widget.Form.register("file", FormFile);
         var FormFiles = (function (_super) {
             __extends(FormFiles, _super);
             function FormFiles(form, define) {
                 var _this = _super.call(this, form, define, "files") || this;
-                _this._widget.on("success", function (e) {
+                _this._widget.on("success delete", function (e) {
                     _this._notifyBar.innerHTML = "";
                     _this.define.value = _this._widget.get("value");
                     form.fire("itemvaluechanged", { control: _this });
@@ -8005,6 +8150,11 @@ var tui;
                 else {
                     this.define.action = this._widget.get("action");
                 }
+                if (typeof this.define.atMost === "number" && this.define.atMost > 0) {
+                    this._widget._set("max", this.define.atMost);
+                }
+                else
+                    this._widget._set("max", null);
             };
             FormFiles.prototype.getProperties = function () {
                 return [{
@@ -8084,6 +8234,13 @@ var tui;
         FormFiles.icon = "fa-copy";
         FormFiles.desc = "form.files";
         FormFiles.order = 8;
+        FormFiles.translator = function (value) {
+            if (value instanceof Array) {
+                return "[ " + tui.strp("file.count.p", value.length) + " ]";
+            }
+            else
+                return "";
+        };
         widget.Form.register("files", FormFiles);
         var FormGrid = (function (_super) {
             __extends(FormGrid, _super);
@@ -8098,16 +8255,20 @@ var tui;
                 _this._btnAdd.on("click", function () {
                     var dialog = widget.create("dialog");
                     var fm = widget.create("form");
-                    fm.set("definition", _this.define.definitions);
+                    fm.set("definition", tui.clone(_this.define.definitions));
                     dialog.set("content", fm._);
                     dialog.open("ok#tui-primary");
                     dialog.on("btnclick", function () {
                         if (!fm.validate())
                             return;
-                        var v = fm.get("value");
-                        _this._values.push(v);
-                        dialog.close();
-                        form.fire("itemvaluechanged", { control: _this });
+                        try {
+                            var v = fm.get("value");
+                            _this._values.push(v);
+                            dialog.close();
+                            _this._notifyBar.innerHTML = "";
+                            form.fire("itemvaluechanged", { control: _this });
+                        }
+                        catch (e) { }
                     });
                 });
                 _this._btnEdit = widget.create("button", { text: "<i class='fa fa-pencil'></i>" });
@@ -8126,8 +8287,12 @@ var tui;
                     if (i === null)
                         return;
                     _this._values.splice(i, 1);
+                    _this._notifyBar.innerHTML = "";
                     form.fire("itemvaluechanged", { control: _this });
                 });
+                _this._notifyBar = tui.elem("div");
+                _this._notifyBar.className = "tui-form-notify-bar";
+                _this.div.appendChild(_this._notifyBar);
                 return _this;
             }
             FormGrid.prototype.editRow = function () {
@@ -8137,7 +8302,7 @@ var tui;
                     return;
                 var dialog = widget.create("dialog");
                 var fm = widget.create("form");
-                fm.set("definition", this.define.definitions);
+                fm.set("definition", tui.clone(this.define.definitions));
                 dialog.set("content", fm._);
                 dialog.open("ok#tui-primary");
                 fm.set("value", this._values[i]);
@@ -8147,11 +8312,13 @@ var tui;
                     var v = fm.get("value");
                     _this._values.splice(i, 1, v);
                     dialog.close();
+                    _this._notifyBar.innerHTML = "";
                     _this.form.fire("itemvaluechanged", { control: _this });
                 });
             };
             FormGrid.prototype.update = function () {
                 _super.prototype.update.call(this);
+                this._notifyBar.innerHTML = "";
                 var d = this.define;
                 if (d.value instanceof Array) {
                     this._values = d.value;
@@ -8166,7 +8333,8 @@ var tui;
                         var subDef = _a[_i];
                         if (!subDef.key)
                             continue;
-                        var col = { name: subDef.label, key: subDef.key };
+                        var type = widget.Form.getType(subDef.type);
+                        var col = { name: subDef.label, key: subDef.key, translator: type.translator };
                         columns.push(col);
                     }
                     this._widget._set("columns", columns);
@@ -8184,9 +8352,47 @@ var tui;
                 }
             };
             FormGrid.prototype.getProperties = function () {
-                throw new Error('Method not implemented.');
+                return [{
+                        name: tui.str("form.grid"),
+                        properties: [
+                            {
+                                "type": "textbox",
+                                "key": "height",
+                                "label": tui.str("form.height"),
+                                "value": /^\d+$/.test(this.define.height + "") ? this.define.height : null,
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                ]
+                            }, {
+                                "type": "textbox",
+                                "key": "atLeast",
+                                "label": tui.str("form.at.least"),
+                                "value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast : "",
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                ]
+                            }, {
+                                "type": "textbox",
+                                "key": "atMost",
+                                "label": tui.str("form.at.most"),
+                                "value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost : "",
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                ]
+                            }
+                        ]
+                    }, {
+                        name: tui.str("form.design"),
+                        designMode: true,
+                        properties: this.define.definitions
+                    }];
             };
             FormGrid.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                this.define.height = /^\d+$/.test(values.height) ? values.height : null;
+                this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
+                this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
+                this.define.definitions = properties[2];
             };
             FormGrid.prototype.getValue = function () {
                 return this._values;
@@ -8201,10 +8407,14 @@ var tui;
             FormGrid.prototype.validate = function () {
                 var d = this.define;
                 var data = this._widget.get("data");
-                if (data.length() < d.atLeast)
+                if (d.atLeast && data.length() < d.atLeast) {
+                    this._notifyBar.innerHTML = tui.browser.toSafeText(tui.strp("form.at.least.p", d.atLeast));
                     return false;
-                else if (data.length() > d.atMost)
+                }
+                else if (d.atMost && data.length() > d.atMost) {
+                    this._notifyBar.innerHTML = tui.browser.toSafeText(tui.strp("form.at.most.p", d.atMost));
                     return false;
+                }
                 else
                     return true;
             };
@@ -8213,6 +8423,13 @@ var tui;
         FormGrid.icon = "fa-table";
         FormGrid.desc = "form.grid";
         FormGrid.order = 9;
+        FormGrid.translator = function (value) {
+            if (value instanceof Array) {
+                return "[ " + tui.strp("item.count.p", value.length) + " ]";
+            }
+            else
+                return "";
+        };
         widget.Form.register("grid", FormGrid);
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
@@ -9271,7 +9488,10 @@ var tui;
                         tui.browser.setInnerHtml(prefixSpan, prefixContent);
                         cell.appendChild(prefixSpan);
                     }
-                    cell.appendChild(document.createTextNode(item[columns[i].key]));
+                    var txt = item[columns[i].key];
+                    if (typeof columns[i].translator === "function")
+                        txt = columns[i].translator(txt);
+                    cell.appendChild(document.createTextNode(txt === null ? "" : txt));
                     var suffixContent = columns[i].suffixKey !== null ? item[columns[i].suffixKey] : null;
                     if (suffixContent) {
                         var suffixSpan = tui.elem("span");

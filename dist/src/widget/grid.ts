@@ -22,6 +22,7 @@ module tui.widget {
 		checkKey?: string;
 		prefixKey?: string;
 		suffixKey?: string;
+		translator?: (value: any) => string;
 	}
 
 	function vval(v: number): number {
@@ -1004,7 +1005,10 @@ module tui.widget {
 					browser.setInnerHtml(prefixSpan, prefixContent);
 					cell.appendChild(prefixSpan);
 				}
-				cell.appendChild(document.createTextNode(item[columns[i].key]));
+				var txt = item[columns[i].key];
+				if (typeof columns[i].translator === "function")
+					txt = columns[i].translator(txt);
+				cell.appendChild(document.createTextNode(txt === null ? "" : txt));
 				var suffixContent = columns[i].suffixKey !== null ? item[columns[i].suffixKey] : null;
 				if (suffixContent) {
 					var suffixSpan = elem("span");

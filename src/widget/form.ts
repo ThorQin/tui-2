@@ -25,6 +25,7 @@ module tui.widget {
 		desc: string;
 		order: number;
 		init?: {[index:string]: any};
+		translator?: (value: any) => string;
 	}
 
 	var _controls: { [index: string]: FormControlConstructor } = {};
@@ -47,7 +48,11 @@ module tui.widget {
 			_controls[type] = controlType;
 		}
 
-		protected removeAll() {
+		public static getType(type: string): FormControlConstructor {
+			return _controls[type];
+		}
+
+		removeAll() {
 			for (let item of this._items) {
 				item.hide();
 			}
@@ -60,13 +65,76 @@ module tui.widget {
 			}
 		}
 
-		protected selectItem(target: FormControl<FormItem>) {
+		selectItem(target: FormControl<FormItem>) {
 			for (let item of this._items) {
 				if (item !== target)
 					item.select(false);
 				else
 					item.select(true);
 			}
+		}
+
+		getItem(index: number): FormControl<FormItem> {
+			if (index >= 0 && index < this._items.length)
+				return this._items[index];
+			else
+				return null;
+		}
+
+		getSelectedItem(): FormControl<FormItem> {
+			for (let item of this._items) {
+				if (item.isSelect())
+					return item;
+			}
+			return null;
+		}
+
+		removeItem(target: FormControl<FormItem>) {
+			var pos = this._items.indexOf(target);
+			if (pos >= 0) {
+				this._items.splice(pos, 1);
+				target.hide();
+				this._valueChanged = true;
+				this.render();
+			}
+		}
+
+		selectNext() {
+			var found = false;
+			for (let i = 0; i < this._items.length; i++) {
+				if (this._items[i].isSelect()) {
+					found = true;
+					if (i < this._items.length - 1) {
+						this._items[i].select(false);
+						this._items[i + 1].select(true);
+						return true;
+					}
+				}
+			}
+			if (!found && this._items.length > 0) {
+				this._items[0].select(true);
+				return true;
+			}
+			return false;
+		}
+
+		protected selectPrevious() {
+			var found = false;
+			for (let i = 0; i < this._items.length; i++) {
+				if (this._items[i].isSelect()) {
+					found = true;
+					if (i > 0) {
+						this._items[i].select(false);
+						this._items[i - 1].select(true);
+						return true;
+					}
+				}
+			}
+			if (!found && this._items.length > 0) {
+				this._items[0].select(true);
+				return true;
+			}
+			return false;
 		}
 
 		protected update() {
@@ -127,7 +195,7 @@ module tui.widget {
 						var me = this;
 						function computeValue(key: string, searchPath: string[]) {
 							if (!index.hasOwnProperty(key)) {
-								throw new Error("Invalid expression: Field \"" + key + "\" not found in \"" + searchPath[searchPath.length - 1] + "\" condition.");
+								throw new Error("Invalid expression: Field \"" + key + "\" was not found in \"" + searchPath[searchPath.length - 1] + "\"'s condition expression.");
 							}
 							var exp = me._items[index[key]].define.condition;
 							if (!exp) {
@@ -139,7 +207,7 @@ module tui.widget {
 								me._items[index[key]].define.available = true;
 							} else {
 								if (searchPath.indexOf(key) >= 0)
-									throw new Error("Invalid expression: Cycle reference detected on \"" + key + "\"");
+									throw new Error("Invalid expression: Cycle reference was detected on field: \"" + key + "\"");
 								searchPath.push(key);
 								try {
 									if (text.exp.evaluate(exp, function (k: string) {
@@ -250,17 +318,28 @@ module tui.widget {
 			toolbar.appendChild(title);
 			toolbar.appendChild(buttons);
 			this._.appendChild(toolbar);
+
+			$(this._).on("keydown", (e) => {
+				if (this.get("mode") !== "design")
+					return;
+				if (e.keyCode === 9) {
+					if (e.shiftKey) {
+						this.selectPrevious();
+					} else {
+						this.selectNext();
+					}
+					e.preventDefault();
+				} else if (e.keyCode === browser.KeyCode.DELETE) {
+					this.removeItem(this.getSelectedItem());
+					e.preventDefault();
+				}
+			});
+
 			this.on("resize", () => {
 				this.render();
 			});
 			this.on("itemremove", (e: any) => {
-				var pos = this._items.indexOf(e.data.control);
-				if (pos >= 0) {
-					this._items.splice(pos, 1);
-					e.data.control.hide();
-					this._valueChanged = true;
-					this.render();
-				}
+				this.removeItem(e.data.control);
 			});
 			this.on("itemresize", (e: any) => {
 				this.render();
@@ -528,6 +607,11 @@ module tui.widget {
 			}
 			if (designMode) {
 				this._.appendChild(newItem);
+				this._.setAttribute("tabIndex", "0");
+				browser.addClass(this._, "tui-form-design-mode");
+			} else {
+				this._.removeAttribute("tabIndex");
+				browser.removeClass(this._, "tui-form-design-mode");
 			}
 		}
 	}

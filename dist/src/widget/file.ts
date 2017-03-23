@@ -31,12 +31,14 @@ module tui.widget {
 						return this._uploader.getOptions().accept;
 					}
 				},
-				"value": {
-					"set": (value: any) => {
-						this._data["value"] = value;
-						if (value === null || typeof value === tui.UNDEFINED) {
-							this._set("text", "");
-						}
+				"text": {
+					"set":  (value: any) => {}, 
+					"get": (): any => {
+						var v = this.get("value");
+						if (v && v.fileName)
+							return v.fileName;
+						else
+							return "";
 					}
 				}
 			});
@@ -86,8 +88,7 @@ module tui.widget {
 				return this.fire("change", e);
 			});
 			this._uploader.on("success", (e: any) => {
-				this._set("value", e.data.response.fileId);
-				this.set("text", e.data.response.fileName);
+				this._set("value", e.data.response);
 				this.fire("success", e);
 			});
 			this._uploader.on("error", (e: any) => {

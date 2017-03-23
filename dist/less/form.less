@@ -111,7 +111,7 @@ tui\:form {
 			bottom: 0;
 			background-color: #f5f5f5;
 			.opacity(0);
-			z-index: 20;
+			z-index: 21;
 		}
 		&.tui-form-in-design {
 			&>div.tui-form-item-mask {
@@ -242,6 +242,13 @@ tui\:form {
 			color: red;
 			font-weight: bold;
 		}
+
+		&.tui-form-section-newline {
+			padding:0;
+			> * {
+				display: none !important;
+			}
+		}
 	}
 
 	>div.tui-form-new-item-box {
@@ -324,6 +331,9 @@ tui\:form.tui-form-property-form {
 tui\:dialog>.tui-content tui\:form {
 	max-width: 880px;
 	padding: 0;
+	&.tui-form-design-mode {
+		padding-bottom: 20px;
+	}
 }
 
 @media (max-width: 960px) {
