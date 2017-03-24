@@ -43,6 +43,8 @@ declare module tui.text {
     function isAbsUrl(url: string): boolean;
     function getBaseUrl(url: string): string;
     function joinUrl(...urls: string[]): string;
+    function arrayAdd(arr: any[], value: any): void;
+    function arrayRemove(arr: any[], value: any): void;
 }
 declare module tui.browser {
     class BackupedScrollPosition {
@@ -669,20 +671,22 @@ declare module tui.widget {
         protected _valueCache: {
             [index: string]: any;
         };
+        protected _maxId: number;
         static register(type: string, controlType: FormControlConstructor): void;
         static getType(type: string): FormControlConstructor;
         removeAll(): void;
         protected hideAll(): void;
         selectItem(target: FormControl<FormItem>): void;
-        getItem(index: number): FormControl<FormItem>;
+        getItem(index: number | string): FormControl<FormItem>;
         getSelectedItem(): FormControl<FormItem>;
+        addItem(type: string, label?: string, pos?: number): void;
         removeItem(target: FormControl<FormItem>): void;
         selectNext(): boolean;
         protected selectPrevious(): boolean;
         protected update(): void;
         protected initRestriction(): void;
         protected init(): void;
-        private bindNewItemClick(popup, newItemDiv, type, label, init, pos);
+        private bindNewItemClick(popup, newItemDiv, type, pos);
         private addNewItem(button, pos);
         validate(): boolean;
         render(): void;
@@ -716,7 +720,10 @@ declare module tui.widget {
         btnSize: Button;
         protected form: Form;
         protected selected: boolean;
+        static detectRequired(pages: PropertyPage[], recentPage: number): void;
+        static detectRequiredByValidation(pages: PropertyPage[], recentPage: number): void;
         constructor(form: Form, define: D);
+        protected onPropertyPageSwitch(propertyPages: PropertyPage[], recentPage: number): void;
         showProperties(): void;
         update(): void;
         isPresent(): boolean;

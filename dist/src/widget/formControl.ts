@@ -35,6 +35,66 @@ module tui.widget {
 		protected form: Form;
 		protected selected: boolean;
 
+
+		static detectRequired(pages: PropertyPage[], recentPage: number) {
+			var options = pages[0].form.get("value").options;
+			let atLeast = pages[1].form.getItem("atLeast").getValue(null);
+			if (recentPage == 0) {
+				if (options.indexOf("required") >= 0) {
+					if (!atLeast || atLeast <= 0)
+						pages[1].form.getItem("atLeast").setValue(1);
+				} else {
+					pages[1].form.getItem("atLeast").setValue(null);
+				}
+			} else if (recentPage == 1) {
+				if (atLeast && atLeast > 0)
+					text.arrayAdd(options, "required");
+				else
+					text.arrayRemove(options, "required");
+				pages[0].form.getItem("options").setValue(options);
+			}
+		}
+
+		static detectRequiredByValidation(pages: PropertyPage[], recentPage: number) {
+			var options = pages[0].form.get("value").options;
+			let validation = pages[1].form.getItem("validation").getValue(null);
+			var hasAny = false;
+			if (validation) {
+				for (let v of validation) {
+					if (v.format.trim() === "*any") {
+						hasAny = true;
+						break;
+					}
+				}
+			} else
+				validation = [];
+			if (recentPage == 0) {
+				if (options.indexOf("required") >= 0) {
+					if (!hasAny) {
+						validation.push({"format": "*any", "message": str("message.cannot.be.empty")});
+					}
+				} else {
+					if (hasAny) {
+						var i = 0;
+						while (i < validation.length) {
+							if (validation[i].format.trim() === "*any") {
+								validation.splice(i, 1);
+							} else
+								i++;
+						}
+					}
+				}
+				pages[1].form.getItem("validation").setValue(validation);
+			} else if (recentPage == 1) {
+				if (hasAny)
+					text.arrayAdd(options, "required");
+				else
+					text.arrayRemove(options, "required");
+				pages[0].form.getItem("options").setValue(options);
+			}
+		}
+
+
 		constructor(form: Form, define: D) {
 			this.selected = false;
 			this.form = form;
@@ -126,6 +186,10 @@ module tui.widget {
 			});
 		}
 
+		protected onPropertyPageSwitch(propertyPages: PropertyPage[], recentPage: number): void {
+			// Sub class should override this method to implement properties comovement.
+		}
+
 		showProperties() {
 			var properties: FormItem[] = [
 				{
@@ -195,8 +259,9 @@ module tui.widget {
 				page.form = form;
 				container.appendChild(form._);
 			}
-			tab.on("click", function() {
-				var target: number = this.get("value");
+			var recentPage = 0;
+			tab.on("click", () => {
+				var target: number = tab.get("value");
 				for (let i = 0; i < pages.length; i++) {
 					if (i != target)
 						pages[i].form._.style.display = "none";
@@ -205,11 +270,20 @@ module tui.widget {
 					if (i == target)
 						pages[i].form._.style.display = "block";
 				}
+				if (recentPage != target) {
+					if (typeof this.onPropertyPageSwitch === "function") {
+						this.onPropertyPageSwitch(pages, recentPage);
+					}
+					recentPage = target;
+				}
 			});
 			var dialog = <Dialog>create("dialog");
 			dialog.set("content", container);
 			dialog.open("ok#tui-primary");
 			dialog.on("btnclick", () => {
+				if (typeof this.onPropertyPageSwitch === "function") {
+					this.onPropertyPageSwitch(pages, recentPage);
+				}
 				var values: {[index: string]: any} = pages[0].form.get("value");
 				var customValues: any[] = [];
 				customValues.push(values);
@@ -380,6 +454,7 @@ module tui.widget {
 		}
 		setValue(value: any): void {
 			this._widget.set("value", value);
+			this.form.fire("itemvaluechanged", {control: this});
 		}
 		render(designMode: boolean): void {
 			if (designMode && typeof (<any>this._widget).reset === "function") {
@@ -444,6 +519,7 @@ module tui.widget {
 		setValue(value: any): void {
 			if (typeof value !== UNDEFINED)
 				this.define.value = value;
+			this.form.fire("itemvaluechanged", {control: this});
 		}
 
 		render(designMode: boolean): void {
@@ -676,6 +752,9 @@ module tui.widget {
 			this.define.inputType = values.inputType;
 			this.define.validation = values.validation;
 		}
+		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
+			FormControl.detectRequiredByValidation(pages, recentPage);
+		}
 		validate(): boolean {
 			return this._widget.validate();
 		}
@@ -772,6 +851,9 @@ module tui.widget {
 				this.define.maxHeight = values.maxHeight;
 			else
 				this.define.maxHeight = null;
+		}
+		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
+			FormControl.detectRequiredByValidation(pages, recentPage);
 		}
 		validate(): boolean {
 			return this._widget.validate();
@@ -915,6 +997,7 @@ module tui.widget {
 		}
 		setValue(value: any): void {
 			this._group.set("value", value);
+			this.form.fire("itemvaluechanged", {control: this});
 		}
 		render(designMode: boolean): void {
 			this._group.render();
@@ -977,6 +1060,9 @@ module tui.widget {
 			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
 			this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
 			this.define.options = FormOptions.textToOptions(values.options);
+		}
+		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
+			FormControl.detectRequired(pages, recentPage);
 		}
 		validate(): boolean {
 			var count: number;
@@ -1234,7 +1320,9 @@ module tui.widget {
 			this.define.selection = FormSelect.textToSelection(values.selection);
 			this.define.canSearch = text.parseBoolean(values.canSearch);
 		}
-
+		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
+			FormControl.detectRequired(pages, recentPage);
+		}
 		getValue(cal: Calculator = null): any {
 			if (!cal)
 				return this._widget.get("value");
@@ -1517,7 +1605,7 @@ module tui.widget {
 
 		getProperties(): PropertyPage[] {
 			return [{
-				name: str("form.picture"),
+				name: str("form.file"),
 				properties: [
 					{
 						"type": "textbox",
@@ -1606,7 +1694,7 @@ module tui.widget {
 
 		getProperties(): PropertyPage[] {
 			return [{
-				name: str("form.picture"),
+				name: str("form.files"),
 				properties: [
 					{
 						"type": "textbox",
@@ -1649,6 +1737,9 @@ module tui.widget {
 			this.define.action = values.action;
 			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
 			this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
+		}
+		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
+			FormControl.detectRequired(pages, recentPage);
 		}
 		validate(): boolean {
 			var count: number;
@@ -1851,6 +1942,11 @@ module tui.widget {
 				properties: this.define.definitions
 			}];
 		}
+
+		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
+			FormControl.detectRequired(pages, recentPage);
+		}
+
 		setProperties(properties: any[]) {
 			var values = properties[1];
 			this.define.height = /^\d+$/.test(values.height) ? values.height: null;
@@ -1862,11 +1958,14 @@ module tui.widget {
 			return this._values;
 		}
 		setValue(value: any): void {
-			if (value instanceof Array) {
-				this._values.length = 0;
-				this._values = this._values.concat(value);
+			if (value !== this._values) {
+				if (value instanceof Array) {
+					this._values.length = 0;
+					this._values = this._values.concat(value);
+				}
 			}
 			this._widget.render();
+			this.form.fire("itemvaluechanged", {control: this});
 		}
 		validate(): boolean {
 			var d = this.define;

@@ -151,4 +151,19 @@ module tui.text {
 		}
 		return result;
 	}
+
+	export function arrayAdd(arr: any[], value: any) {
+		if (!arr)
+			return;
+		if (arr.indexOf(value) < 0)
+			arr.push(value);
+	}
+
+	export function arrayRemove(arr: any[], value: any) {
+		if (!arr)
+			return;
+		var pos = arr.indexOf(value);
+		if (pos >= 0)
+			arr.splice(pos, 1);
+	}
 }

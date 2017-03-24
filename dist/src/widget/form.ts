@@ -43,6 +43,7 @@ module tui.widget {
 		protected _valueChanged: boolean;
 		protected _items: FormControl<FormItem>[];
 		protected _valueCache: { [index: string]: any };
+		protected _maxId: number;
 
 		public static register(type: string, controlType: FormControlConstructor): void {
 			_controls[type] = controlType;
@@ -52,7 +53,7 @@ module tui.widget {
 			return _controls[type];
 		}
 
-		protected removeAll() {
+		removeAll() {
 			for (let item of this._items) {
 				item.hide();
 			}
@@ -65,13 +66,113 @@ module tui.widget {
 			}
 		}
 
-		protected selectItem(target: FormControl<FormItem>) {
+		selectItem(target: FormControl<FormItem>) {
 			for (let item of this._items) {
 				if (item !== target)
 					item.select(false);
 				else
 					item.select(true);
 			}
+		}
+
+		getItem(index: number | string): FormControl<FormItem> {
+			if (typeof index === "number") {
+				if (index >= 0 && index < this._items.length)
+					return this._items[index];
+				else
+					return null;
+			} else if (typeof index === "string") {
+				for (let item of this._items) {
+					if (item.getKey() === index)
+						return item;
+				}
+				return null;
+			} else
+				return null;
+		}
+
+		getSelectedItem(): FormControl<FormItem> {
+			for (let item of this._items) {
+				if (item.isSelect())
+					return item;
+			}
+			return null;
+		}
+
+		addItem(type: string, label: string = null, pos: number = -1) {
+			var c = _controls[type];
+			if (label === null)
+				label = str(c.desc);
+			var define: FormItem = { type: type, label: label };
+			var key = type + (++this._maxId);
+			while (this.getItem(key)) {
+				key = type + (++this._maxId);
+			}
+			define.key = key;
+			if (c.init) {
+				for (var k in c.init) {
+					if (c.init.hasOwnProperty(k)) {
+						define[k] = c.init[k];
+					}
+				}
+			}
+			var newItem = new c(this, define);
+			newItem.update();
+			if (pos < 0 || pos >= this._items.length) {
+				this._items.push(newItem);
+			} else
+				this._items.splice(pos, 0, newItem);
+			this.update();
+			this.selectItem(newItem);
+			this._valueChanged = true;
+		}
+
+		removeItem(target: FormControl<FormItem>) {
+			var pos = this._items.indexOf(target);
+			if (pos >= 0) {
+				this._items.splice(pos, 1);
+				target.hide();
+				this._valueChanged = true;
+				this.render();
+			}
+		}
+
+		selectNext() {
+			var found = false;
+			for (let i = 0; i < this._items.length; i++) {
+				if (this._items[i].isSelect()) {
+					found = true;
+					if (i < this._items.length - 1) {
+						this._items[i].select(false);
+						this._items[i + 1].select(true);
+						return true;
+					}
+				}
+			}
+			if (!found && this._items.length > 0) {
+				this._items[0].select(true);
+				return true;
+			}
+			return false;
+		}
+
+		protected selectPrevious() {
+			var found = false;
+			for (let i = 0; i < this._items.length; i++) {
+				if (this._items[i].isSelect()) {
+					found = true;
+					if (i > 0) {
+						this._items[i].select(false);
+						this._items[i - 1].select(true);
+						return true;
+					}
+				}
+			}
+			if (!found && this._items.length > 0) {
+				this._items[0].select(true);
+				return true;
+			}
+			return false;
 		}
 
 		protected update() {
@@ -235,6 +336,7 @@ module tui.widget {
 		}
 
 		protected init(): void {
+			this._maxId = 0;
 			this._.setAttribute("unselectable", "on");
 			var toolbar = this._components["toolbar"] = elem("div");
 			toolbar.className = "tui-form-toolbar";
@@ -255,17 +357,28 @@ module tui.widget {
 			toolbar.appendChild(title);
 			toolbar.appendChild(buttons);
 			this._.appendChild(toolbar);
+
+			$(this._).on("keydown", (e) => {
+				if (this.get("mode") !== "design")
+					return;
+				if (e.keyCode === 9) {
+					if (e.shiftKey) {
+						this.selectPrevious();
+					} else {
+						this.selectNext();
+					}
+					e.preventDefault();
+				} else if (e.keyCode === browser.KeyCode.DELETE) {
+					this.removeItem(this.getSelectedItem());
+					e.preventDefault();
+				}
+			});
+
 			this.on("resize", () => {
 				this.render();
 			});
 			this.on("itemremove", (e: any) => {
-				var pos = this._items.indexOf(e.data.control);
-				if (pos >= 0) {
-					this._items.splice(pos, 1);
-					e.data.control.hide();
-					this._valueChanged = true;
-					this.render();
-				}
+				this.removeItem(e.data.control);
 			});
 			this.on("itemresize", (e: any) => {
 				this.render();
@@ -407,23 +520,10 @@ module tui.widget {
 			};
 		}
 
-		private bindNewItemClick(popup: Popup, newItemDiv: HTMLElement, type: string, label: string, init: {[index:string]:any}, pos: number) {
+		private bindNewItemClick(popup: Popup, newItemDiv: HTMLElement, type: string, pos: number) {
 			newItemDiv.onclick = () => {
-				var define: FormItem = { type: type, label: label };
-				if (init) {
-					for (var k in init) {
-						if (init.hasOwnProperty(k)) {
-							define[k] = init[k];
-						}
-					}
-				}
-				var newItem = new _controls[type](this, define);
-				newItem.update();
-				this._items.splice(pos, 0, newItem);
+				this.addItem(type, null, pos);
 				popup.close();
-				this.update();
-				this.selectItem(newItem);
-				this._valueChanged = true;
 			};
 		}
 
@@ -438,7 +538,6 @@ module tui.widget {
 						name: _controls[type].desc,
 						icon: _controls[type].icon,
 						order: _controls[type].order,
-						init: _controls[type].init
 					})
 				}
 			}
@@ -455,7 +554,7 @@ module tui.widget {
 				itemIcon.className = "fa " + c.icon;
 				label.innerHTML = browser.toSafeText(tui.str(c.name));
 				div.appendChild(itemDiv);
-				this.bindNewItemClick(popup, itemDiv, c.type, tui.str(c.name), c.init, pos);
+				this.bindNewItemClick(popup, itemDiv, c.type, pos);
 			}
 			popup._set("content", div);
 			popup.open(button);
@@ -533,8 +632,10 @@ module tui.widget {
 			}
 			if (designMode) {
 				this._.appendChild(newItem);
+				this._.setAttribute("tabIndex", "0");
 				browser.addClass(this._, "tui-form-design-mode");
 			} else {
+				this._.removeAttribute("tabIndex");
 				browser.removeClass(this._, "tui-form-design-mode");
 			}
 		}

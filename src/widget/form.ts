@@ -43,6 +43,7 @@ module tui.widget {
 		protected _valueChanged: boolean;
 		protected _items: FormControl<FormItem>[];
 		protected _valueCache: { [index: string]: any };
+		protected _maxId: number;
 
 		public static register(type: string, controlType: FormControlConstructor): void {
 			_controls[type] = controlType;
@@ -74,10 +75,19 @@ module tui.widget {
 			}
 		}
 
-		getItem(index: number): FormControl<FormItem> {
-			if (index >= 0 && index < this._items.length)
-				return this._items[index];
-			else
+		getItem(index: number | string): FormControl<FormItem> {
+			if (typeof index === "number") {
+				if (index >= 0 && index < this._items.length)
+					return this._items[index];
+				else
+					return null;
+			} else if (typeof index === "string") {
+				for (let item of this._items) {
+					if (item.getKey() === index)
+						return item;
+				}
+				return null;
+			} else
 				return null;
 		}
 
@@ -87,6 +97,34 @@ module tui.widget {
 					return item;
 			}
 			return null;
+		}
+
+		addItem(type: string, label: string = null, pos: number = -1) {
+			var c = _controls[type];
+			if (label === null)
+				label = str(c.desc);
+			var define: FormItem = { type: type, label: label };
+			var key = type + (++this._maxId);
+			while (this.getItem(key)) {
+				key = type + (++this._maxId);
+			}
+			define.key = key;
+			if (c.init) {
+				for (var k in c.init) {
+					if (c.init.hasOwnProperty(k)) {
+						define[k] = c.init[k];
+					}
+				}
+			}
+			var newItem = new c(this, define);
+			newItem.update();
+			if (pos < 0 || pos >= this._items.length) {
+				this._items.push(newItem);
+			} else
+				this._items.splice(pos, 0, newItem);
+			this.update();
+			this.selectItem(newItem);
+			this._valueChanged = true;
 		}
 
 		removeItem(target: FormControl<FormItem>) {
@@ -298,6 +336,7 @@ module tui.widget {
 		}
 
 		protected init(): void {
+			this._maxId = 0;
 			this._.setAttribute("unselectable", "on");
 			var toolbar = this._components["toolbar"] = elem("div");
 			toolbar.className = "tui-form-toolbar";
@@ -481,23 +520,10 @@ module tui.widget {
 			};
 		}
 
-		private bindNewItemClick(popup: Popup, newItemDiv: HTMLElement, type: string, label: string, init: {[index:string]:any}, pos: number) {
+		private bindNewItemClick(popup: Popup, newItemDiv: HTMLElement, type: string, pos: number) {
 			newItemDiv.onclick = () => {
-				var define: FormItem = { type: type, label: label };
-				if (init) {
-					for (var k in init) {
-						if (init.hasOwnProperty(k)) {
-							define[k] = init[k];
-						}
-					}
-				}
-				var newItem = new _controls[type](this, define);
-				newItem.update();
-				this._items.splice(pos, 0, newItem);
+				this.addItem(type, null, pos);
 				popup.close();
-				this.update();
-				this.selectItem(newItem);
-				this._valueChanged = true;
 			};
 		}
 
@@ -512,7 +538,6 @@ module tui.widget {
 						name: _controls[type].desc,
 						icon: _controls[type].icon,
 						order: _controls[type].order,
-						init: _controls[type].init
 					})
 				}
 			}
@@ -529,7 +554,7 @@ module tui.widget {
 				itemIcon.className = "fa " + c.icon;
 				label.innerHTML = browser.toSafeText(tui.str(c.name));
 				div.appendChild(itemDiv);
-				this.bindNewItemClick(popup, itemDiv, c.type, tui.str(c.name), c.init, pos);
+				this.bindNewItemClick(popup, itemDiv, c.type, pos);
 			}
 			popup._set("content", div);
 			popup.open(button);

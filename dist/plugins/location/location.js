@@ -306,6 +306,9 @@ var tui;
                     this.define.appKey = values.appKey ? values.appKey : null;
                     this.define.validation = values.validation;
                 };
+                FormAddress.prototype.onPropertyPageSwitch = function (pages, recentPage) {
+                    widget.FormControl.detectRequiredByValidation(pages, recentPage);
+                };
                 FormAddress.prototype.validate = function () {
                     return this._widget.validate();
                 };

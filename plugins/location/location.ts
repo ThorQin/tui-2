@@ -320,6 +320,9 @@ module tui.widget.ext {
 			this.define.appKey = values.appKey ? values.appKey : null;
 			this.define.validation = values.validation;
 		}
+		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
+			FormControl.detectRequiredByValidation(pages, recentPage);
+		}
 		validate(): boolean {
 			return this._widget.validate();
 		}
