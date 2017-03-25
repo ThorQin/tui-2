@@ -104,7 +104,7 @@ module tui.widget {
 			this.mask.setAttribute("unselectable", "on");
 			this.mask.className = "tui-form-item-mask";
 			this.mask.style.display = "none";
-			
+
 			this.toolbar = elem("div");
 			this.toolbar.className = "tui-form-item-toolbar";
 
@@ -129,11 +129,11 @@ module tui.widget {
 			this.div.className = "tui-form-item-container";
 
 			this.applySize();
-			
+
 			this.label = elem("div");
 			this.label.className = "tui-form-item-label";
 			this.div.appendChild(this.label);
-		
+
 			$(this.mask).mousedown((e: JQueryEventObject) => {
 				this.form.fire("itemmousedown", {e: e, control: this});
 			});
@@ -206,13 +206,14 @@ module tui.widget {
 					"type": "options",
 					"label": str("form.options"),
 					"key": "options",
-					"size": 1,
+					"size": 2,
 					"options": [
 						{ "value": "required", "text": str("form.required") },
-						{ "value": "disable", "text": str("form.disable") }
+						{ "value": "disable", "text": str("form.disable") },
+						{ "value": "emphasize", "text": str("form.emphasize") }
 					],
 					"newline": true,
-					"value": [this.define.required ? "required" : null, this.define.disable ? "disable" : null]
+					"value": [this.define.required ? "required" : null, this.define.disable ? "disable" : null, this.define.emphasize ? "emphasize" : null]
 				}, {
 					"type": "textarea",
 					"maxHeight": 200,
@@ -305,17 +306,18 @@ module tui.widget {
 				this.define.description = values.description;
 				this.define.disable = (values.options.indexOf("disable") >= 0);
 				this.define.required = (values.options.indexOf("required") >= 0);
+				this.define.emphasize = (values.options.indexOf("emphasize") >= 0);
 				this.setProperties(customValues);
 				this.update();
 				this.form.fire("itemvaluechanged", {control: this});
 				dialog.close();
-				
+
 			});
 		}
 
 		update() {
 			var d = this.define;
-			if (!d.label && !d.description) {
+			if (!d.label && !d.description && !d.required) {
 				browser.addClass(this.label, "tui-hidden");
 			} else {
 				browser.removeClass(this.label, "tui-hidden");
@@ -328,6 +330,10 @@ module tui.widget {
 				} else {
 					browser.removeClass(this.label,"tui-form-item-required");
 				}
+				if (d.emphasize) {
+					browser.addClass(this.label,"tui-form-item-emphasize");
+				} else
+					browser.removeClass(this.label,"tui-form-item-emphasize");
 				if (d.description) {
 					var desc = elem("span");
 					desc.setAttribute("tooltip", d.description);
@@ -373,7 +379,7 @@ module tui.widget {
 					if (!this.selected)
 						browser.removeNode(this.toolbar);
 				}, 500);
-				
+
 			}
 		}
 		isSelect(): boolean {
@@ -458,7 +464,7 @@ module tui.widget {
 		}
 		render(designMode: boolean): void {
 			if (designMode && typeof (<any>this._widget).reset === "function") {
-				 (<any>this._widget).reset();	
+				 (<any>this._widget).reset();
 			}
 			this._widget.render();
 		}
@@ -479,7 +485,7 @@ module tui.widget {
 		static icon = "fa-font";
 		static desc = "form.section";
 		static order = 0;
-		
+
 		private _hr: HTMLElement;
 		constructor(form: Form, define: SectionFormItem) {
 			super(form, define);
@@ -496,10 +502,13 @@ module tui.widget {
 				this.define.display = "visible";
 			if (d.label) {
 				this._hr.className = "tui-form-line-label";
-				if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48)
+				if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48) {
 					this.label.style.fontSize = d.fontSize + "px";
-				else
+					this.label.style.lineHeight = d.fontSize + 4 + "px";
+				} else {
 					this.label.style.fontSize = "";
+					this.label.style.lineHeight = "";
+				}
 				if (/^(left|right|center)$/.test(d.align))
 					this.label.style.textAlign = d.align;
 				else
@@ -558,7 +567,8 @@ module tui.widget {
 							{ "format": "*digital", "message": str("message.invalid.format") },
 							{ "format": "*min:12", "message": str("message.invalid.value") },
 							{ "format": "*max:48", "message": str("message.invalid.value") }
-						]
+						],
+						"description": "12 ~ 48"
 					}, {
 						"type": "textbox",
 						"key": "value",
@@ -570,8 +580,8 @@ module tui.widget {
 						"label": str("form.text.align"),
 						"atMost": 1,
 						"options": [
-							{value: "left", text: str("form.align.left")}, 
-							{value: "center", text: str("form.align.center")}, 
+							{value: "left", text: str("form.align.left")},
+							{value: "center", text: str("form.align.center")},
 							{value: "right", text: str("form.align.right")}
 						],
 						"size": 6,
@@ -582,7 +592,7 @@ module tui.widget {
 						"label": str("form.display"),
 						"atMost": 1,
 						"options": [
-							{value: "visible", text: str("form.visible")}, 
+							{value: "visible", text: str("form.visible")},
 							{value: "invisible", text: str("form.invisible")},
 							{value: "newline", text: str("form.newline")}
 						],
@@ -704,7 +714,7 @@ module tui.widget {
 						"label": str("form.validation"),
 						"size": 2,
 						"newline": true,
-						"height": 150,
+						"height": 120,
 						"definitions": [
 							{
 								"type": "textbox",
@@ -1118,9 +1128,9 @@ module tui.widget {
 		static icon = "fa-toggle-down";
 		static desc = "form.selection";
 		static order = 4;
-		static init = { 
+		static init = {
 			"atMost": 1,
-			"selection": [{ 
+			"selection": [{
 				"condition":<string>null,
 				"data": [
 					{"value":"A","name":"A", "check": false},
@@ -1332,7 +1342,7 @@ module tui.widget {
 			if (this.define.selection) {
 				if (cal.path.indexOf(key) >= 0)
 					throw new Error("Invalid expression of select control: Cycle reference detected on \"" + key + "\"");
-				cal.path.push(key);				
+				cal.path.push(key);
 				for (let d of this.define.selection) {
 					if (d.condition) {
 						if (text.exp.evaluate(d.condition, function (k: string) {
@@ -1836,7 +1846,7 @@ module tui.widget {
 			});
 
 			gp.appendTo(this._buttonBar);
-			
+
 			this._btnDelete = <Button>create("button", {text: "<i class='fa fa-trash'></i>"});
 			this._btnDelete.appendTo(this._buttonBar);
 			this._btnDelete.on("click", () => {
@@ -1897,7 +1907,7 @@ module tui.widget {
 			} else {
 				this._widget._set("columns", []);
 			}
-			if (typeof d.height === "number" && !isNaN(d.height) || 
+			if (typeof d.height === "number" && !isNaN(d.height) ||
 				typeof d.height === "string" && /^\d+$/.test(d.height)) {
 				this._widget._.style.height = d.height + "px";
 			} else {

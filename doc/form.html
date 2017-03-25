@@ -21,6 +21,9 @@
 		<![endif]-->
 	<script type="text/javascript" src="../depends/jquery-1.11.3.min.js"></script>
 	<script type="text/javascript" src="../dist/tui2.js"></script>
+	<script>
+		// tui.lang = "en-us";
+	</script>
 	<script type="text/javascript" src="../dist/lang/zh-cn.js"></script>
 	<script type="text/javascript" src="../dist/plugins/navigator/navigator.min.js"></script>
 	<script type="text/javascript" src="../dist/plugins/location/location.js"></script>
@@ -28,13 +31,14 @@
 
 <body>
 	<tui:component handler="form.js">
-		<tui:form name="form" class="tui-form-fixed tui-panel" mode="design" title="可选的标题"></tui:form>
+		<tui:form name="form" class="tui-form-fixed tui-panel" mode="design" title="表单演示"></tui:form>
 		<div style="text-align: center">
 			<tui:button-group name="mode" type="radio">
-				<tui:button value="design" checked={true}>Design Mode</tui:button>
-				<tui:button value="input">Input Mode</tui:button>
+				<tui:button value="design" checked={true}>设计模式</tui:button>
+				<tui:button value="input">输入模式</tui:button>
 			</tui:button-group>
-			<tui:button name="submit" class="tui-primary">Submit Form</tui:button>
+			<tui:button name="submit" class="tui-primary">提交</tui:button>
+			<tui:button name="define" class="tui-success">定义</tui:button>
 		</div>
 	</tui:component>
 </body>

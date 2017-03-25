@@ -26,7 +26,7 @@ tui\:button {
 	&:active {
 		.inset-shadow();
 	}
-	
+
 	&.tui-dropdown {
 		min-width:10px;
 		padding-left:5px;
@@ -57,13 +57,13 @@ tui\:button {
 		color: #fff;
 		.btn-color(#ff9800, #ef6c00);
 	}
-	
+
 	&.tui-checked {
 		color: @textColor;
 		.btn-color(@panelColor - #111, @panelColor - #222);
         .inset-shadow();
 	}
-	
+
 	&.tui-disable {
 		cursor:default;
 		.btn-color(@panelColor, @panelColor, @borderColor, @borderColor);
@@ -104,7 +104,7 @@ tui\:check,tui\:radio {
 	cursor:pointer;
 	text-decoration: none;
 	.border-radius(@buttonBorderRadius);
-	
+
 	vertical-align:middle;
 
 	&.tui-notify {
@@ -113,9 +113,13 @@ tui\:check,tui\:radio {
 			color:red;
 		}
 	}
+	&:focus {
+		outline: 1px dashed #bbb;
+	}
 	&.tui-disable {
 		cursor:default;
 		color: @panelColor - #333;
+		outline: none;;
 		&:hover {
 			color: @panelColor - #333;
 		}

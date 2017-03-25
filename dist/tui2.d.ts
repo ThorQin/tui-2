@@ -650,6 +650,7 @@ declare module tui.widget {
         newline?: boolean;
         disable?: boolean;
         required?: boolean;
+        emphasize?: boolean;
         description?: string;
         available?: boolean;
         [index: string]: any;

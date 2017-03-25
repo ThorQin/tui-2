@@ -8,6 +8,10 @@ tui\:form {
 	margin: 0 auto;
 	background: white;
 
+	&:focus {
+		outline: 1px dashed #bbb;
+	}
+
 	tui\:grid {
 		height: 150px;
 	}
@@ -32,7 +36,7 @@ tui\:form {
 			padding-bottom: 20px;
 		}
 	}
-	
+
 	div.tui-form-toolbar {
 		position: absolute;
 		display: block;
@@ -43,7 +47,7 @@ tui\:form {
 		height: @toolbarSize;
 		right: 0;
 		color: #ccc;
-		
+
 		&>div.tui-form-title {
 			font-size: 16px;
 			font-weight: bold;
@@ -132,7 +136,7 @@ tui\:form {
 			&>div.tui-form-item-mask {
 				.opacity(0.4);
 				background-color: #eee;
-				border: 1px dashed #000;	
+				border: 1px dashed #000;
 			}
 		}
 
@@ -187,17 +191,24 @@ tui\:form {
 		div.tui-form-item-label {
 			position: relative;
 			font-size: 16px;
+			line-height: 20px;
 			font-weight: bold;
 			color: #424242;
 			cursor: default;
 			padding: 2px 5px;
 			padding-right: 22px;
+			&.tui-form-item-emphasize {
+				color: red;
+			}
 			&.tui-form-item-required:before {
-				content: "\2217";
 				margin-right: 4px;
 				color: red;
-				line-height: 0px;
-				font-size: 20px;
+				// content: "\2217";
+				// line-height: 0px;
+				// font-size: 20px;
+				content: " ";
+				.asterisk();
+				// vertical-align: middle;
 			}
 			>span {
 				position: absolute;
@@ -269,7 +280,7 @@ tui\:form {
 			.fa-plus();
 		}
 	}
-	
+
 }
 
 div.tui-form-new-item-menu {

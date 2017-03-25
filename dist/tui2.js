@@ -377,7 +377,8 @@ tui.dict("en-us", {
     "form.newline": "Newline Only",
     "form.height": "Height",
     "form.design": "Design",
-    "form.app.key": "Map App Key"
+    "form.app.key": "Map App Key",
+    "form.emphasize": "Emphasized"
 });
 var tui;
 (function (tui) {
@@ -6903,13 +6904,14 @@ var tui;
                         "type": "options",
                         "label": tui.str("form.options"),
                         "key": "options",
-                        "size": 1,
+                        "size": 2,
                         "options": [
                             { "value": "required", "text": tui.str("form.required") },
-                            { "value": "disable", "text": tui.str("form.disable") }
+                            { "value": "disable", "text": tui.str("form.disable") },
+                            { "value": "emphasize", "text": tui.str("form.emphasize") }
                         ],
                         "newline": true,
-                        "value": [this.define.required ? "required" : null, this.define.disable ? "disable" : null]
+                        "value": [this.define.required ? "required" : null, this.define.disable ? "disable" : null, this.define.emphasize ? "emphasize" : null]
                     }, {
                         "type": "textarea",
                         "maxHeight": 200,
@@ -7004,6 +7006,7 @@ var tui;
                     _this.define.description = values.description;
                     _this.define.disable = (values.options.indexOf("disable") >= 0);
                     _this.define.required = (values.options.indexOf("required") >= 0);
+                    _this.define.emphasize = (values.options.indexOf("emphasize") >= 0);
                     _this.setProperties(customValues);
                     _this.update();
                     _this.form.fire("itemvaluechanged", { control: _this });
@@ -7012,7 +7015,7 @@ var tui;
             };
             FormControl.prototype.update = function () {
                 var d = this.define;
-                if (!d.label && !d.description) {
+                if (!d.label && !d.description && !d.required) {
                     tui.browser.addClass(this.label, "tui-hidden");
                 }
                 else {
@@ -7027,6 +7030,11 @@ var tui;
                     else {
                         tui.browser.removeClass(this.label, "tui-form-item-required");
                     }
+                    if (d.emphasize) {
+                        tui.browser.addClass(this.label, "tui-form-item-emphasize");
+                    }
+                    else
+                        tui.browser.removeClass(this.label, "tui-form-item-emphasize");
                     if (d.description) {
                         var desc = tui.elem("span");
                         desc.setAttribute("tooltip", d.description);
@@ -7164,10 +7172,14 @@ var tui;
                     this.define.display = "visible";
                 if (d.label) {
                     this._hr.className = "tui-form-line-label";
-                    if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48)
+                    if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48) {
                         this.label.style.fontSize = d.fontSize + "px";
-                    else
+                        this.label.style.lineHeight = d.fontSize + 4 + "px";
+                    }
+                    else {
                         this.label.style.fontSize = "";
+                        this.label.style.lineHeight = "";
+                    }
                     if (/^(left|right|center)$/.test(d.align))
                         this.label.style.textAlign = d.align;
                     else
@@ -7227,7 +7239,8 @@ var tui;
                                     { "format": "*digital", "message": tui.str("message.invalid.format") },
                                     { "format": "*min:12", "message": tui.str("message.invalid.value") },
                                     { "format": "*max:48", "message": tui.str("message.invalid.value") }
-                                ]
+                                ],
+                                "description": "12 ~ 48"
                             }, {
                                 "type": "textbox",
                                 "key": "value",
@@ -7363,7 +7376,7 @@ var tui;
                                 "label": tui.str("form.validation"),
                                 "size": 2,
                                 "newline": true,
-                                "height": 150,
+                                "height": 120,
                                 "definitions": [
                                     {
                                         "type": "textbox",
