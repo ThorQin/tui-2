@@ -310,7 +310,7 @@ module tui.widget.ext {
 								]
 							}
 						],
-						"value": this.define.validation
+						"value": tui.clone(this.define.validation)
 					}
 				]
 			}];

@@ -1008,7 +1008,7 @@ module tui.widget {
 				var txt = item[columns[i].key];
 				if (typeof columns[i].translator === "function")
 					txt = columns[i].translator(txt);
-				cell.appendChild(document.createTextNode(txt === null ? "" : txt));
+				cell.appendChild(document.createTextNode(txt === null || txt === undefined ? "" : txt));
 				var suffixContent = columns[i].suffixKey !== null ? item[columns[i].suffixKey] : null;
 				if (suffixContent) {
 					var suffixSpan = elem("span");

@@ -359,6 +359,11 @@ module tui.widget {
 			toolbar.appendChild(buttons);
 			this._.appendChild(toolbar);
 
+			$(this._).mousedown(() => {
+				if (tui.ieVer > 0 && this.get("mode") === "design")
+					browser.focusWithoutScroll(this._);
+			});
+
 			$(this._).on("keydown", (e) => {
 				if (this.get("mode") !== "design")
 					return;

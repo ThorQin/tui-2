@@ -375,11 +375,14 @@ module tui.widget {
 			} else {
 				browser.removeClass(this.div, "tui-form-item-selected");
 				this.toolbar.style.opacity = "0";
-				setTimeout(() => {
-					if (!this.selected)
-						browser.removeNode(this.toolbar);
-				}, 500);
-
+				if (tui.ieVer < 9 && tui.ieVer > 0) {
+					browser.removeNode(this.toolbar);
+				} else {
+					setTimeout(() => {
+						if (!this.selected)
+							browser.removeNode(this.toolbar);
+					}, 500);
+				}
 			}
 		}
 		isSelect(): boolean {
@@ -742,7 +745,7 @@ module tui.widget {
 								]
 							}
 						],
-						"value": this.define.validation
+						"value": tui.clone(this.define.validation)
 					}
 				]
 			}];
@@ -842,7 +845,7 @@ module tui.widget {
 								]
 							}
 						],
-						"value": this.define.validation
+						"value": tui.clone(this.define.validation)
 					}
 				]
 			}];

@@ -296,7 +296,7 @@ var tui;
                                             ]
                                         }
                                     ],
-                                    "value": this.define.validation
+                                    "value": tui.clone(this.define.validation)
                                 }
                             ]
                         }];

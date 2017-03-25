@@ -272,6 +272,8 @@ module tui {
 	 * Deeply copy an object to an other object, but only contain properties without methods
 	 */
 	export function clone(obj: any, excludeProperties?: any) {
+		if (typeof obj === UNDEFINED || obj === null)
+			return null;
 		if (typeof excludeProperties === "string" && $.trim(excludeProperties).length > 0) {
 			return cloneInternal(obj, [excludeProperties]);
 		} else if (excludeProperties instanceof Array) {

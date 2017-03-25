@@ -244,6 +244,8 @@ var tui;
         }
     }
     function clone(obj, excludeProperties) {
+        if (typeof obj === tui.UNDEFINED || obj === null)
+            return null;
         if (typeof excludeProperties === "string" && $.trim(excludeProperties).length > 0) {
             return cloneInternal(obj, [excludeProperties]);
         }
@@ -6435,6 +6437,10 @@ var tui;
                 toolbar.appendChild(title);
                 toolbar.appendChild(buttons);
                 this._.appendChild(toolbar);
+                $(this._).mousedown(function () {
+                    if (tui.ieVer > 0 && _this.get("mode") === "design")
+                        tui.browser.focusWithoutScroll(_this._);
+                });
                 $(this._).on("keydown", function (e) {
                     if (_this.get("mode") !== "design")
                         return;
@@ -7074,10 +7080,15 @@ var tui;
                 else {
                     tui.browser.removeClass(this.div, "tui-form-item-selected");
                     this.toolbar.style.opacity = "0";
-                    setTimeout(function () {
-                        if (!_this.selected)
-                            tui.browser.removeNode(_this.toolbar);
-                    }, 500);
+                    if (tui.ieVer < 9 && tui.ieVer > 0) {
+                        tui.browser.removeNode(this.toolbar);
+                    }
+                    else {
+                        setTimeout(function () {
+                            if (!_this.selected)
+                                tui.browser.removeNode(_this.toolbar);
+                        }, 500);
+                    }
                 }
             };
             FormControl.prototype.isSelect = function () {
@@ -7404,7 +7415,7 @@ var tui;
                                         ]
                                     }
                                 ],
-                                "value": this.define.validation
+                                "value": tui.clone(this.define.validation)
                             }
                         ]
                     }];
@@ -7494,7 +7505,7 @@ var tui;
                                         ]
                                     }
                                 ],
-                                "value": this.define.validation
+                                "value": tui.clone(this.define.validation)
                             }
                         ]
                     }];
@@ -9647,7 +9658,7 @@ var tui;
                     var txt = item[columns[i].key];
                     if (typeof columns[i].translator === "function")
                         txt = columns[i].translator(txt);
-                    cell.appendChild(document.createTextNode(txt === null ? "" : txt));
+                    cell.appendChild(document.createTextNode(txt === null || txt === undefined ? "" : txt));
                     var suffixContent = columns[i].suffixKey !== null ? item[columns[i].suffixKey] : null;
                     if (suffixContent) {
                         var suffixSpan = tui.elem("span");
