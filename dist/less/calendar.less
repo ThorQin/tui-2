@@ -20,7 +20,7 @@ tui\:calendar {
 		border-collapse: collapse;
 		width: 100%;
 	}
-	
+
 	td {
 		padding:3px;
 		text-align:center;
@@ -108,7 +108,7 @@ tui\:calendar {
 			display: inline-block;
 			width: 50px;
 			vertical-align: middle;
-		}	
+		}
 
 		input {
 			display: block;
@@ -135,13 +135,17 @@ tui\:calendar {
 			height: 20px;
 			line-height: 20px;
 			font-size: 15px;
-			border: 1px solid #ddd;
+			//border: 1px solid #ddd;
 			cursor: pointer;
 			&.plus:before {
 				.fa-angle-up();
 			}
 			&.minus:before {
 				.fa-angle-down();
+			}
+			&:focus {
+				outline: none;
+				background-color: #eee;
 			}
 			&:hover {
 				background-color: #eee;
