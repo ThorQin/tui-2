@@ -7244,6 +7244,7 @@ var tui;
                             {
                                 "type": "textbox",
                                 "key": "fontSize",
+                                "inputType": "number",
                                 "label": tui.str("form.font.size"),
                                 "value": this.define.fontSize,
                                 "validation": [
@@ -7315,7 +7316,12 @@ var tui;
                     _this.define.value = _this.getValue();
                     form.fire("itemvaluechanged", { control: _this });
                 });
-                _this._widget.on("right-icon-click", function () {
+                _this._widget.on("right-icon-mousedown", function (e) {
+                    if (!_this.define.selection || !_this.define.selection.length)
+                        return;
+                    return false;
+                });
+                _this._widget.on("right-icon-mouseup", function (e) {
                     if (!_this.define.selection || !_this.define.selection.length)
                         return;
                     var menu = widget.create("menu");
@@ -7327,7 +7333,7 @@ var tui;
                         });
                     }
                     menu._set("items", items);
-                    menu.open(_this._widget._, "Rb");
+                    e.data.preventDefault();
                     menu.on("click", function (e) {
                         _this._widget.set("text", e.data.item.text);
                         _this.define.value = _this.getValue();
@@ -7335,6 +7341,8 @@ var tui;
                         _this._widget.focus();
                         form.fire("itemvaluechanged", { control: _this });
                     });
+                    menu.open(_this._widget._, "Rb");
+                    return false;
                 });
                 return _this;
             }
@@ -7464,6 +7472,7 @@ var tui;
                             {
                                 "type": "textbox",
                                 "key": "maxHeight",
+                                "inputType": "number",
                                 "label": tui.str("form.max.height"),
                                 "value": this.define.maxHeight,
                                 "validation": [
@@ -7689,6 +7698,7 @@ var tui;
                                 "newline": true
                             }, {
                                 "type": "textbox",
+                                "inputType": "number",
                                 "key": "atLeast",
                                 "label": tui.str("form.at.least"),
                                 "value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast : "",
@@ -7697,6 +7707,7 @@ var tui;
                                 ]
                             }, {
                                 "type": "textbox",
+                                "inputType": "number",
                                 "key": "atMost",
                                 "label": tui.str("form.at.most"),
                                 "value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost : "",
@@ -7931,6 +7942,7 @@ var tui;
                                 "newline": true
                             }, {
                                 "type": "textbox",
+                                "inputType": "number",
                                 "key": "atLeast",
                                 "label": tui.str("form.at.least"),
                                 "value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast : "",
@@ -7939,6 +7951,7 @@ var tui;
                                 ]
                             }, {
                                 "type": "textbox",
+                                "inputType": "number",
                                 "key": "atMost",
                                 "label": tui.str("form.at.most"),
                                 "value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost : "",
@@ -8335,6 +8348,7 @@ var tui;
                                 "newline": true
                             }, {
                                 "type": "textbox",
+                                "inputType": "number",
                                 "key": "atLeast",
                                 "label": tui.str("form.at.least"),
                                 "value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast : "",
@@ -8343,6 +8357,7 @@ var tui;
                                 ]
                             }, {
                                 "type": "textbox",
+                                "inputType": "number",
                                 "key": "atMost",
                                 "label": tui.str("form.at.most"),
                                 "value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost : "",
@@ -8518,6 +8533,7 @@ var tui;
                         properties: [
                             {
                                 "type": "textbox",
+                                "inputType": "number",
                                 "key": "height",
                                 "label": tui.str("form.height"),
                                 "value": /^\d+$/.test(this.define.height + "") ? this.define.height : null,
@@ -8526,6 +8542,7 @@ var tui;
                                 ]
                             }, {
                                 "type": "textbox",
+                                "inputType": "number",
                                 "key": "atLeast",
                                 "label": tui.str("form.at.least"),
                                 "value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast : "",
@@ -8534,6 +8551,7 @@ var tui;
                                 ]
                             }, {
                                 "type": "textbox",
+                                "inputType": "number",
                                 "key": "atMost",
                                 "label": tui.str("form.at.most"),
                                 "value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost : "",
@@ -10184,6 +10202,9 @@ var tui;
                     _this.reset();
                     _this.fire("change", e);
                     e.stopPropagation();
+                    setTimeout(function () {
+                        textbox.focus();
+                    });
                 });
                 $root.mousedown(function (e) {
                     if (_this.get("disable"))
@@ -10192,15 +10213,33 @@ var tui;
                     if (obj === textbox) {
                         return;
                     }
+                    if (obj === iconLeft) {
+                        if (_this.fire("left-icon-mousedown", e) === false)
+                            return;
+                    }
+                    if (obj === iconRight) {
+                        if (_this.fire("right-icon-mousedown", e) === false)
+                            return;
+                    }
                     setTimeout(function () {
                         textbox.focus();
-                        if (obj === iconLeft) {
-                            _this.fire("left-icon-mousedown", e);
-                        }
-                        if (obj === iconRight) {
-                            _this.fire("right-icon-mousedown", e);
-                        }
-                    }, 0);
+                    });
+                });
+                $root.mouseup(function (e) {
+                    if (_this.get("disable"))
+                        return;
+                    var obj = e.target || e.srcElement;
+                    if (obj === textbox) {
+                        return;
+                    }
+                    if (obj === iconLeft) {
+                        if (_this.fire("left-icon-mouseup", e) === false)
+                            return;
+                    }
+                    if (obj === iconRight) {
+                        if (_this.fire("right-icon-mouseup", e) === false)
+                            return;
+                    }
                 });
                 $root.click(function (e) {
                     if (_this.get("disable"))

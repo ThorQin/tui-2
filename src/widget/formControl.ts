@@ -564,6 +564,7 @@ module tui.widget {
 					{
 						"type": "textbox",
 						"key": "fontSize",
+						"inputType": "number",
 						"label": str("form.font.size"),
 						"value": this.define.fontSize,
 						"validation": [
@@ -647,7 +648,12 @@ module tui.widget {
 				this.define.value = this.getValue();
 				form.fire("itemvaluechanged", {control: this});
 			});
-			this._widget.on("right-icon-click", () => {
+			this._widget.on("right-icon-mousedown", (e) => {
+				if (!this.define.selection || !this.define.selection.length)
+					return;
+				return false;
+			});
+			this._widget.on("right-icon-mouseup", (e) => {
 				if (!this.define.selection || !this.define.selection.length)
 					return;
 				var menu = <Menu>create("menu");
@@ -658,7 +664,7 @@ module tui.widget {
 					});
 				}
 				menu._set("items", items);
-				menu.open(this._widget._, "Rb");
+				e.data.preventDefault();
 				menu.on("click", (e: any) => {
 					this._widget.set("text", e.data.item.text);
 					this.define.value = this.getValue();
@@ -666,6 +672,8 @@ module tui.widget {
 					this._widget.focus();
 					form.fire("itemvaluechanged", {control: this});
 				});
+				menu.open(this._widget._, "Rb");
+				return false;
 			});
 		}
 
@@ -804,6 +812,7 @@ module tui.widget {
 					{
 						"type": "textbox",
 						"key": "maxHeight",
+						"inputType": "number",
 						"label": str("form.max.height"),
 						"value": this.define.maxHeight,
 						"validation": [
@@ -1049,6 +1058,7 @@ module tui.widget {
 						"newline": true
 					}, {
 						"type": "textbox",
+						"inputType": "number",
 						"key": "atLeast",
 						"label": str("form.at.least"),
 						"value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast: "",
@@ -1057,6 +1067,7 @@ module tui.widget {
 						]
 					}, {
 						"type": "textbox",
+						"inputType": "number",
 						"key": "atMost",
 						"label": str("form.at.most"),
 						"value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost: "",
@@ -1308,6 +1319,7 @@ module tui.widget {
 						"newline": true
 					}, {
 						"type": "textbox",
+						"inputType": "number",
 						"key": "atLeast",
 						"label": str("form.at.least"),
 						"value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast: "",
@@ -1316,6 +1328,7 @@ module tui.widget {
 						]
 					}, {
 						"type": "textbox",
+						"inputType": "number",
 						"key": "atMost",
 						"label": str("form.at.most"),
 						"value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost: "",
@@ -1726,6 +1739,7 @@ module tui.widget {
 						"newline": true
 					}, {
 						"type": "textbox",
+						"inputType": "number",
 						"key": "atLeast",
 						"label": str("form.at.least"),
 						"value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast: "",
@@ -1734,6 +1748,7 @@ module tui.widget {
 						]
 					}, {
 						"type": "textbox",
+						"inputType": "number",
 						"key": "atMost",
 						"label": str("form.at.most"),
 						"value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost: "",
@@ -1925,6 +1940,7 @@ module tui.widget {
 				properties: [
 					{
 						"type": "textbox",
+						"inputType": "number",
 						"key": "height",
 						"label": str("form.height"),
 						"value": /^\d+$/.test(this.define.height + "")? this.define.height : null,
@@ -1933,6 +1949,7 @@ module tui.widget {
 						]
 					}, {
 						"type": "textbox",
+						"inputType": "number",
 						"key": "atLeast",
 						"label": str("form.at.least"),
 						"value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast: "",
@@ -1941,6 +1958,7 @@ module tui.widget {
 						]
 					}, {
 						"type": "textbox",
+						"inputType": "number",
 						"key": "atMost",
 						"label": str("form.at.most"),
 						"value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost: "",

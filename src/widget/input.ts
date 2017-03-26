@@ -116,6 +116,9 @@ module tui.widget {
 				this.reset();
 				this.fire("change", e);
 				e.stopPropagation();
+				setTimeout(() => {
+					textbox.focus();
+				});
 			});
 			
 			$root.mousedown((e)=>{
@@ -125,15 +128,33 @@ module tui.widget {
 				if (obj === textbox) {
 					return;
 				}
+				if (obj === iconLeft) {
+					if (this.fire("left-icon-mousedown", e) === false)
+						return;
+				}
+				if (obj === iconRight) {
+					if (this.fire("right-icon-mousedown", e) === false)
+						return;
+				}
 				setTimeout(() => {
 					textbox.focus();
-					if (obj === iconLeft) {
-						this.fire("left-icon-mousedown", e);
-					}
-					if (obj === iconRight) {
-						this.fire("right-icon-mousedown", e);
-					}
-				}, 0);
+				});
+			});
+			$root.mouseup((e)=>{
+				if (this.get("disable"))
+					return;
+				var obj = e.target || e.srcElement;
+				if (obj === textbox) {
+					return;
+				}
+				if (obj === iconLeft) {
+					if (this.fire("left-icon-mouseup", e) === false)
+						return;
+				}
+				if (obj === iconRight) {
+					if (this.fire("right-icon-mouseup", e) === false)
+						return;
+				}
 			});
 			$root.click((e)=>{
 				if (this.get("disable"))
