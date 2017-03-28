@@ -2018,6 +2018,7 @@ var tui;
             Dialog.prototype.initRestriction = function () {
                 var _this = this;
                 _super.prototype.initRestriction.call(this);
+                this._calc = false;
                 this.setRestrictions({
                     "content": {
                         "set": function (value) {
@@ -2106,7 +2107,7 @@ var tui;
                 else if (typeof content === "string") {
                     contentDiv.innerHTML = content;
                 }
-                render && this.render();
+                render && this._calc && this.render();
             };
             Dialog.prototype.setButtons = function (buttonDef, render) {
                 var _this = this;
@@ -2135,7 +2136,7 @@ var tui;
                 else {
                     buttonBar.style.display = "none";
                 }
-                if (render)
+                if (render && this._calc)
                     this.render();
             };
             Dialog.prototype.open = function (buttonDef) {
@@ -2143,6 +2144,8 @@ var tui;
                 if (buttonDef === void 0) { buttonDef = null; }
                 if (this.get("opened"))
                     return;
+                this._set("opened", true);
+                this._calc = false;
                 var contentDiv = this._components["content"];
                 this._init = true;
                 this._moved = false;
@@ -2153,7 +2156,6 @@ var tui;
                     "display": "block",
                     "position": "fixed"
                 });
-                this._set("opened", true);
                 push(this);
                 this.setButtons(buttonDef, false);
                 widget.init(contentDiv);
@@ -2164,6 +2166,7 @@ var tui;
                         "right": ""
                     });
                     _this.render();
+                    _this._calc = true;
                     _this.fire("open");
                     _this._sizeTimer = setInterval(function () {
                         if (_this._contentSize == null)

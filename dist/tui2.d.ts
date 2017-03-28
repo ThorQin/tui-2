@@ -315,6 +315,7 @@ declare module tui.widget {
         private _contentSize;
         private _moved;
         private _init;
+        private _calc;
         protected initRestriction(): void;
         protected initChildren(childNodes: Node[]): void;
         protected init(): void;

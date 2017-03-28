@@ -65,9 +65,11 @@ module tui.widget {
 		private _contentSize: browser.Size = null;
 		private _moved: boolean = false;
 		private _init: boolean = true;
+		private _calc: boolean;
 
 		protected initRestriction(): void {
 			super.initRestriction();
+			this._calc = false;
 			this.setRestrictions({
 				"content": {
 					"set":  (value: any) => {
@@ -157,7 +159,7 @@ module tui.widget {
 			else if (typeof content === "string") {
 				contentDiv.innerHTML = content;
 			}
-			render && this.render();
+			render && this._calc && this.render();
 		}
 		
 		setButtons(buttonDef: string = null, render = true): void {
@@ -179,15 +181,16 @@ module tui.widget {
 			} else {
 				buttonBar.style.display = "none";
 			}
-			if (render)
+			if (render && this._calc)
 				this.render();
 		}
 
 		open(buttonDef: string = null): void {
 			if (this.get("opened"))
 				return;
+			this._set("opened", true);
+			this._calc = false;
 			var contentDiv = this._components["content"];
-			
 			this._init = true;
 			this._moved = false;
 			$(this._).css({
@@ -197,7 +200,7 @@ module tui.widget {
 				"display": "block",
 				"position": "fixed"
 			});
-			this._set("opened", true);
+			
 			push(this);
 			this.setButtons(buttonDef, false);
 			init(contentDiv);
@@ -208,6 +211,7 @@ module tui.widget {
 					"right": ""
 				});
 				this.render();
+				this._calc = true;
 				this.fire("open");
 				this._sizeTimer = setInterval( () => {
 					if (this._contentSize == null)
