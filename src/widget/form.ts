@@ -197,8 +197,14 @@ module tui.widget {
 			this.setRestrictions({
 				"autoSize": {
 					"set": (value: any) => {
-						if (typeof value !== UNDEFINED)
+						if (typeof value !== UNDEFINED) {
 							this._data["autoSize"] = !!value;
+							if (!!value) {
+								this.computeSizeByParent();
+							} else {
+								this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
+							}
+						}
 					},
 					"get": (): any => {
 						return !!this._data["autoSize"];
@@ -403,17 +409,8 @@ module tui.widget {
 				this.render();
 			});
 			this.on("parentresize", (e) => {
-				browser.removeClass(this._, "tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
-				if (!this.get("autoSize"))
-					return;
 				if ((e.data.type & 1) === 1) {
-					var pw = $(this._.parentElement).width() - $(this._).outerWidth(true) + $(this._).width();
-					var s = Form.ITEM_SIZE;
-					var i = Math.floor(pw / s);
-					if (i < 1) i = 1;
-					if (i > 6) i = 6;
-					var c = "tui-size-" + i;
-					browser.addClass(this._, c);
+					this.computeSizeByParent();
 				}
 			});
 			this.on("itemremove", (e: any) => {
@@ -557,6 +554,20 @@ module tui.widget {
 			newItem.onclick = () => {
 				this.addNewItem(newItem, this._items.length);
 			};
+			this.computeSizeByParent();
+		}
+
+		computeSizeByParent() {
+			if (!this.get("autoSize"))
+				return;
+			this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
+			var pw = $(this._.parentElement).width() - $(this._).outerWidth(true) + $(this._).width();
+			var s = Form.ITEM_SIZE;
+			var i = Math.floor(pw / s);
+			if (i < 1) i = 1;
+			if (i > 6) i = 6;
+			var c = "tui-size-" + i;
+			this.addClass(c);
 		}
 
 		private bindNewItemClick(popup: Popup, newItemDiv: HTMLElement, type: string, pos: number) {

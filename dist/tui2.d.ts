@@ -263,6 +263,8 @@ declare module tui.widget {
         _: HTMLElement;
         protected init(): void;
         appendTo(parent: HTMLElement, refresh?: boolean): Widget;
+        addClass(className: string): void;
+        removeClass(className: string): void;
         detach(): void;
         protected initChildren(childNodes: Node[]): void;
         protected initRestriction(): void;
@@ -695,6 +697,7 @@ declare module tui.widget {
         protected update(): void;
         protected initRestriction(): void;
         protected init(): void;
+        computeSizeByParent(): void;
         private bindNewItemClick(popup, newItemDiv, type, pos);
         private addNewItem(button, pos);
         validate(): boolean;

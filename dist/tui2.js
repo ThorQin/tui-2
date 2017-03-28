@@ -1589,6 +1589,12 @@ var tui;
                 }
                 return this;
             };
+            Widget.prototype.addClass = function (className) {
+                tui.browser.addClass(this._, className);
+            };
+            Widget.prototype.removeClass = function (className) {
+                tui.browser.removeClass(this._, className);
+            };
             Widget.prototype.detach = function () {
                 tui.browser.removeNode(this._);
             };
@@ -6309,8 +6315,15 @@ var tui;
                 this.setRestrictions({
                     "autoSize": {
                         "set": function (value) {
-                            if (typeof value !== tui.UNDEFINED)
+                            if (typeof value !== tui.UNDEFINED) {
                                 _this._data["autoSize"] = !!value;
+                                if (!!value) {
+                                    _this.computeSizeByParent();
+                                }
+                                else {
+                                    _this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
+                                }
+                            }
                         },
                         "get": function () {
                             return !!_this._data["autoSize"];
@@ -6516,19 +6529,8 @@ var tui;
                     _this.render();
                 });
                 this.on("parentresize", function (e) {
-                    tui.browser.removeClass(_this._, "tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
-                    if (!_this.get("autoSize"))
-                        return;
                     if ((e.data.type & 1) === 1) {
-                        var pw = $(_this._.parentElement).width() - $(_this._).outerWidth(true) + $(_this._).width();
-                        var s = Form.ITEM_SIZE;
-                        var i = Math.floor(pw / s);
-                        if (i < 1)
-                            i = 1;
-                        if (i > 6)
-                            i = 6;
-                        var c = "tui-size-" + i;
-                        tui.browser.addClass(_this._, c);
+                        _this.computeSizeByParent();
                     }
                 });
                 this.on("itemremove", function (e) {
@@ -6671,6 +6673,21 @@ var tui;
                 newItem.onclick = function () {
                     _this.addNewItem(newItem, _this._items.length);
                 };
+                this.computeSizeByParent();
+            };
+            Form.prototype.computeSizeByParent = function () {
+                if (!this.get("autoSize"))
+                    return;
+                this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
+                var pw = $(this._.parentElement).width() - $(this._).outerWidth(true) + $(this._).width();
+                var s = Form.ITEM_SIZE;
+                var i = Math.floor(pw / s);
+                if (i < 1)
+                    i = 1;
+                if (i > 6)
+                    i = 6;
+                var c = "tui-size-" + i;
+                this.addClass(c);
             };
             Form.prototype.bindNewItemClick = function (popup, newItemDiv, type, pos) {
                 var _this = this;
@@ -7171,7 +7188,7 @@ var tui;
             };
             FormControl.prototype.applySize = function () {
                 var define = this.define;
-                tui.browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-full tui-form-item-newline");
+                tui.browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-5 tui-form-item-size-full tui-form-item-newline");
                 if (define.size > 1 && define.size < FULL) {
                     define.size = Math.floor(define.size);
                     tui.browser.addClass(this.div, " tui-form-item-size-" + define.size);
@@ -7706,11 +7723,11 @@ var tui;
                         var o = widget.create(optionType);
                         if (typeof option === "string") {
                             o._set("value", option);
-                            o._set("text", option);
+                            o._set("text", "<span>" + tui.browser.toSafeText(option) + "</span>");
                         }
                         else {
                             o._set("value", option.value);
-                            o._set("text", option.text);
+                            o._set("text", "<span>" + tui.browser.toSafeText(option.text) + "</span>");
                         }
                         this._group._.appendChild(o._);
                     }
@@ -7733,7 +7750,12 @@ var tui;
                 this.form.fire("itemvaluechanged", { control: this });
             };
             FormOptions.prototype.render = function (designMode) {
-                this._group.render();
+                var g = this._group;
+                g.render();
+                for (var i = 0; i < g._.children.length; i++) {
+                    var btn = g._.children[i];
+                    btn.children[0].style.width = btn.clientWidth - 30 + "px";
+                }
                 if (this._notifyBar.innerHTML == "") {
                     tui.browser.addClass(this._notifyBar, "tui-hidden");
                 }

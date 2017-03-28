@@ -177,6 +177,22 @@ tui\:form {
 			margin-top: 5px;
 		}
 
+		& > tui\:button-group {
+			>tui\:radio,>tui\:check {
+				height: inherit;
+				line-height: 30px;
+				> span {
+					line-height: 20px;
+					vertical-align: middle;
+					text-align: left;
+					display: inline-block;
+					white-space: initial;
+					word-break: break-all;
+					word-wrap: normal;
+				}
+			}
+		}
+
 		& > tui\:button-group.tui-form-group-align-vertical > * {
 			display: block;
 			width: auto;

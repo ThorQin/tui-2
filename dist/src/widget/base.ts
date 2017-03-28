@@ -193,6 +193,14 @@ module tui.widget {
 			}
 			return this;
 		}
+
+		addClass(className: string) {
+			browser.addClass(this._, className);
+		}
+
+		removeClass(className: string) {
+			browser.removeClass(this._, className);
+		}
 		
 		detach() {
 			browser.removeNode(this._);

@@ -395,7 +395,7 @@ module tui.widget {
 
 		protected applySize() {
 			var define = this.define;
-			browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-full tui-form-item-newline");
+			browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-5 tui-form-item-size-full tui-form-item-newline");
 			if (define.size > 1 && define.size < FULL) {
 				define.size = Math.floor(define.size);
 				browser.addClass(this.div, " tui-form-item-size-" + define.size);
@@ -995,10 +995,10 @@ module tui.widget {
 					let o = create(optionType);
 					if (typeof option === "string") {
 						o._set("value", option);
-						o._set("text", option);
+						o._set("text", "<span>" + browser.toSafeText(option) + "</span>");
 					} else {
 						o._set("value", option.value);
-						o._set("text", option.text);
+						o._set("text", "<span>" + browser.toSafeText(option.text) + "</span>");
 					}
 					this._group._.appendChild(o._);
 				}
@@ -1022,7 +1022,12 @@ module tui.widget {
 			this.form.fire("itemvaluechanged", {control: this});
 		}
 		render(designMode: boolean): void {
-			this._group.render();
+			var g = this._group;
+			g.render();
+			for (let i = 0; i < g._.children.length; i++) {
+				let btn = g._.children[i];
+				(<HTMLElement>btn.children[0]).style.width = btn.clientWidth - 30 + "px";
+			}
 			if (this._notifyBar.innerHTML == "") {
 				browser.addClass(this._notifyBar, "tui-hidden");
 			} else {
