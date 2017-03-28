@@ -255,6 +255,8 @@ declare module tui.widget {
     abstract class Widget extends WidgetBase {
         private _lastWidth;
         private _lastHeight;
+        private _lastParentWidth;
+        private _lastParentHeight;
         protected _components: {
             [index: string]: HTMLElement;
         };
@@ -265,6 +267,7 @@ declare module tui.widget {
         protected initChildren(childNodes: Node[]): void;
         protected initRestriction(): void;
         testResize(): void;
+        testParentResize(): void;
         getComponent(name?: string): HTMLElement;
         focus(): void;
         constructor(root: HTMLElement, initParam?: {
@@ -293,6 +296,7 @@ declare module tui.widget {
     function search(searchArea: HTMLElement): Widget[];
     function search(searchArea: HTMLElement, filter: (elem: Widget) => boolean): Widget[];
     function registerResize(nodeName: string): void;
+    function registerParentResize(nodeName: string): void;
 }
 declare module tui {
     var get: typeof widget.get;
@@ -666,6 +670,7 @@ declare module tui.widget {
         translator?: (value: any) => string;
     }
     class Form extends Widget {
+        static ITEM_SIZE: number;
         protected _definitionChanged: boolean;
         protected _valueChanged: boolean;
         protected _items: FormControl<FormItem>[];
@@ -673,6 +678,8 @@ declare module tui.widget {
             [index: string]: any;
         };
         protected _maxId: number;
+        private _autoResizeTimer;
+        private _parentWidth;
         static register(type: string, controlType: FormControlConstructor): void;
         static getType(type: string): FormControlConstructor;
         removeAll(): void;

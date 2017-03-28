@@ -622,5 +622,5 @@ module tui.browser {
 		}
 	}
 	
-	(<any>window).$text = toSafeText;
+	(<any>window).$safe = toSafeText;
 }

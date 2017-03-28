@@ -40,11 +40,16 @@ module tui.widget {
 	}
 
 	export class Form extends Widget {
+
+		static ITEM_SIZE = 220;
+
 		protected _definitionChanged: boolean;
 		protected _valueChanged: boolean;
 		protected _items: FormControl<FormItem>[];
 		protected _valueCache: { [index: string]: any };
 		protected _maxId: number;
+		private _autoResizeTimer: number;
+		private _parentWidth: number;
 
 		public static register(type: string, controlType: FormControlConstructor): void {
 			_controls[type] = controlType;
@@ -187,7 +192,18 @@ module tui.widget {
 			super.initRestriction();
 			this._items = [];
 			this._valueCache = null;
+			this._autoResizeTimer = null;
+			this._parentWidth = null;
 			this.setRestrictions({
+				"autoSize": {
+					"set": (value: any) => {
+						if (typeof value !== UNDEFINED)
+							this._data["autoSize"] = !!value;
+					},
+					"get": (): any => {
+						return !!this._data["autoSize"];
+					}
+				},
 				"definition": {
 					"set": (value: any) => {
 						if (value instanceof Array) {
@@ -336,6 +352,9 @@ module tui.widget {
 			});
 		}
 
+		
+		
+
 		protected init(): void {
 			this._maxId = 0;
 			this._.setAttribute("unselectable", "on");
@@ -382,6 +401,20 @@ module tui.widget {
 
 			this.on("resize", () => {
 				this.render();
+			});
+			this.on("parentresize", (e) => {
+				browser.removeClass(this._, "tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
+				if (!this.get("autoResize"))
+					return;
+				if ((e.data.type & 1) === 1) {
+					var pw = $(this._.parentElement).width() - $(this._).outerWidth(true) + $(this._).width();
+					var s = Form.ITEM_SIZE;
+					var i = Math.floor(pw / s);
+					if (i < 1) i = 1;
+					if (i > 6) i = 6;
+					var c = "tui-size-" + i;
+					browser.addClass(this._, c);
+				}
 			});
 			this.on("itemremove", (e: any) => {
 				this.removeItem(e.data.control);
@@ -649,7 +682,7 @@ module tui.widget {
 
 	register(Form, "form");
 	registerResize("form");
-
+	registerParentResize("form");
 
 
 }

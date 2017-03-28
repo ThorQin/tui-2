@@ -175,6 +175,8 @@ module tui.widget {
 
 		private _lastWidth: number = null;
 		private _lastHeight: number = null;
+		private _lastParentWidth: number = null;
+		private _lastParentHeight: number = null;
 		protected _components: { [index: string]: HTMLElement } = {};
 		_: HTMLElement;
 
@@ -297,11 +299,29 @@ module tui.widget {
 				return;
 			if (this._.offsetWidth != this._lastWidth) {
 				this._lastWidth = this._.offsetWidth;
+				this._lastHeight = this._.offsetHeight;
 				this.fire("resize");
 			} else if (this._.offsetHeight != this._lastHeight) {
+				this._lastWidth = this._.offsetWidth;
 				this._lastHeight = this._.offsetHeight;
 				this.fire("resize");
 			}
+		}
+
+		testParentResize() {
+			if (!browser.isInDoc(this._))
+				return;
+			var p = this._.parentElement;
+			var type = 0;
+			if (p.clientWidth != this._lastParentWidth) {
+				this._lastParentWidth = p.clientWidth;
+				type += 1;
+			} 
+			if (p.clientHeight != this._lastParentHeight) {
+				this._lastParentHeight = p.clientHeight;
+				type += 2;
+			}
+			type && this.fire("parentresize", {type: type, parentWidth: this._lastParentWidth, parentHeight: this._lastParentHeight});
 		}
 		
 		getComponent(name?: string): HTMLElement {
@@ -520,9 +540,14 @@ module tui.widget {
 
 	// Detecting which widgets was resied.
 	var resizeRegistration: string[] = [];
+	var parentResizeRegistration: string[] = [];
 
 	export function registerResize(nodeName: string) {
 		resizeRegistration.push("tui:" + nodeName);
+	}
+
+	export function registerParentResize(nodeName: string) {
+		parentResizeRegistration.push("tui:" + nodeName);
 	}
 	
 	var detectResize: () => void;
@@ -533,6 +558,15 @@ module tui.widget {
 		});
 		if (typeof (<any>document.body).scopeName === "string" && tui.ieVer < 9) {
 			detectResize = function(){
+				for (var i = 0; i < parentResizeRegistration.length; i++) {
+					let nodes = document.getElementsByTagName(parentResizeRegistration[i].substr(4));
+					for (let j = 0; j < nodes.length; j++) {
+						var node: any = nodes[j];
+						if (node.scopeName.toUpperCase() === "TUI" && node.__widget__) {
+							(<Widget>node.__widget__).testParentResize();
+						}
+					}
+				}
 				for (var i = 0; i < resizeRegistration.length; i++) {
 					let nodes = document.getElementsByTagName(resizeRegistration[i].substr(4));
 					for (let j = 0; j < nodes.length; j++) {
@@ -546,6 +580,15 @@ module tui.widget {
 			};
 		} else {
 			detectResize = function(){
+				for (var i = 0; i < parentResizeRegistration.length; i++) {
+					let nodes = document.getElementsByTagName(parentResizeRegistration[i]);
+					for (let j = 0; j < nodes.length; j++) {
+						var node: any = nodes[j];
+						if (node.__widget__) {
+							(<Widget>node.__widget__).testParentResize();
+						}
+					}
+				}
 				for (var i = 0; i < resizeRegistration.length; i++) {
 					let nodes = document.getElementsByTagName(resizeRegistration[i]);
 					for (let j = 0; j < nodes.length; j++) {

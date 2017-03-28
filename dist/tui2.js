@@ -1093,7 +1093,7 @@ var tui;
             }
         }
         browser.setInnerHtml = setInnerHtml;
-        window.$text = toSafeText;
+        window.$safe = toSafeText;
     })(browser = tui.browser || (tui.browser = {}));
 })(tui || (tui = {}));
 var tui;
@@ -1549,6 +1549,8 @@ var tui;
                 var _this = _super.call(this) || this;
                 _this._lastWidth = null;
                 _this._lastHeight = null;
+                _this._lastParentWidth = null;
+                _this._lastParentHeight = null;
                 _this._components = {};
                 _this._components[''] = root;
                 _this._ = root;
@@ -1693,12 +1695,29 @@ var tui;
                     return;
                 if (this._.offsetWidth != this._lastWidth) {
                     this._lastWidth = this._.offsetWidth;
-                    this.fire("resize");
-                }
-                else if (this._.offsetHeight != this._lastHeight) {
                     this._lastHeight = this._.offsetHeight;
                     this.fire("resize");
                 }
+                else if (this._.offsetHeight != this._lastHeight) {
+                    this._lastWidth = this._.offsetWidth;
+                    this._lastHeight = this._.offsetHeight;
+                    this.fire("resize");
+                }
+            };
+            Widget.prototype.testParentResize = function () {
+                if (!tui.browser.isInDoc(this._))
+                    return;
+                var p = this._.parentElement;
+                var type = 0;
+                if (p.clientWidth != this._lastParentWidth) {
+                    this._lastParentWidth = p.clientWidth;
+                    type += 1;
+                }
+                if (p.clientHeight != this._lastParentHeight) {
+                    this._lastParentHeight = p.clientHeight;
+                    type += 2;
+                }
+                type && this.fire("parentresize", { type: type, parentWidth: this._lastParentWidth, parentHeight: this._lastParentHeight });
             };
             Widget.prototype.getComponent = function (name) {
                 if (arguments.length > 0) {
@@ -1872,10 +1891,15 @@ var tui;
         }
         widget_1.search = search;
         var resizeRegistration = [];
+        var parentResizeRegistration = [];
         function registerResize(nodeName) {
             resizeRegistration.push("tui:" + nodeName);
         }
         widget_1.registerResize = registerResize;
+        function registerParentResize(nodeName) {
+            parentResizeRegistration.push("tui:" + nodeName);
+        }
+        widget_1.registerParentResize = registerParentResize;
         var detectResize;
         $(window.document).ready(function () {
             tui.service.onReady(function () {
@@ -1884,6 +1908,15 @@ var tui;
             });
             if (typeof document.body.scopeName === "string" && tui.ieVer < 9) {
                 detectResize = function () {
+                    for (var i = 0; i < parentResizeRegistration.length; i++) {
+                        var nodes = document.getElementsByTagName(parentResizeRegistration[i].substr(4));
+                        for (var j = 0; j < nodes.length; j++) {
+                            var node = nodes[j];
+                            if (node.scopeName.toUpperCase() === "TUI" && node.__widget__) {
+                                node.__widget__.testParentResize();
+                            }
+                        }
+                    }
                     for (var i = 0; i < resizeRegistration.length; i++) {
                         var nodes = document.getElementsByTagName(resizeRegistration[i].substr(4));
                         for (var j = 0; j < nodes.length; j++) {
@@ -1898,6 +1931,15 @@ var tui;
             }
             else {
                 detectResize = function () {
+                    for (var i = 0; i < parentResizeRegistration.length; i++) {
+                        var nodes = document.getElementsByTagName(parentResizeRegistration[i]);
+                        for (var j = 0; j < nodes.length; j++) {
+                            var node = nodes[j];
+                            if (node.__widget__) {
+                                node.__widget__.testParentResize();
+                            }
+                        }
+                    }
                     for (var i = 0; i < resizeRegistration.length; i++) {
                         var nodes = document.getElementsByTagName(resizeRegistration[i]);
                         for (var j = 0; j < nodes.length; j++) {
@@ -2344,7 +2386,7 @@ var tui;
             waitMsg.push(message);
             waitDlg.setContent(makeContent(message));
             setTimeout(function () {
-                waitDlg.refresh();
+                waitDlg && waitDlg.refresh();
             });
         }
         var index = waitMsg.length - 1;
@@ -4462,7 +4504,7 @@ var tui;
                                 _this._data["timezone"] = value;
                         },
                         "get": function () {
-                            return _this._data["timezone"] ? _this._data["timezone"] : "utc";
+                            return _this._data["timezone"] ? _this._data["timezone"] : "none";
                         }
                     }
                 });
@@ -6261,7 +6303,18 @@ var tui;
                 _super.prototype.initRestriction.call(this);
                 this._items = [];
                 this._valueCache = null;
+                this._autoResizeTimer = null;
+                this._parentWidth = null;
                 this.setRestrictions({
+                    "autoSize": {
+                        "set": function (value) {
+                            if (typeof value !== tui.UNDEFINED)
+                                _this._data["autoSize"] = !!value;
+                        },
+                        "get": function () {
+                            return !!_this._data["autoSize"];
+                        }
+                    },
                     "definition": {
                         "set": function (value) {
                             if (value instanceof Array) {
@@ -6460,6 +6513,22 @@ var tui;
                 });
                 this.on("resize", function () {
                     _this.render();
+                });
+                this.on("parentresize", function (e) {
+                    tui.browser.removeClass(_this._, "tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
+                    if (!_this.get("autoResize"))
+                        return;
+                    if ((e.data.type & 1) === 1) {
+                        var pw = $(_this._.parentElement).width() - $(_this._).outerWidth(true) + $(_this._).width();
+                        var s = Form.ITEM_SIZE;
+                        var i = Math.floor(pw / s);
+                        if (i < 1)
+                            i = 1;
+                        if (i > 6)
+                            i = 6;
+                        var c = "tui-size-" + i;
+                        tui.browser.addClass(_this._, c);
+                    }
                 });
                 this.on("itemremove", function (e) {
                     _this.removeItem(e.data.control);
@@ -6731,9 +6800,11 @@ var tui;
             };
             return Form;
         }(widget.Widget));
+        Form.ITEM_SIZE = 220;
         widget.Form = Form;
         widget.register(Form, "form");
         widget.registerResize("form");
+        widget.registerParentResize("form");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 var tui;

@@ -147,7 +147,7 @@ module tui.widget {
 							this._data["timezone"] = value;
 					},
 					"get": (): any => {
-						return this._data["timezone"] ? this._data["timezone"] : "utc";
+						return this._data["timezone"] ? this._data["timezone"] : "none";
 					}
 				}
 			});

@@ -431,7 +431,7 @@ module tui {
 			waitMsg.push(message);
 			waitDlg.setContent(makeContent(message));
 			setTimeout(function(){
-				waitDlg.refresh();
+				waitDlg && waitDlg.refresh();
 			});
 		}
 		var index = waitMsg.length - 1;
