@@ -83,8 +83,6 @@ module tui.widget {
 						for (let button of children) {
 							if (check(button.get("value"))) {
 								button.set("checked", true);
-								if (radio)
-									break;
 							} else
 								button.set("checked", false);
 						}

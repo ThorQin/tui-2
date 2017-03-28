@@ -404,7 +404,7 @@ module tui.widget {
 			});
 			this.on("parentresize", (e) => {
 				browser.removeClass(this._, "tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
-				if (!this.get("autoResize"))
+				if (!this.get("autoSize"))
 					return;
 				if ((e.data.type & 1) === 1) {
 					var pw = $(this._.parentElement).width() - $(this._).outerWidth(true) + $(this._).width();

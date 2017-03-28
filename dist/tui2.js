@@ -5058,8 +5058,6 @@ var tui;
                                 var button = children_4[_i];
                                 if (check(button.get("value"))) {
                                     button.set("checked", true);
-                                    if (radio)
-                                        break;
                                 }
                                 else
                                     button.set("checked", false);
@@ -6516,7 +6514,7 @@ var tui;
                 });
                 this.on("parentresize", function (e) {
                     tui.browser.removeClass(_this._, "tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
-                    if (!_this.get("autoResize"))
+                    if (!_this.get("autoSize"))
                         return;
                     if ((e.data.type & 1) === 1) {
                         var pw = $(_this._.parentElement).width() - $(_this._).outerWidth(true) + $(_this._).width();
