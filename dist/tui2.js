@@ -380,7 +380,8 @@ tui.dict("en-us", {
     "form.height": "Height",
     "form.design": "Design",
     "form.app.key": "Map App Key",
-    "form.emphasize": "Emphasized"
+    "form.emphasize": "Emphasized",
+    "message.not.available": "Not Available"
 });
 var tui;
 (function (tui) {
@@ -5610,7 +5611,7 @@ var tui;
                     $root.removeClass("tui-invalid");
                     iconInvalid.style.display = "none";
                 }
-                if (this.get("clearable") && (!noValue)) {
+                if (this.get("clearable") && (!noValue) && !this.get("disable")) {
                     clearButton.style.display = "";
                     clearButton.style.right = iconRight.offsetWidth + iconInvalid.offsetWidth + "px";
                 }
@@ -6313,6 +6314,18 @@ var tui;
                 this._autoResizeTimer = null;
                 this._parentWidth = null;
                 this.setRestrictions({
+                    "mode": {
+                        "set": function (value) {
+                            if (/^(design|input|view)$/.test(value)) {
+                                _this._data["mode"] = value;
+                                _this._valueChanged = true;
+                            }
+                        },
+                        "get": function () {
+                            var v = _this._data["mode"];
+                            return v || "input";
+                        }
+                    },
                     "autoSize": {
                         "set": function (value) {
                             if (typeof value !== tui.UNDEFINED) {
@@ -6405,6 +6418,7 @@ var tui;
                                                 return me._valueCache[k];
                                             }
                                         })) {
+                                            searchPath.pop();
                                             me._valueCache[key] = me._items[index[key]].getValue({
                                                 cache: me._valueCache,
                                                 calc: computeValue,
@@ -6413,6 +6427,7 @@ var tui;
                                             me._items[index[key]].define.available = true;
                                         }
                                         else {
+                                            searchPath.pop();
                                             me._valueCache[key] = null;
                                             me._items[index[key]].define.available = false;
                                         }
@@ -6420,7 +6435,6 @@ var tui;
                                     catch (e) {
                                         throw new Error(e.message + " (" + key + ")");
                                     }
-                                    searchPath.pop();
                                 }
                             }
                             if (_this._valueChanged || _this._valueCache === null) {
@@ -6698,6 +6712,7 @@ var tui;
             };
             Form.prototype.addNewItem = function (button, pos) {
                 var div = tui.elem("div");
+                div.setAttribute("unselectable", "on");
                 div.className = "tui-form-new-item-menu";
                 var controls = [];
                 for (var type in _controls) {
@@ -6764,15 +6779,7 @@ var tui;
                 tui.browser.removeNode(errmsg);
                 var designMode = (this.get("mode") === "design");
                 if (!designMode) {
-                    try {
-                        this.get("value");
-                    }
-                    catch (e) {
-                        this.hideAll();
-                        errmsg.innerHTML = tui.browser.toSafeText(e.message + "");
-                        this._.appendChild(errmsg);
-                        return;
-                    }
+                    this.get("value");
                 }
                 for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
                     var item = _a[_i];
@@ -6831,6 +6838,124 @@ var tui;
     (function (widget) {
         "use strict";
         var FULL = 6;
+        function optionsToText(options) {
+            var result = "";
+            if (!options)
+                return result;
+            function addNodes(nodes, level) {
+                if (level === void 0) { level = ""; }
+                if (nodes) {
+                    var padding = (level ? level + " " : "");
+                    for (var _i = 0, nodes_1 = nodes; _i < nodes_1.length; _i++) {
+                        var item = nodes_1[_i];
+                        if (item.value == item.text) {
+                            result += padding + item.value + "\n";
+                        }
+                        else {
+                            result += padding + item.value + ": " + item.text + "\n";
+                        }
+                        addNodes(item.children, level + ">");
+                    }
+                }
+            }
+            for (var _i = 0, options_1 = options; _i < options_1.length; _i++) {
+                var o = options_1[_i];
+                if (result.length > 0)
+                    result += "\n";
+                if (o.condition) {
+                    result += "[" + o.condition + "]\n";
+                }
+                addNodes(o.data);
+            }
+            return result;
+        }
+        function textToOptions(text) {
+            var result = [];
+            if (!text)
+                return result;
+            function getLeve(s) {
+                var count = 0;
+                if (!s)
+                    return 0;
+                for (var _i = 0, s_1 = s; _i < s_1.length; _i++) {
+                    var c = s_1[_i];
+                    if (c == '>')
+                        count++;
+                }
+                return count;
+            }
+            function getNode(s) {
+                s = s.trim();
+                var pos = s.indexOf(":");
+                if (pos < 0) {
+                    return { value: s, text: s, check: false };
+                }
+                else {
+                    var value = s.substring(0, pos).trim();
+                    var text = s.substring(pos + 1).trim();
+                    return { value: value, text: text, check: false };
+                }
+            }
+            function toTree(list) {
+                var result = [];
+                function getList(pos, nodes, level) {
+                    for (var i = pos; i < list.length; i++) {
+                        var s = list[i];
+                        var lv = getLeve(s);
+                        if (lv == level) {
+                            nodes.push(getNode(s.substr(lv)));
+                        }
+                        else if (lv == level + 1 && nodes.length > 0) {
+                            var children = [];
+                            nodes[nodes.length - 1].children = children;
+                            i = getList(i, children, level + 1);
+                        }
+                        else if (lv < level) {
+                            return i - 1;
+                        }
+                        else
+                            continue;
+                    }
+                    return i;
+                }
+                getList(0, result, 0);
+                return result;
+            }
+            var tmp = [];
+            var arr = text.split("\n");
+            var condition = null;
+            var nodeList = null;
+            for (var _i = 0, arr_1 = arr; _i < arr_1.length; _i++) {
+                var s = arr_1[_i];
+                if (s.trim().length > 0) {
+                    s = s.trim();
+                    if (s[0] === '[') {
+                        if (/^\[.+\]$/.test(s)) {
+                            if (nodeList) {
+                                var data = { "condition": condition, "list": nodeList };
+                                tmp.push(data);
+                            }
+                            condition = s.substr(1, s.length - 2);
+                            nodeList = null;
+                        }
+                    }
+                    else {
+                        if (nodeList == null)
+                            nodeList = [];
+                        nodeList.push(s);
+                    }
+                }
+            }
+            if (nodeList) {
+                var data = { "condition": condition, "list": nodeList };
+                tmp.push(data);
+            }
+            for (var _a = 0, tmp_1 = tmp; _a < tmp_1.length; _a++) {
+                var t = tmp_1[_a];
+                result.push({ "condition": t.condition, "data": toTree(t.list) });
+            }
+            return result;
+        }
         var FormControl = (function () {
             function FormControl(form, define) {
                 var _this = this;
@@ -7000,11 +7125,11 @@ var tui;
                         "label": tui.str("form.options"),
                         "key": "options",
                         "size": 2,
-                        "options": [
-                            { "value": "required", "text": tui.str("form.required") },
-                            { "value": "disable", "text": tui.str("form.disable") },
-                            { "value": "emphasize", "text": tui.str("form.emphasize") }
-                        ],
+                        "options": [{ "data": [
+                                    { "value": "required", "text": tui.str("form.required") },
+                                    { "value": "disable", "text": tui.str("form.disable") },
+                                    { "value": "emphasize", "text": tui.str("form.emphasize") }
+                                ] }],
                         "newline": true,
                         "value": [this.define.required ? "required" : null, this.define.disable ? "disable" : null, this.define.emphasize ? "emphasize" : null]
                     }, {
@@ -7244,6 +7369,7 @@ var tui;
             };
             BasicFormControl.prototype.setValue = function (value) {
                 this._widget.set("value", value);
+                this.define.value = value;
                 this.form.fire("itemvaluechanged", { control: this });
             };
             BasicFormControl.prototype.render = function (designMode) {
@@ -7352,11 +7478,11 @@ var tui;
                                 "key": "align",
                                 "label": tui.str("form.text.align"),
                                 "atMost": 1,
-                                "options": [
-                                    { value: "left", text: tui.str("form.align.left") },
-                                    { value: "center", text: tui.str("form.align.center") },
-                                    { value: "right", text: tui.str("form.align.right") }
-                                ],
+                                "options": [{ "data": [
+                                            { value: "left", text: tui.str("form.align.left") },
+                                            { value: "center", text: tui.str("form.align.center") },
+                                            { value: "right", text: tui.str("form.align.right") }
+                                        ] }],
                                 "size": 6,
                                 "value": this.define.align || "left"
                             }, {
@@ -7364,11 +7490,11 @@ var tui;
                                 "key": "display",
                                 "label": tui.str("form.display"),
                                 "atMost": 1,
-                                "options": [
-                                    { value: "visible", text: tui.str("form.visible") },
-                                    { value: "invisible", text: tui.str("form.invisible") },
-                                    { value: "newline", text: tui.str("form.newline") }
-                                ],
+                                "options": [{ "data": [
+                                            { value: "visible", text: tui.str("form.visible") },
+                                            { value: "invisible", text: tui.str("form.invisible") },
+                                            { value: "newline", text: tui.str("form.newline") }
+                                        ] }],
                                 "size": 6,
                                 "value": /^(visible|invisible|newline)$/.test(this.define.display) ? this.define.display : "visible"
                             }
@@ -7459,13 +7585,13 @@ var tui;
                                 "type": "options",
                                 "key": "inputType",
                                 "label": tui.str("form.input.type"),
-                                "options": [
-                                    { "value": "text", "text": tui.str("form.text") },
-                                    { "value": "password", "text": tui.str("form.password") },
-                                    { "value": "email", "text": tui.str("form.email") },
-                                    { "value": "url", "text": tui.str("form.url") },
-                                    { "value": "number", "text": tui.str("form.number") }
-                                ],
+                                "options": [{ "data": [
+                                            { "value": "text", "text": tui.str("form.text") },
+                                            { "value": "password", "text": tui.str("form.password") },
+                                            { "value": "email", "text": tui.str("form.email") },
+                                            { "value": "url", "text": tui.str("form.url") },
+                                            { "value": "number", "text": tui.str("form.number") }
+                                        ] }],
                                 "atMost": 1,
                                 "value": this.define.inputType ? this.define.inputType : "text",
                                 "size": 2,
@@ -7654,51 +7780,6 @@ var tui;
                 _this.div.appendChild(_this._notifyBar);
                 return _this;
             }
-            FormOptions.optionsToText = function (options) {
-                var result = "";
-                if (!options)
-                    return result;
-                for (var _i = 0, options_1 = options; _i < options_1.length; _i++) {
-                    var o = options_1[_i];
-                    if (result.length > 0)
-                        result += "\n";
-                    if (typeof o === "string") {
-                        result += o;
-                    }
-                    else {
-                        if (o.value === o.text) {
-                            result += o;
-                        }
-                        else {
-                            result += o.value + ":" + o.text;
-                        }
-                    }
-                }
-                return result;
-            };
-            FormOptions.textToOptions = function (options) {
-                var result = [];
-                if (!options)
-                    return result;
-                var arr = options.split("\n");
-                for (var _i = 0, arr_1 = arr; _i < arr_1.length; _i++) {
-                    var s = arr_1[_i];
-                    if (s.trim().length > 0) {
-                        var pos = s.indexOf(":");
-                        if (pos > 0) {
-                            var v = s.substring(0, pos);
-                            var t = s.substring(pos + 1);
-                            if (v === t)
-                                result.push(v);
-                            else
-                                result.push({ value: v, text: t });
-                        }
-                        else
-                            result.push(s);
-                    }
-                }
-                return result;
-            };
             FormOptions.prototype.isResizable = function () {
                 return true;
             };
@@ -7712,49 +7793,118 @@ var tui;
                     tui.browser.removeClass(this._group._, " tui-form-group-align-vertical");
                 }
                 this._group._set("disable", !!define.disable);
+                this._notifyBar.innerHTML = "";
+                this.renderDesign();
+            };
+            FormOptions.prototype.getValue = function (cal) {
+                if (cal === void 0) { cal = null; }
+                if (!cal)
+                    return this._group.get("value");
+                var define = this.define;
                 var optionType = define.atMost == 1 ? "radio" : "check";
                 this._group._set("type", optionType);
                 this._group._.innerHTML = "";
-                if (define.options) {
-                    for (var i = 0; i < define.options.length; i++) {
-                        var option = define.options[i];
-                        if (!option)
-                            continue;
-                        var o = widget.create(optionType);
-                        if (typeof option === "string") {
-                            o._set("value", option);
-                            o._set("text", "<span>" + tui.browser.toSafeText(option) + "</span>");
+                var key = define.key;
+                var data = [];
+                if (define.options && define.options.length > 0) {
+                    if (cal.path.indexOf(key) >= 0)
+                        throw new Error("Invalid expression of select control: Cycle reference detected on \"" + key + "\"");
+                    cal.path.push(key);
+                    for (var _i = 0, _a = this.define.options; _i < _a.length; _i++) {
+                        var d = _a[_i];
+                        if (d.condition) {
+                            if (tui.text.exp.evaluate(d.condition, function (k) {
+                                if (cal.cache.hasOwnProperty(k))
+                                    return cal.cache[k];
+                                else {
+                                    cal.calc(k, cal.path);
+                                    return cal.cache[k];
+                                }
+                            })) {
+                                if (d.data && d.data.length > 0)
+                                    data.splice.apply(data, [data.length, 0].concat(d.data));
+                            }
                         }
                         else {
-                            o._set("value", option.value);
-                            o._set("text", "<span>" + tui.browser.toSafeText(option.text) + "</span>");
+                            if (d.data && d.data.length > 0)
+                                data.splice.apply(data, [data.length, 0].concat(d.data));
                         }
+                    }
+                }
+                if (data.length > 0) {
+                    for (var i = 0; i < data.length; i++) {
+                        var option = data[i];
+                        var o = widget.create(optionType);
+                        o._set("value", option.value);
+                        o._set("text", "<span>" + tui.browser.toSafeText(option.text) + "</span>");
                         this._group._.appendChild(o._);
                     }
                 }
-                if (!define.options || define.options.length == 0) {
+                else {
                     var padding = tui.elem("div");
                     padding.style.padding = "10px";
-                    padding.innerHTML = "Empty";
+                    padding.innerHTML = tui.str("message.not.available");
                     this._group._.appendChild(padding);
                 }
                 this._group._set("value", define.value);
                 define.value = this._group.get("value");
-                this._notifyBar.innerHTML = "";
-            };
-            FormOptions.prototype.getValue = function () {
                 return this._group.get("value");
             };
             FormOptions.prototype.setValue = function (value) {
                 this._group.set("value", value);
+                this.define.value = value;
                 this.form.fire("itemvaluechanged", { control: this });
             };
+            FormOptions.prototype.renderDesign = function () {
+                var define = this.define;
+                var data = [];
+                if (define.options && define.options.length > 0) {
+                    for (var _i = 0, _a = this.define.options; _i < _a.length; _i++) {
+                        var d = _a[_i];
+                        if (d.data && d.data.length > 0) {
+                            for (var i = 0; i < d.data.length; i++) {
+                                var o = d.data[i];
+                                if (o.value === null || typeof o.value === tui.UNDEFINED)
+                                    o.value = o.text;
+                                if (o.text === null || typeof o.text === tui.UNDEFINED)
+                                    o.text = o.value;
+                                if (o.value === null || typeof o.value === tui.UNDEFINED) {
+                                    d.data.splice(i--, 1);
+                                }
+                            }
+                            data.splice.apply(data, [data.length, 0].concat(d.data));
+                        }
+                    }
+                }
+                var optionType = define.atMost == 1 ? "radio" : "check";
+                this._group._set("type", optionType);
+                this._group._.innerHTML = "";
+                if (data.length > 0) {
+                    for (var i = 0; i < data.length; i++) {
+                        var option = data[i];
+                        var o = widget.create(optionType);
+                        o._set("value", option.value);
+                        o._set("text", "<span>" + tui.browser.toSafeText(option.text) + "</span>");
+                        this._group._.appendChild(o._);
+                    }
+                }
+                else {
+                    var padding = tui.elem("div");
+                    padding.style.padding = "10px";
+                    padding.innerHTML = tui.str("message.not.available");
+                    this._group._.appendChild(padding);
+                }
+                this._group._set("value", define.value);
+            };
             FormOptions.prototype.render = function (designMode) {
+                if (designMode)
+                    this.renderDesign();
                 var g = this._group;
                 g.render();
                 for (var i = 0; i < g._.children.length; i++) {
                     var btn = g._.children[i];
-                    btn.children[0].style.width = btn.clientWidth - 30 + "px";
+                    if (btn.children.length > 0)
+                        btn.children[0].style.width = btn.clientWidth - 30 + "px";
                 }
                 if (this._notifyBar.innerHTML == "") {
                     tui.browser.addClass(this._notifyBar, "tui-hidden");
@@ -7773,7 +7923,7 @@ var tui;
                                 "key": "options",
                                 "label": tui.str("form.options"),
                                 "description": tui.str("form.option.group.desc"),
-                                "value": FormOptions.optionsToText(this.define.options),
+                                "value": optionsToText(this.define.options),
                                 "validation": [
                                     { "format": "*any", "message": tui.str("message.cannot.be.empty") }
                                 ],
@@ -7783,10 +7933,10 @@ var tui;
                                 "key": "align",
                                 "label": tui.str("form.align"),
                                 "value": this.define.align === "vertical" ? "vertical" : "normal",
-                                "options": [
-                                    { "value": "normal", "text": tui.str("normal") },
-                                    { "value": "vertical", "text": tui.str("vertical") }
-                                ],
+                                "options": [{ "data": [
+                                            { "value": "normal", "text": tui.str("normal") },
+                                            { "value": "vertical", "text": tui.str("vertical") }
+                                        ] }],
                                 "atMost": 1,
                                 "size": 2,
                                 "newline": true
@@ -7817,7 +7967,7 @@ var tui;
                 this.define.align = values.align;
                 this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
                 this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
-                this.define.options = FormOptions.textToOptions(values.options);
+                this.define.options = textToOptions(values.options);
             };
             FormOptions.prototype.onPropertyPageSwitch = function (pages, recentPage) {
                 FormControl.detectRequired(pages, recentPage);
@@ -7854,11 +8004,17 @@ var tui;
         FormOptions.icon = "fa-check-square-o";
         FormOptions.desc = "form.option.group";
         FormOptions.order = 3;
-        FormOptions.init = { "options": [
-                { "value": "1", "text": "A" },
-                { "value": "2", "text": "B" },
-                "C", "D"
-            ] };
+        FormOptions.init = {
+            "options": [{
+                    "data": [
+                        { "value": "A", "text": "A" },
+                        { "value": "B", "text": "B" },
+                        { "value": "C", "text": "C" },
+                        { "value": "D", "text": "D" }
+                    ]
+                }
+            ]
+        };
         FormOptions.translator = function (value) {
             if (value instanceof Array) {
                 return value.join(", ");
@@ -7873,6 +8029,7 @@ var tui;
             __extends(FormSelect, _super);
             function FormSelect(form, define) {
                 var _this = _super.call(this, form, define, "select") || this;
+                _this._widget._set("nameKey", "text");
                 _this._widget.on("change", function (e) {
                     _this._notifyBar.innerHTML = "";
                     form.fire("itemvaluechanged", { control: _this });
@@ -7882,124 +8039,6 @@ var tui;
                 _this.div.appendChild(_this._notifyBar);
                 return _this;
             }
-            FormSelect.selectionToText = function (selection) {
-                var result = "";
-                if (!selection)
-                    return result;
-                function addNodes(nodes, level) {
-                    if (level === void 0) { level = ""; }
-                    if (nodes) {
-                        var padding = (level ? level + " " : "");
-                        for (var _i = 0, nodes_1 = nodes; _i < nodes_1.length; _i++) {
-                            var item = nodes_1[_i];
-                            if (item.value == item.name) {
-                                result += padding + item.value + "\n";
-                            }
-                            else {
-                                result += padding + item.value + ": " + item.name + "\n";
-                            }
-                            addNodes(item.children, level + ">");
-                        }
-                    }
-                }
-                for (var _i = 0, selection_1 = selection; _i < selection_1.length; _i++) {
-                    var o = selection_1[_i];
-                    if (result.length > 0)
-                        result += "\n";
-                    if (o.condition) {
-                        result += "[" + o.condition + "]\n";
-                    }
-                    addNodes(o.data);
-                }
-                return result;
-            };
-            FormSelect.textToSelection = function (selection) {
-                var result = [];
-                if (!selection)
-                    return result;
-                function getLeve(s) {
-                    var count = 0;
-                    if (!s)
-                        return 0;
-                    for (var _i = 0, s_1 = s; _i < s_1.length; _i++) {
-                        var c = s_1[_i];
-                        if (c == '>')
-                            count++;
-                    }
-                    return count;
-                }
-                function getNode(s) {
-                    s = s.trim();
-                    var pos = s.indexOf(":");
-                    if (pos < 0) {
-                        return { value: s, name: s, check: false };
-                    }
-                    else {
-                        var value = s.substring(0, pos).trim();
-                        var name = s.substring(pos + 1).trim();
-                        return { value: value, name: name, check: false };
-                    }
-                }
-                function toTree(list) {
-                    var result = [];
-                    function getList(pos, nodes, level) {
-                        for (var i = pos; i < list.length; i++) {
-                            var s = list[i];
-                            var lv = getLeve(s);
-                            if (lv == level) {
-                                nodes.push(getNode(s.substr(lv)));
-                            }
-                            else if (lv == level + 1 && nodes.length > 0) {
-                                var children = [];
-                                nodes[nodes.length - 1].children = children;
-                                i = getList(i, children, level + 1);
-                            }
-                            else if (lv < level) {
-                                return i - 1;
-                            }
-                            else
-                                continue;
-                        }
-                        return i;
-                    }
-                    getList(0, result, 0);
-                    return result;
-                }
-                var tmp = [];
-                var arr = selection.split("\n");
-                var condition = null;
-                var nodeList = null;
-                for (var _i = 0, arr_2 = arr; _i < arr_2.length; _i++) {
-                    var s = arr_2[_i];
-                    if (s.trim().length > 0) {
-                        s = s.trim();
-                        if (s[0] === '[') {
-                            if (/^\[.+\]$/.test(s)) {
-                                if (nodeList) {
-                                    var data = { "condition": condition, "list": nodeList };
-                                    tmp.push(data);
-                                }
-                                condition = s.substr(1, s.length - 2);
-                                nodeList = null;
-                            }
-                        }
-                        else {
-                            if (nodeList == null)
-                                nodeList = [];
-                            nodeList.push(s);
-                        }
-                    }
-                }
-                if (nodeList) {
-                    var data = { "condition": condition, "list": nodeList };
-                    tmp.push(data);
-                }
-                for (var _a = 0, tmp_1 = tmp; _a < tmp_1.length; _a++) {
-                    var t = tmp_1[_a];
-                    result.push({ "condition": t.condition, "data": toTree(t.list) });
-                }
-                return result;
-            };
             FormSelect.prototype.update = function () {
                 _super.prototype.update.call(this);
                 this._widget._set("multiSelect", this.define.atMost != 1);
@@ -8017,7 +8056,7 @@ var tui;
                                 "maxHeight": 400,
                                 "label": tui.str("form.options"),
                                 "description": tui.str("form.selection.desc"),
-                                "value": FormSelect.selectionToText(this.define.selection),
+                                "value": optionsToText(this.define.selection),
                                 "validation": [
                                     { "format": "*any", "message": tui.str("message.cannot.be.empty") }
                                 ],
@@ -8027,10 +8066,10 @@ var tui;
                                 "key": "canSearch",
                                 "label": tui.str("form.use.search"),
                                 "value": this.define.canSearch ? "true" : "false",
-                                "options": [
-                                    { "value": "true", "text": tui.str("form.enable") },
-                                    { "value": "false", "text": tui.str("form.disable") }
-                                ],
+                                "options": [{ "data": [
+                                            { "value": "true", "text": tui.str("form.enable") },
+                                            { "value": "false", "text": tui.str("form.disable") }
+                                        ] }],
                                 "size": 2,
                                 "atMost": 1,
                                 "newline": true
@@ -8060,7 +8099,7 @@ var tui;
                 var values = properties[1];
                 this.define.atLeast = values.atLeast > 0 ? parseInt(values.atLeast) : null;
                 this.define.atMost = values.atMost > 0 ? parseInt(values.atMost) : null;
-                this.define.selection = FormSelect.textToSelection(values.selection);
+                this.define.selection = textToOptions(values.selection);
                 this.define.canSearch = tui.text.parseBoolean(values.canSearch);
             };
             FormSelect.prototype.onPropertyPageSwitch = function (pages, recentPage) {
@@ -8072,7 +8111,7 @@ var tui;
                     return this._widget.get("value");
                 var key = this.define.key;
                 var data = [];
-                if (this.define.selection) {
+                if (this.define.selection && this.define.selection.length > 0) {
                     if (cal.path.indexOf(key) >= 0)
                         throw new Error("Invalid expression of select control: Cycle reference detected on \"" + key + "\"");
                     cal.path.push(key);
@@ -8087,17 +8126,19 @@ var tui;
                                     return cal.cache[k];
                                 }
                             })) {
-                                data.splice.apply(data, [data.length, 0].concat(d.data));
+                                if (d.data && d.data.length > 0)
+                                    data.splice.apply(data, [data.length, 0].concat(d.data));
                             }
                         }
                         else {
-                            data.splice.apply(data, [data.length, 0].concat(d.data));
+                            if (d.data && d.data.length > 0)
+                                data.splice.apply(data, [data.length, 0].concat(d.data));
                         }
                     }
                 }
                 this._widget._set("tree", data);
                 this.define.value = this._widget.get("value");
-                return this._widget.get("value");
+                return this.define.value;
             };
             FormSelect.prototype.validate = function () {
                 var count;
@@ -8178,12 +8219,12 @@ var tui;
                                 "type": "options",
                                 "key": "mode",
                                 "label": tui.str("form.format"),
-                                "options": [
-                                    { "value": "date", "text": tui.str("form.date") },
-                                    { "value": "time", "text": tui.str("form.time") },
-                                    { "value": "date-time", "text": tui.str("form.date.time") },
-                                    { "value": "month", "text": tui.str("form.month") }
-                                ],
+                                "options": [{ "data": [
+                                            { "value": "date", "text": tui.str("form.date") },
+                                            { "value": "time", "text": tui.str("form.time") },
+                                            { "value": "date-time", "text": tui.str("form.date.time") },
+                                            { "value": "month", "text": tui.str("form.month") }
+                                        ] }],
                                 "atMost": 1,
                                 "value": /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : "date",
                                 "size": 2,
@@ -8192,11 +8233,11 @@ var tui;
                                 "type": "options",
                                 "key": "timezone",
                                 "label": tui.str("form.timezone"),
-                                "options": [
-                                    { "value": "utc", "text": tui.str("form.tz.utc") },
-                                    { "value": "locale", "text": tui.str("form.tz.locale") },
-                                    { "value": "none", "text": tui.str("form.tz.none") }
-                                ],
+                                "options": [{ "data": [
+                                            { "value": "utc", "text": tui.str("form.tz.utc") },
+                                            { "value": "locale", "text": tui.str("form.tz.locale") },
+                                            { "value": "none", "text": tui.str("form.tz.none") }
+                                        ] }],
                                 "atMost": 1,
                                 "value": /^(utc|locale|none)$/.test(this.define.timezone) ? this.define.timezone : "utc",
                                 "size": 2,
@@ -8619,6 +8660,18 @@ var tui;
                 else {
                     this._widget._.style.height = "";
                     d.height = null;
+                }
+                if (this.define.disable) {
+                    this._btnAdd.set("disable", true);
+                    this._btnEdit.set("disable", true);
+                    this._btnDelete.set("disable", true);
+                    this._widget.set("disable", true);
+                }
+                else {
+                    this._btnAdd.set("disable", false);
+                    this._btnEdit.set("disable", false);
+                    this._btnDelete.set("disable", false);
+                    this._widget.set("disable", false);
                 }
             };
             FormGrid.prototype.getProperties = function () {
@@ -9179,18 +9232,20 @@ var tui;
                 var hittest = function (obj) {
                     var line = null;
                     var col = null;
-                    while (obj) {
-                        var parent = obj.parentNode;
-                        if (parent && $(parent).hasClass("tui-grid-line")) {
-                            line = _this._buffer.begin + _this._buffer.lines.indexOf(parent);
-                            if (_this.get("selectable") === true) {
-                                col = obj.col;
-                                _this._set("activeRow", line);
-                                _this._set("activeColumn", col);
+                    if (!_this.get("disable")) {
+                        while (obj) {
+                            var parent = obj.parentNode;
+                            if (parent && $(parent).hasClass("tui-grid-line")) {
+                                line = _this._buffer.begin + _this._buffer.lines.indexOf(parent);
+                                if (_this.get("selectable") === true) {
+                                    col = obj.col;
+                                    _this._set("activeRow", line);
+                                    _this._set("activeColumn", col);
+                                }
+                                break;
                             }
-                            break;
+                            obj = parent;
                         }
-                        obj = parent;
                     }
                     return { line: line, col: col };
                 };
@@ -9275,6 +9330,8 @@ var tui;
                     _this.fire("keyup", { e: e, row: activeRow });
                 });
                 $(this._).keydown(function (e) {
+                    if (_this.get("disable"))
+                        return;
                     var k = e.keyCode;
                     var activeRow = _this.get("activeRow");
                     _this.fire("keydown", { e: e, row: activeRow });
@@ -9416,6 +9473,8 @@ var tui;
                     }
                 });
                 $(head).click(function (ev) {
+                    if (_this.get("disable"))
+                        return;
                     var obj = (ev.target || ev.srcElement);
                     var columns = _this.get("columns");
                     while (obj) {
@@ -10008,6 +10067,12 @@ var tui;
                 this.drawHeader();
                 this.drawContent();
                 this.computeHOffset();
+                if (this.get("disable")) {
+                    this.addClass("tui-disable");
+                }
+                else {
+                    this.removeClass("tui-disable");
+                }
             };
             return Grid;
         }(widget.Widget));

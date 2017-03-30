@@ -93,5 +93,6 @@ tui.dict("en-us", {
 	"form.height": "Height",
 	"form.design": "Design",
 	"form.app.key": "Map App Key",
-	"form.emphasize": "Emphasized"
+	"form.emphasize": "Emphasized",
+	"message.not.available": "Not Available"
 });

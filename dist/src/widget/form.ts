@@ -279,6 +279,7 @@ module tui.widget {
 											return me._valueCache[k];
 										}
 									})) {
+										searchPath.pop();
 										me._valueCache[key] = me._items[index[key]].getValue({
 											cache: me._valueCache,
 											calc: computeValue,
@@ -286,13 +287,14 @@ module tui.widget {
 										});
 										me._items[index[key]].define.available = true;
 									} else {
+										searchPath.pop();
 										me._valueCache[key] = null;
 										me._items[index[key]].define.available = false;
 									}
 								} catch (e) {
 									throw new Error(e.message + " (" + key + ")");
 								}
-								searchPath.pop();
+								
 							}
 						} // end of computeValue
 
@@ -643,14 +645,14 @@ module tui.widget {
 			browser.removeNode(errmsg);
 			var designMode = (this.get("mode") === "design");
 			if (!designMode) {
-				try {
+				// try {
 					this.get("value");
-				} catch (e) {
-					this.hideAll();
-					errmsg.innerHTML = browser.toSafeText(e.message + "");
-					this._.appendChild(errmsg);
-					return;
-				}
+				// } catch (e) {
+				// 	this.hideAll();
+				// 	errmsg.innerHTML = browser.toSafeText(e.message + "");
+				// 	this._.appendChild(errmsg);
+				// 	return;
+				// }
 			}
 			for (let item of this._items) {
 				if (!item.isPresent())
