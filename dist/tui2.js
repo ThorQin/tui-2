@@ -8007,10 +8007,10 @@ var tui;
         FormOptions.init = {
             "options": [{
                     "data": [
-                        { "value": "A", "text": "A" },
-                        { "value": "B", "text": "B" },
-                        { "value": "C", "text": "C" },
-                        { "value": "D", "text": "D" }
+                        { "value": "A" },
+                        { "value": "B" },
+                        { "value": "C" },
+                        { "value": "D" }
                     ]
                 }
             ]
@@ -8045,6 +8045,23 @@ var tui;
                 this._widget._set("clearable", !this.define.atLeast || parseInt(this.define.atLeast + "") <= 0);
                 this._widget._set("canSearch", !!this.define.canSearch);
                 this._notifyBar.innerHTML = "";
+                if (this.define.selection && this.define.selection.length > 0) {
+                    for (var _i = 0, _a = this.define.selection; _i < _a.length; _i++) {
+                        var d = _a[_i];
+                        if (d.data && d.data.length > 0) {
+                            for (var i = 0; i < d.data.length; i++) {
+                                var o = d.data[i];
+                                if (o.value === null || typeof o.value === tui.UNDEFINED)
+                                    o.value = o.text;
+                                if (o.text === null || typeof o.text === tui.UNDEFINED)
+                                    o.text = o.value;
+                                if (o.value === null || typeof o.value === tui.UNDEFINED) {
+                                    d.data.splice(i--, 1);
+                                }
+                            }
+                        }
+                    }
+                }
             };
             FormSelect.prototype.getProperties = function () {
                 return [{
@@ -8177,9 +8194,9 @@ var tui;
             "selection": [{
                     "condition": null,
                     "data": [
-                        { "value": "A", "name": "A", "check": false },
-                        { "value": "B", "name": "B", "check": false },
-                        { "value": "C", "name": "C", "check": false }
+                        { "value": "A", "check": false },
+                        { "value": "B", "check": false },
+                        { "value": "C", "check": false }
                     ]
                 }]
         };

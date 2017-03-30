@@ -1021,10 +1021,10 @@ module tui.widget {
 		static init = { 
 			"options": [{ 
 				"data": [
-					{"value": "A", "text": "A"},
-					{"value": "B", "text": "B"},
-					{"value": "C", "text": "C"},
-					{"value": "D", "text": "D"}
+					{"value": "A"},
+					{"value": "B"},
+					{"value": "C"},
+					{"value": "D"}
 				]
 			}
 		]};
@@ -1292,9 +1292,9 @@ module tui.widget {
 			"selection": [{
 				"condition":<string>null,
 				"data": [
-					{"value":"A","name":"A", "check": false},
-					{"value":"B","name":"B", "check": false},
-					{"value":"C","name":"C", "check": false}
+					{"value":"A", "check": false},
+					{"value":"B", "check": false},
+					{"value":"C", "check": false}
 				]
 			}]
 		};
@@ -1328,6 +1328,22 @@ module tui.widget {
 			this._widget._set("clearable", !this.define.atLeast || parseInt(this.define.atLeast + "") <= 0);
 			this._widget._set("canSearch", !!this.define.canSearch);
 			this._notifyBar.innerHTML = "";
+			if (this.define.selection && this.define.selection.length > 0) {
+				for (let d of this.define.selection) {
+					if (d.data && d.data.length > 0) {
+						for (let i = 0; i < d.data.length; i++) {
+							let o = d.data[i];
+							if (o.value === null || typeof o.value === UNDEFINED)
+								o.value = o.text;
+							if (o.text === null || typeof o.text === UNDEFINED)
+								o.text = o.value;
+							if (o.value === null || typeof o.value === UNDEFINED) {
+								d.data.splice(i--, 1);
+							}
+						}
+					}
+				}
+			}
 		}
 
 		getProperties(): PropertyPage[] {
