@@ -127,7 +127,7 @@ module tui.widget {
 				iconInvalid.style.display = "none";
 			}
 
-			if (this.get("clearable") && (!noValue)) {
+			if (this.get("clearable") && (!noValue) && !this.get("disable")) {
 				clearButton.style.display = "";
 				clearButton.style.right = iconRight.offsetWidth + iconInvalid.offsetWidth + "px";  
 			} else {

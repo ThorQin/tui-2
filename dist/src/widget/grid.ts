@@ -432,18 +432,20 @@ module tui.widget {
 			var hittest = (obj: HTMLElement): {line: number, col: number} => {
 				var line: number = null;
 				var col: number = null;
-				while (obj) {
-					var parent = <HTMLElement>obj.parentNode;
-					if (parent && $(parent).hasClass("tui-grid-line")) {
-						line = this._buffer.begin + this._buffer.lines.indexOf(parent);
-						if (this.get("selectable") === true) {
-							col = (<any>obj).col;
-							this._set("activeRow", line);
-							this._set("activeColumn", col);
+				if (!this.get("disable")) {
+					while (obj) {
+						var parent = <HTMLElement>obj.parentNode;
+						if (parent && $(parent).hasClass("tui-grid-line")) {
+							line = this._buffer.begin + this._buffer.lines.indexOf(parent);
+							if (this.get("selectable") === true) {
+								col = (<any>obj).col;
+								this._set("activeRow", line);
+								this._set("activeColumn", col);
+							}
+							break;
 						}
-						break;
+						obj = parent;
 					}
-					obj = parent;
 				}
 				return {line: line, col: col};
 			}
@@ -528,6 +530,8 @@ module tui.widget {
 			});
 			
 			$(this._).keydown((e) => {
+				if (this.get("disable"))
+					return;
 				var k = e.keyCode;
 				var activeRow = this.get("activeRow");
 				this.fire("keydown", {e: e, row: activeRow});
@@ -652,6 +656,8 @@ module tui.widget {
 			});
 			
 			$(head).click((ev) => { // header click: change sort flag 
+				if (this.get("disable"))
+					return;
 				var obj = <HTMLElement>(ev.target || ev.srcElement);
 				var columns = <ColumnInfo[]>this.get("columns");
 				while (obj) {
@@ -1266,6 +1272,11 @@ module tui.widget {
 			this.drawHeader();
 			this.drawContent();
 			this.computeHOffset();
+			if (this.get("disable")) {
+				this.addClass("tui-disable");
+			} else {
+				this.removeClass("tui-disable");
+			}
 		}
 	}
 

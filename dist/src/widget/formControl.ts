@@ -582,6 +582,7 @@ module tui.widget {
 		}
 		setValue(value: any): void {
 			this._widget.set("value", value);
+			this.define.value = value;
 			this.form.fire("itemvaluechanged", {control: this});
 		}
 		render(designMode: boolean): void {
@@ -1020,9 +1021,10 @@ module tui.widget {
 		static init = { 
 			"options": [{ 
 				"data": [
-					{"value": "1", "text": "A"},
-					{"value": "2", "text": "B"},
-					"C", "D"
+					{"value": "A", "text": "A"},
+					{"value": "B", "text": "B"},
+					{"value": "C", "text": "C"},
+					{"value": "D", "text": "D"}
 				]
 			}
 		]};
@@ -1066,6 +1068,7 @@ module tui.widget {
 			}
 			this._group._set("disable", !!define.disable);
 			this._notifyBar.innerHTML = "";
+			this.renderDesign();
 		}
 
 		getValue(cal: Calculator = null): any {
@@ -1122,9 +1125,51 @@ module tui.widget {
 		}
 		setValue(value: any): void {
 			this._group.set("value", value);
+			this.define.value = value;
 			this.form.fire("itemvaluechanged", {control: this});
 		}
+		renderDesign() {
+			var define = this.define;
+			var data: Option[] = [];
+			if (define.options && define.options.length > 0) {
+				for (let d of this.define.options) {
+					if (d.data && d.data.length > 0) {
+						for (let i = 0; i < d.data.length; i++) {
+							let o = d.data[i];
+							if (o.value === null || typeof o.value === UNDEFINED)
+								o.value = o.text;
+							if (o.text === null || typeof o.text === UNDEFINED)
+								o.text = o.value;
+							if (o.value === null || typeof o.value === UNDEFINED) {
+								d.data.splice(i--, 1);
+							}
+						}
+						data.splice(data.length, 0, ...d.data);
+					}
+				}
+			}
+			var optionType = define.atMost == 1 ? "radio" : "check";
+			this._group._set("type", optionType);
+			this._group._.innerHTML = "";
+			if (data.length > 0) {
+				for (let i = 0; i < data.length; i++) {
+					let option = data[i];
+					let o = create(optionType);
+					o._set("value", option.value);
+					o._set("text", "<span>" + browser.toSafeText(option.text) + "</span>");
+					this._group._.appendChild(o._);
+				}
+			} else {
+				var padding = elem("div");
+				padding.style.padding = "10px";
+				padding.innerHTML = str("message.not.available");
+				this._group._.appendChild(padding);
+			}
+			this._group._set("value", define.value);
+		}
 		render(designMode: boolean): void {
+			if (designMode)
+				this.renderDesign();
 			var g = this._group;
 			g.render();
 			for (let i = 0; i < g._.children.length; i++) {
@@ -1375,7 +1420,7 @@ module tui.widget {
 			}
 			this._widget._set("tree", data);
 			this.define.value = this._widget.get("value");
-			return this._widget.get("value");
+			return this.define.value;
 		}
 
 		validate(): boolean {
@@ -1928,6 +1973,17 @@ module tui.widget {
 			} else {
 				this._widget._.style.height = "";
 				d.height = null;
+			}
+			if (this.define.disable) {
+				this._btnAdd.set("disable", true);
+				this._btnEdit.set("disable", true);
+				this._btnDelete.set("disable", true);
+				this._widget.set("disable", true);
+			} else {
+				this._btnAdd.set("disable", false);
+				this._btnEdit.set("disable", false);
+				this._btnDelete.set("disable", false);
+				this._widget.set("disable", false);
 			}
 		}
 

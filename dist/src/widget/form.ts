@@ -195,6 +195,18 @@ module tui.widget {
 			this._autoResizeTimer = null;
 			this._parentWidth = null;
 			this.setRestrictions({
+				"mode": {
+					"set": (value: any) => {
+						if (/^(design|input|view)$/.test(value)) {
+							this._data["mode"] = value;
+							this._valueChanged = true;
+						}
+					},
+					"get": (): any => {
+						var v = this._data["mode"];
+						return v || "input";
+					}
+				},
 				"autoSize": {
 					"set": (value: any) => {
 						if (typeof value !== UNDEFINED) {
@@ -581,6 +593,7 @@ module tui.widget {
 
 		private addNewItem(button: HTMLElement, pos: number) {
 			var div = elem("div");
+			div.setAttribute("unselectable", "on");
 			div.className = "tui-form-new-item-menu";
 			var controls: ControlDesc[] = [];
 			for (let type in _controls) {
