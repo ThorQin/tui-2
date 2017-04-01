@@ -357,8 +357,8 @@ module tui {
 		// 	message, className);
 		if (message) {
 			return text.format( 
-				"<div class='tui-msg-container'><span></span><div>{0}</div></div>", 
-				message);
+				"<div class='tui-msg-container'><span></span><div name='dialogMsgDiv'>{0}</div></div>", 
+				browser.toSafeText(message));
 		} else {
 			return text.format( 
 				"<div class='tui-msg-container'><span></span></div>");
@@ -423,6 +423,8 @@ module tui {
 				callback(buttonName === "ok");
 		});
 	}
+
+
 	var refCount = 0;
 	var waitDlg: widget.Dialog = null;
 	var waitMsg: string[] = null;
@@ -433,7 +435,8 @@ module tui {
 			waitDlg = makeDialog(message, "tui-wait-box", null, null, null, false);
 		} else {
 			waitMsg.push(message);
-			waitDlg.setContent(makeContent(message));
+			//waitDlg.setContent(makeContent(message));
+			$(waitDlg.getComponent("content")).find("div[name='dialogMsgDiv']").text(message);
 			setTimeout(function(){
 				waitDlg && waitDlg.refresh();
 			});

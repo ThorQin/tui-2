@@ -5,8 +5,8 @@ module.exports = function (req, res, next) {
     var msg = {
       "fileId": "fileId",
       "fileName": "File Name.png",
-      "fileMime": "image/png",
-      "url": "/doc/icon114.png"
+      "mimeType": "image/png"//,
+      //"url": "/doc/icon114.png"
     };
     res.write(JSON.stringify(msg));
     res.end();

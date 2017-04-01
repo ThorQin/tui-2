@@ -88,7 +88,7 @@ module tui.widget {
 				return this.fire("change", e);
 			});
 			this._uploader.on("success", (e: any) => {
-				this._set("value", e.data.response);
+				this.set("value", e.data.response);
 				this.fire("success", e);
 			});
 			this._uploader.on("error", (e: any) => {

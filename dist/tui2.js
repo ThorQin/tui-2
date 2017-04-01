@@ -2306,7 +2306,7 @@ var tui;
     "use strict";
     function makeContent(message) {
         if (message) {
-            return tui.text.format("<div class='tui-msg-container'><span></span><div>{0}</div></div>", message);
+            return tui.text.format("<div class='tui-msg-container'><span></span><div name='dialogMsgDiv'>{0}</div></div>", tui.browser.toSafeText(message));
         }
         else {
             return tui.text.format("<div class='tui-msg-container'><span></span></div>");
@@ -2394,7 +2394,7 @@ var tui;
         }
         else {
             waitMsg.push(message);
-            waitDlg.setContent(makeContent(message));
+            $(waitDlg.getComponent("content")).find("div[name='dialogMsgDiv']").text(message);
             setTimeout(function () {
                 waitDlg && waitDlg.refresh();
             });
@@ -5911,7 +5911,7 @@ var tui;
                     return _this.fire("change", e);
                 });
                 this._uploader.on("success", function (e) {
-                    _this._set("value", e.data.response);
+                    _this.set("value", e.data.response);
                     _this.fire("success", e);
                 });
                 this._uploader.on("error", function (e) {

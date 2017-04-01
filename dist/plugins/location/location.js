@@ -316,7 +316,7 @@ var tui;
             }(widget.BasicFormControl));
             FormAddress.icon = "fa-map-marker";
             FormAddress.desc = tui.str("form.address");
-            FormAddress.order = 10;
+            FormAddress.order = 100;
             widget.Form.register("address", FormAddress);
         })(ext = widget.ext || (widget.ext = {}));
     })(widget = tui.widget || (tui.widget = {}));
