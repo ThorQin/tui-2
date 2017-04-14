@@ -805,6 +805,7 @@ declare module tui.widget {
         private _vLines;
         private _handlers;
         protected initRestriction(): void;
+        getRowData(rowIndex: number): any;
         protected init(): void;
         setSortFlag(col: number, type: string): void;
         scrollTo(index: number): void;
@@ -897,7 +898,6 @@ declare module tui.widget {
     }
     class DialogSelect extends SelectBase {
         private dialog;
-        private content;
         openSelect(): void;
         protected initChildren(childNodes: Node[]): void;
         protected createPopup(): any;

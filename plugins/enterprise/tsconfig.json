@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"target": "es5",
+        "noImplicitAny": true,
+		"declaration": true,
+        "removeComments": true,
+        "outFile": "../../dist/plugins/enterprise/enterprise.js",
+        "sourceMap": false,
+		"noEmitOnError": true
+	},
+	"include": [
+		"*.ts"
+	],
+    "exclude": [
+        "less"
+    ]
+}

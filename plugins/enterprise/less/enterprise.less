@@ -1,0 +1,20 @@
+@import '../../../less/commons.less';
+
+.cnooc-user-select-div {
+	tui\:input, tui\:list {
+		margin: 0px;
+		display: block;
+		width: 300px;
+	}
+	tui\:list {
+		margin-top: 10px;
+	}
+}
+
+@media (max-width: 370px) {
+	.cnooc-user-select-div {
+		tui\:input, tui\:list {
+			width: auto;
+		}
+	}
+}

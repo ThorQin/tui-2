@@ -60,7 +60,6 @@ module tui.widget {
 		private _handlers: HTMLElement[] = [];
 		
 		protected initRestriction(): void {
-			
 			// Register update callback routine
 			var updateCallback: (data: EventInfo) => any = (() => {
 				var me = this;
@@ -217,12 +216,21 @@ module tui.widget {
 					"get": () :any => {
 						var r = this.get("activeRow");
 						if (r != null) {
-							return this.get("data").get(r);
+							return this.getRowData(r);
 						} else
 							return r;
 					}
 				}
 			});
+		}
+
+		getRowData(rowIndex: number): any {
+			var data = this.get("data");
+			if (this.get("dataType") === "tree") {
+				return data.get(rowIndex).item;
+			} else {
+				return data.get(rowIndex);
+			}
 		}
 
 		protected init(): void {
@@ -1337,6 +1345,14 @@ module tui.widget {
 						return this._column.key;
 					}
 				},
+				"textKey": {
+					"set": (value: any) => {
+						this._set("nameKey", value);
+					},
+					"get": () => {
+						return this.get("nameKey");
+					}
+				},
 				"iconKey": {
 					"set": (value: any) => {
 						this._column.iconKey = value;
@@ -1403,18 +1419,17 @@ module tui.widget {
 						return value;
 					}
 				},
-				"checkedNames": {
+				"checkedItems": {
 					"set": (value: any) => {},
 					"get": () => {
-						var names: any[] = [];
-						var nameKey = this.get("nameKey");
+						var items: any[] = [];
 						var checkKey = this.get("checkKey");
 						this.iterate(function(item: any, path: number[]): boolean {
 							if (item[checkKey] === true)
-								names.push(item[nameKey]);
+								items.push(item);
 							return true;
 						});
-						return names;
+						return items;
 					}
 				}
 				

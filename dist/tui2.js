@@ -409,11 +409,13 @@ var tui;
             for (var _i = 1; _i < arguments.length; _i++) {
                 params[_i - 1] = arguments[_i];
             }
+            if (token === null || typeof token === tui.UNDEFINED || typeof token === "number" && isNaN(token))
+                return "";
             var formatrg = /\{(\d+)\}/g;
-            token && (typeof token === "string") && params.length && (token = token.replace(formatrg, function (str, i) {
+            typeof token === "string" && params.length && (token = token.replace(formatrg, function (str, i) {
                 return params[i] === null ? "" : params[i];
             }));
-            return token ? token : "";
+            return token + "";
         }
         text.format = format;
         function toDashSplit(word) {
@@ -5561,6 +5563,7 @@ var tui;
                     _this.set("text", "");
                     _this.reset();
                     _this.fire("change", e);
+                    _this.fire("clear", e);
                     e.stopPropagation();
                 });
                 popup.on("close", function () {
@@ -9039,13 +9042,22 @@ var tui;
                         "get": function () {
                             var r = _this.get("activeRow");
                             if (r != null) {
-                                return _this.get("data").get(r);
+                                return _this.getRowData(r);
                             }
                             else
                                 return r;
                         }
                     }
                 });
+            };
+            Grid.prototype.getRowData = function (rowIndex) {
+                var data = this.get("data");
+                if (this.get("dataType") === "tree") {
+                    return data.get(rowIndex).item;
+                }
+                else {
+                    return data.get(rowIndex);
+                }
             };
             Grid.prototype.init = function () {
                 var _this = this;
@@ -10149,6 +10161,14 @@ var tui;
                             return _this._column.key;
                         }
                     },
+                    "textKey": {
+                        "set": function (value) {
+                            _this._set("nameKey", value);
+                        },
+                        "get": function () {
+                            return _this.get("nameKey");
+                        }
+                    },
                     "iconKey": {
                         "set": function (value) {
                             _this._column.iconKey = value;
@@ -10215,18 +10235,17 @@ var tui;
                             return value;
                         }
                     },
-                    "checkedNames": {
+                    "checkedItems": {
                         "set": function (value) { },
                         "get": function () {
-                            var names = [];
-                            var nameKey = _this.get("nameKey");
+                            var items = [];
                             var checkKey = _this.get("checkKey");
                             _this.iterate(function (item, path) {
                                 if (item[checkKey] === true)
-                                    names.push(item[nameKey]);
+                                    items.push(item);
                                 return true;
                             });
-                            return names;
+                            return items;
                         }
                     }
                 });
@@ -10300,7 +10319,10 @@ var tui;
                     "type": {
                         "set": function (value) {
                             value = value.toLowerCase();
-                            if (["text", "password", "email", "url", "number"].indexOf(value) < 0)
+                            if (["text", "password", "email",
+                                "url", "number", "search", "tel",
+                                "color", "date", "datetime", "month",
+                                "week", "time", "datetime-local"].indexOf(value) < 0)
                                 return;
                             textbox.setAttribute("type", value);
                         },
@@ -10377,6 +10399,7 @@ var tui;
                     _this.set("value", "");
                     _this.reset();
                     _this.fire("change", e);
+                    _this.fire("clear", e);
                     e.stopPropagation();
                     setTimeout(function () {
                         textbox.focus();
@@ -11639,6 +11662,14 @@ var tui;
                             return list.get("nameKey");
                         }
                     },
+                    "textKey": {
+                        "set": function (value) {
+                            list._set("nameKey", value);
+                        },
+                        "get": function () {
+                            return list.get("nameKey");
+                        }
+                    },
                     "iconKey": {
                         "set": function (value) {
                             list._set("iconKey", value);
@@ -11768,12 +11799,7 @@ var tui;
                 list.on("rowclick keyselect", function (e) {
                     var rowData = list.get("activeRowData");
                     if (!_this.get("multiSelect")) {
-                        var item;
-                        if (list.get("dataType") === "tree")
-                            item = rowData.item;
-                        else
-                            item = rowData;
-                        _this.set("value", item[list.get("valueKey")]);
+                        _this.set("value", rowData[list.get("valueKey")]);
                         _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         if (e.event === "rowclick") {
                             _this.closeSelect();
@@ -11895,24 +11921,25 @@ var tui;
                     return;
                 }
                 this.dialog.set("title", this.get("title"));
+                this.dialog.setContent(this.get("content"));
                 this.dialog.open("ok#tui-primary");
             };
             DialogSelect.prototype.initChildren = function (childNodes) {
-                var _this = this;
                 _super.prototype.initChildren.call(this, childNodes);
                 this.dialog = widget.create("dialog");
-                this.content = tui.elem("div");
+                var content = tui.elem("div");
                 childNodes.forEach(function (n) {
                     if (widget.getFullName(n) !== "tui:verify")
-                        _this.content.appendChild(n);
+                        content.appendChild(n);
                 });
-                this.dialog.setContent(this.content);
-                widget.init(this.content);
+                widget.init(content);
+                this._set("content", content);
             };
             DialogSelect.prototype.createPopup = function () {
                 var _this = this;
                 this.dialog.on("btnclick", function () {
-                    _this.fire("close");
+                    if (_this.fire("select") === false)
+                        return;
                     _this.dialog.close();
                 });
                 return this.dialog;
