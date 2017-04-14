@@ -7906,8 +7906,9 @@ var tui;
                 g.render();
                 for (var i = 0; i < g._.children.length; i++) {
                     var btn = g._.children[i];
-                    if (btn.children.length > 0)
+                    if (btn.children.length > 0 && btn.clientWidth - 30 >= 0) {
                         btn.children[0].style.width = btn.clientWidth - 30 + "px";
+                    }
                 }
                 if (this._notifyBar.innerHTML == "") {
                     tui.browser.addClass(this._notifyBar, "tui-hidden");

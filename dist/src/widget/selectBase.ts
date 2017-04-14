@@ -74,6 +74,7 @@ module tui.widget {
 				this.set("text", "");
 				this.reset();
 				this.fire("change", e);
+				this.fire("clear", e);
 				e.stopPropagation();
 			});
 			

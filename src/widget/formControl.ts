@@ -1174,8 +1174,9 @@ module tui.widget {
 			g.render();
 			for (let i = 0; i < g._.children.length; i++) {
 				let btn = g._.children[i];
-				if (btn.children.length > 0)
+				if (btn.children.length > 0 && btn.clientWidth - 30 >= 0) {
 					(<HTMLElement>btn.children[0]).style.width = btn.clientWidth - 30 + "px";
+				}
 			}
 			if (this._notifyBar.innerHTML == "") {
 				browser.addClass(this._notifyBar, "tui-hidden");

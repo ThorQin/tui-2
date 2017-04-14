@@ -99,6 +99,14 @@ module tui.widget {
 						return list.get("nameKey");
 					}
 				},
+				"textKey": {
+					"set": (value: any) => {
+						list._set("nameKey", value);
+					},
+					"get": () => {
+						return list.get("nameKey");
+					}
+				},
 				"iconKey": {
 					"set": (value: any) => {
 						list._set("iconKey", value);
@@ -233,13 +241,7 @@ module tui.widget {
 			list.on("rowclick keyselect", (e) => {
 				var rowData = list.get("activeRowData");
 				if (!this.get("multiSelect")) {
-					var item: any;
-					if (list.get("dataType") === "tree")
-						item = rowData.item;
-					else
-						item = rowData;
-					// this._set("text", item[list.get("nameKey")]);
-					this.set("value", item[list.get("valueKey")]);
+					this.set("value", rowData[list.get("valueKey")]);
 					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					if (e.event === "rowclick") {
 						this.closeSelect();
@@ -273,7 +275,6 @@ module tui.widget {
 					list.deselectAll();
 				} else if (name === "ok") {
 					this.set("value", list.get("checkedValues"));
-					// this.set("text", list.get("checkedNames").join(", "));
 					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this.closeSelect();
 					this._.focus();
@@ -355,29 +356,31 @@ module tui.widget {
 
 	export class DialogSelect extends SelectBase {
 		private dialog: Dialog;
-		private content: HTMLElement;
+
 		openSelect(): void {
 			if (this.fire("open", this.dialog) === false) {
 				return;
 			}
 			this.dialog.set("title", this.get("title"));
+			this.dialog.setContent(this.get("content"));
 			this.dialog.open("ok#tui-primary");
 		} 
 		protected initChildren(childNodes: Node[]) {
 			super.initChildren(childNodes);
 			this.dialog = <Dialog>create("dialog");
-			this.content = elem("div");
+			var content = elem("div");
 			childNodes.forEach(n => {
 				if (getFullName(n) !== "tui:verify")
-					this.content.appendChild(n);
+					content.appendChild(n);
 			});
-			this.dialog.setContent(this.content);
-			init(this.content);
+			init(content);
+			this._set("content", content);
 		}
 
 		protected createPopup(): any {
 			this.dialog.on("btnclick", () => {
-				this.fire("close");
+				if (this.fire("select") === false)
+					return;
 				this.dialog.close();
 			});
 			return this.dialog;

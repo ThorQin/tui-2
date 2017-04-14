@@ -36,7 +36,10 @@ module tui.widget {
 				"type": {
 					"set": (value: any) => {
 						value = value.toLowerCase();						
-						if (["text", "password", "email", "url", "number"].indexOf(value) < 0)
+						if (["text", "password", "email", 
+								"url", "number", "search", "tel", 
+								"color", "date", "datetime", "month", 
+								"week", "time", "datetime-local"].indexOf(value) < 0)
 							return;
 						textbox.setAttribute("type", value);
 					},
@@ -115,6 +118,7 @@ module tui.widget {
 				this.set("value", "");
 				this.reset();
 				this.fire("change", e);
+				this.fire("clear", e);
 				e.stopPropagation();
 				setTimeout(() => {
 					textbox.focus();

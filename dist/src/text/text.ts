@@ -23,12 +23,15 @@ module tui.text {
 	/**
 	 * Format a string use a set of parameters
 	 */
-	export function format(token: string, ...params: any[]): string {
+	export function format(token: string, ...params: any[]): string;
+	export function format(token: any, ...params: any[]): string {
+		if (token === null || typeof token === UNDEFINED || typeof token === "number" && isNaN(token))
+			return "";
 		var formatrg = /\{(\d+)\}/g;
-		token && (typeof token === "string") && params.length && (token = token.replace(formatrg, function (str, i) {
+		typeof token === "string" && params.length && (token = token.replace(formatrg, function (str, i) {
 			return params[i] === null ? "" : params[i];
 		}));
-		return token ? token : "";
+		return token + "";
 	}
 
 	/**
