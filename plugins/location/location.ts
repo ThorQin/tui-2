@@ -250,7 +250,7 @@ module tui.widget.ext {
 
 	class FormAddress extends BasicFormControl<Location, AddressFormItem> {
 		static icon = "fa-map-marker";
-		static desc = tui.str("form.address");
+		static desc = "form.address";
 		static order = 100;
 		constructor(form: Form, define: AddressFormItem) {
 			super(form, define, "location");

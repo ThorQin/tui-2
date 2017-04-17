@@ -2233,7 +2233,7 @@ var tui;
                 $(contentDiv).css({
                     "maxWidth": winSize.width - 40 + "px",
                     "maxHeight": winSize.height - 40 - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px",
-                    "minWidth": winSize.width < 500 ? winSize.width - 80 + "px" : "none"
+                    "minWidth": winSize.width <= 500 ? winSize.width - 80 + "px" : "none"
                 });
                 var box = {
                     left: root.offsetLeft,
@@ -6782,7 +6782,15 @@ var tui;
                 tui.browser.removeNode(errmsg);
                 var designMode = (this.get("mode") === "design");
                 if (!designMode) {
-                    this.get("value");
+                    try {
+                        this.get("value");
+                    }
+                    catch (e) {
+                        this.hideAll();
+                        errmsg.innerHTML = tui.browser.toSafeText(e.message + "");
+                        this._.appendChild(errmsg);
+                        return;
+                    }
                 }
                 for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
                     var item = _a[_i];
@@ -7067,7 +7075,8 @@ var tui;
             };
             FormControl.detectRequiredByValidation = function (pages, recentPage) {
                 var options = pages[0].form.get("value").options;
-                var validation = pages[1].form.getItem("validation").getValue(null);
+                var vdef = pages[1].form.getItem("validation");
+                var validation = vdef && vdef.getValue(null) || null;
                 var hasAny = false;
                 if (validation) {
                     for (var _i = 0, validation_1 = validation; _i < validation_1.length; _i++) {

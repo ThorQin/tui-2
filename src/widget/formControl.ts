@@ -176,7 +176,8 @@ module tui.widget {
 
 		static detectRequiredByValidation(pages: PropertyPage[], recentPage: number) {
 			var options = pages[0].form.get("value").options;
-			let validation = pages[1].form.getItem("validation").getValue(null);
+			var vdef = pages[1].form.getItem("validation");
+			let validation = vdef && vdef.getValue(null) || null;
 			var hasAny = false;
 			if (validation) {
 				for (let v of validation) {

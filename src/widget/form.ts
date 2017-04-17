@@ -658,14 +658,14 @@ module tui.widget {
 			browser.removeNode(errmsg);
 			var designMode = (this.get("mode") === "design");
 			if (!designMode) {
-				// try {
+				try {
 					this.get("value");
-				// } catch (e) {
-				// 	this.hideAll();
-				// 	errmsg.innerHTML = browser.toSafeText(e.message + "");
-				// 	this._.appendChild(errmsg);
-				// 	return;
-				// }
+				} catch (e) {
+					this.hideAll();
+					errmsg.innerHTML = browser.toSafeText(e.message + "");
+					this._.appendChild(errmsg);
+					return;
+				}
 			}
 			for (let item of this._items) {
 				if (!item.isPresent())
