@@ -610,7 +610,13 @@ module tui.widget {
 				return a.order - b.order
 			});
 			var popup = <Popup>create("popup");
+			var usePlugins = false;
 			for (let c of controls) {
+				if (!usePlugins && c.order >= 100) {
+					usePlugins = true;
+					let hr = elem("hr");
+					div.appendChild(hr);
+				}
 				let itemDiv = elem("div");
 				let itemIcon = elem("span");
 				let label = elem("div");
@@ -658,14 +664,14 @@ module tui.widget {
 			browser.removeNode(errmsg);
 			var designMode = (this.get("mode") === "design");
 			if (!designMode) {
-				// try {
+				try {
 					this.get("value");
-				// } catch (e) {
-				// 	this.hideAll();
-				// 	errmsg.innerHTML = browser.toSafeText(e.message + "");
-				// 	this._.appendChild(errmsg);
-				// 	return;
-				// }
+				} catch (e) {
+					this.hideAll();
+					errmsg.innerHTML = browser.toSafeText(e.message + "");
+					this._.appendChild(errmsg);
+					return;
+				}
 			}
 			for (let item of this._items) {
 				if (!item.isPresent())

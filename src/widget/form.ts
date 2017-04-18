@@ -610,7 +610,13 @@ module tui.widget {
 				return a.order - b.order
 			});
 			var popup = <Popup>create("popup");
+			var usePlugins = false;
 			for (let c of controls) {
+				if (!usePlugins && c.order >= 100) {
+					usePlugins = true;
+					let hr = elem("hr");
+					div.appendChild(hr);
+				}
 				let itemDiv = elem("div");
 				let itemIcon = elem("span");
 				let label = elem("div");

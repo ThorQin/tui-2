@@ -11,7 +11,8 @@ module tui.widget.ext {
 		protected _classType: any;
 		protected _rightIcon: string;
 		protected _title: string;
-		protected _rowType: string;
+		protected _rowType: RegExp;
+		protected _rowTooltip: string;
 		protected _invalidSelectionMessage: string;
 		protected _key: string;
 		protected _allowMultiSelect: boolean;
@@ -22,12 +23,15 @@ module tui.widget.ext {
 			var datasource = new tui.ds.RemoteTree();
 			datasource.on("query", (e) => {
 				var parentId = (e.data.parent === null ? null: e.data.parent.item.id);
+				var topmost = false;
 				if (parentId === null && this.define.organ && typeof this.define.organ.id === "number") {
 					parentId = this.define.organ.id;
+					topmost = true;
 				}
 				ajax.post_(this._classType.listApi, {
 					organId: parentId, 
-					withSubCompany: !!this.define.withSubCompany
+					withSubCompany: !!this.define.withSubCompany,
+					topmost: topmost
 				}).done(function(result){
 					datasource.update({
 						parent: e.data.parent,
@@ -68,7 +72,7 @@ module tui.widget.ext {
 			this._searchBox._set("clearable", true);
 			this._searchBox._set("placeholder", str("label.search"));
 			this._list = <List>create("list");
-			this._list._set("rowTooltipKey", "positions");
+			this._list._set("rowTooltipKey", this._rowTooltip);
 			this._list._set("nameKey", "displayName");
 			this._dialogDiv = elem("div");
 			this._dialogDiv.className = "tui-dialog-select-div";
@@ -116,7 +120,7 @@ module tui.widget.ext {
 					if (row == null) {
 						tui.msgbox(this._invalidSelectionMessage);
 						return false;
-					} else if (row.type !== this._rowType) {
+					} else if (!this._rowType.test(row.type)) {
 						tui.msgbox(this._invalidSelectionMessage);
 						return false;
 					} else {
@@ -135,6 +139,7 @@ module tui.widget.ext {
 			super.update();
 			this._widget._set("clearable", !this.define.required);
 			this._list._set("checkable", !!this.define.multiple);
+			this.setValueInternal(this.define.value);
 			if (this.define.required) {
 				this._widget._set("validate", [{ "format": "*any", "message": str("message.cannot.be.empty")}]);
 			} else {
@@ -151,7 +156,7 @@ module tui.widget.ext {
 			} else
 				return this.define.value;
 		}
-		setValue(value: any): void {
+		private setValueInternal(value: any): void {
 			if (this.define.multiple) {
 				if (value instanceof Array) {
 					var items = [];
@@ -185,6 +190,9 @@ module tui.widget.ext {
 					this._widget.set("text", "");
 				}
 			}
+		}
+		setValue(value: any): void {
+			this.setValueInternal(value);
 			this.form.fire("itemvaluechanged", {control: this});
 		}
 
@@ -208,8 +216,7 @@ module tui.widget.ext {
 					]}],
 					"atMost": 1,
 					"size": 1,
-					"newline": true,
-					"condition": "organ != null"
+					"newline": true
 				}
 			];
 			if (this._allowMultiSelect) {
@@ -253,6 +260,23 @@ module tui.widget.ext {
 		withSubCompany: boolean;
 	}
 
+	function translateValue(value: any): string {
+		if (value instanceof Array) {
+			let s = "";
+			for (let item of value) {
+				if (item && item.name) {
+					if (s.length > 0)
+						s += ", ";
+					s += item.name
+				}
+			}
+			return s;
+		} else if (value && value.name)
+			return value.name;
+		else
+			return "";
+	}
+
 	class FormUserSelect extends FormDialogSelect<UserSelectItem> {
 		static icon = "fa-user-o";
 		static desc = "label.user";
@@ -260,14 +284,17 @@ module tui.widget.ext {
 		static queryApi: string = null;
 		static listApi: string = null;
 		static init = {
-			multiple: false
+			multiple: false,
+			withSubCompany: true
 		};
+		static translator = translateValue;
 
 		init() {
 			this._classType = FormUserSelect;
 			this._rightIcon = "fa-user-o";
 			this._title = str("label.select.user");
-			this._rowType = "user";
+			this._rowType = /^user$/;
+			this._rowTooltip = "tooltip";
 			this._invalidSelectionMessage = str("message.select.user");
 			this._key = "account";
 			this._allowMultiSelect = true;
@@ -293,14 +320,17 @@ module tui.widget.ext {
 		static queryApi: string = null;
 		static listApi: string = null;
 		static init = {
-			multiple: false
+			multiple: false,
+			withSubCompany: true
 		};
+		static translator = translateValue;
 
 		init() {
 			this._classType = FormOrganSelect;
 			this._rightIcon = "fa-building-o";
 			this._title = str("label.select.organ");
-			this._rowType = "organ";
+			this._rowType = /^(company|department)$/;
+			this._rowTooltip = "tooltip";
 			this._invalidSelectionMessage = str("message.select.organ");
 			this._key = "id";
 			this._allowMultiSelect = false;

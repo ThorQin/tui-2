@@ -6732,8 +6732,14 @@ var tui;
                     return a.order - b.order;
                 });
                 var popup = widget.create("popup");
+                var usePlugins = false;
                 for (var _i = 0, controls_1 = controls; _i < controls_1.length; _i++) {
                     var c = controls_1[_i];
+                    if (!usePlugins && c.order >= 100) {
+                        usePlugins = true;
+                        var hr = tui.elem("hr");
+                        div.appendChild(hr);
+                    }
                     var itemDiv = tui.elem("div");
                     var itemIcon = tui.elem("span");
                     var label = tui.elem("div");

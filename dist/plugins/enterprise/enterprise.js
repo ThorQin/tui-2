@@ -26,7 +26,7 @@ var tui;
                     _this._searchBox._set("clearable", true);
                     _this._searchBox._set("placeholder", tui.str("label.search"));
                     _this._list = widget.create("list");
-                    _this._list._set("rowTooltipKey", "positions");
+                    _this._list._set("rowTooltipKey", _this._rowTooltip);
                     _this._list._set("nameKey", "displayName");
                     _this._dialogDiv = tui.elem("div");
                     _this._dialogDiv.className = "tui-dialog-select-div";
@@ -77,7 +77,7 @@ var tui;
                                 tui.msgbox(_this._invalidSelectionMessage);
                                 return false;
                             }
-                            else if (row.type !== _this._rowType) {
+                            else if (!_this._rowType.test(row.type)) {
                                 tui.msgbox(_this._invalidSelectionMessage);
                                 return false;
                             }
@@ -98,12 +98,15 @@ var tui;
                     var datasource = new tui.ds.RemoteTree();
                     datasource.on("query", function (e) {
                         var parentId = (e.data.parent === null ? null : e.data.parent.item.id);
+                        var topmost = false;
                         if (parentId === null && _this.define.organ && typeof _this.define.organ.id === "number") {
                             parentId = _this.define.organ.id;
+                            topmost = true;
                         }
                         tui.ajax.post_(_this._classType.listApi, {
                             organId: parentId,
-                            withSubCompany: !!_this.define.withSubCompany
+                            withSubCompany: !!_this.define.withSubCompany,
+                            topmost: topmost
                         }).done(function (result) {
                             datasource.update({
                                 parent: e.data.parent,
@@ -138,6 +141,7 @@ var tui;
                     _super.prototype.update.call(this);
                     this._widget._set("clearable", !this.define.required);
                     this._list._set("checkable", !!this.define.multiple);
+                    this.setValueInternal(this.define.value);
                     if (this.define.required) {
                         this._widget._set("validate", [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }]);
                     }
@@ -156,7 +160,7 @@ var tui;
                     else
                         return this.define.value;
                 };
-                FormDialogSelect.prototype.setValue = function (value) {
+                FormDialogSelect.prototype.setValueInternal = function (value) {
                     if (this.define.multiple) {
                         if (value instanceof Array) {
                             var items = [];
@@ -194,6 +198,9 @@ var tui;
                             this._widget.set("text", "");
                         }
                     }
+                };
+                FormDialogSelect.prototype.setValue = function (value) {
+                    this.setValueInternal(value);
                     this.form.fire("itemvaluechanged", { control: this });
                 };
                 FormDialogSelect.prototype.getProperties = function () {
@@ -216,8 +223,7 @@ var tui;
                                     ] }],
                             "atMost": 1,
                             "size": 1,
-                            "newline": true,
-                            "condition": "organ != null"
+                            "newline": true
                         }
                     ];
                     if (this._allowMultiSelect) {
@@ -253,6 +259,24 @@ var tui;
                 };
                 return FormDialogSelect;
             }(widget.BasicFormControl));
+            function translateValue(value) {
+                if (value instanceof Array) {
+                    var s = "";
+                    for (var _i = 0, value_2 = value; _i < value_2.length; _i++) {
+                        var item = value_2[_i];
+                        if (item && item.name) {
+                            if (s.length > 0)
+                                s += ", ";
+                            s += item.name;
+                        }
+                    }
+                    return s;
+                }
+                else if (value && value.name)
+                    return value.name;
+                else
+                    return "";
+            }
             var FormUserSelect = (function (_super) {
                 __extends(FormUserSelect, _super);
                 function FormUserSelect() {
@@ -262,7 +286,8 @@ var tui;
                     this._classType = FormUserSelect;
                     this._rightIcon = "fa-user-o";
                     this._title = tui.str("label.select.user");
-                    this._rowType = "user";
+                    this._rowType = /^user$/;
+                    this._rowTooltip = "tooltip";
                     this._invalidSelectionMessage = tui.str("message.select.user");
                     this._key = "account";
                     this._allowMultiSelect = true;
@@ -275,8 +300,10 @@ var tui;
             FormUserSelect.queryApi = null;
             FormUserSelect.listApi = null;
             FormUserSelect.init = {
-                multiple: false
+                multiple: false,
+                withSubCompany: true
             };
+            FormUserSelect.translator = translateValue;
             widget.Form.register("user", FormUserSelect);
             var FormOrganSelect = (function (_super) {
                 __extends(FormOrganSelect, _super);
@@ -287,7 +314,8 @@ var tui;
                     this._classType = FormOrganSelect;
                     this._rightIcon = "fa-building-o";
                     this._title = tui.str("label.select.organ");
-                    this._rowType = "organ";
+                    this._rowType = /^(company|department)$/;
+                    this._rowTooltip = "tooltip";
                     this._invalidSelectionMessage = tui.str("message.select.organ");
                     this._key = "id";
                     this._allowMultiSelect = false;
@@ -300,8 +328,10 @@ var tui;
             FormOrganSelect.queryApi = null;
             FormOrganSelect.listApi = null;
             FormOrganSelect.init = {
-                multiple: false
+                multiple: false,
+                withSubCompany: true
             };
+            FormOrganSelect.translator = translateValue;
             widget.Form.register("organ", FormOrganSelect);
             tui.dict("en-us", {
                 "label.user": "User",
