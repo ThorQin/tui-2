@@ -203,6 +203,7 @@ module tui.widget.ext {
 					"key": "organ",
 					"label": str("label.top.organ"),
 					"value": this.define.organ,
+					"withSubCompany": true,
 					"size": 2,
 					"newline": true
 				},{

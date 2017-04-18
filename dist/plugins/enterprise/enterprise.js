@@ -210,6 +210,7 @@ var tui;
                             "key": "organ",
                             "label": tui.str("label.top.organ"),
                             "value": this.define.organ,
+                            "withSubCompany": true,
                             "size": 2,
                             "newline": true
                         }, {
