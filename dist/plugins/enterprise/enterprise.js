@@ -223,7 +223,7 @@ var tui;
                                         { "value": false, "text": tui.str("no") }
                                     ] }],
                             "atMost": 1,
-                            "size": 1,
+                            "size": 2,
                             "newline": true
                         }
                     ];
@@ -238,7 +238,7 @@ var tui;
                                         { "value": false, "text": tui.str("no") }
                                     ] }],
                             "atMost": 1,
-                            "size": 1
+                            "size": 2
                         });
                     }
                     return [{

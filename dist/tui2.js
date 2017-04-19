@@ -381,7 +381,8 @@ tui.dict("en-us", {
     "form.design": "Design",
     "form.app.key": "Map App Key",
     "form.emphasize": "Emphasized",
-    "message.not.available": "Not Available"
+    "message.not.available": "Not Available",
+    "form.init.by.current.time": "Use Current Time as Init Value"
 });
 var tui;
 (function (tui) {
@@ -6319,9 +6320,15 @@ var tui;
                 this.setRestrictions({
                     "mode": {
                         "set": function (value) {
-                            if (/^(design|input|view)$/.test(value)) {
-                                _this._data["mode"] = value;
-                                _this._valueChanged = true;
+                            if (/^(design|init|input|view)$/.test(value)) {
+                                if (value != _this.get("mode")) {
+                                    _this._data["mode"] = value;
+                                    _this._valueChanged = true;
+                                    for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
+                                        var item = _a[_i];
+                                        item.update();
+                                    }
+                                }
                             }
                         },
                         "get": function () {
@@ -8246,6 +8253,10 @@ var tui;
                 if (!/^(utc|locale|none)$/.test(this.define.timezone))
                     this.define.timezone = "none";
                 this._widget._set("timezone", this.define.timezone);
+                if (this.form.get("mode") === "input" && this.define.autoInit && this._widget.get("value") == null && this.define.value == null) {
+                    this._widget._set("value", tui.time.now());
+                    this.define.value = this._widget.get("value");
+                }
             };
             FormDatePicker.prototype.getProperties = function () {
                 return [{
@@ -8279,6 +8290,18 @@ var tui;
                                 "size": 2,
                                 "newline": true
                             }, {
+                                "type": "options",
+                                "key": "autoInit",
+                                "label": tui.str("form.init.by.current.time"),
+                                "options": [{ "data": [
+                                            { "value": true, "text": tui.str("yes") },
+                                            { "value": false, "text": tui.str("no") }
+                                        ] }],
+                                "atMost": 1,
+                                "value": !!this.define.autoInit,
+                                "size": 2,
+                                "newline": true
+                            }, {
                                 "type": "textbox",
                                 "key": "format",
                                 "label": tui.str("form.custom.format"),
@@ -8299,6 +8322,7 @@ var tui;
                 else
                     this.define.validation = null;
                 this.define.timezone = values.timezone;
+                this.define.autoInit = !!values.autoInit;
             };
             FormDatePicker.prototype.validate = function () {
                 return this._widget.validate();

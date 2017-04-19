@@ -216,7 +216,7 @@ module tui.widget.ext {
 						{"value": false, "text": str("no")}
 					]}],
 					"atMost": 1,
-					"size": 1,
+					"size": 2,
 					"newline": true
 				}
 			];
@@ -231,7 +231,7 @@ module tui.widget.ext {
 						{"value": false, "text": str("no")}
 					]}],
 					"atMost": 1,
-					"size": 1
+					"size": 2
 				});
 			}
 			return [{

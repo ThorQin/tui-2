@@ -1477,6 +1477,7 @@ module tui.widget {
 		mode: string;
 		format: string;
 		timezone: string;
+		autoInit: boolean;
 	}
 	class FormDatePicker extends BasicFormControl<DatePicker, DatePickerFormItem> {
 		static icon = "fa-calendar-o";
@@ -1497,6 +1498,10 @@ module tui.widget {
 			if (!/^(utc|locale|none)$/.test(this.define.timezone))
 				this.define.timezone = "none";
 			this._widget._set("timezone", this.define.timezone);
+			if (this.form.get("mode") === "input" && this.define.autoInit && this._widget.get("value") == null && this.define.value == null) {
+				this._widget._set("value", time.now());
+				this.define.value = this._widget.get("value");
+			}
 		}
 		getProperties(): PropertyPage[] {
 			return [{
@@ -1530,6 +1535,18 @@ module tui.widget {
 						"size": 2,
 						"newline": true
 					}, {
+						"type": "options",
+						"key": "autoInit",
+						"label": str("form.init.by.current.time"),
+						"options": [{"data":[
+							{"value": true, "text": str("yes") },
+							{"value": false, "text": str("no") }
+						]}],
+						"atMost": 1,
+						"value": !!this.define.autoInit,
+						"size": 2,
+						"newline": true
+					}, {
 						"type": "textbox",
 						"key": "format",
 						"label": str("form.custom.format"),
@@ -1549,6 +1566,7 @@ module tui.widget {
 			} else
 				this.define.validation = null;
 			this.define.timezone = values.timezone;
+			this.define.autoInit = !!values.autoInit;
 		}
 		validate(): boolean {
 			return this._widget.validate();

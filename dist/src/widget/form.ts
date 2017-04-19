@@ -197,9 +197,14 @@ module tui.widget {
 			this.setRestrictions({
 				"mode": {
 					"set": (value: any) => {
-						if (/^(design|input|view)$/.test(value)) {
-							this._data["mode"] = value;
-							this._valueChanged = true;
+						if (/^(design|init|input|view)$/.test(value)) {
+							if (value != this.get("mode")) {
+								this._data["mode"] = value;
+								this._valueChanged = true;
+								for (let item of this._items) {
+									item.update();
+								}
+							}
 						}
 					},
 					"get": (): any => {

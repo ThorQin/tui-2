@@ -94,5 +94,6 @@ tui.dict("en-us", {
 	"form.design": "Design",
 	"form.app.key": "Map App Key",
 	"form.emphasize": "Emphasized",
-	"message.not.available": "Not Available"
+	"message.not.available": "Not Available",
+	"form.init.by.current.time": "Use Current Time as Init Value"
 });

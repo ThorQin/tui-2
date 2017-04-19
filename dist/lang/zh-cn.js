@@ -147,5 +147,6 @@ tui.dict("zh-cn", {
 	"form.design": "设计",
 	"form.app.key": "高德地图授权码",
 	"form.emphasize": "强调",
-	"message.not.available": "不可用"
+	"message.not.available": "不可用",
+	"form.init.by.current.time": "用当前时间作为初始值"
 });
