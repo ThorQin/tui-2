@@ -23,7 +23,7 @@ module tui.browser {
 	export function backupScrollPosition(target: HTMLElement): BackupedScrollPosition {
 		return new BackupedScrollPosition(target);
 	}
-	
+
 	export function focusWithoutScroll(target: HTMLElement) {
 		setTimeout(function () {
 			if (tui.ieVer > 0) {
@@ -66,7 +66,7 @@ module tui.browser {
 		var el = div.firstChild;
 		return <HTMLElement>div.removeChild(el);
 	}
-	
+
 	export function toHTML(node: NodeList): string;
 	export function toHTML(node: Node[]): string;
 	export function toHTML(node: Node): string;
@@ -78,7 +78,7 @@ module tui.browser {
 			for (let i = 0; i < node.length; i++) {
 				elem.appendChild(node[i]);
 			}
-		} 
+		}
 		return elem.innerHTML;
 	}
 
@@ -129,10 +129,11 @@ module tui.browser {
 	export function removeNode(node: Node): void {
 		node.parentNode && node.parentNode.removeChild(node);
 	}
-    
+
 	export function toSafeText(text: string): string {
-		if (!text)
+		if (text === null || typeof text === UNDEFINED)
 			return "";
+		text = text + "";
 		return text.replace(/<|>|&/g, function(str: string, ...args: any[]): string {
 			if (str === "<")
 				return "&lt;";
@@ -144,7 +145,7 @@ module tui.browser {
 				return str;
 		});
 	}
-	
+
 	/**
 	 * Get or set a HTMLElement's text content, return Element's text content.
 	 * @param elem {HTMLElement or ID of the element} Objective element
@@ -173,15 +174,15 @@ module tui.browser {
 		} else
 			return null;
 	}
-	
+
 	export function getNodeText(elem: any): string {
 		return nodeText(elem);
 	}
-	
+
 	export function setNodeText(elem: any, text: string): void {
 		nodeText(elem, text);
 	}
-	
+
 	export function getNodeOwnText(elem: any): string {
 		return nodeText(elem, false);
 	}
@@ -197,7 +198,7 @@ module tui.browser {
 	}
 
 	export interface Rect extends Position, Size { }
-	
+
 	export function getRectOfParent(elem: HTMLElement): Rect {
 		if (elem === null)
 			return null;
@@ -233,7 +234,7 @@ module tui.browser {
 			height: elem.offsetHeight
 		};
 	}
-	
+
 	/**
 	 * Get top window's body element
 	 */
@@ -245,9 +246,9 @@ module tui.browser {
 	 * Get element's owner window
 	 */
 	export function getWindow(elem: HTMLElement): any {
-		return elem.ownerDocument.defaultView || (<any>elem.ownerDocument).parentWindow; 
+		return elem.ownerDocument.defaultView || (<any>elem.ownerDocument).parentWindow;
 	}
-	
+
 	export function getWindowScrollElement(): HTMLElement {
 		if (tui.ieVer > 0 || tui.ffVer > 0) {
 			return window.document.documentElement;
@@ -255,11 +256,11 @@ module tui.browser {
 			return window.document.body;
 		}
 	}
-	
+
 	interface KeepInfo {
 		keepTop: boolean;
 		elem: HTMLElement;
-		top: number; 
+		top: number;
 		oldPosition?: string;
 		oldTop?: string;
 		oldLeft?: string;
@@ -269,7 +270,7 @@ module tui.browser {
 		scrollLeft?: number;
 		itemLeft?:number;
 	}
-	
+
 	var keepTopList: KeepInfo[] = [];
 	function keepTopProc() {
 		var scrollWindow = browser.getWindowScrollElement();
@@ -302,11 +303,11 @@ module tui.browser {
 		}
 	}
 	$(window).scroll(keepTopProc);
-		
+
 	export function keepToTop(elem: HTMLElement, top: number = 0) {
 		keepTopList.push({keepTop: false, elem: elem, top: top});
 	}
-	
+
 	export function cancelKeepToTop(elem: HTMLElement) {
 		var newList: KeepInfo[] = [];
 		for (var item of keepTopList) {
@@ -322,7 +323,7 @@ module tui.browser {
 		}
 		keepTopList = newList;
 	}
-	
+
 	export function getCurrentStyle(elem: HTMLElement): CSSStyleDeclaration {
 		if ((<any>elem).currentStyle)
 			return (<any>elem).currentStyle;
@@ -332,7 +333,7 @@ module tui.browser {
 			return elem.style;
 	}
 
-	
+
 	/**
 	 * Test whether the button code is indecated that the event is triggered by a left mouse button.
 	 */
@@ -373,15 +374,15 @@ module tui.browser {
 	// 	}
 	// 	return false;
 	// }
-	
+
 	// export function cancelBubble(event: any): boolean {
 	// 	if (event && event.stopPropagation)
-	// 		event.stopPropagation(); 
+	// 		event.stopPropagation();
 	// 	else
 	// 		window.event.cancelBubble = true;
 	// 	return false;
 	// }
-	
+
 	/**
 	 * Detect whether the given parent element is the real ancestry element
 	 * @param elem
@@ -424,8 +425,8 @@ module tui.browser {
 		}
 		return false;
 	}
-	
-	
+
+
 	/**
 	 * Set cookie value
 	 * @param name
@@ -526,7 +527,7 @@ module tui.browser {
 		} catch (e) {
 		}
 	}
-	
+
 	var _accMap: any = {};
 	function accelerate(e: JQueryKeyEventObject) {
 		var k = KeyCode[e.keyCode];
@@ -586,15 +587,15 @@ module tui.browser {
 		}
 	}
 	$(document).keydown(accelerate);
-	
+
 	export function getUrlParam(key: string): string {
 		var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
 		var r = window.location.search.substr(1).match(reg);
-		if (r != null) 
-			return decodeURIComponent(r[2]); 
+		if (r != null)
+			return decodeURIComponent(r[2]);
 		return null;
 	}
-	
+
 	export function getEventPosition(e: JQueryEventObject, allFingers: boolean = false): {x: number, y: number, id?: any}[] {
 		var positions: {x: number, y: number, id?: any}[] = [];
 		var event: any = e.originalEvent || e;
@@ -621,6 +622,6 @@ module tui.browser {
 			elem && (elem.innerHTML = content);
 		}
 	}
-	
+
 	(<any>window).$safe = toSafeText;
 }
