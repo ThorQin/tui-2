@@ -24,7 +24,9 @@ module tui.widget {
 	var PDF_MIME = /^application\/pdf$/i;
 
 	function getFileTypeIcon(item: FileItem): string {
-		if (IMAGE_EXT.test(item.fileName) || IMAGE_MIME.test(item.mimeType)) {
+		if (!item) {
+			return "file-type-unknow";
+		} else if (IMAGE_EXT.test(item.fileName) || IMAGE_MIME.test(item.mimeType)) {
 			return "file-type-image";
 		} else if (WORD_EXT.test(item.fileName) || WORD_MIME.test(item.mimeType)) {
 			return "file-type-word";
@@ -45,7 +47,7 @@ module tui.widget {
 		private _uploader: browser.Uploader;
 		private _uploadBox: HTMLDivElement;
 		private _values: FileItem[];
-		
+
 		protected initRestriction(): void {
 			super.initRestriction();
 			this._uploadBox = <HTMLDivElement>elem("div");
@@ -55,7 +57,7 @@ module tui.widget {
 				"action": {
 					"set":  (value: any) => {
 						this._uploader.getOptions().action = value;
-					}, 
+					},
 					"get": (): any => {
 						return this._uploader.getOptions().action;
 					}
@@ -67,7 +69,7 @@ module tui.widget {
 							this._uploader.deleteInput();
 							this._uploader.createInput();
 						}
-					}, 
+					},
 					"get": (): any => {
 						return this._uploader.getOptions().accept;
 					}
@@ -146,11 +148,11 @@ module tui.widget {
 				e.stopPropagation();
 			});
 		}
-		
+
 		render(): void {
 			browser.removeNode(this._uploadBox);
 			this._.innerHTML = "";
-			var readonly = !!this.get("readonly"); 
+			var readonly = !!this.get("readonly");
 			var disable = !!this.get("disable");
 			for (let i = 0; i < this._values.length; i++) {
 				let fileItem = this._values[i];
@@ -158,10 +160,10 @@ module tui.widget {
 				item.className = "tui-files-item";
 				let label = elem("div");
 				item.appendChild(label);
-				let nameText = browser.toSafeText(fileItem.fileName);
+				let nameText = fileItem ? browser.toSafeText(fileItem.fileName) : "NOT FOUND";
 				item.setAttribute("tooltip", nameText)
 				label.innerHTML = nameText;
-				if (fileItem.url && (IMAGE_EXT.test(fileItem.fileName) || IMAGE_MIME.test(fileItem.mimeType))) {
+				if (fileItem && fileItem.url && (IMAGE_EXT.test(fileItem.fileName) || IMAGE_MIME.test(fileItem.mimeType))) {
 					let image = <HTMLImageElement>elem("img");
 					image.src = fileItem.url;
 					item.appendChild(image);
@@ -176,7 +178,7 @@ module tui.widget {
 					this.bindRemove(removeIcon, i);
 				}
 
-				if (!disable && fileItem.url) {
+				if (!disable && fileItem && fileItem.url) {
 					this.bindDownload(item, fileItem.url);
 				}
 
@@ -187,7 +189,7 @@ module tui.widget {
 				this._uploader.createInput();
 		}
 	}
-	
+
 	register(Files, "files");
-	
+
 }

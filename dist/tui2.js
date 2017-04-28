@@ -694,8 +694,9 @@ var tui;
         }
         browser.removeNode = removeNode;
         function toSafeText(text) {
-            if (!text)
+            if (text === null || typeof text === tui.UNDEFINED)
                 return "";
+            text = text + "";
             return text.replace(/<|>|&/g, function (str) {
                 var args = [];
                 for (var _i = 1; _i < arguments.length; _i++) {
@@ -5994,7 +5995,10 @@ var tui;
         var PDF_EXT = /\.pdf$/i;
         var PDF_MIME = /^application\/pdf$/i;
         function getFileTypeIcon(item) {
-            if (IMAGE_EXT.test(item.fileName) || IMAGE_MIME.test(item.mimeType)) {
+            if (!item) {
+                return "file-type-unknow";
+            }
+            else if (IMAGE_EXT.test(item.fileName) || IMAGE_MIME.test(item.mimeType)) {
                 return "file-type-image";
             }
             else if (WORD_EXT.test(item.fileName) || WORD_MIME.test(item.mimeType)) {
@@ -6132,10 +6136,10 @@ var tui;
                     item.className = "tui-files-item";
                     var label = tui.elem("div");
                     item.appendChild(label);
-                    var nameText = tui.browser.toSafeText(fileItem.fileName);
+                    var nameText = fileItem ? tui.browser.toSafeText(fileItem.fileName) : "NOT FOUND";
                     item.setAttribute("tooltip", nameText);
                     label.innerHTML = nameText;
-                    if (fileItem.url && (IMAGE_EXT.test(fileItem.fileName) || IMAGE_MIME.test(fileItem.mimeType))) {
+                    if (fileItem && fileItem.url && (IMAGE_EXT.test(fileItem.fileName) || IMAGE_MIME.test(fileItem.mimeType))) {
                         var image = tui.elem("img");
                         image.src = fileItem.url;
                         item.appendChild(image);
@@ -6149,7 +6153,7 @@ var tui;
                         item.appendChild(removeIcon);
                         this.bindRemove(removeIcon, i);
                     }
-                    if (!disable && fileItem.url) {
+                    if (!disable && fileItem && fileItem.url) {
                         this.bindDownload(item, fileItem.url);
                     }
                     this._.appendChild(item);
