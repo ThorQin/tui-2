@@ -30,7 +30,7 @@ module tui.browser {
 
 	export class Uploader extends EventObject {
 		private _settings: UploadOptions = {
-			action: "upload",
+			action: "%UPLOAD_PATH%",
 			name: "file",
 			multiple: false,
 			autoSubmit: true
@@ -50,7 +50,7 @@ module tui.browser {
 			}
 			// DOM element
 			this._container = container;
-			// DOM element                 
+			// DOM element
 			this._input = null;
 		}
 
@@ -86,7 +86,7 @@ module tui.browser {
 			var form = <HTMLFormElement>browser.toElement('<form method="post" enctype="multipart/form-data" accept-charset="UTF-8"></form>');
 			form.setAttribute('accept-charset', 'UTF-8');
 			if (settings.action)
-				form.setAttribute('action', settings.action);
+				form.setAttribute('action', useEnv(settings.action));
 			form.setAttribute('target', iframe.name);
 			form.style.display = 'none';
 			document.body.appendChild(form);
@@ -129,7 +129,7 @@ module tui.browser {
 				if (!input || input.value === '') {
 					return;
 				}
-				// Get filename from input, required                
+				// Get filename from input, required
 				// as some browsers have path instead of it
 				var file = fileFromPath(input.value);
 				var fileExt = getExt(file);
@@ -178,14 +178,14 @@ module tui.browser {
 		/**
 		* Gets response from iframe and fires onComplete event when ready
 		* @param iframe
-		* @param file Filename to use in onComplete callback 
+		* @param file Filename to use in onComplete callback
 		*/
 		private processResponse(iframe: HTMLIFrameElement, file: string) {
 			// getting response
 			var waitbox = tui.waitbox(tui.str("Uploading..."));
 			var toDeleteFlag = false, settings = this._settings;
 			$(iframe).on('load', () => {
-				if (// For Safari 
+				if (// For Safari
 					iframe.src === "javascript:'%3Chtml%3E%3C/html%3E';" ||
 					// For FF, IE
 					iframe.src === "javascript:'<html></html>';") {
@@ -311,7 +311,7 @@ module tui.browser {
 				waitbox.close();
 				this.fireError();
 			}, false);
-			xhr.open("POST", this._settings.action);
+			xhr.open("POST", useEnv(this._settings.action));
 			xhr.send(fd);
 		}
 
@@ -324,7 +324,7 @@ module tui.browser {
 		}
 
 		private submitV4(file: string, extraData?: { [index: string]: string }) {
-			// sending request    
+			// sending request
 			var iframe = this.createIframe();
 			var form = this.createForm(iframe);
 			// assuming following structure

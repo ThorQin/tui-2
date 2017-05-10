@@ -1,6 +1,10 @@
 /// <reference path="../src/jquery.d.ts" />
 declare module tui {
     const UNDEFINED: string;
+    function setEnv(key: string, value: string): void;
+    function getEnv(key: string): string;
+    function isEnvKey(key: string): boolean;
+    function useEnv(str: string): string;
     function elem(nodeName: string): HTMLElement;
     var lang: string;
     function dict(lang: string, dictionary: {

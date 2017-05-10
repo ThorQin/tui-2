@@ -37,6 +37,33 @@ var tui;
     tui.UNDEFINED = (function (undefined) {
         return typeof undefined;
     })();
+    var _tui_env = {};
+    function setEnv(key, value) {
+        _tui_env[key] = value;
+    }
+    tui.setEnv = setEnv;
+    function getEnv(key) {
+        return _tui_env[key] || "";
+    }
+    tui.getEnv = getEnv;
+    function isEnvKey(key) {
+        return key && /^%[a-z_][a-z0-9_]*%$/i.test(key);
+    }
+    tui.isEnvKey = isEnvKey;
+    function useEnv(str) {
+        if (typeof str === "string") {
+            return str.replace(/%([a-z_][a-z0-9_]*)%/ig, function (substring) {
+                var args = [];
+                for (var _i = 1; _i < arguments.length; _i++) {
+                    args[_i - 1] = arguments[_i];
+                }
+                return getEnv(args[0]);
+            });
+        }
+        else
+            return str;
+    }
+    tui.useEnv = useEnv;
     function elem(nodeName) {
         return document.createElement(nodeName);
     }
@@ -2708,7 +2735,7 @@ var tui;
             function Uploader(container, options) {
                 var _this = _super.call(this) || this;
                 _this._settings = {
-                    action: "upload",
+                    action: "%UPLOAD_PATH%",
                     name: "file",
                     multiple: false,
                     autoSubmit: true
@@ -2756,7 +2783,7 @@ var tui;
                 var form = browser.toElement('<form method="post" enctype="multipart/form-data" accept-charset="UTF-8"></form>');
                 form.setAttribute('accept-charset', 'UTF-8');
                 if (settings.action)
-                    form.setAttribute('action', settings.action);
+                    form.setAttribute('action', tui.useEnv(settings.action));
                 form.setAttribute('target', iframe.name);
                 form.style.display = 'none';
                 document.body.appendChild(form);
@@ -2954,7 +2981,7 @@ var tui;
                     waitbox.close();
                     _this.fireError();
                 }, false);
-                xhr.open("POST", this._settings.action);
+                xhr.open("POST", tui.useEnv(this._settings.action));
                 xhr.send(fd);
             };
             Uploader.prototype.submitV5 = function (file, extraData) {

@@ -6,6 +6,29 @@ module tui {
 		return typeof undefined;
 	})();
 
+	var _tui_env: {[index:string]: string} = {};
+
+	export function setEnv(key: string, value: string) {
+		_tui_env[key] = value;
+	}
+
+	export function getEnv(key: string): string {
+		return _tui_env[key] || "";
+	}
+
+	export function isEnvKey(key: string): boolean {
+		return key && /^%[a-z_][a-z0-9_]*%$/i.test(key);
+	}
+
+	export function useEnv(str: string): string {
+		if (typeof str === "string") {
+			return str.replace(/%([a-z_][a-z0-9_]*)%/ig, function (substring: string, ...args: any[]): string {
+				return getEnv(args[0]);
+			});
+		} else
+			return str;
+	}
+
 	export function elem(nodeName: string) {
 		return document.createElement(nodeName);
 	}
