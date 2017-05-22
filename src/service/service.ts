@@ -84,6 +84,10 @@ module tui.service {
 		_services[name] = service;
 	}
 
+	export function unregister(name: string): void {
+		delete _services[name];
+	}
+
 	export function ready() {
 		for (let name in _services) {
 			if (_services.hasOwnProperty(name)) {

@@ -14,7 +14,7 @@ module tui.browser {
 	}
 
 	var _rules: RouterRule[];
-	var _handler: RouterHandler; 
+	var _handler: RouterHandler;
 
 	function hashChange() {
 		var hash = location.hash;
@@ -58,9 +58,31 @@ module tui.browser {
 		tui.event.on("initialized", function(){
 			hashChange();
 		});
+		tui.service.register("router", function() {
+			var stack: string[] = [];
+			var this_ = this;
+			this.push = function(state: string) {
+				stack.push(state);
+				location.href = "#" + state;
+			};
+			this.pop = function() {
+				stack.pop();
+				history.back();
+			};
+			this.goRoot = function(state: string) {
+				var len = stack.length;
+				stack.length = 0;
+				history.go(-len);
+				this_.push(state);
+			};
+			this.go = function(state: string) {
+				location.replace("#" + state);
+			};
+		});
 	}
 
 	export function stopRouter() {
 		$(window).off("hashchange", hashChange);
+		tui.service.unregister("router");
 	}
 }
