@@ -1005,7 +1005,7 @@ module tui.widget {
 	Form.register("textarea", FormTextarea);
 
 
-	
+
 
 	// OPTIONS
 	// ----------------------------------------------------------------------------------------------------------
@@ -1019,8 +1019,8 @@ module tui.widget {
 		static icon = "fa-check-square-o";
 		static desc = "form.option.group";
 		static order = 3;
-		static init = { 
-			"options": [{ 
+		static init = {
+			"options": [{
 				"data": [
 					{"value": "A"},
 					{"value": "B"},
@@ -1029,13 +1029,13 @@ module tui.widget {
 				]
 			}
 		]};
-		static translator = function (value: any): string {
+		static translator = function (value: any, item: any, index: number): Node {
 			if (value instanceof Array) {
-				return value.join(", ");
+				return document.createTextNode(value.join(", "));
 			} else if (value != null)
-				return value + "";
+				return document.createTextNode(value + "");
 			else
-				return "";
+				return null;
 		};
 
 		private _group: Group;
@@ -1075,7 +1075,7 @@ module tui.widget {
 		getValue(cal: Calculator = null): any {
 			if (!cal)
 				return this._group.get("value");
-			
+
 			var define = this.define;
 			var optionType = define.atMost == 1 ? "radio" : "check";
 			this._group._set("type", optionType);
@@ -1300,16 +1300,16 @@ module tui.widget {
 				]
 			}]
 		};
-		static translator = function (value: any): string {
+		static translator = function (value: any, item: any, index: number): Node {
 			if (value instanceof Array) {
-				return value.join(", ");
+				return document.createTextNode(value.join(", "));
 			} else if (value != null)
-				return value + "";
+				return document.createTextNode(value + "");
 			else
-				return "";
+				return null;
 		};
 
-		
+
 
 		private _notifyBar: HTMLElement;
 
@@ -1587,14 +1587,14 @@ module tui.widget {
 		static icon = "fa-file-image-o";
 		static desc = "form.picture";
 		static order = 6;
-		static translator = function (value: any): string {
+		static translator = function (value: any, item: any, index: number): Node {
 			if (value != null) {
 				if (value.fileName)
-					return value.fileName;
+					return document.createTextNode(value.fileName);
 				else
-					return "[ " + str("form.picture") + " ]";
+					return document.createTextNode("[ " + str("form.picture") + " ]");
 			} else
-				return "";
+				return null;
 		};
 
 		static MIME = "^image/(png|jpeg|gif)(\\s*,\\s*image/(png|jpeg|gif))*$";
@@ -1679,14 +1679,14 @@ module tui.widget {
 		static icon = "fa-file-text-o";
 		static desc = "form.file";
 		static order = 7;
-		static translator = function (value: any): string {
+		static translator = function (value: any, item: any, index: number): Node {
 			if (value != null) {
 				if (value.fileName)
-					return value.fileName;
+					return document.createTextNode(value.fileName);
 				else
-					return "[ " + str("form.file") + " ]";
+					return document.createTextNode("[ " + str("form.file") + " ]");
 			} else
-				return "";
+				return null;
 		};
 
 		constructor(form: Form, define: FileFormItem) {
@@ -1760,11 +1760,11 @@ module tui.widget {
 		static icon = "fa-copy";
 		static desc = "form.files";
 		static order = 8;
-		static translator = function (value: any): string {
+		static translator = function (value: any, item: any, index: number): Node {
 			if (value instanceof Array) {
-				return "[ " + strp("file.count.p", value.length) + " ]";
+				return document.createTextNode("[ " + strp("file.count.p", value.length) + " ]");
 			} else
-				return "";
+				return null;
 		};
 
 		private _notifyBar: HTMLElement;
@@ -1891,11 +1891,11 @@ module tui.widget {
 		static icon = "fa-table";
 		static desc = "form.grid";
 		static order = 9;
-		static translator = function (value: any): string {
+		static translator = function (value: any, item: any, index: number): Node {
 			if (value instanceof Array) {
-				return "[ " + strp("item.count.p", value.length) + " ]";
+				return document.createTextNode("[ " + strp("item.count.p", value.length) + " ]");
 			} else
-				return "";
+				return null;
 		};
 
 		private _values: any[];

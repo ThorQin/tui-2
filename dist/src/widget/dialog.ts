@@ -1,9 +1,10 @@
 ﻿/// <reference path="base.ts" />
+/// <reference path="form.ts" />
 module tui.widget {
 	"use strict";
-	
+
 	export var dialogStack: Dialog[] = [];
-	
+
 	var _mask = <HTMLDivElement>elem("div");
 	_mask.className = "tui-dialog-mask";
 	_mask.setAttribute("unselectable", "on");
@@ -43,8 +44,8 @@ module tui.widget {
 			return null;
 	}
 
-	function disableSelect() { 
-		return false; 
+	function disableSelect() {
+		return false;
 	}
 
 	export interface DialogButton {
@@ -60,7 +61,7 @@ module tui.widget {
 	 * Events: open, close, click-<button name>
 	 */
 	export class Dialog extends Widget {
-		
+
 		private _sizeTimer: number = null;
 		private _contentSize: browser.Size = null;
 		private _moved: boolean = false;
@@ -94,18 +95,18 @@ module tui.widget {
 		}
 
 		protected init(): void {
-			var root$ = $(this._); 
+			var root$ = $(this._);
 			root$.attr("tabIndex", "-1");
 			root$.html("<div class='tui-title-bar' unselectable='on'><span class='tui-text'></span><span class='tui-close'></span></div>" +
 				"<div class='tui-content'></div><div class='tui-button-bar'></div>");
-			
+
 			var titleBar = this._components["titleBar"] = root$.children(".tui-title-bar")[0];
 			var contentDiv = this._components["content"] = root$.children(".tui-content")[0];
 			var buttonBar = this._components["buttonBar"] = root$.children(".tui-button-bar")[0];
-			var closeIcon = this._components["closeIcon"] = $(titleBar).children(".tui-close")[0]; 
+			var closeIcon = this._components["closeIcon"] = $(titleBar).children(".tui-close")[0];
 			titleBar.onselectstart = disableSelect;
 			buttonBar.onselectstart = disableSelect;
-			
+
 			var content = this.get("content");
 			if (typeof content === "object" && content && content.nodeName)
 				contentDiv.appendChild(content);
@@ -148,7 +149,7 @@ module tui.widget {
 				ev.stopPropagation();
 			});
 		}
-		
+
 		setContent(content: any, render = true) {
 			var contentDiv = this._components["content"];
 			contentDiv.innerHTML = "";
@@ -161,7 +162,7 @@ module tui.widget {
 			}
 			render && this._calc && this.render();
 		}
-		
+
 		setButtons(buttonDef: string = null, render = true): void {
 			var buttonBar = this._components["buttonBar"];
 			buttonBar.innerHTML = "";
@@ -200,7 +201,7 @@ module tui.widget {
 				"display": "block",
 				"position": "fixed"
 			});
-			
+
 			push(this);
 			this.setButtons(buttonDef, false);
 			init(contentDiv);
@@ -242,7 +243,7 @@ module tui.widget {
 
 			var titleBar = this._components["titleBar"];
 			var buttonBar = this._components["buttonBar"];
-			var contentDiv = this._components["content"]; 
+			var contentDiv = this._components["content"];
 			var closeIcon = this._components["closeIcon"];
 			// Adjust title bar
 			if (this.get("title") === null && !this.get("esc")) {
@@ -260,10 +261,10 @@ module tui.widget {
 					titleText.style.width = titleText.offsetWidth + "px";
 				}
 			}
-			
+
 			// Change position
 			var winSize: browser.Size = {width: _mask.offsetWidth, height:_mask.offsetHeight };
-			
+
 			var root = this._;
 			var root$ = $(root);
 			// Limit content size
@@ -278,7 +279,7 @@ module tui.widget {
 				"maxHeight": winSize.height - 40 - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px",
 				"minWidth": winSize.width <= 500 ? winSize.width - 80 + "px" : "none"
 			});
-			
+
 			var box: browser.Rect = {
 				left: root.offsetLeft,
 				top: root.offsetTop,
@@ -320,9 +321,9 @@ module tui.widget {
 
 			this._contentSize = {width: contentDiv.scrollWidth, height: contentDiv.scrollHeight};
 		}
-		
+
 	} // End of Dialog class
-	
+
 	register(Dialog, "dialog");
 
 	$(document).on("keydown", (e) => {
@@ -350,22 +351,22 @@ module tui.widget {
 
 module tui {
 	"use strict";
-	
+
 	function makeContent(message: string) {
-		// return text.format( 
-		// 	"<table align='center' class='tui-msg-container'><tr><td class='{1}'><span></span></td><td>{0}</td></tr></table>", 
+		// return text.format(
+		// 	"<table align='center' class='tui-msg-container'><tr><td class='{1}'><span></span></td><td>{0}</td></tr></table>",
 		// 	message, className);
 		if (message) {
-			return text.format( 
-				"<div class='tui-msg-container'><span></span><div name='dialogMsgDiv'>{0}</div></div>", 
+			return text.format(
+				"<div class='tui-msg-container'><span></span><div name='dialogMsgDiv'>{0}</div></div>",
 				browser.toSafeText(message));
 		} else {
-			return text.format( 
+			return text.format(
 				"<div class='tui-msg-container'><span></span></div>");
 		}
 	}
-	
-	function makeDialog(message: string, className: string, title?: string, btn: string = "ok#tui-primary", 
+
+	function makeDialog(message: string, className: string, title?: string, btn: string = "ok#tui-primary",
 		callback: (btnName:string) => void = null, esc: boolean = true): widget.Dialog {
 		var dlg = <widget.Dialog>tui.widget.create("dialog", {
 			"content": makeContent(message),
@@ -423,7 +424,6 @@ module tui {
 				callback(buttonName === "ok");
 		});
 	}
-
 
 	var refCount = 0;
 	var waitDlg: widget.Dialog = null;

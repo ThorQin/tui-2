@@ -18,6 +18,7 @@ tui.dict("en-us", {
 	"reject": "Reject",
 	"yes": "Yes",
 	"no": "No",
+	"finish": "Finish",
 	"select": "Select",
 	"vertical": "Vertical",
 	"please.select.point": "Please select a point of the map.",

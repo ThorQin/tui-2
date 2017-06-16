@@ -26,7 +26,7 @@ module tui.widget {
 		desc: string;
 		order: number;
 		init?: {[index:string]: any};
-		translator?: (value: any) => string;
+		translator?: (value: any, item: any, index: number) => Node;
 	}
 
 	var _controls: { [index: string]: FormControlConstructor } = {};
@@ -311,7 +311,7 @@ module tui.widget {
 								} catch (e) {
 									throw new Error(e.message + " (" + key + ")");
 								}
-								
+
 							}
 						} // end of computeValue
 
@@ -377,8 +377,8 @@ module tui.widget {
 			});
 		}
 
-		
-		
+
+
 
 		protected init(): void {
 			this._maxId = 0;
@@ -639,7 +639,7 @@ module tui.widget {
 		validate(): boolean {
 			var result = true;
 			for (let item of this._items) {
-				if (!item.validate())
+				if (item.define.available && !item.validate())
 					result = false;
 			}
 			this.render();
@@ -720,6 +720,40 @@ module tui.widget {
 	register(Form, "form");
 	registerResize("form");
 	registerParentResize("form");
+}
 
-
+module tui {
+	"use strict";
+	export function inputbox(define: widget.FormItem, title?: string, callback?: (value: any) => JQueryPromise<any> | boolean): widget.Dialog {
+		var container = elem("div");
+		let form = <widget.Form>create("form");
+		form.set("definition", define);
+		container.appendChild(form._);
+		var dialog = <widget.Dialog>create("dialog");
+		dialog._set("content", container);
+		title && dialog._set("title", title);
+		dialog.open("ok#tui-primary,cancel");
+		dialog.on("btnclick", (e) => {
+			if (e.data.button === "ok") {
+				if (form.validate()) {
+					if (typeof callback === "function") {
+						var result = callback(form.get("value"));
+						if (result == false) {
+							return;
+						}
+						if (typeof result === "object" && typeof result.done === "function" ) {
+							result.then(function() {
+								dialog.close();
+							});
+							return;
+						}
+					}
+					dialog.close();
+				}
+			} else if (e.data.button === "cancel") {
+				dialog.close();
+			}
+		});
+		return dialog;
+	}
 }

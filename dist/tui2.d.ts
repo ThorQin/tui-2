@@ -214,9 +214,14 @@ declare module tui.browser {
 }
 declare module tui.service {
     function parseParameters(fn: Function, desc?: string): string;
+    class Service extends EventObject {
+        _constructor: Function;
+        use(fn: (...argv: any[]) => void, desc?: string): void;
+    }
     function use(fn: (...argv: any[]) => void, desc?: string): void;
     function load(services: string[], names?: string[]): void;
-    function register(name: string, fn: Function): void;
+    function register(name: string, fn: Function): Service;
+    function unregister(name: string): void;
     function ready(): void;
     function get(name: string): any;
     function onReady(fn: Function): void;
@@ -310,6 +315,67 @@ declare module tui {
     var search: typeof widget.search;
 }
 declare module tui.widget {
+    interface FormItem {
+        type: string;
+        label: string | null;
+        key?: string | null;
+        value?: any;
+        condition?: string;
+        size?: number;
+        newline?: boolean;
+        disable?: boolean;
+        required?: boolean;
+        emphasize?: boolean;
+        description?: string;
+        available?: boolean;
+        [index: string]: any;
+    }
+    interface FormControlConstructor {
+        new (form: Form, define: FormItem): FormControl<FormItem>;
+        icon: string;
+        desc: string;
+        order: number;
+        init?: {
+            [index: string]: any;
+        };
+        translator?: (value: any, item: any, index: number) => Node;
+    }
+    class Form extends Widget {
+        static ITEM_SIZE: number;
+        protected _definitionChanged: boolean;
+        protected _valueChanged: boolean;
+        protected _items: FormControl<FormItem>[];
+        protected _valueCache: {
+            [index: string]: any;
+        };
+        protected _maxId: number;
+        private _autoResizeTimer;
+        private _parentWidth;
+        static register(type: string, controlType: FormControlConstructor): void;
+        static getType(type: string): FormControlConstructor;
+        removeAll(): void;
+        protected hideAll(): void;
+        selectItem(target: FormControl<FormItem>): void;
+        getItem(index: number | string): FormControl<FormItem>;
+        getSelectedItem(): FormControl<FormItem>;
+        addItem(type: string, label?: string, pos?: number): void;
+        removeItem(target: FormControl<FormItem>): void;
+        selectNext(): boolean;
+        protected selectPrevious(): boolean;
+        protected update(): void;
+        protected initRestriction(): void;
+        protected init(): void;
+        computeSizeByParent(): void;
+        private bindNewItemClick(popup, newItemDiv, type, pos);
+        private addNewItem(button, pos);
+        validate(): boolean;
+        render(): void;
+    }
+}
+declare module tui {
+    function inputbox(define: widget.FormItem, title?: string, callback?: (value: any) => JQueryPromise<any> | boolean): widget.Dialog;
+}
+declare module tui.widget {
     var dialogStack: Dialog[];
     interface DialogButton {
         name: string;
@@ -375,7 +441,7 @@ declare module tui.browser {
         url?: string;
         handler?: RouterHandler;
     }
-    function startRouter(rules: RouterRule[], handler: RouterHandler): void;
+    function startRouter(rules: RouterRule[], handler: RouterHandler): service.Service;
     function stopRouter(): void;
 }
 declare module tui.browser {
@@ -651,64 +717,6 @@ declare module tui.widget {
     }
 }
 declare module tui.widget {
-    interface FormItem {
-        type: string;
-        label: string | null;
-        key?: string | null;
-        value?: any;
-        condition?: string;
-        size?: number;
-        newline?: boolean;
-        disable?: boolean;
-        required?: boolean;
-        emphasize?: boolean;
-        description?: string;
-        available?: boolean;
-        [index: string]: any;
-    }
-    interface FormControlConstructor {
-        new (form: Form, define: FormItem): FormControl<FormItem>;
-        icon: string;
-        desc: string;
-        order: number;
-        init?: {
-            [index: string]: any;
-        };
-        translator?: (value: any) => string;
-    }
-    class Form extends Widget {
-        static ITEM_SIZE: number;
-        protected _definitionChanged: boolean;
-        protected _valueChanged: boolean;
-        protected _items: FormControl<FormItem>[];
-        protected _valueCache: {
-            [index: string]: any;
-        };
-        protected _maxId: number;
-        private _autoResizeTimer;
-        private _parentWidth;
-        static register(type: string, controlType: FormControlConstructor): void;
-        static getType(type: string): FormControlConstructor;
-        removeAll(): void;
-        protected hideAll(): void;
-        selectItem(target: FormControl<FormItem>): void;
-        getItem(index: number | string): FormControl<FormItem>;
-        getSelectedItem(): FormControl<FormItem>;
-        addItem(type: string, label?: string, pos?: number): void;
-        removeItem(target: FormControl<FormItem>): void;
-        selectNext(): boolean;
-        protected selectPrevious(): boolean;
-        protected update(): void;
-        protected initRestriction(): void;
-        protected init(): void;
-        computeSizeByParent(): void;
-        private bindNewItemClick(popup, newItemDiv, type, pos);
-        private addNewItem(button, pos);
-        validate(): boolean;
-        render(): void;
-    }
-}
-declare module tui.widget {
     interface PropertyPage {
         name: string;
         properties: FormItem[];
@@ -781,6 +789,7 @@ declare module tui.widget {
 declare module tui.widget {
     interface ColumnInfo {
         name: string;
+        align?: string;
         width?: number;
         fixed?: boolean;
         key?: string;
@@ -791,7 +800,7 @@ declare module tui.widget {
         checkKey?: string;
         prefixKey?: string;
         suffixKey?: string;
-        translator?: (value: any) => string;
+        translator?: (value: any, item: any, index: number) => Node;
     }
     class Grid extends Widget {
         static CELL_SPACE: number;

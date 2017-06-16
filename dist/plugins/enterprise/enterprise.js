@@ -260,23 +260,23 @@ var tui;
                 };
                 return FormDialogSelect;
             }(widget.BasicFormControl));
-            function translateValue(value) {
+            function translateValue(value, item, index) {
                 if (value instanceof Array) {
                     var s = "";
                     for (var _i = 0, value_2 = value; _i < value_2.length; _i++) {
-                        var item = value_2[_i];
-                        if (item && item.name) {
+                        var item_1 = value_2[_i];
+                        if (item_1 && item_1.name) {
                             if (s.length > 0)
                                 s += ", ";
-                            s += item.name;
+                            s += item_1.name;
                         }
                     }
-                    return s;
+                    return document.createTextNode(s);
                 }
                 else if (value && value.name)
                     return value.name;
                 else
-                    return "";
+                    return null;
             }
             var FormUserSelect = (function (_super) {
                 __extends(FormUserSelect, _super);

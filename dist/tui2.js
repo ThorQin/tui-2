@@ -332,6 +332,7 @@ tui.dict("en-us", {
     "reject": "Reject",
     "yes": "Yes",
     "no": "No",
+    "finish": "Finish",
     "select": "Select",
     "vertical": "Vertical",
     "please.select.point": "Please select a point of the map.",
@@ -1267,6 +1268,7 @@ var tui;
             };
             return Service;
         }(tui.EventObject));
+        service_1.Service = Service;
         var _services = {};
         var _serviceReady = true;
         var _readyCallbacks = [];
@@ -1319,8 +1321,13 @@ var tui;
             var service = new Service();
             service._constructor = fn;
             _services[name] = service;
+            return service;
         }
         service_1.register = register;
+        function unregister(name) {
+            delete _services[name];
+        }
+        service_1.unregister = unregister;
         function ready() {
             for (var name_1 in _services) {
                 if (_services.hasOwnProperty(name_1)) {
@@ -2004,6 +2011,735 @@ var tui;
     var widget;
     (function (widget) {
         "use strict";
+        var _controls = {};
+        var Form = (function (_super) {
+            __extends(Form, _super);
+            function Form() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            Form.register = function (type, controlType) {
+                _controls[type] = controlType;
+            };
+            Form.getType = function (type) {
+                return _controls[type];
+            };
+            Form.prototype.removeAll = function () {
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    item.hide();
+                }
+                this._items = [];
+            };
+            Form.prototype.hideAll = function () {
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    item.hide();
+                }
+            };
+            Form.prototype.selectItem = function (target) {
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    if (item !== target)
+                        item.select(false);
+                    else
+                        item.select(true);
+                }
+            };
+            Form.prototype.getItem = function (index) {
+                if (typeof index === "number") {
+                    if (index >= 0 && index < this._items.length)
+                        return this._items[index];
+                    else
+                        return null;
+                }
+                else if (typeof index === "string") {
+                    for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                        var item = _a[_i];
+                        if (item.getKey() === index)
+                            return item;
+                    }
+                    return null;
+                }
+                else
+                    return null;
+            };
+            Form.prototype.getSelectedItem = function () {
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    if (item.isSelect())
+                        return item;
+                }
+                return null;
+            };
+            Form.prototype.addItem = function (type, label, pos) {
+                if (label === void 0) { label = null; }
+                if (pos === void 0) { pos = -1; }
+                var c = _controls[type];
+                if (label === null)
+                    label = tui.str(c.desc);
+                var define = { type: type, label: label };
+                var key = type + (++this._maxId);
+                while (this.getItem(key)) {
+                    key = type + (++this._maxId);
+                }
+                define.key = key;
+                if (c.init) {
+                    for (var k in c.init) {
+                        if (c.init.hasOwnProperty(k)) {
+                            define[k] = c.init[k];
+                        }
+                    }
+                }
+                var newItem = new c(this, define);
+                newItem.update();
+                if (pos < 0 || pos >= this._items.length) {
+                    this._items.push(newItem);
+                }
+                else
+                    this._items.splice(pos, 0, newItem);
+                this.update();
+                this.selectItem(newItem);
+                this._valueChanged = true;
+            };
+            Form.prototype.removeItem = function (target) {
+                var pos = this._items.indexOf(target);
+                if (pos >= 0) {
+                    this._items.splice(pos, 1);
+                    target.hide();
+                    this._valueChanged = true;
+                    this.render();
+                }
+            };
+            Form.prototype.selectNext = function () {
+                var found = false;
+                for (var i = 0; i < this._items.length; i++) {
+                    if (this._items[i].isSelect()) {
+                        found = true;
+                        if (i < this._items.length - 1) {
+                            this._items[i].select(false);
+                            this._items[i + 1].select(true);
+                            return true;
+                        }
+                    }
+                }
+                if (!found && this._items.length > 0) {
+                    this._items[0].select(true);
+                    return true;
+                }
+                return false;
+            };
+            Form.prototype.selectPrevious = function () {
+                var found = false;
+                for (var i = 0; i < this._items.length; i++) {
+                    if (this._items[i].isSelect()) {
+                        found = true;
+                        if (i > 0) {
+                            this._items[i].select(false);
+                            this._items[i - 1].select(true);
+                            return true;
+                        }
+                    }
+                }
+                if (!found && this._items.length > 0) {
+                    this._items[0].select(true);
+                    return true;
+                }
+                return false;
+            };
+            Form.prototype.update = function () {
+                this._.style.height = this._.offsetHeight + "px";
+                this.hideAll();
+                this.render();
+                this._.style.height = null;
+            };
+            Form.prototype.initRestriction = function () {
+                var _this = this;
+                _super.prototype.initRestriction.call(this);
+                this._items = [];
+                this._valueCache = null;
+                this._autoResizeTimer = null;
+                this._parentWidth = null;
+                this.setRestrictions({
+                    "mode": {
+                        "set": function (value) {
+                            if (/^(design|init|input|view)$/.test(value)) {
+                                if (value != _this.get("mode")) {
+                                    _this._data["mode"] = value;
+                                    _this._valueChanged = true;
+                                    for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
+                                        var item = _a[_i];
+                                        item.update();
+                                    }
+                                }
+                            }
+                        },
+                        "get": function () {
+                            var v = _this._data["mode"];
+                            return v || "input";
+                        }
+                    },
+                    "autoSize": {
+                        "set": function (value) {
+                            if (typeof value !== tui.UNDEFINED) {
+                                _this._data["autoSize"] = !!value;
+                                if (!!value) {
+                                    _this.computeSizeByParent();
+                                }
+                                else {
+                                    _this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
+                                }
+                            }
+                        },
+                        "get": function () {
+                            return !!_this._data["autoSize"];
+                        }
+                    },
+                    "definition": {
+                        "set": function (value) {
+                            if (value instanceof Array) {
+                                _this.removeAll();
+                                for (var _i = 0, _a = value; _i < _a.length; _i++) {
+                                    var define = _a[_i];
+                                    var cstor = _controls[define.type];
+                                    if (cstor) {
+                                        var item = new cstor(_this, define);
+                                        item.update();
+                                        _this._items.push(item);
+                                    }
+                                }
+                            }
+                            else if (value === null) {
+                                _this.removeAll();
+                            }
+                            _this._valueChanged = true;
+                        },
+                        "get": function () {
+                            var result = [];
+                            for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
+                                var item = _a[_i];
+                                result.push(item.define);
+                            }
+                            return result;
+                        }
+                    },
+                    "value": {
+                        "set": function (value) {
+                            if (value === null) {
+                                for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
+                                    var item = _a[_i];
+                                    item.setValue(null);
+                                }
+                            }
+                            else if (typeof value === "object") {
+                                for (var _b = 0, _c = _this._items; _b < _c.length; _b++) {
+                                    var item = _c[_b];
+                                    var k = item.getKey();
+                                    if (k && value.hasOwnProperty(k)) {
+                                        item.setValue(value[k]);
+                                    }
+                                }
+                            }
+                            _this._valueChanged = true;
+                        },
+                        "get": function () {
+                            var index;
+                            var me = _this;
+                            function computeValue(key, searchPath) {
+                                if (!index.hasOwnProperty(key)) {
+                                    throw new Error("Invalid expression: Field \"" + key + "\" was not found in \"" + searchPath[searchPath.length - 1] + "\"'s condition expression.");
+                                }
+                                var exp = me._items[index[key]].define.condition;
+                                if (!exp) {
+                                    me._valueCache[key] = me._items[index[key]].getValue({
+                                        cache: me._valueCache,
+                                        calc: computeValue,
+                                        path: searchPath
+                                    });
+                                    me._items[index[key]].define.available = true;
+                                }
+                                else {
+                                    if (searchPath.indexOf(key) >= 0)
+                                        throw new Error("Invalid expression: Cycle reference was detected on field: \"" + key + "\"");
+                                    searchPath.push(key);
+                                    try {
+                                        if (tui.text.exp.evaluate(exp, function (k) {
+                                            if (me._valueCache.hasOwnProperty(k))
+                                                return me._valueCache[k];
+                                            else {
+                                                computeValue(k, searchPath);
+                                                return me._valueCache[k];
+                                            }
+                                        })) {
+                                            searchPath.pop();
+                                            me._valueCache[key] = me._items[index[key]].getValue({
+                                                cache: me._valueCache,
+                                                calc: computeValue,
+                                                path: searchPath
+                                            });
+                                            me._items[index[key]].define.available = true;
+                                        }
+                                        else {
+                                            searchPath.pop();
+                                            me._valueCache[key] = null;
+                                            me._items[index[key]].define.available = false;
+                                        }
+                                    }
+                                    catch (e) {
+                                        throw new Error(e.message + " (" + key + ")");
+                                    }
+                                }
+                            }
+                            if (_this._valueChanged || _this._valueCache === null) {
+                                _this._valueCache = {};
+                                index = {};
+                                for (var i = 0; i < _this._items.length; i++) {
+                                    var k = _this._items[i].getKey();
+                                    if (k) {
+                                        if (index.hasOwnProperty(k))
+                                            throw new Error("Duplicate field name was found: \"" + k + "\".");
+                                        index[k] = i;
+                                    }
+                                }
+                                for (var k in index) {
+                                    if (index.hasOwnProperty(k)) {
+                                        computeValue(k, []);
+                                    }
+                                }
+                                var _loop_1 = function (i) {
+                                    var item = _this._items[i];
+                                    var k = item.getKey();
+                                    if (k === null) {
+                                        if (item.define.condition) {
+                                            if (tui.text.exp.evaluate(item.define.condition, function (k) {
+                                                if (me._valueCache.hasOwnProperty(k))
+                                                    return me._valueCache[k];
+                                                else {
+                                                    throw new Error("Invalid expression: Field \"" + k + "\" not found in control[" + i + "] condition.");
+                                                }
+                                            })) {
+                                                item.define.available = true;
+                                                item.getValue({
+                                                    cache: me._valueCache,
+                                                    calc: computeValue,
+                                                    path: []
+                                                });
+                                            }
+                                            else {
+                                                item.define.available = false;
+                                            }
+                                        }
+                                        else {
+                                            item.define.available = true;
+                                            item.getValue({
+                                                cache: me._valueCache,
+                                                calc: computeValue,
+                                                path: []
+                                            });
+                                        }
+                                    }
+                                };
+                                for (var i = 0; i < _this._items.length; i++) {
+                                    _loop_1(i);
+                                }
+                                _this._valueChanged = false;
+                                return _this._valueCache;
+                            }
+                            else
+                                return _this._valueCache;
+                        }
+                    }
+                });
+            };
+            Form.prototype.init = function () {
+                var _this = this;
+                this._maxId = 0;
+                this._.setAttribute("unselectable", "on");
+                var toolbar = this._components["toolbar"] = tui.elem("div");
+                toolbar.className = "tui-form-toolbar";
+                var title = tui.elem("div");
+                title.className = "tui-form-title";
+                var buttons = tui.elem("div");
+                buttons.className = "tui-form-buttons";
+                var btnPrint = tui.elem("span");
+                btnPrint.className = "tui-form-btn tui-form-btn-print";
+                var newItem = this._components["newitem"] = tui.elem("div");
+                newItem.className = "tui-form-new-item-box";
+                var errmsg = this._components["errmsg"] = tui.elem("div");
+                errmsg.className = "tui-form-error";
+                buttons.appendChild(btnPrint);
+                toolbar.appendChild(title);
+                toolbar.appendChild(buttons);
+                this._.appendChild(toolbar);
+                $(this._).mousedown(function () {
+                    if (tui.ieVer > 0 && _this.get("mode") === "design")
+                        tui.browser.focusWithoutScroll(_this._);
+                });
+                $(this._).on("keydown", function (e) {
+                    if (_this.get("mode") !== "design")
+                        return;
+                    if (e.keyCode === 9) {
+                        if (e.shiftKey) {
+                            _this.selectPrevious();
+                        }
+                        else {
+                            _this.selectNext();
+                        }
+                        e.preventDefault();
+                    }
+                    else if (e.keyCode === tui.browser.KeyCode.DELETE) {
+                        _this.removeItem(_this.getSelectedItem());
+                        e.preventDefault();
+                    }
+                });
+                this.on("resize", function () {
+                    _this.render();
+                });
+                this.on("parentresize", function (e) {
+                    if ((e.data.type & 1) === 1) {
+                        _this.computeSizeByParent();
+                    }
+                });
+                this.on("itemremove", function (e) {
+                    _this.removeItem(e.data.control);
+                });
+                this.on("itemresize", function (e) {
+                    _this.render();
+                });
+                this.on("itemmoveup", function (e) {
+                    var pos = _this._items.indexOf(e.data.control);
+                    if (pos > 0) {
+                        var tmp = _this._items[pos];
+                        _this._items[pos] = _this._items[pos - 1];
+                        _this._items[pos - 1] = tmp;
+                        _this.update();
+                    }
+                });
+                this.on("itemmovedown", function (e) {
+                    var pos = _this._items.indexOf(e.data.control);
+                    if (pos >= 0 && pos < _this._items.length - 1) {
+                        var tmp = _this._items[pos];
+                        _this._items[pos] = _this._items[pos + 1];
+                        _this._items[pos + 1] = tmp;
+                        _this.update();
+                    }
+                });
+                var firstPoint = null;
+                var oldRect = null;
+                this.on("itemmousemove", function (e) {
+                    var ev = e.data.e;
+                    ev.preventDefault();
+                    if (!tui.browser.isLButton(ev) || !firstPoint)
+                        return;
+                    if (e.data.control == firstPoint.ctrl &&
+                        (Math.abs(ev.clientX - firstPoint.x) >= 5 ||
+                            Math.abs(ev.clientY - firstPoint.y) >= 5)) {
+                        var ctrl = e.data.control;
+                        var pos = _this._items.indexOf(ctrl);
+                        var placeholder = tui.elem("div");
+                        placeholder.className = "tui-form-item-placeholder";
+                        var divStyle = tui.browser.getCurrentStyle(ctrl.div);
+                        placeholder.style.display = divStyle.display;
+                        placeholder.style.width = ctrl.div.offsetWidth + "px";
+                        placeholder.style.height = ctrl.div.offsetHeight + "px";
+                        oldRect = tui.browser.getRectOfScreen(ctrl.div);
+                        var curWidth = ctrl.div.offsetWidth - parseFloat(divStyle.paddingLeft) - parseFloat(divStyle.paddingRight);
+                        ctrl.div.style.position = "fixed";
+                        ctrl.div.style.zIndex = "100";
+                        ctrl.div.style.opacity = "0.8";
+                        ctrl.div.style.filter = "alpha(opacity=80)";
+                        ctrl.div.style.left = oldRect.left + "px";
+                        ctrl.div.style.top = oldRect.top + "px";
+                        var savedWidth = ctrl.div.style.width;
+                        ctrl.div.style.width = curWidth + "px";
+                        tui.browser.addClass(ctrl.div, "tui-form-item-moving");
+                        _this._.insertBefore(placeholder, ctrl.div);
+                        var targetIndex = null;
+                        tui.widget.openDragMask(function (e) {
+                            ctrl.div.style.left = oldRect.left + e.clientX - firstPoint.x + "px";
+                            ctrl.div.style.top = oldRect.top + e.clientY - firstPoint.y + "px";
+                            for (var i = 0; i < _this._items.length; i++) {
+                                var item = _this._items[i];
+                                if (item !== ctrl) {
+                                    var testHeight = tui.browser.getCurrentStyle(item.div).display === "block" || placeholder.style.display === "block";
+                                    var rc = tui.browser.getRectOfScreen(item.div);
+                                    if (testHeight) {
+                                        if (e.clientX > rc.left && e.clientX < rc.left + rc.width &&
+                                            e.clientY > rc.top && e.clientY < rc.top + rc.height / 2) {
+                                            _this._.insertBefore(placeholder, item.div);
+                                            targetIndex = i;
+                                            break;
+                                        }
+                                        else if (e.clientX > rc.left && e.clientX < rc.left + rc.width &&
+                                            e.clientY > rc.top + rc.height / 2 && e.clientY < rc.top + rc.height) {
+                                            _this._.insertBefore(placeholder, item.div.nextSibling);
+                                            targetIndex = i + 1;
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        if (e.clientX > rc.left && e.clientX < rc.left + rc.width / 2 &&
+                                            e.clientY > rc.top && e.clientY < rc.top + rc.height) {
+                                            _this._.insertBefore(placeholder, item.div);
+                                            targetIndex = i;
+                                            break;
+                                        }
+                                        else if (e.clientX > rc.left + rc.width / 2 && e.clientX < rc.left + rc.width &&
+                                            e.clientY > rc.top && e.clientY < rc.top + rc.height) {
+                                            _this._.insertBefore(placeholder, item.div.nextSibling);
+                                            targetIndex = i + 1;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }, function (e) {
+                            firstPoint = null;
+                            ctrl.div.style.position = "";
+                            ctrl.div.style.zIndex = "";
+                            ctrl.div.style.opacity = "";
+                            ctrl.div.style.filter = "";
+                            ctrl.div.style.left = "";
+                            ctrl.div.style.top = "";
+                            ctrl.div.style.width = savedWidth;
+                            tui.browser.removeClass(ctrl.div, "tui-form-item-moving");
+                            _this._.removeChild(placeholder);
+                            if (targetIndex != null && targetIndex != pos) {
+                                _this._items.splice(pos, 1);
+                                if (targetIndex < pos)
+                                    _this._items.splice(targetIndex, 0, ctrl);
+                                else
+                                    _this._items.splice(targetIndex - 1, 0, ctrl);
+                                _this.update();
+                            }
+                        });
+                    }
+                });
+                this.on("itemmousedown", function (e) {
+                    var ev = e.data.e;
+                    if (tui.browser.isLButton(ev)) {
+                        firstPoint = { x: ev.clientX, y: ev.clientY, ctrl: e.data.control };
+                    }
+                    else
+                        firstPoint = null;
+                    _this.selectItem(e.data.control);
+                });
+                this.on("itemmouseup", function (e) {
+                    firstPoint = null;
+                });
+                this.on("itemadd", function (e) {
+                    var pos = _this._items.indexOf(e.data.control);
+                    if (pos >= 0) {
+                        _this.addNewItem(e.data.button._, pos);
+                    }
+                });
+                this.on("itemvaluechanged", function (e) {
+                    _this._valueChanged = true;
+                    _this.render();
+                });
+                newItem.onclick = function () {
+                    _this.addNewItem(newItem, _this._items.length);
+                };
+                this.computeSizeByParent();
+            };
+            Form.prototype.computeSizeByParent = function () {
+                if (!this.get("autoSize"))
+                    return;
+                this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
+                var pw = $(this._.parentElement).width() - $(this._).outerWidth(true) + $(this._).width();
+                var s = Form.ITEM_SIZE;
+                var i = Math.floor(pw / s);
+                if (i < 1)
+                    i = 1;
+                if (i > 6)
+                    i = 6;
+                var c = "tui-size-" + i;
+                this.addClass(c);
+            };
+            Form.prototype.bindNewItemClick = function (popup, newItemDiv, type, pos) {
+                var _this = this;
+                newItemDiv.onclick = function () {
+                    _this.addItem(type, null, pos);
+                    popup.close();
+                };
+            };
+            Form.prototype.addNewItem = function (button, pos) {
+                var div = tui.elem("div");
+                div.setAttribute("unselectable", "on");
+                div.className = "tui-form-new-item-menu";
+                var controls = [];
+                for (var type in _controls) {
+                    if (_controls.hasOwnProperty(type)) {
+                        controls.push({
+                            type: type,
+                            name: _controls[type].desc,
+                            icon: _controls[type].icon,
+                            order: _controls[type].order,
+                        });
+                    }
+                }
+                controls.sort(function (a, b) {
+                    return a.order - b.order;
+                });
+                var popup = widget.create("popup");
+                var usePlugins = false;
+                for (var _i = 0, controls_1 = controls; _i < controls_1.length; _i++) {
+                    var c = controls_1[_i];
+                    if (!usePlugins && c.order >= 100) {
+                        usePlugins = true;
+                        var hr = tui.elem("hr");
+                        div.appendChild(hr);
+                    }
+                    var itemDiv = tui.elem("div");
+                    var itemIcon = tui.elem("span");
+                    var label = tui.elem("div");
+                    itemDiv.appendChild(itemIcon);
+                    itemDiv.appendChild(label);
+                    itemIcon.className = "fa " + c.icon;
+                    label.innerHTML = tui.browser.toSafeText(tui.str(c.name));
+                    div.appendChild(itemDiv);
+                    this.bindNewItemClick(popup, itemDiv, c.type, pos);
+                }
+                popup._set("content", div);
+                popup.open(button);
+            };
+            Form.prototype.validate = function () {
+                var result = true;
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    if (item.define.available && !item.validate())
+                        result = false;
+                }
+                this.render();
+                return result;
+            };
+            Form.prototype.render = function () {
+                var toolbar = this._components["toolbar"];
+                var titleText = this.get("title");
+                if (titleText || this.get("toolbar")) {
+                    if (!titleText)
+                        titleText = "";
+                    toolbar.children[0].innerHTML = tui.browser.toSafeText(titleText);
+                    if (this.get("toolbar")) {
+                        toolbar.children[1].style.display = "block";
+                    }
+                    else
+                        toolbar.children[1].style.display = "none";
+                    toolbar.style.display = "block";
+                    $(this._).addClass("tui-form-show-toolbar");
+                }
+                else {
+                    toolbar.style.display = "none";
+                    $(this._).removeClass("tui-form-show-toolbar");
+                }
+                var newItem = this._components["newitem"];
+                tui.browser.removeNode(newItem);
+                var errmsg = this._components["errmsg"];
+                tui.browser.removeNode(errmsg);
+                var designMode = (this.get("mode") === "design");
+                if (!designMode) {
+                    try {
+                        this.get("value");
+                    }
+                    catch (e) {
+                        this.hideAll();
+                        errmsg.innerHTML = tui.browser.toSafeText(e.message + "");
+                        this._.appendChild(errmsg);
+                        return;
+                    }
+                }
+                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    if (!item.isPresent())
+                        item.show();
+                    item.setDesign(designMode);
+                    if (!designMode) {
+                        item.select(false);
+                        if (!item.define.available) {
+                            tui.browser.addClass(item.div, "tui-form-item-unavailable");
+                        }
+                        else
+                            tui.browser.removeClass(item.div, "tui-form-item-unavailable");
+                    }
+                    else {
+                        tui.browser.removeClass(item.div, "tui-form-item-unavailable");
+                    }
+                    tui.browser.removeClass(item.div, "tui-form-item-exceed");
+                    item.render(designMode);
+                }
+                var cfs = tui.browser.getCurrentStyle(this._);
+                if (cfs.display != "none") {
+                    this._.style.width = "2000px";
+                    this._.style.width = "";
+                    var pad = parseFloat(cfs.paddingLeft) + parseFloat(cfs.paddingRight);
+                    for (var _b = 0, _c = this._items; _b < _c.length; _b++) {
+                        var item = _c[_b];
+                        if (item.div.offsetWidth > this._.clientWidth - pad) {
+                            tui.browser.addClass(item.div, "tui-form-item-exceed");
+                            item.render(designMode);
+                        }
+                    }
+                }
+                if (designMode) {
+                    this._.appendChild(newItem);
+                    this._.setAttribute("tabIndex", "0");
+                    tui.browser.addClass(this._, "tui-form-design-mode");
+                }
+                else {
+                    this._.removeAttribute("tabIndex");
+                    tui.browser.removeClass(this._, "tui-form-design-mode");
+                }
+            };
+            return Form;
+        }(widget.Widget));
+        Form.ITEM_SIZE = 220;
+        widget.Form = Form;
+        widget.register(Form, "form");
+        widget.registerResize("form");
+        widget.registerParentResize("form");
+    })(widget = tui.widget || (tui.widget = {}));
+})(tui || (tui = {}));
+(function (tui) {
+    "use strict";
+    function inputbox(define, title, callback) {
+        var container = tui.elem("div");
+        var form = tui.create("form");
+        form.set("definition", define);
+        container.appendChild(form._);
+        var dialog = tui.create("dialog");
+        dialog._set("content", container);
+        title && dialog._set("title", title);
+        dialog.open("ok#tui-primary,cancel");
+        dialog.on("btnclick", function (e) {
+            if (e.data.button === "ok") {
+                if (form.validate()) {
+                    if (typeof callback === "function") {
+                        var result = callback(form.get("value"));
+                        if (result == false) {
+                            return;
+                        }
+                        if (typeof result === "object" && typeof result.done === "function") {
+                            result.then(function () {
+                                dialog.close();
+                            });
+                            return;
+                        }
+                    }
+                    dialog.close();
+                }
+            }
+            else if (e.data.button === "cancel") {
+                dialog.close();
+            }
+        });
+        return dialog;
+    }
+    tui.inputbox = inputbox;
+})(tui || (tui = {}));
+var tui;
+(function (tui) {
+    var widget;
+    (function (widget) {
+        "use strict";
         widget.dialogStack = [];
         var _mask = tui.elem("div");
         _mask.className = "tui-dialog-mask";
@@ -2155,7 +2891,7 @@ var tui;
                 buttonBar.innerHTML = "";
                 if (typeof buttonDef === "string" && buttonDef.length > 0) {
                     var names = buttonDef.split(",");
-                    var _loop_1 = function (name_3) {
+                    var _loop_2 = function (name_3) {
                         var pair = name_3.split("#");
                         var btn = widget.create("button", { text: tui.str($.trim(pair[0])) });
                         if (pair.length > 1 && $.trim(pair[1]).length > 0)
@@ -2167,7 +2903,7 @@ var tui;
                     };
                     for (var _i = 0, names_3 = names; _i < names_3.length; _i++) {
                         var name_3 = names_3[_i];
-                        _loop_1(name_3);
+                        _loop_2(name_3);
                     }
                     buttonBar.style.display = "block";
                 }
@@ -2665,7 +3401,9 @@ var tui;
         "use strict";
         var _rules;
         var _handler;
-        function hashChange() {
+        function hashChange(e) {
+            if (e)
+                e.preventDefault();
             var hash = location.hash;
             var state = null;
             if (hash) {
@@ -2705,13 +3443,48 @@ var tui;
             _rules = rules;
             _handler = handler;
             $(window).on("hashchange", hashChange);
+            $(window).on("onpopstate", hashChange);
             tui.event.on("initialized", function () {
                 hashChange();
+            });
+            return tui.service.register("router", function () {
+                var stack = [];
+                var this_ = this;
+                this.push = function (state) {
+                    stack.push(state);
+                    location.href = "#" + state;
+                };
+                this.pop = function () {
+                    if (stack.length > 0) {
+                        stack.pop();
+                        history.back();
+                        if (stack.length > 0) {
+                            this_.go(stack[stack.length - 1]);
+                        }
+                    }
+                };
+                this.goRoot = function (state) {
+                    var len = stack.length;
+                    stack.length = 0;
+                    history.go(-len);
+                    this_.go(state);
+                };
+                this.go = function (state) {
+                    if (stack.length == 0) {
+                        stack.push(state);
+                    }
+                    else {
+                        stack.pop();
+                        stack.push(state);
+                    }
+                    location.replace("#" + state);
+                };
             });
         }
         browser.startRouter = startRouter;
         function stopRouter() {
             $(window).off("hashchange", hashChange);
+            tui.service.unregister("router");
         }
         browser.stopRouter = stopRouter;
     })(browser = tui.browser || (tui.browser = {}));
@@ -6123,6 +6896,7 @@ var tui;
                         fileId: e.data.response.fileId,
                         fileName: e.data.response.fileName,
                         mimeType: e.data.response.mimeType,
+                        length: e.data.response.length,
                         url: e.data.response.url
                     };
                     _this._values.push(newItem);
@@ -6193,698 +6967,6 @@ var tui;
         }(widget.Widget));
         widget.Files = Files;
         widget.register(Files, "files");
-    })(widget = tui.widget || (tui.widget = {}));
-})(tui || (tui = {}));
-var tui;
-(function (tui) {
-    var widget;
-    (function (widget) {
-        "use strict";
-        var _controls = {};
-        var Form = (function (_super) {
-            __extends(Form, _super);
-            function Form() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            Form.register = function (type, controlType) {
-                _controls[type] = controlType;
-            };
-            Form.getType = function (type) {
-                return _controls[type];
-            };
-            Form.prototype.removeAll = function () {
-                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
-                    var item = _a[_i];
-                    item.hide();
-                }
-                this._items = [];
-            };
-            Form.prototype.hideAll = function () {
-                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
-                    var item = _a[_i];
-                    item.hide();
-                }
-            };
-            Form.prototype.selectItem = function (target) {
-                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
-                    var item = _a[_i];
-                    if (item !== target)
-                        item.select(false);
-                    else
-                        item.select(true);
-                }
-            };
-            Form.prototype.getItem = function (index) {
-                if (typeof index === "number") {
-                    if (index >= 0 && index < this._items.length)
-                        return this._items[index];
-                    else
-                        return null;
-                }
-                else if (typeof index === "string") {
-                    for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
-                        var item = _a[_i];
-                        if (item.getKey() === index)
-                            return item;
-                    }
-                    return null;
-                }
-                else
-                    return null;
-            };
-            Form.prototype.getSelectedItem = function () {
-                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
-                    var item = _a[_i];
-                    if (item.isSelect())
-                        return item;
-                }
-                return null;
-            };
-            Form.prototype.addItem = function (type, label, pos) {
-                if (label === void 0) { label = null; }
-                if (pos === void 0) { pos = -1; }
-                var c = _controls[type];
-                if (label === null)
-                    label = tui.str(c.desc);
-                var define = { type: type, label: label };
-                var key = type + (++this._maxId);
-                while (this.getItem(key)) {
-                    key = type + (++this._maxId);
-                }
-                define.key = key;
-                if (c.init) {
-                    for (var k in c.init) {
-                        if (c.init.hasOwnProperty(k)) {
-                            define[k] = c.init[k];
-                        }
-                    }
-                }
-                var newItem = new c(this, define);
-                newItem.update();
-                if (pos < 0 || pos >= this._items.length) {
-                    this._items.push(newItem);
-                }
-                else
-                    this._items.splice(pos, 0, newItem);
-                this.update();
-                this.selectItem(newItem);
-                this._valueChanged = true;
-            };
-            Form.prototype.removeItem = function (target) {
-                var pos = this._items.indexOf(target);
-                if (pos >= 0) {
-                    this._items.splice(pos, 1);
-                    target.hide();
-                    this._valueChanged = true;
-                    this.render();
-                }
-            };
-            Form.prototype.selectNext = function () {
-                var found = false;
-                for (var i = 0; i < this._items.length; i++) {
-                    if (this._items[i].isSelect()) {
-                        found = true;
-                        if (i < this._items.length - 1) {
-                            this._items[i].select(false);
-                            this._items[i + 1].select(true);
-                            return true;
-                        }
-                    }
-                }
-                if (!found && this._items.length > 0) {
-                    this._items[0].select(true);
-                    return true;
-                }
-                return false;
-            };
-            Form.prototype.selectPrevious = function () {
-                var found = false;
-                for (var i = 0; i < this._items.length; i++) {
-                    if (this._items[i].isSelect()) {
-                        found = true;
-                        if (i > 0) {
-                            this._items[i].select(false);
-                            this._items[i - 1].select(true);
-                            return true;
-                        }
-                    }
-                }
-                if (!found && this._items.length > 0) {
-                    this._items[0].select(true);
-                    return true;
-                }
-                return false;
-            };
-            Form.prototype.update = function () {
-                this._.style.height = this._.offsetHeight + "px";
-                this.hideAll();
-                this.render();
-                this._.style.height = null;
-            };
-            Form.prototype.initRestriction = function () {
-                var _this = this;
-                _super.prototype.initRestriction.call(this);
-                this._items = [];
-                this._valueCache = null;
-                this._autoResizeTimer = null;
-                this._parentWidth = null;
-                this.setRestrictions({
-                    "mode": {
-                        "set": function (value) {
-                            if (/^(design|init|input|view)$/.test(value)) {
-                                if (value != _this.get("mode")) {
-                                    _this._data["mode"] = value;
-                                    _this._valueChanged = true;
-                                    for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
-                                        var item = _a[_i];
-                                        item.update();
-                                    }
-                                }
-                            }
-                        },
-                        "get": function () {
-                            var v = _this._data["mode"];
-                            return v || "input";
-                        }
-                    },
-                    "autoSize": {
-                        "set": function (value) {
-                            if (typeof value !== tui.UNDEFINED) {
-                                _this._data["autoSize"] = !!value;
-                                if (!!value) {
-                                    _this.computeSizeByParent();
-                                }
-                                else {
-                                    _this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
-                                }
-                            }
-                        },
-                        "get": function () {
-                            return !!_this._data["autoSize"];
-                        }
-                    },
-                    "definition": {
-                        "set": function (value) {
-                            if (value instanceof Array) {
-                                _this.removeAll();
-                                for (var _i = 0, _a = value; _i < _a.length; _i++) {
-                                    var define = _a[_i];
-                                    var cstor = _controls[define.type];
-                                    if (cstor) {
-                                        var item = new cstor(_this, define);
-                                        item.update();
-                                        _this._items.push(item);
-                                    }
-                                }
-                            }
-                            else if (value === null) {
-                                _this.removeAll();
-                            }
-                            _this._valueChanged = true;
-                        },
-                        "get": function () {
-                            var result = [];
-                            for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
-                                var item = _a[_i];
-                                result.push(item.define);
-                            }
-                            return result;
-                        }
-                    },
-                    "value": {
-                        "set": function (value) {
-                            if (value === null) {
-                                for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
-                                    var item = _a[_i];
-                                    item.setValue(null);
-                                }
-                            }
-                            else if (typeof value === "object") {
-                                for (var _b = 0, _c = _this._items; _b < _c.length; _b++) {
-                                    var item = _c[_b];
-                                    var k = item.getKey();
-                                    if (k && value.hasOwnProperty(k)) {
-                                        item.setValue(value[k]);
-                                    }
-                                }
-                            }
-                            _this._valueChanged = true;
-                        },
-                        "get": function () {
-                            var index;
-                            var me = _this;
-                            function computeValue(key, searchPath) {
-                                if (!index.hasOwnProperty(key)) {
-                                    throw new Error("Invalid expression: Field \"" + key + "\" was not found in \"" + searchPath[searchPath.length - 1] + "\"'s condition expression.");
-                                }
-                                var exp = me._items[index[key]].define.condition;
-                                if (!exp) {
-                                    me._valueCache[key] = me._items[index[key]].getValue({
-                                        cache: me._valueCache,
-                                        calc: computeValue,
-                                        path: searchPath
-                                    });
-                                    me._items[index[key]].define.available = true;
-                                }
-                                else {
-                                    if (searchPath.indexOf(key) >= 0)
-                                        throw new Error("Invalid expression: Cycle reference was detected on field: \"" + key + "\"");
-                                    searchPath.push(key);
-                                    try {
-                                        if (tui.text.exp.evaluate(exp, function (k) {
-                                            if (me._valueCache.hasOwnProperty(k))
-                                                return me._valueCache[k];
-                                            else {
-                                                computeValue(k, searchPath);
-                                                return me._valueCache[k];
-                                            }
-                                        })) {
-                                            searchPath.pop();
-                                            me._valueCache[key] = me._items[index[key]].getValue({
-                                                cache: me._valueCache,
-                                                calc: computeValue,
-                                                path: searchPath
-                                            });
-                                            me._items[index[key]].define.available = true;
-                                        }
-                                        else {
-                                            searchPath.pop();
-                                            me._valueCache[key] = null;
-                                            me._items[index[key]].define.available = false;
-                                        }
-                                    }
-                                    catch (e) {
-                                        throw new Error(e.message + " (" + key + ")");
-                                    }
-                                }
-                            }
-                            if (_this._valueChanged || _this._valueCache === null) {
-                                _this._valueCache = {};
-                                index = {};
-                                for (var i = 0; i < _this._items.length; i++) {
-                                    var k = _this._items[i].getKey();
-                                    if (k) {
-                                        if (index.hasOwnProperty(k))
-                                            throw new Error("Duplicate field name was found: \"" + k + "\".");
-                                        index[k] = i;
-                                    }
-                                }
-                                for (var k in index) {
-                                    if (index.hasOwnProperty(k)) {
-                                        computeValue(k, []);
-                                    }
-                                }
-                                var _loop_2 = function (i) {
-                                    var item = _this._items[i];
-                                    var k = item.getKey();
-                                    if (k === null) {
-                                        if (item.define.condition) {
-                                            if (tui.text.exp.evaluate(item.define.condition, function (k) {
-                                                if (me._valueCache.hasOwnProperty(k))
-                                                    return me._valueCache[k];
-                                                else {
-                                                    throw new Error("Invalid expression: Field \"" + k + "\" not found in control[" + i + "] condition.");
-                                                }
-                                            })) {
-                                                item.define.available = true;
-                                                item.getValue({
-                                                    cache: me._valueCache,
-                                                    calc: computeValue,
-                                                    path: []
-                                                });
-                                            }
-                                            else {
-                                                item.define.available = false;
-                                            }
-                                        }
-                                        else {
-                                            item.define.available = true;
-                                            item.getValue({
-                                                cache: me._valueCache,
-                                                calc: computeValue,
-                                                path: []
-                                            });
-                                        }
-                                    }
-                                };
-                                for (var i = 0; i < _this._items.length; i++) {
-                                    _loop_2(i);
-                                }
-                                _this._valueChanged = false;
-                                return _this._valueCache;
-                            }
-                            else
-                                return _this._valueCache;
-                        }
-                    }
-                });
-            };
-            Form.prototype.init = function () {
-                var _this = this;
-                this._maxId = 0;
-                this._.setAttribute("unselectable", "on");
-                var toolbar = this._components["toolbar"] = tui.elem("div");
-                toolbar.className = "tui-form-toolbar";
-                var title = tui.elem("div");
-                title.className = "tui-form-title";
-                var buttons = tui.elem("div");
-                buttons.className = "tui-form-buttons";
-                var btnPrint = tui.elem("span");
-                btnPrint.className = "tui-form-btn tui-form-btn-print";
-                var newItem = this._components["newitem"] = tui.elem("div");
-                newItem.className = "tui-form-new-item-box";
-                var errmsg = this._components["errmsg"] = tui.elem("div");
-                errmsg.className = "tui-form-error";
-                buttons.appendChild(btnPrint);
-                toolbar.appendChild(title);
-                toolbar.appendChild(buttons);
-                this._.appendChild(toolbar);
-                $(this._).mousedown(function () {
-                    if (tui.ieVer > 0 && _this.get("mode") === "design")
-                        tui.browser.focusWithoutScroll(_this._);
-                });
-                $(this._).on("keydown", function (e) {
-                    if (_this.get("mode") !== "design")
-                        return;
-                    if (e.keyCode === 9) {
-                        if (e.shiftKey) {
-                            _this.selectPrevious();
-                        }
-                        else {
-                            _this.selectNext();
-                        }
-                        e.preventDefault();
-                    }
-                    else if (e.keyCode === tui.browser.KeyCode.DELETE) {
-                        _this.removeItem(_this.getSelectedItem());
-                        e.preventDefault();
-                    }
-                });
-                this.on("resize", function () {
-                    _this.render();
-                });
-                this.on("parentresize", function (e) {
-                    if ((e.data.type & 1) === 1) {
-                        _this.computeSizeByParent();
-                    }
-                });
-                this.on("itemremove", function (e) {
-                    _this.removeItem(e.data.control);
-                });
-                this.on("itemresize", function (e) {
-                    _this.render();
-                });
-                this.on("itemmoveup", function (e) {
-                    var pos = _this._items.indexOf(e.data.control);
-                    if (pos > 0) {
-                        var tmp = _this._items[pos];
-                        _this._items[pos] = _this._items[pos - 1];
-                        _this._items[pos - 1] = tmp;
-                        _this.update();
-                    }
-                });
-                this.on("itemmovedown", function (e) {
-                    var pos = _this._items.indexOf(e.data.control);
-                    if (pos >= 0 && pos < _this._items.length - 1) {
-                        var tmp = _this._items[pos];
-                        _this._items[pos] = _this._items[pos + 1];
-                        _this._items[pos + 1] = tmp;
-                        _this.update();
-                    }
-                });
-                var firstPoint = null;
-                var oldRect = null;
-                this.on("itemmousemove", function (e) {
-                    var ev = e.data.e;
-                    ev.preventDefault();
-                    if (!tui.browser.isLButton(ev) || !firstPoint)
-                        return;
-                    if (e.data.control == firstPoint.ctrl &&
-                        (Math.abs(ev.clientX - firstPoint.x) >= 5 ||
-                            Math.abs(ev.clientY - firstPoint.y) >= 5)) {
-                        var ctrl = e.data.control;
-                        var pos = _this._items.indexOf(ctrl);
-                        var placeholder = tui.elem("div");
-                        placeholder.className = "tui-form-item-placeholder";
-                        var divStyle = tui.browser.getCurrentStyle(ctrl.div);
-                        placeholder.style.display = divStyle.display;
-                        placeholder.style.width = ctrl.div.offsetWidth + "px";
-                        placeholder.style.height = ctrl.div.offsetHeight + "px";
-                        oldRect = tui.browser.getRectOfScreen(ctrl.div);
-                        var curWidth = ctrl.div.offsetWidth - parseFloat(divStyle.paddingLeft) - parseFloat(divStyle.paddingRight);
-                        ctrl.div.style.position = "fixed";
-                        ctrl.div.style.zIndex = "100";
-                        ctrl.div.style.opacity = "0.8";
-                        ctrl.div.style.filter = "alpha(opacity=80)";
-                        ctrl.div.style.left = oldRect.left + "px";
-                        ctrl.div.style.top = oldRect.top + "px";
-                        var savedWidth = ctrl.div.style.width;
-                        ctrl.div.style.width = curWidth + "px";
-                        tui.browser.addClass(ctrl.div, "tui-form-item-moving");
-                        _this._.insertBefore(placeholder, ctrl.div);
-                        var targetIndex = null;
-                        tui.widget.openDragMask(function (e) {
-                            ctrl.div.style.left = oldRect.left + e.clientX - firstPoint.x + "px";
-                            ctrl.div.style.top = oldRect.top + e.clientY - firstPoint.y + "px";
-                            for (var i = 0; i < _this._items.length; i++) {
-                                var item = _this._items[i];
-                                if (item !== ctrl) {
-                                    var testHeight = tui.browser.getCurrentStyle(item.div).display === "block" || placeholder.style.display === "block";
-                                    var rc = tui.browser.getRectOfScreen(item.div);
-                                    if (testHeight) {
-                                        if (e.clientX > rc.left && e.clientX < rc.left + rc.width &&
-                                            e.clientY > rc.top && e.clientY < rc.top + rc.height / 2) {
-                                            _this._.insertBefore(placeholder, item.div);
-                                            targetIndex = i;
-                                            break;
-                                        }
-                                        else if (e.clientX > rc.left && e.clientX < rc.left + rc.width &&
-                                            e.clientY > rc.top + rc.height / 2 && e.clientY < rc.top + rc.height) {
-                                            _this._.insertBefore(placeholder, item.div.nextSibling);
-                                            targetIndex = i + 1;
-                                            break;
-                                        }
-                                    }
-                                    else {
-                                        if (e.clientX > rc.left && e.clientX < rc.left + rc.width / 2 &&
-                                            e.clientY > rc.top && e.clientY < rc.top + rc.height) {
-                                            _this._.insertBefore(placeholder, item.div);
-                                            targetIndex = i;
-                                            break;
-                                        }
-                                        else if (e.clientX > rc.left + rc.width / 2 && e.clientX < rc.left + rc.width &&
-                                            e.clientY > rc.top && e.clientY < rc.top + rc.height) {
-                                            _this._.insertBefore(placeholder, item.div.nextSibling);
-                                            targetIndex = i + 1;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }, function (e) {
-                            firstPoint = null;
-                            ctrl.div.style.position = "";
-                            ctrl.div.style.zIndex = "";
-                            ctrl.div.style.opacity = "";
-                            ctrl.div.style.filter = "";
-                            ctrl.div.style.left = "";
-                            ctrl.div.style.top = "";
-                            ctrl.div.style.width = savedWidth;
-                            tui.browser.removeClass(ctrl.div, "tui-form-item-moving");
-                            _this._.removeChild(placeholder);
-                            if (targetIndex != null && targetIndex != pos) {
-                                _this._items.splice(pos, 1);
-                                if (targetIndex < pos)
-                                    _this._items.splice(targetIndex, 0, ctrl);
-                                else
-                                    _this._items.splice(targetIndex - 1, 0, ctrl);
-                                _this.update();
-                            }
-                        });
-                    }
-                });
-                this.on("itemmousedown", function (e) {
-                    var ev = e.data.e;
-                    if (tui.browser.isLButton(ev)) {
-                        firstPoint = { x: ev.clientX, y: ev.clientY, ctrl: e.data.control };
-                    }
-                    else
-                        firstPoint = null;
-                    _this.selectItem(e.data.control);
-                });
-                this.on("itemmouseup", function (e) {
-                    firstPoint = null;
-                });
-                this.on("itemadd", function (e) {
-                    var pos = _this._items.indexOf(e.data.control);
-                    if (pos >= 0) {
-                        _this.addNewItem(e.data.button._, pos);
-                    }
-                });
-                this.on("itemvaluechanged", function (e) {
-                    _this._valueChanged = true;
-                    _this.render();
-                });
-                newItem.onclick = function () {
-                    _this.addNewItem(newItem, _this._items.length);
-                };
-                this.computeSizeByParent();
-            };
-            Form.prototype.computeSizeByParent = function () {
-                if (!this.get("autoSize"))
-                    return;
-                this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
-                var pw = $(this._.parentElement).width() - $(this._).outerWidth(true) + $(this._).width();
-                var s = Form.ITEM_SIZE;
-                var i = Math.floor(pw / s);
-                if (i < 1)
-                    i = 1;
-                if (i > 6)
-                    i = 6;
-                var c = "tui-size-" + i;
-                this.addClass(c);
-            };
-            Form.prototype.bindNewItemClick = function (popup, newItemDiv, type, pos) {
-                var _this = this;
-                newItemDiv.onclick = function () {
-                    _this.addItem(type, null, pos);
-                    popup.close();
-                };
-            };
-            Form.prototype.addNewItem = function (button, pos) {
-                var div = tui.elem("div");
-                div.setAttribute("unselectable", "on");
-                div.className = "tui-form-new-item-menu";
-                var controls = [];
-                for (var type in _controls) {
-                    if (_controls.hasOwnProperty(type)) {
-                        controls.push({
-                            type: type,
-                            name: _controls[type].desc,
-                            icon: _controls[type].icon,
-                            order: _controls[type].order,
-                        });
-                    }
-                }
-                controls.sort(function (a, b) {
-                    return a.order - b.order;
-                });
-                var popup = widget.create("popup");
-                var usePlugins = false;
-                for (var _i = 0, controls_1 = controls; _i < controls_1.length; _i++) {
-                    var c = controls_1[_i];
-                    if (!usePlugins && c.order >= 100) {
-                        usePlugins = true;
-                        var hr = tui.elem("hr");
-                        div.appendChild(hr);
-                    }
-                    var itemDiv = tui.elem("div");
-                    var itemIcon = tui.elem("span");
-                    var label = tui.elem("div");
-                    itemDiv.appendChild(itemIcon);
-                    itemDiv.appendChild(label);
-                    itemIcon.className = "fa " + c.icon;
-                    label.innerHTML = tui.browser.toSafeText(tui.str(c.name));
-                    div.appendChild(itemDiv);
-                    this.bindNewItemClick(popup, itemDiv, c.type, pos);
-                }
-                popup._set("content", div);
-                popup.open(button);
-            };
-            Form.prototype.validate = function () {
-                var result = true;
-                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
-                    var item = _a[_i];
-                    if (!item.validate())
-                        result = false;
-                }
-                this.render();
-                return result;
-            };
-            Form.prototype.render = function () {
-                var toolbar = this._components["toolbar"];
-                var titleText = this.get("title");
-                if (titleText || this.get("toolbar")) {
-                    if (!titleText)
-                        titleText = "";
-                    toolbar.children[0].innerHTML = tui.browser.toSafeText(titleText);
-                    if (this.get("toolbar")) {
-                        toolbar.children[1].style.display = "block";
-                    }
-                    else
-                        toolbar.children[1].style.display = "none";
-                    toolbar.style.display = "block";
-                    $(this._).addClass("tui-form-show-toolbar");
-                }
-                else {
-                    toolbar.style.display = "none";
-                    $(this._).removeClass("tui-form-show-toolbar");
-                }
-                var newItem = this._components["newitem"];
-                tui.browser.removeNode(newItem);
-                var errmsg = this._components["errmsg"];
-                tui.browser.removeNode(errmsg);
-                var designMode = (this.get("mode") === "design");
-                if (!designMode) {
-                    try {
-                        this.get("value");
-                    }
-                    catch (e) {
-                        this.hideAll();
-                        errmsg.innerHTML = tui.browser.toSafeText(e.message + "");
-                        this._.appendChild(errmsg);
-                        return;
-                    }
-                }
-                for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
-                    var item = _a[_i];
-                    if (!item.isPresent())
-                        item.show();
-                    item.setDesign(designMode);
-                    if (!designMode) {
-                        item.select(false);
-                        if (!item.define.available) {
-                            tui.browser.addClass(item.div, "tui-form-item-unavailable");
-                        }
-                        else
-                            tui.browser.removeClass(item.div, "tui-form-item-unavailable");
-                    }
-                    else {
-                        tui.browser.removeClass(item.div, "tui-form-item-unavailable");
-                    }
-                    tui.browser.removeClass(item.div, "tui-form-item-exceed");
-                    item.render(designMode);
-                }
-                var cfs = tui.browser.getCurrentStyle(this._);
-                if (cfs.display != "none") {
-                    this._.style.width = "2000px";
-                    this._.style.width = "";
-                    var pad = parseFloat(cfs.paddingLeft) + parseFloat(cfs.paddingRight);
-                    for (var _b = 0, _c = this._items; _b < _c.length; _b++) {
-                        var item = _c[_b];
-                        if (item.div.offsetWidth > this._.clientWidth - pad) {
-                            tui.browser.addClass(item.div, "tui-form-item-exceed");
-                            item.render(designMode);
-                        }
-                    }
-                }
-                if (designMode) {
-                    this._.appendChild(newItem);
-                    this._.setAttribute("tabIndex", "0");
-                    tui.browser.addClass(this._, "tui-form-design-mode");
-                }
-                else {
-                    this._.removeAttribute("tabIndex");
-                    tui.browser.removeClass(this._, "tui-form-design-mode");
-                }
-            };
-            return Form;
-        }(widget.Widget));
-        Form.ITEM_SIZE = 220;
-        widget.Form = Form;
-        widget.register(Form, "form");
-        widget.registerResize("form");
-        widget.registerParentResize("form");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 var tui;
@@ -8072,14 +8154,14 @@ var tui;
                 }
             ]
         };
-        FormOptions.translator = function (value) {
+        FormOptions.translator = function (value, item, index) {
             if (value instanceof Array) {
-                return value.join(", ");
+                return document.createTextNode(value.join(", "));
             }
             else if (value != null)
-                return value + "";
+                return document.createTextNode(value + "");
             else
-                return "";
+                return null;
         };
         widget.Form.register("options", FormOptions);
         var FormSelect = (function (_super) {
@@ -8257,14 +8339,14 @@ var tui;
                     ]
                 }]
         };
-        FormSelect.translator = function (value) {
+        FormSelect.translator = function (value, item, index) {
             if (value instanceof Array) {
-                return value.join(", ");
+                return document.createTextNode(value.join(", "));
             }
             else if (value != null)
-                return value + "";
+                return document.createTextNode(value + "");
             else
-                return "";
+                return null;
         };
         widget.Form.register("select", FormSelect);
         var FormDatePicker = (function (_super) {
@@ -8439,15 +8521,15 @@ var tui;
         FormPicture.icon = "fa-file-image-o";
         FormPicture.desc = "form.picture";
         FormPicture.order = 6;
-        FormPicture.translator = function (value) {
+        FormPicture.translator = function (value, item, index) {
             if (value != null) {
                 if (value.fileName)
-                    return value.fileName;
+                    return document.createTextNode(value.fileName);
                 else
-                    return "[ " + tui.str("form.picture") + " ]";
+                    return document.createTextNode("[ " + tui.str("form.picture") + " ]");
             }
             else
-                return "";
+                return null;
         };
         FormPicture.MIME = "^image/(png|jpeg|gif)(\\s*,\\s*image/(png|jpeg|gif))*$";
         widget.Form.register("picture", FormPicture);
@@ -8512,15 +8594,15 @@ var tui;
         FormFile.icon = "fa-file-text-o";
         FormFile.desc = "form.file";
         FormFile.order = 7;
-        FormFile.translator = function (value) {
+        FormFile.translator = function (value, item, index) {
             if (value != null) {
                 if (value.fileName)
-                    return value.fileName;
+                    return document.createTextNode(value.fileName);
                 else
-                    return "[ " + tui.str("form.file") + " ]";
+                    return document.createTextNode("[ " + tui.str("form.file") + " ]");
             }
             else
-                return "";
+                return null;
         };
         widget.Form.register("file", FormFile);
         var FormFiles = (function (_super) {
@@ -8636,12 +8718,12 @@ var tui;
         FormFiles.icon = "fa-copy";
         FormFiles.desc = "form.files";
         FormFiles.order = 8;
-        FormFiles.translator = function (value) {
+        FormFiles.translator = function (value, item, index) {
             if (value instanceof Array) {
-                return "[ " + tui.strp("file.count.p", value.length) + " ]";
+                return document.createTextNode("[ " + tui.strp("file.count.p", value.length) + " ]");
             }
             else
-                return "";
+                return null;
         };
         widget.Form.register("files", FormFiles);
         var FormGrid = (function (_super) {
@@ -8846,12 +8928,12 @@ var tui;
         FormGrid.icon = "fa-table";
         FormGrid.desc = "form.grid";
         FormGrid.order = 9;
-        FormGrid.translator = function (value) {
+        FormGrid.translator = function (value, item, index) {
             if (value instanceof Array) {
-                return "[ " + tui.strp("item.count.p", value.length) + " ]";
+                return document.createTextNode("[ " + tui.strp("item.count.p", value.length) + " ]");
             }
             else
-                return "";
+                return null;
         };
         widget.Form.register("grid", FormGrid);
     })(widget = tui.widget || (tui.widget = {}));
@@ -8940,6 +9022,14 @@ var tui;
                 return 0;
             else
                 return v;
+        }
+        function getAlignText(align) {
+            if (align && /^(left|center|right)$/i.test(align)) {
+                return align.toLowerCase();
+            }
+            else {
+                return "left";
+            }
         }
         var Grid = (function (_super) {
             __extends(Grid, _super);
@@ -9151,6 +9241,7 @@ var tui;
                 this._buffer = { begin: 0, end: 0, lines: [] };
                 this.setInit("header", true);
                 this.on("resize", function () {
+                    _this._columnWidths = [];
                     _this.render();
                 });
                 this._vbar.on("scroll", function () {
@@ -9319,6 +9410,8 @@ var tui;
                             obj.style.height = "";
                             $(obj).removeClass("tui-handler-move");
                             columns[idx].width = columns[idx].width + positions[0].x - srcX;
+                            if (columns[idx].width < 0)
+                                columns[idx].width = 0;
                             _this._columnWidths = [];
                             _this.initColumnWidth();
                             _this.computeScroll();
@@ -9337,8 +9430,8 @@ var tui;
                             var parent = obj.parentNode;
                             if (parent && $(parent).hasClass("tui-grid-line")) {
                                 line = _this._buffer.begin + _this._buffer.lines.indexOf(parent);
+                                col = obj.col;
                                 if (_this.get("selectable") === true) {
-                                    col = obj.col;
                                     _this._set("activeRow", line);
                                     _this._set("activeColumn", col);
                                 }
@@ -9927,9 +10020,12 @@ var tui;
                         cell.appendChild(prefixSpan);
                     }
                     var txt = item[columns[i].key];
-                    if (typeof columns[i].translator === "function")
-                        txt = columns[i].translator(txt);
-                    cell.appendChild(document.createTextNode(txt === null || txt === undefined ? "" : txt));
+                    if (typeof columns[i].translator === "function") {
+                        var el = columns[i].translator(txt, item, index);
+                        el && cell.appendChild(el);
+                    }
+                    else
+                        cell.appendChild(document.createTextNode(txt === null || txt === undefined ? "" : txt));
                     var suffixContent = columns[i].suffixKey !== null ? item[columns[i].suffixKey] : null;
                     if (suffixContent) {
                         var suffixSpan = tui.elem("span");
@@ -10114,7 +10210,8 @@ var tui;
                 }
                 for (var i = 0; i < this._columnWidths.length; i++) {
                     var val = Math.round(this._columnWidths[i]);
-                    columns[i].width = val;
+                    if (!isNaN(val) && val > 0)
+                        columns[i].width = val;
                 }
                 for (var i = 0; i < this._vLines.length; i++) {
                     if (this._vLines[i].parentNode)
@@ -10143,13 +10240,18 @@ var tui;
                             this._handlers[i].className = "tui-grid-handler";
                         }
                         this._handlers[i].style.left = used + vval(columns[i].width) + (Grid.CELL_SPACE) - this._hbar.get("value") + "px";
+                        if (columns[i].fixed) {
+                            this._handlers[i].style.display = "none";
+                        }
+                        else
+                            this._handlers[i].style.display = "";
                         used += vval(columns[i].width) + (Grid.CELL_SPACE * 2);
                         this._.appendChild(this._handlers[i]);
                     }
                 }
                 var cssText = "";
                 for (var i_5 = 0; i_5 < columns.length; i_5++) {
-                    cssText += (".tui-grid-" + this._tuid + "-" + i_5 + "{width:" + vval(columns[i_5].width) + "px;}");
+                    cssText += (".tui-grid-" + this._tuid + "-" + i_5 + "{width:" + vval(columns[i_5].width) + "px; text-align: " + getAlignText(columns[i_5].align) + "}");
                 }
                 if (document.createStyleSheet)
                     this._gridStyle.cssText = cssText;

@@ -21,7 +21,7 @@ module tui.service {
 		return (params || "");
 	}
 
-	class Service extends EventObject {
+	export class Service extends EventObject {
 		_constructor: Function;
 
 		use(fn: (...argv: any[]) => void, desc?: string): void {
@@ -78,10 +78,11 @@ module tui.service {
 		});
 	}
 
-	export function register(name: string, fn: Function): void {
+	export function register(name: string, fn: Function): Service {
 		var service = new Service();
 		service._constructor = fn;
 		_services[name] = service;
+		return service;
 	}
 
 	export function unregister(name: string): void {

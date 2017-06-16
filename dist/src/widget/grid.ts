@@ -3,15 +3,16 @@
 
 module tui.widget {
 	"use strict";
-	
+
 	interface BufferInfo {
 		begin: number;
 		end: number;
 		lines: HTMLElement[];
 	}
-	
+
 	export interface ColumnInfo {
 		name: string;
+		align?: string;
 		width?: number;
 		fixed?: boolean;
 		key?: string;
@@ -22,7 +23,7 @@ module tui.widget {
 		checkKey?: string;
 		prefixKey?: string;
 		suffixKey?: string;
-		translator?: (value: any) => string;
+		translator?: (value: any, item: any, index: number) => Node;
 	}
 
 	function vval(v: number): number {
@@ -32,20 +33,28 @@ module tui.widget {
 			return v;
 	}
 
+	function getAlignText(align: string) {
+		if (align && /^(left|center|right)$/i.test(align)) {
+			return align.toLowerCase();
+		} else {
+			return "left";
+		}
+	}
+
 	/**
 	 * <tui:gird>
-	 * Attributes: data, list(array type data), tree(tree type data), 
-	 * columns, sortColumn, sortType, scrollTop, scrollLeft, activeRow, 
+	 * Attributes: data, list(array type data), tree(tree type data),
+	 * columns, sortColumn, sortType, scrollTop, scrollLeft, activeRow,
 	 * activeColumn
 	 * Method: scrollTo, setSortFlag
 	 * Events: sort, rowclick, rowdblclick, rowcheck, keyselect
 	 */
 	export class Grid extends Widget {
-		
-		static CELL_SPACE = 4; 
+
+		static CELL_SPACE = 4;
 		static LINE_HEIGHT = 31;
 		//protected _lineHeight: number; // 31
-		
+
 		private _tuid: string;
 		private _setupHeadMoveListener: boolean = false;
 		private _vbar: Scrollbar;
@@ -58,7 +67,7 @@ module tui.widget {
 		private _gridStyle: HTMLStyleElement;
 		private _vLines: HTMLElement[] = [];
 		private _handlers: HTMLElement[] = [];
-		
+
 		protected initRestriction(): void {
 			// Register update callback routine
 			var updateCallback: (data: EventInfo) => any = (() => {
@@ -73,7 +82,7 @@ module tui.widget {
 					}
 				};
 			})();
-			
+
 			super.initRestriction();
 			this.setRestrictions({
 				"selectable": {
@@ -243,20 +252,21 @@ module tui.widget {
 			this._components["hScroll"] = this._hbar.appendTo(this._, false)._;
 			this._vbar = <Scrollbar>tui.create("scrollbar");
 			this._components["vScroll"] = this._vbar.appendTo(this._, false)._;
-			
+
 			//this._lineHeight = Grid.LINE_HEIGHT;
-			
+
 			if ((<any>document).createStyleSheet) {
 				this._gridStyle = (<any>document).createStyleSheet();
 			} else {
 				this._gridStyle = <HTMLStyleElement>elem("style");
 				document.head.appendChild(this._gridStyle);
 			}
-			
+
 			this._buffer = { begin: 0, end: 0, lines: [] };
-			
+
 			this.setInit("header", true);
 			this.on("resize", () => {
+				this._columnWidths = [];
 				this.render();
 			});
 			this._vbar.on("scroll", () => {
@@ -298,7 +308,7 @@ module tui.widget {
 					}
 				}
 			});
-			
+
 			var scrollX = (distance: number) => {
 				var oldValue = this._hbar.get("value");
 				this._hbar.set("value", oldValue - distance);
@@ -310,7 +320,7 @@ module tui.widget {
 					return false;
 				}
 			};
-			
+
 			var scrollY = (distance: number) => {
 				var oldValue = this._vbar.get("value");
 				this._vbar.set("value", oldValue - distance);
@@ -321,7 +331,7 @@ module tui.widget {
 					return false;
 				}
 			}
-			
+
 			var inTouched = false;
 			var lastSpeed = 0;
 			var lastPos: {x: number, y: number};
@@ -367,7 +377,7 @@ module tui.widget {
 					else if (Math.abs(moveY) > 0)
 						direction = "y";
 				}
-				
+
 				if (direction === "x") {
 					lastSpeed = moveX / spanTime;
 					if (scrollX(moveX)) {
@@ -381,7 +391,7 @@ module tui.widget {
 						ev.preventDefault();
 					}
 				}
-				
+
 			});
 			$(this._).on("touchend", function(ev) {
 				clearTimeout(hittestTimer);
@@ -391,12 +401,12 @@ module tui.widget {
 							if (scrollX(lastSpeed * 20)) {
 								lastSpeed *= 0.95;
 								requestAnimationFrame(keepMove);
-							} 
+							}
 						} else if (direction === "y") {
 							if (scrollY(lastSpeed * 20)) {
 								lastSpeed *= 0.95;
 								requestAnimationFrame(keepMove);
-							} 
+							}
 						} else {
 							lastSpeed = 0;
 						}
@@ -405,7 +415,7 @@ module tui.widget {
 				inTouched = false;
 				lastTime = null;
 			});
-			
+
 			$(this._).on("mousedown touchstart", (ev) => {
 				var obj = <HTMLElement>(ev.target || ev.srcElement);
 				if ($(obj).hasClass("tui-grid-handler")) { // Resizing
@@ -426,6 +436,8 @@ module tui.widget {
 						obj.style.height = "";
 						$(obj).removeClass("tui-handler-move");
 						columns[idx].width = columns[idx].width + positions[0].x - srcX;
+						if (columns[idx].width < 0)
+							columns[idx].width = 0;
 						this._columnWidths = [];
 						this.initColumnWidth();
 						this.computeScroll();
@@ -436,7 +448,7 @@ module tui.widget {
 					mask.style.cursor = "col-resize";
 				}
 			});
-			
+
 			var hittest = (obj: HTMLElement): {line: number, col: number} => {
 				var line: number = null;
 				var col: number = null;
@@ -445,8 +457,8 @@ module tui.widget {
 						var parent = <HTMLElement>obj.parentNode;
 						if (parent && $(parent).hasClass("tui-grid-line")) {
 							line = this._buffer.begin + this._buffer.lines.indexOf(parent);
+							col = (<any>obj).col;
 							if (this.get("selectable") === true) {
-								col = (<any>obj).col;
 								this._set("activeRow", line);
 								this._set("activeColumn", col);
 							}
@@ -457,12 +469,12 @@ module tui.widget {
 				}
 				return {line: line, col: col};
 			}
-			
+
 			var hittestTimer: number = null;
 			var testLine = (ev: JQueryEventObject) => {
 				var obj = <HTMLElement>(ev.target || ev.srcElement);
 				var target = hittest(obj);
-				if (target.line === null) 
+				if (target.line === null)
 					return;
 				var data = this.get("data");
 				if ($(obj).hasClass("tui-arrow-expand")) {
@@ -484,7 +496,7 @@ module tui.widget {
 					} else {
 						checked = data.get(target.line)[checkKey] = !data.get(target.line)[checkKey];
 					}
-					this.drawLine(this._buffer.lines[target.line - this._buffer.begin], 
+					this.drawLine(this._buffer.lines[target.line - this._buffer.begin],
 						target.line, this.get("lineHeight"), this.get("columns"), data.get(target.line));
 					ev.preventDefault();
 					this.fire("rowcheck", {e: ev, row: target.line, col: target.col, checked: checked });
@@ -492,7 +504,7 @@ module tui.widget {
 					this.fire("rowmousedown", {e: ev, row: target.line, col: target.col});
 				}
 			};
-			
+
 			$(this._).on("mousedown", (ev) => {
 				testLine(ev);
 			});
@@ -500,10 +512,10 @@ module tui.widget {
 			$(this._).on("mouseup", (ev) => {
 				var obj = <HTMLElement>(ev.target || ev.srcElement);
 				var target = hittest(obj);
-				if (target.line != null) 
+				if (target.line != null)
 					this.fire("rowmouseup", {e: ev, row: target.line, col: target.col});
 			});
-			
+
 			$(content).click((ev)=>{
 				var obj = <HTMLElement>(ev.target || ev.srcElement);
 				if ($(obj).hasClass("tui-arrow-expand")) {
@@ -517,7 +529,7 @@ module tui.widget {
 				if (target.line != null)
 					this.fire("rowclick", {e: ev, row: target.line, col: target.col});
 			});
-			
+
 			$(content).dblclick((ev)=>{
 				var obj = <HTMLElement>(ev.target || ev.srcElement);
 				if ($(obj).hasClass("tui-arrow-expand")) {
@@ -536,7 +548,7 @@ module tui.widget {
 				var activeRow = this.get("activeRow");
 				this.fire("keyup", {e: e, row: activeRow});
 			});
-			
+
 			$(this._).keydown((e) => {
 				if (this.get("disable"))
 					return;
@@ -660,10 +672,10 @@ module tui.widget {
 					}
 					e.preventDefault();
 					e.stopPropagation();
-				} 
+				}
 			});
-			
-			$(head).click((ev) => { // header click: change sort flag 
+
+			$(head).click((ev) => { // header click: change sort flag
 				if (this.get("disable"))
 					return;
 				var obj = <HTMLElement>(ev.target || ev.srcElement);
@@ -691,7 +703,7 @@ module tui.widget {
 				}
 			});
 		}
-		
+
 		setSortFlag(col: number, type: string) {
 			this._set("sortColumn", col);
 			this._set("sortType", type);
@@ -709,7 +721,7 @@ module tui.widget {
 				]);
 			}
 		}
-		
+
 		scrollTo(index: number) {
 			if (typeof index !== "number" || isNaN(index) || index < 0 || index >= this.get("data").length())
 				return;
@@ -720,7 +732,7 @@ module tui.widget {
 				this.drawContent();
 			} else {
 				var h = (index - this._dispLines + 1) * lineHeight;
-				var diff = (this._.clientHeight - this.getComponent("head").offsetHeight 
+				var diff = (this._.clientHeight - this.getComponent("head").offsetHeight
 					- this._hbar._.offsetHeight - this._dispLines * lineHeight);
 				if (v < h - diff) {
 					this._vbar.set("value", h - diff);
@@ -728,7 +740,7 @@ module tui.widget {
 				}
 			}
 		}
-		
+
 		iterate(func: (item: any, path: number[], treeNode: boolean) => boolean) {
 			var data = this.get("data");
 			var dataType = this.get("dataType");
@@ -756,13 +768,13 @@ module tui.widget {
 			} else {
 				var list = <ds.DS>data;
 				for (let i = 0; i < list.length(); i++) {
-					let listItem = dataType === "tree" ? list.get(i).item : list.get(i); 
+					let listItem = dataType === "tree" ? list.get(i).item : list.get(i);
 					if (func(listItem, [i], dataType === "tree") === false)
 						break;
 				}
 			}
 		}
-		
+
 		/**
 		 * Search a row by condition, get field value by 'dataKey' and compare to value, if match then active it.
 		 * Should only used in local data type, e.g. List or Tree, if used in RemoteList or RemoteTree may not work correctly.
@@ -771,8 +783,8 @@ module tui.widget {
 			var data = this.get("data");
 			var dataType = this.get("dataType");
 			var path: number[] = [];
-			
-			
+
+
 			// If is a subset return 1, if equals return 2, otherwise return 0
 			function matchPath(p1: number[], p2: number[]): number {
 				for (var i = 0; i < p1.length; i++) {
@@ -783,7 +795,7 @@ module tui.widget {
 				}
 				return p1.length === p2.length ? 2 : 1;
 			}
-			
+
 			if (dataType === "tree" && data._finalData == null) {
 				var tree = <ds.TreeBase>data;
 				this.iterate(function(item: any, p: number[], treeNode: boolean): boolean {
@@ -792,7 +804,7 @@ module tui.widget {
 						return false;
 					}
 				});
-				
+
 				if (path && path.length > 0) {
 					var searchPath: number[] = [];
 					var searchLevel = -1;
@@ -844,7 +856,7 @@ module tui.widget {
 				}
 			}
 		}
-		
+
 		protected computeWidth(): number {
 			if (this.get("autoWidth")) {
 				return this._.clientWidth;
@@ -856,7 +868,7 @@ module tui.widget {
 				return contentWidth;
 			}
 		}
-		
+
 		protected computeScroll() {
 			var vScroll = this._vbar;
 			$(vScroll._).addClass("tui-hidden");
@@ -872,7 +884,7 @@ module tui.widget {
 			this._contentWidth = this.computeWidth();
 			var head = this._components["head"];
 			var content = this._components["content"];
-			
+
 			var computeV = (first: boolean) => {
 				var realClientHeight = clientHeight - (hEnable ? hScroll._.offsetHeight : 0);
 				var shouldEnable = (this.get("autoHeight") ? false : this._contentHeight > realClientHeight);
@@ -904,7 +916,7 @@ module tui.widget {
 						computeH();
 				}
 			};
-			
+
 			var computeH = () => {
 				var realClientWidth = clientWidth - (vEnable ? vScroll._.offsetWidth : 0);
 				var shouldEnable = (this.get("autoWidth") ? false : this._contentWidth > realClientWidth);
@@ -925,10 +937,10 @@ module tui.widget {
 					computeV(false);
 				}
 			};
-			
+
 			computeV(true);
 			computeH();
-			
+
 			if (this.get("header")) {
 				head.style.display = "block";
 				var width = (vEnable ? clientWidth - vScroll._.offsetWidth : clientWidth);
@@ -945,7 +957,7 @@ module tui.widget {
 			content.style.height = dispHeight + "px";
 			this._dispLines = Math.ceil((dispHeight - (this.get("header") ? lineHeight : 0 )) / lineHeight);
 		}
-		
+
 		protected drawLine(line: HTMLElement, index: number, lineHeight: number, columns: ColumnInfo[], lineData: any) {
 			var isTree = this.get("dataType") === "tree";
 			var item = isTree ? lineData.item : lineData;
@@ -968,7 +980,7 @@ module tui.widget {
 			for (var i = 0; i < columns.length; i++) {
 				let col = columns[i];
 				var prefix = "";
-				if (col.arrow === true && isTree) { // draw a tree arrow 
+				if (col.arrow === true && isTree) { // draw a tree arrow
 					for (var j = 0; j < lineData.level; j++) {
 						prefix += "<i class='tui-space'></i>";
 					}
@@ -982,7 +994,7 @@ module tui.widget {
 					}
 				}
 				if (col.type === "check") {
-					var k = (col.checkKey ? col.checkKey : "checked"); 
+					var k = (col.checkKey ? col.checkKey : "checked");
 					if (item[k] === true)
 						prefix += "<i class='fa fa-check-square tui-grid-check tui-checked'></i>";
 					else if (item[k] === false)
@@ -990,7 +1002,7 @@ module tui.widget {
 					else
 						prefix += "<i class='tui-grid-no-check'></i>";
 				} else if (col.type === "tristate") {
-					var k = (col.checkKey ? col.checkKey : "checked"); 
+					var k = (col.checkKey ? col.checkKey : "checked");
 					if (item[k] === true)
 						prefix += "<i class='fa-check-square tui-grid-check tui-checked'></i>";
 					else if (item[k] === false)
@@ -1004,11 +1016,11 @@ module tui.widget {
 				} else if (col.type === "edit") {
 					prefix += "<i class='fa fa-edit tui-grid-edit'></i>";
 				}
-				
+
 				if (col.iconKey && item[col.iconKey]) {
 					prefix += "<i class='fa " + item[col.iconKey] + " tui-grid-icon'></i>";
 				}
-				
+
 				var cell = (<HTMLElement>line.childNodes[i]);
 				cell.style.height = lineHeight + "px";
 				cell.style.lineHeight = lineHeight + "px";
@@ -1020,9 +1032,11 @@ module tui.widget {
 					cell.appendChild(prefixSpan);
 				}
 				var txt = item[columns[i].key];
-				if (typeof columns[i].translator === "function")
-					txt = columns[i].translator(txt);
-				cell.appendChild(document.createTextNode(txt === null || txt === undefined ? "" : txt));
+				if (typeof columns[i].translator === "function") {
+					var el = columns[i].translator(txt, item, index);
+					el && cell.appendChild(el);
+				} else
+					cell.appendChild(document.createTextNode(txt === null || txt === undefined ? "" : txt));
 				var suffixContent = columns[i].suffixKey !== null ? item[columns[i].suffixKey] : null;
 				if (suffixContent) {
 					var suffixSpan = elem("span");
@@ -1031,7 +1045,7 @@ module tui.widget {
 				}
 			}
 		}
-		
+
 		private moveLine(line: HTMLElement, index: number, base: number, lineHeight: number) {
 			line.style.top = (base + index * lineHeight) + "px";
 			line.style.width = this._contentWidth + "px";
@@ -1044,7 +1058,7 @@ module tui.widget {
 			line.setAttribute("unselectable", "on");
 			return <HTMLElement>parent.appendChild(line);
 		}
-		
+
 		protected clearBuffer() {
 			if (!this._buffer) {
 				return;
@@ -1057,7 +1071,7 @@ module tui.widget {
 			this._buffer.end = 0;
 			this._buffer.lines = [];
 		}
-		
+
 		protected drawHeader() {
 			if (!this.get("header"))
 				return;
@@ -1080,7 +1094,7 @@ module tui.widget {
 					}
 					sortClass += " tui-sortable";
 				}
-					
+
 				let span = elem("span");
 				span.setAttribute("unselectable", "on");
 				span.className = "tui-grid-" + this._tuid + "-" + i + " " + sortClass;
@@ -1090,7 +1104,7 @@ module tui.widget {
 				span.appendChild(document.createTextNode(columns[i].name));
 			}
 		}
-		
+
 		private _drawTimer: number;
 		protected drawContent() {
 			var vbar = get(this._components["vScroll"]);
@@ -1109,7 +1123,7 @@ module tui.widget {
 					reusable.push(this._buffer.lines[i - this._buffer.begin]);
 				}
 			}
-			
+
 			var activeRow = this.get("activeRow");
 			if (activeRow === null)
 				this._set("activeRow", null);
@@ -1134,18 +1148,18 @@ module tui.widget {
 				this.moveLine(line, i - begin, base, lineHeight);
 				newBuffer.push(line);
 			}
-			
+
 			clearTimeout(this._drawTimer);
 			this._drawTimer = setTimeout(() => {
 				var begin = Math.floor(vbar.get("value") / lineHeight);
 				var end = begin + this._dispLines + 1;
 				for (var i = this._buffer.begin; i < this._buffer.end; i++) {
 					if (i >= begin && i < end)
-						this.drawLine(this._buffer.lines[i - this._buffer.begin], i, 
+						this.drawLine(this._buffer.lines[i - this._buffer.begin], i,
 							this.get("lineHeight"), columns, data.get(i));
 				}
 			}, 32);
-			
+
 			for (var i = 0; i < reusable.length; i++) {
 				content.removeChild(reusable[i]);
 			}
@@ -1153,7 +1167,7 @@ module tui.widget {
 			this._buffer.begin = begin;
 			this._buffer.end = this._buffer.begin + this._buffer.lines.length;
 		}
-		
+
 		protected initColumnWidth() {
 			var columns = <ColumnInfo[]>this.get("columns");
 			for (var i = 0; i < columns.length; i++) {
@@ -1167,31 +1181,31 @@ module tui.widget {
 					this._columnWidths[i] = 0;
 			}
 		}
-		
+
 		protected computeHOffset() {
 			//var widths: number[] = [];
 			var head = this._components["head"];
-			var content = this._components["content"]; 
+			var content = this._components["content"];
 			var scrollLeft: number = this._hbar.get("value");
 			var columns = <ColumnInfo[]>this.get("columns");
 			head.scrollLeft = scrollLeft;
 			content.scrollLeft = scrollLeft;
 			var used = 0;
 			for (var i = 0; i < columns.length; i++) {
-				this._vLines[i].style.left = used + vval(columns[i].width) + 
+				this._vLines[i].style.left = used + vval(columns[i].width) +
 					(Grid.CELL_SPACE * 2) - scrollLeft + "px";
 				used += vval(columns[i].width) +  (Grid.CELL_SPACE * 2);
 			}
 			if (this.get("header")) {
 				used = 0;
 				for (var i = 0; i < columns.length; i++) {
-					this._handlers[i].style.left = used + vval(columns[i].width) + 
+					this._handlers[i].style.left = used + vval(columns[i].width) +
 						(Grid.CELL_SPACE) - this._hbar.get("value") + "px";
 					used += vval(columns[i].width) +  (Grid.CELL_SPACE * 2);
 				}
 			}
 		}
-		
+
 		protected computeColumnWidth() {
 			//var widths: number[] = [];
 			var columns = <ColumnInfo[]>this.get("columns");
@@ -1208,7 +1222,7 @@ module tui.widget {
 						totalCompute += this._columnWidths[i];
 					}
 				}
-				
+
 				for (var i = 0; i < columns.length; i++) {
 					if (!columns[i].fixed) {
 						if (totalCompute <= 0)
@@ -1217,13 +1231,14 @@ module tui.widget {
 							this._columnWidths[i] = (this._columnWidths[i] * 1.0) / totalCompute * totalNoFixed;
 					}
 				}
-			} 
+			}
 			for (var i = 0; i < this._columnWidths.length; i++) {
 				let val = Math.round(this._columnWidths[i]);
 				//widths.push(val);
-				columns[i].width = val;
+				if (!isNaN(val) && val > 0)
+					columns[i].width = val;
 			}
-			
+
 			// Add V lines
 			for (var i = 0; i < this._vLines.length; i++) {
 				if (this._vLines[i].parentNode)
@@ -1237,7 +1252,7 @@ module tui.widget {
 				}
 				this._vLines[i].style.left = used + vval(columns[i].width) +  (Grid.CELL_SPACE * 2) - this._hbar.get("value") + "px";
 				used += vval(columns[i].width) +  (Grid.CELL_SPACE * 2);
-				this._vLines[i].style.height = Math.min(this._contentHeight, this._.clientHeight) + "px";  
+				this._vLines[i].style.height = Math.min(this._contentHeight, this._.clientHeight) + "px";
 				this._.appendChild(this._vLines[i]);
 			}
 			// Add Handlers
@@ -1253,26 +1268,30 @@ module tui.widget {
 						this._handlers[i].className = "tui-grid-handler";
 					}
 					this._handlers[i].style.left = used + vval(columns[i].width) +  (Grid.CELL_SPACE) - this._hbar.get("value") + "px";
+					if (columns[i].fixed) {
+						this._handlers[i].style.display = "none";
+					} else
+						this._handlers[i].style.display = "";
 					used += vval(columns[i].width) +  (Grid.CELL_SPACE * 2);
 					this._.appendChild(this._handlers[i]);
 				}
 			}
-			
+
 			var cssText = "";
 			for (let i = 0; i < columns.length; i++) {
-				cssText += (".tui-grid-" + this._tuid + "-" + i + "{width:" + vval(columns[i].width) + "px;}");
+				cssText += (".tui-grid-" + this._tuid + "-" + i + "{width:" + vval(columns[i].width) + "px; text-align: " + getAlignText(columns[i].align) + "}");
 			}
 			if ((<any>document).createStyleSheet) // IE
 				(<any>this._gridStyle).cssText = cssText;
 			else
 				this._gridStyle.innerHTML = cssText;
-				
+
 			for (let i = 0; i < this._buffer.lines.length; i++) {
 				let line: HTMLElement = this._buffer.lines[i];
 				line.style.width = this._contentWidth + "px";
 			}
 		}
-		
+
 		render(): void {
 			this.initColumnWidth();
 			this.computeScroll();
@@ -1290,16 +1309,16 @@ module tui.widget {
 
 	register(Grid, "grid");
 	registerResize("grid");
-	
-	
+
+
 	/**
 	 * <tui:list>
 	 */
 	export class List extends Grid {
-		
+
 		private _column: ColumnInfo;
 		static LINE_HEIGHT = 30;
-		
+
 		protected initRestriction(): void {
 			super.initRestriction();
 			this._column = {
@@ -1432,17 +1451,17 @@ module tui.widget {
 						return items;
 					}
 				}
-				
+
 			});
 		}
-		
+
 		protected init(): void {
 			super.init();
 			this._set("header", false);
 			this.setInit("autoWidth", true);
 			this.setInit("valueKey", "value");
 		}
-		
+
 		selectAll() {
 			var checkKey = this.get("checkKey");
 			this.iterate(function(item: any, path: number[]): boolean {
@@ -1453,7 +1472,7 @@ module tui.widget {
 			});
 			this.render();
 		}
-		
+
 		deselectAll() {
 			var checkKey = this.get("checkKey");
 			this.iterate(function(item: any, path: number[]): boolean {
@@ -1465,7 +1484,7 @@ module tui.widget {
 			this.render();
 		}
 	}
-	
+
 	register(List, "list");
 	registerResize("list");
 }

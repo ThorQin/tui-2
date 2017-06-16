@@ -8,6 +8,7 @@ module tui.widget {
 		fileName: string;
 		mimeType: string;
 		url: string;
+		length: number;
 	}
 
 	var IMAGE_EXT = /\.(png|jpg|jpeg|gif)$/i;
@@ -118,6 +119,7 @@ module tui.widget {
 					fileId: e.data.response.fileId,
 					fileName: e.data.response.fileName,
 					mimeType: e.data.response.mimeType,
+					length: e.data.response.length,
 					url: e.data.response.url
 				}
 				this._values.push(newItem);

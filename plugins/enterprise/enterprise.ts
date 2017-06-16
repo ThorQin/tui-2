@@ -29,7 +29,7 @@ module tui.widget.ext {
 					topmost = true;
 				}
 				ajax.post_(this._classType.listApi, {
-					organId: parentId, 
+					organId: parentId,
 					withSubCompany: !!this.define.withSubCompany,
 					topmost: topmost
 				}).done(function(result){
@@ -239,7 +239,7 @@ module tui.widget.ext {
 				properties: properties
 			}];
 		}
-		
+
 		setProperties(properties: any[]) {
 			var values = properties[1];
 			if (this.define.multiple != !!values.multiple) {
@@ -261,7 +261,7 @@ module tui.widget.ext {
 		withSubCompany: boolean;
 	}
 
-	function translateValue(value: any): string {
+	function translateValue(value: any, item: any, index: number): Node {
 		if (value instanceof Array) {
 			let s = "";
 			for (let item of value) {
@@ -271,11 +271,11 @@ module tui.widget.ext {
 					s += item.name
 				}
 			}
-			return s;
+			return document.createTextNode(s);
 		} else if (value && value.name)
 			return value.name;
 		else
-			return "";
+			return null;
 	}
 
 	class FormUserSelect extends FormDialogSelect<UserSelectItem> {
@@ -304,7 +304,7 @@ module tui.widget.ext {
 	}
 
 	Form.register("user", FormUserSelect);
-	
+
 
 
 	// --------------------------------------------------------------------------------
