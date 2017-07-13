@@ -468,7 +468,7 @@ module tui.ds {
 			if (result.parent === null) {
 				this._index = [];
 				this._rawData = result.data;
-				this.expandItems(null, result.data, this._index, 0, true);
+				this.expandItems(null, result.data, this._index, 0);
 			} else {
 				var index = this.findNodeIndex(result.parent);
 				if (index >= 0) {
