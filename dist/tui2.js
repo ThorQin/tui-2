@@ -11394,7 +11394,7 @@ var tui;
                 this._.appendChild(img);
                 this._.appendChild(toolbar);
                 this._uploader.on("success", function (e) {
-                    _this._set("value", e.data.response);
+                    _this.set("value", e.data.response);
                     _this.fire("success", e);
                 });
                 this._uploader.on("error", function (e) {

@@ -6,7 +6,7 @@ module tui.widget {
 
 	export class Picture extends Widget {
 		private _uploader: browser.Uploader;
-		
+
 		protected initRestriction(): void {
 			super.initRestriction();
 			this._uploader = browser.createUploader(this._);
@@ -14,7 +14,7 @@ module tui.widget {
 				"action": {
 					"set":  (value: any) => {
 						this._uploader.getOptions().action = value;
-					}, 
+					},
 					"get": (): any => {
 						return this._uploader.getOptions().action;
 					}
@@ -26,7 +26,7 @@ module tui.widget {
 							this._uploader.deleteInput();
 							this._uploader.createInput();
 						}
-					}, 
+					},
 					"get": (): any => {
 						return this._uploader.getOptions().accept;
 					}
@@ -40,7 +40,7 @@ module tui.widget {
 			this._.appendChild(img);
 			this._.appendChild(toolbar);
 			this._uploader.on("success", (e: any) => {
-				this._set("value", e.data.response);
+				this.set("value", e.data.response);
 				this.fire("success", e);
 			});
 			this._uploader.on("error", (e: any) => {
