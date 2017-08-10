@@ -2,10 +2,10 @@
 /// <reference path="dialog.ts" />
 module tui.widget {
 	"use strict";
-	
+
 	/**
 	 * <tui:select>
-	 * Attributes: data, list, tree, multiSelect, checkKey, nameKey, canSearch, search 
+	 * Attributes: data, list, tree, multiSelect, checkKey, nameKey, canSearch, search
 	 * iconKey, valueKey
 	 * Method: openSelect
 	 * Events: change, click
@@ -13,7 +13,7 @@ module tui.widget {
 	export class Select extends SelectPopupBase {
 
 		private static LIST_LINE_HEIGHT = 28;
-		
+
 		protected initRestriction(): void {
 			var list = create("list");
 			list._set("noMouseWheel", true);
@@ -146,7 +146,7 @@ module tui.widget {
 				}
 			});
 		}
-		
+
 		private changeSize() {
 			var list = <List>get(this._components["list"]);
 			var popup = <Popup>get(this._components["popup"]);
@@ -168,7 +168,7 @@ module tui.widget {
 			if (!this.get("multiSelect")) {
 				let selectedItem: any = null;
 				list.iterate(function(item: any, path: number[], treeNode: boolean): boolean {
-					let nodeValue = item[valueKey]; 
+					let nodeValue = item[valueKey];
 					if (nodeValue === val) {
 						selectedItem = item;
 						return false;
@@ -181,7 +181,7 @@ module tui.widget {
 					val = [val];
 				let selectedItems: any[] = [];
 				list.iterate(function(item: any, path: number[], treeNode: boolean): boolean {
-					let nodeValue = item[valueKey]; 
+					let nodeValue = item[valueKey];
 					if (val.indexOf(nodeValue) >= 0) {
 						selectedItems.push(item);
 					}
@@ -190,7 +190,7 @@ module tui.widget {
 				return selectedItems;
 			}
 		}
-		
+
 		private updateTextByValue(list: List) {
 			var textKey = this.get("textKey");
 			if (textKey === null)
@@ -201,20 +201,20 @@ module tui.widget {
 				this._data["value"] = null;
 			} else if (selected instanceof Array)
 				this._set("text", selected.reduce(
-					function(s: string, v: any, i: number){ 
-						return i > 0 ? s + ", " + v[textKey] : v[textKey]; 
+					function(s: string, v: any, i: number){
+						return i > 0 ? s + ", " + v[textKey] : v[textKey];
 					}, "")
 				);
 			else
 				this._set("text", selected[textKey]);
 		}
-		
+
 		protected init(): void {
 			super.init();
 			this.setInit("iconRight", "fa-caret-down");
 			var list = <List>get(this._components["list"]);
-			
-			var container = elem("div"); 
+
+			var container = elem("div");
 			var searchbar = <HTMLElement>container.appendChild(elem("div"));
 			searchbar.className = "tui-select-searchbar";
 			var searchBox = create("input");
@@ -225,10 +225,10 @@ module tui.widget {
 			var toolbar = <HTMLElement>container.appendChild(elem("div"));
 			toolbar.className = "tui-select-toolbar";
 			toolbar.setAttribute("unselectable", "on");
-			
+
 			var popup = <Popup>get(this._components["popup"]);
 			popup._set("content", container);
-			
+
 			this._components["searchbar"] = <HTMLElement>searchbar;
 			this._components["toolbar"] = <HTMLElement>toolbar;
 			this._components["searchBox"] = searchBox._;
@@ -288,14 +288,14 @@ module tui.widget {
 					this.fire("click", {e:e, value: this.get("value"), text: this.get("text")});
 				}
 			});
-			
+
 		}
-		
+
 		openSelect() {
 			var list = <List>get(this._components["list"]);
 			var popup = <Popup>get(this._components["popup"]);
 			var minWidth = this._.offsetWidth - 2;
-			
+
 			if (minWidth < 250)
 				minWidth = 250
 			popup._.style.minWidth = minWidth + "px";
@@ -308,22 +308,22 @@ module tui.widget {
 			} else
 				searchbar.style.display = "none";
 			var checkButtons = "<a name='selectAll'>" + tui.str("Select all") + "</a> | " +
-				"<a name='deselectAll'>" + tui.str("Deselect all") + 
+				"<a name='deselectAll'>" + tui.str("Deselect all") +
 				"</a> | <a name='ok'>" + tui.str("OK") + "</a>";
 			var clearButton = "<a name='clear'>" + tui.str("Clear") + "</a>";
 			var multiSelect = this.get("multiSelect");
 			var clearable = !multiSelect && this.get("clearable");
-			
+
 			toolbar.style.display = "";
 			if (multiSelect)
 				toolbar.innerHTML = checkButtons;
 			else if (clearable)
 				toolbar.innerHTML = clearButton;
-			else 
+			else
 				toolbar.style.display = "none";
-			
+
 			popup.open(this._);
-			
+
 			setTimeout(() => {
 				if (this.get("canSearch"))
 					searchBox.render();
@@ -336,7 +336,7 @@ module tui.widget {
 					});
 				}
 				if (!this.get("multiSelect")) {
-					if (this.get("value") !== null) { 
+					if (this.get("value") !== null) {
 						list.activeTo(this.get("valueKey"), this.get("value"));
 					} else {
 						list._set("activeRow", null);
@@ -348,10 +348,10 @@ module tui.widget {
 				}
 				this.changeSize();
 			});
-			
+
 		}
 	}
-	
+
 	register(Select, "select");
 
 	export class DialogSelect extends SelectBase {
@@ -364,7 +364,8 @@ module tui.widget {
 			this.dialog.set("title", this.get("title"));
 			this.dialog.setContent(this.get("content"));
 			this.dialog.open("ok#tui-primary");
-		} 
+			this.fire("active", this.dialog);
+		}
 		protected initChildren(childNodes: Node[]) {
 			super.initChildren(childNodes);
 			this.dialog = <Dialog>create("dialog");
@@ -378,15 +379,15 @@ module tui.widget {
 		}
 
 		protected createPopup(): any {
-			this.dialog.on("btnclick", () => {
-				if (this.fire("select") === false)
+			this.dialog.on("btnclick", (e) => {
+				if (this.fire("select", e) === false)
 					return;
 				this.dialog.close();
 			});
 			return this.dialog;
 		}
 		protected init(): void {
-			
+
 			super.init();
 			this.setInit("iconRight", "fa-pencil");
 		}

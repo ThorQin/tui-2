@@ -327,6 +327,7 @@ tui.dict("en-us", {
     "ok": "OK",
     "close": "Close",
     "cancel": "Cancel",
+    "append": "Append",
     "accept": "Accept",
     "agree": "Agree",
     "reject": "Reject",
@@ -9231,6 +9232,7 @@ var tui;
                 this._components["hScroll"] = this._hbar.appendTo(this._, false)._;
                 this._vbar = tui.create("scrollbar");
                 this._components["vScroll"] = this._vbar.appendTo(this._, false)._;
+                this._clearTimes = 0;
                 if (document.createStyleSheet) {
                     this._gridStyle = document.createStyleSheet();
                 }
@@ -10133,21 +10135,28 @@ var tui;
                     this.moveLine(line, i - begin, base, lineHeight);
                     newBuffer.push(line);
                 }
-                clearTimeout(this._drawTimer);
-                this._drawTimer = setTimeout(function () {
-                    var begin = Math.floor(vbar.get("value") / lineHeight);
-                    var end = begin + _this._dispLines + 1;
-                    for (var i = _this._buffer.begin; i < _this._buffer.end; i++) {
-                        if (i >= begin && i < end)
-                            _this.drawLine(_this._buffer.lines[i - _this._buffer.begin], i, _this.get("lineHeight"), columns, data.get(i));
-                    }
-                }, 32);
                 for (var i = 0; i < reusable.length; i++) {
                     content.removeChild(reusable[i]);
                 }
                 this._buffer.lines = newBuffer;
                 this._buffer.begin = begin;
                 this._buffer.end = this._buffer.begin + this._buffer.lines.length;
+                var drawRoutine = function () {
+                    var begin = Math.floor(vbar.get("value") / lineHeight);
+                    var end = begin + _this._dispLines + 1;
+                    for (var i = _this._buffer.begin; i < _this._buffer.end; i++) {
+                        if (i >= begin && i < end)
+                            _this.drawLine(_this._buffer.lines[i - _this._buffer.begin], i, _this.get("lineHeight"), columns, data.get(i));
+                    }
+                    _this._drawTimer = null;
+                };
+                if (data instanceof tui.ds.RemoteList) {
+                    clearTimeout(this._drawTimer);
+                    this._drawTimer = setTimeout(drawRoutine, 32);
+                }
+                else {
+                    drawRoutine();
+                }
             };
             Grid.prototype.initColumnWidth = function () {
                 var columns = this.get("columns");
@@ -12096,6 +12105,7 @@ var tui;
                 this.dialog.set("title", this.get("title"));
                 this.dialog.setContent(this.get("content"));
                 this.dialog.open("ok#tui-primary");
+                this.fire("active", this.dialog);
             };
             DialogSelect.prototype.initChildren = function (childNodes) {
                 _super.prototype.initChildren.call(this, childNodes);
@@ -12110,8 +12120,8 @@ var tui;
             };
             DialogSelect.prototype.createPopup = function () {
                 var _this = this;
-                this.dialog.on("btnclick", function () {
-                    if (_this.fire("select") === false)
+                this.dialog.on("btnclick", function (e) {
+                    if (_this.fire("select", e) === false)
                         return;
                     _this.dialog.close();
                 });

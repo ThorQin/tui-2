@@ -98,19 +98,31 @@ module tui.widget.ext {
 					this.define.value = null;
 				form.fire("itemvaluechanged", {control: this});
 			});
-			this._widget.on("select", () => {
+			this._widget.on("select", (e) => {
 				if (this.define.multiple) {
-					var values = [];
+					var values = this.define.value;
 					var checkedItems: any[] = this._list.get("checkedItems");
-					var text = "";
 					for (let i = 0; i < checkedItems.length; i++) {
-						let obj:{[index: string]: string} = {};
-						obj[this._key] = checkedItems[i][this._key];
-						obj.name = checkedItems[i].name;
-						values.push(obj);
+						let k = checkedItems[i][this._key];
+						let exists = false;
+						for (let item of values) {
+							if (item[this._key] == k) {
+								exists = true
+								break;
+							}
+						}
+						if (!exists) {
+							let obj:{[index: string]: string} = {};
+							obj[this._key] = k;
+							obj.name = checkedItems[i].name;
+							values.push(obj);
+						}
+					}
+					var text = "";
+					for (let i = 0; i < values.length; i++) {
 						if (i > 0)
 							text += ", ";
-						text += checkedItems[i].name;
+						text += values[i].name;
 					}
 					this.define.value = values;
 					this._widget.set("text", text);

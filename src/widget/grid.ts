@@ -252,7 +252,7 @@ module tui.widget {
 			this._components["hScroll"] = this._hbar.appendTo(this._, false)._;
 			this._vbar = <Scrollbar>tui.create("scrollbar");
 			this._components["vScroll"] = this._vbar.appendTo(this._, false)._;
-
+			this._clearTimes = 0;
 			//this._lineHeight = Grid.LINE_HEIGHT;
 
 			if ((<any>document).createStyleSheet) {
@@ -1106,6 +1106,7 @@ module tui.widget {
 		}
 
 		private _drawTimer: number;
+		private _clearTimes: number;
 		protected drawContent() {
 			var vbar = get(this._components["vScroll"]);
 			var content = this._components["content"];
@@ -1149,8 +1150,14 @@ module tui.widget {
 				newBuffer.push(line);
 			}
 
-			clearTimeout(this._drawTimer);
-			this._drawTimer = setTimeout(() => {
+			for (var i = 0; i < reusable.length; i++) {
+				content.removeChild(reusable[i]);
+			}
+			this._buffer.lines = newBuffer;
+			this._buffer.begin = begin;
+			this._buffer.end = this._buffer.begin + this._buffer.lines.length;
+
+			var drawRoutine = () => {
 				var begin = Math.floor(vbar.get("value") / lineHeight);
 				var end = begin + this._dispLines + 1;
 				for (var i = this._buffer.begin; i < this._buffer.end; i++) {
@@ -1158,14 +1165,15 @@ module tui.widget {
 						this.drawLine(this._buffer.lines[i - this._buffer.begin], i,
 							this.get("lineHeight"), columns, data.get(i));
 				}
-			}, 32);
+				this._drawTimer = null;
+			};
 
-			for (var i = 0; i < reusable.length; i++) {
-				content.removeChild(reusable[i]);
+			if (data instanceof ds.RemoteList) {
+				clearTimeout(this._drawTimer);
+				this._drawTimer = setTimeout(drawRoutine, 32);
+			} else {
+				drawRoutine();
 			}
-			this._buffer.lines = newBuffer;
-			this._buffer.begin = begin;
-			this._buffer.end = this._buffer.begin + this._buffer.lines.length;
 		}
 
 		protected initColumnWidth() {

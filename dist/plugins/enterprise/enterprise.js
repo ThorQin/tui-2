@@ -53,19 +53,32 @@ var tui;
                             _this.define.value = null;
                         form.fire("itemvaluechanged", { control: _this });
                     });
-                    _this._widget.on("select", function () {
+                    _this._widget.on("select", function (e) {
                         if (_this.define.multiple) {
-                            var values = [];
+                            var values = _this.define.value;
                             var checkedItems = _this._list.get("checkedItems");
-                            var text = "";
                             for (var i = 0; i < checkedItems.length; i++) {
-                                var obj = {};
-                                obj[_this._key] = checkedItems[i][_this._key];
-                                obj.name = checkedItems[i].name;
-                                values.push(obj);
+                                var k = checkedItems[i][_this._key];
+                                var exists = false;
+                                for (var _i = 0, values_1 = values; _i < values_1.length; _i++) {
+                                    var item = values_1[_i];
+                                    if (item[_this._key] == k) {
+                                        exists = true;
+                                        break;
+                                    }
+                                }
+                                if (!exists) {
+                                    var obj = {};
+                                    obj[_this._key] = k;
+                                    obj.name = checkedItems[i].name;
+                                    values.push(obj);
+                                }
+                            }
+                            var text = "";
+                            for (var i = 0; i < values.length; i++) {
                                 if (i > 0)
                                     text += ", ";
-                                text += checkedItems[i].name;
+                                text += values[i].name;
                             }
                             _this.define.value = values;
                             _this._widget.set("text", text);

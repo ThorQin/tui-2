@@ -13,6 +13,7 @@ tui.dict("en-us", {
 	"ok": "OK",
 	"close": "Close",
 	"cancel": "Cancel",
+	"append": "Append",
 	"accept": "Accept",
 	"agree": "Agree",
 	"reject": "Reject",

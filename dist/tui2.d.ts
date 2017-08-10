@@ -832,6 +832,7 @@ declare module tui.widget {
         protected clearBuffer(): void;
         protected drawHeader(): void;
         private _drawTimer;
+        private _clearTimes;
         protected drawContent(): void;
         protected initColumnWidth(): void;
         protected computeHOffset(): void;
