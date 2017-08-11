@@ -373,7 +373,7 @@ declare module tui.widget {
     }
 }
 declare module tui {
-    function inputbox(define: widget.FormItem, title?: string, callback?: (value: any) => JQueryPromise<any> | boolean): widget.Dialog;
+    function inputbox(define: widget.FormItem[], title?: string, callback?: (value: any) => JQueryPromise<any> | boolean): widget.Dialog;
 }
 declare module tui.widget {
     var dialogStack: Dialog[];
@@ -794,6 +794,7 @@ declare module tui.widget {
         fixed?: boolean;
         key?: string;
         type?: string;
+        checkAll?: boolean;
         arrow?: boolean;
         sortable?: boolean;
         iconKey?: string;

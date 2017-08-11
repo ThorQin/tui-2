@@ -9675,7 +9675,17 @@ var tui;
                     while (obj) {
                         if (obj.parentNode === head) {
                             var col = obj.col;
-                            if (columns[col].sortable) {
+                            if (columns[col].checkAll === true) {
+                                columns[col].checkAll = false;
+                                _this.drawHeader();
+                                _this.fire("checkcol", { e: ev, column: columns[col], col: col, checkAll: false });
+                            }
+                            else if (columns[col].checkAll === false) {
+                                columns[col].checkAll = true;
+                                _this.drawHeader();
+                                _this.fire("checkcol", { e: ev, column: columns[col], col: col, checkAll: true });
+                            }
+                            else if (columns[col].sortable) {
                                 var sortType = "asc";
                                 if (_this.get("sortColumn") == col) {
                                     if (_this.get("sortType") === "asc")
@@ -10065,21 +10075,30 @@ var tui;
                 head.innerHTML = "";
                 var columns = this.get("columns");
                 for (var i = 0; i < columns.length; i++) {
-                    var prefix = "<i class='tui-grid-no-sort'></i>";
+                    var prefix = void 0;
                     var sortClass = "";
-                    if (columns[i].sortable) {
-                        prefix = "<i class='tui-grid-sortable'></i>";
-                        if (this.get("sortColumn") == i) {
-                            if (this.get("sortType") === "desc") {
-                                prefix = "<i class='tui-grid-desc'></i>";
-                                sortClass = "tui-desc";
+                    if (columns[i].checkAll === true) {
+                        prefix = "<i class='fa fa-check-square tui-grid-check'></i>";
+                    }
+                    else if (columns[i].checkAll === false) {
+                        prefix = "<i class='fa fa-square-o tui-grid-check tui-unchecked'></i>";
+                    }
+                    else {
+                        prefix = "<i class='tui-grid-no-sort'></i>";
+                        if (columns[i].sortable) {
+                            prefix = "<i class='tui-grid-sortable'></i>";
+                            if (this.get("sortColumn") == i) {
+                                if (this.get("sortType") === "desc") {
+                                    prefix = "<i class='tui-grid-desc'></i>";
+                                    sortClass = "tui-desc";
+                                }
+                                else {
+                                    prefix = "<i class='tui-grid-asc'></i>";
+                                    sortClass = "tui-asc";
+                                }
                             }
-                            else {
-                                prefix = "<i class='tui-grid-asc'></i>";
-                                sortClass = "tui-asc";
-                            }
+                            sortClass += " tui-sortable";
                         }
-                        sortClass += " tui-sortable";
                     }
                     var span = tui.elem("span");
                     span.setAttribute("unselectable", "on");
@@ -10087,7 +10106,8 @@ var tui;
                     span.col = i;
                     head.appendChild(span);
                     tui.browser.setInnerHtml(span, prefix);
-                    span.appendChild(document.createTextNode(columns[i].name));
+                    var txt = columns[i].name;
+                    span.appendChild(document.createTextNode(txt === null || txt === undefined ? "" : txt));
                 }
             };
             Grid.prototype.drawContent = function () {
