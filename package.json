@@ -1,6 +1,6 @@
 {
   "name": "tui2",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "author": {
     "name": "Thor Qin",
     "email": "thor.qin@outlook.com"
@@ -33,13 +33,13 @@
     "npm-run-all": "latest"
   },
   "scripts": {
-    
+
     "build:ts": "tsc --sourceRoot src",
     "compress:ts": "cd dist && uglifyjs tui2.js > tui2.min.js --compress --support-ie8 --source-map tui2.min.js.map",
-    
+
     "prebuild:less": "fsys --task=copy --filesFolders=less --destination=dist --clobber='true' --preserveTimestamps='false'",
     "build:less": "cd dist && lessc less/tui2.less tui2.css --clean-css=\"--s1 --advanced --compatibility=ie8\" --source-map",
-    
+
     "build:tools": "tsc --lib ES5,ES2015.Promise --target ES5 plugins/build.ts",
     "build:plugins": "node --harmony plugins/build.js",
 

@@ -724,10 +724,13 @@ module tui.widget {
 
 module tui {
 	"use strict";
-	export function inputbox(define: widget.FormItem[], title?: string, callback?: (value: any) => JQueryPromise<any> | boolean): widget.Dialog {
+	export function inputbox(define: widget.FormItem[], title?: string, initValue?: any, callback?: (value: any) => JQueryPromise<any> | boolean): widget.Dialog {
 		var container = elem("div");
 		let form = <widget.Form>create("form");
 		form.set("definition", define);
+		if (initValue && typeof initValue != "function") {
+			form.set("value", initValue);
+		}
 		container.appendChild(form._);
 		var dialog = <widget.Dialog>create("dialog");
 		dialog._set("content", container);
@@ -736,6 +739,9 @@ module tui {
 		dialog.on("btnclick", (e) => {
 			if (e.data.button === "ok") {
 				if (form.validate()) {
+					if (typeof initValue === "function") {
+						callback = initValue;
+					}
 					if (typeof callback === "function") {
 						var result = callback(form.get("value"));
 						if (result == false) {
@@ -754,6 +760,7 @@ module tui {
 				dialog.close();
 			}
 		});
+		(<any>dialog).form = form;
 		return dialog;
 	}
 }

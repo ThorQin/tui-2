@@ -2701,10 +2701,13 @@ var tui;
 })(tui || (tui = {}));
 (function (tui) {
     "use strict";
-    function inputbox(define, title, callback) {
+    function inputbox(define, title, initValue, callback) {
         var container = tui.elem("div");
         var form = tui.create("form");
         form.set("definition", define);
+        if (initValue && typeof initValue != "function") {
+            form.set("value", initValue);
+        }
         container.appendChild(form._);
         var dialog = tui.create("dialog");
         dialog._set("content", container);
@@ -2713,6 +2716,9 @@ var tui;
         dialog.on("btnclick", function (e) {
             if (e.data.button === "ok") {
                 if (form.validate()) {
+                    if (typeof initValue === "function") {
+                        callback = initValue;
+                    }
                     if (typeof callback === "function") {
                         var result = callback(form.get("value"));
                         if (result == false) {
@@ -2732,6 +2738,7 @@ var tui;
                 dialog.close();
             }
         });
+        dialog.form = form;
         return dialog;
     }
     tui.inputbox = inputbox;
