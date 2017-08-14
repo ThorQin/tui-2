@@ -724,7 +724,7 @@ module tui.widget {
 
 module tui {
 	"use strict";
-	export function inputbox(define: widget.FormItem, title?: string, callback?: (value: any) => JQueryPromise<any> | boolean): widget.Dialog {
+	export function inputbox(define: widget.FormItem[], title?: string, callback?: (value: any) => JQueryPromise<any> | boolean): widget.Dialog {
 		var container = elem("div");
 		let form = <widget.Form>create("form");
 		form.set("definition", define);

@@ -794,7 +794,7 @@ declare module tui.widget {
         fixed?: boolean;
         key?: string;
         type?: string;
-        checkAll?: boolean;
+        checkCol?: string;
         arrow?: boolean;
         sortable?: boolean;
         iconKey?: string;

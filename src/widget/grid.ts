@@ -17,7 +17,7 @@ module tui.widget {
 		fixed?: boolean;
 		key?: string;
 		type?: string;
-		checkAll?: boolean;
+		checkCol?: string;
 		arrow?: boolean;
 		sortable?: boolean;
 		iconKey?: string;
@@ -684,14 +684,14 @@ module tui.widget {
 				while (obj) {
 					if (obj.parentNode === head) {
 						var col = (<any>obj).col;
-						if (columns[col].checkAll === true) {
-							columns[col].checkAll = false;
+						if (columns[col].checkCol === "checked") {
+							columns[col].checkCol = "unchecked";
 							this.drawHeader();
-							this.fire("checkcol", {e: ev, column: columns[col], col: col, checkAll: false});
-						} else if (columns[col].checkAll === false) {
-							columns[col].checkAll = true;
+							this.fire("checkcol", {e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol})
+						} else if (columns[col].checkCol === "unchecked" || columns[col].checkCol === "tristate") {
+							columns[col].checkCol = "checked";
 							this.drawHeader();
-							this.fire("checkcol", {e: ev, column: columns[col], col: col, checkAll: true});
+							this.fire("checkcol", {e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol})
 						} else if (columns[col].sortable) {
 							var sortType = "asc";
 							if (this.get("sortColumn") == col) {
@@ -1090,10 +1090,12 @@ module tui.widget {
 			for (var i = 0; i < columns.length; i++) {
 				let prefix;
 				let sortClass = "";
-				if (columns[i].checkAll === true) {
+				if (columns[i].checkCol === "checked") {
 					prefix = "<i class='fa fa-check-square tui-grid-check'></i>";
-				} else if (columns[i].checkAll === false) {
+				} else if (columns[i].checkCol === "unchecked") {
 					prefix = "<i class='fa fa-square-o tui-grid-check tui-unchecked'></i>";
+				} else if (columns[i].checkCol === "tristate") {
+					prefix = "<i class='fa fa-check-square tui-grid-check tui-unchecked'></i>";
 				} else {
 					prefix = "<i class='tui-grid-no-sort'></i>";
 					if (columns[i].sortable) {

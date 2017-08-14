@@ -9675,15 +9675,15 @@ var tui;
                     while (obj) {
                         if (obj.parentNode === head) {
                             var col = obj.col;
-                            if (columns[col].checkAll === true) {
-                                columns[col].checkAll = false;
+                            if (columns[col].checkCol === "checked") {
+                                columns[col].checkCol = "unchecked";
                                 _this.drawHeader();
-                                _this.fire("checkcol", { e: ev, column: columns[col], col: col, checkAll: false });
+                                _this.fire("checkcol", { e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol });
                             }
-                            else if (columns[col].checkAll === false) {
-                                columns[col].checkAll = true;
+                            else if (columns[col].checkCol === "unchecked" || columns[col].checkCol === "tristate") {
+                                columns[col].checkCol = "checked";
                                 _this.drawHeader();
-                                _this.fire("checkcol", { e: ev, column: columns[col], col: col, checkAll: true });
+                                _this.fire("checkcol", { e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol });
                             }
                             else if (columns[col].sortable) {
                                 var sortType = "asc";
@@ -10077,11 +10077,14 @@ var tui;
                 for (var i = 0; i < columns.length; i++) {
                     var prefix = void 0;
                     var sortClass = "";
-                    if (columns[i].checkAll === true) {
+                    if (columns[i].checkCol === "checked") {
                         prefix = "<i class='fa fa-check-square tui-grid-check'></i>";
                     }
-                    else if (columns[i].checkAll === false) {
+                    else if (columns[i].checkCol === "unchecked") {
                         prefix = "<i class='fa fa-square-o tui-grid-check tui-unchecked'></i>";
+                    }
+                    else if (columns[i].checkCol === "tristate") {
+                        prefix = "<i class='fa fa-check-square tui-grid-check tui-unchecked'></i>";
                     }
                     else {
                         prefix = "<i class='tui-grid-no-sort'></i>";
