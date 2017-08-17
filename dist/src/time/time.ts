@@ -14,7 +14,7 @@ module tui.time {
 		return new Date();
 	}
 
-	
+
 	/**
 	 * Input seconds and get a time description
 	 * @param seconds Tims distance of seconds
@@ -61,7 +61,7 @@ module tui.time {
 
 	/**
 	 * Get the distance of dt2 compare to dt1 (dt2 - dt1) return in specified unit (d: day, h: hours, m: minutes, s: seconds, ms: milliseconds)
-	 * @param dt1 
+	 * @param dt1
 	 * @param dt2
 	 * @param unit "d", "h", "m", "s" or "ms"
 	 */
@@ -156,7 +156,7 @@ module tui.time {
 		return dateDiff(d1, d2, "d");
 	}
 
-	
+
 
 	function parseDateInternal(dtStr: string, format: string): Date {
 		if (!dtStr || !format)
@@ -382,10 +382,10 @@ module tui.time {
 
 	/**
 	 * Parse string get date instance (
-	 * try to parse format: 
+	 * try to parse format:
 	 *		yyyy-MM-dd HH:mm:ss，
-	 *		yyyy-MM-dd, 
-	 *		dd MMM yyyy, 
+	 *		yyyy-MM-dd,
+	 *		dd MMM yyyy,
 	 *		MMM dd, yyyy,
 	 *		ISO8601 format)
 	 * @param {String} dtStr Data string
@@ -396,6 +396,9 @@ module tui.time {
 		else if (typeof format === UNDEFINED) {
 			var dt = new Date(dtStr);
 			if (!isNaN(dt.getTime()))
+				return dt;
+			dt = parseDateInternal(dtStr, "yyyy-MM-ddTHH:mm:sszzz");
+			if (dt !== null)
 				return dt;
 			dt = parseDateInternal(dtStr, "yyyy-MM-dd");
 			if (dt !== null)
@@ -418,7 +421,7 @@ module tui.time {
 			dt = parseDateInternal(dtStr, "HH:mm:ss");
 			if (dt !== null)
 				return dt;
-		} 
+		}
 		return null;
 	}
 

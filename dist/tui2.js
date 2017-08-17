@@ -4849,6 +4849,9 @@ var tui;
                 var dt = new Date(dtStr);
                 if (!isNaN(dt.getTime()))
                     return dt;
+                dt = parseDateInternal(dtStr, "yyyy-MM-ddTHH:mm:sszzz");
+                if (dt !== null)
+                    return dt;
                 dt = parseDateInternal(dtStr, "yyyy-MM-dd");
                 if (dt !== null)
                     return dt;
@@ -5214,7 +5217,12 @@ var tui;
                         "get": function () {
                             var tm = _this._data["time"];
                             if (typeof tm === tui.UNDEFINED || tm === null) {
-                                tm = _this._data["time"] = tui.time.now();
+                                tm = tui.time.now();
+                                tm.setHours(0);
+                                tm.setMinutes(0);
+                                tm.setSeconds(0);
+                                tm.setMilliseconds(0);
+                                _this._data["time"] = tm;
                             }
                             return tm;
                         }
@@ -6478,7 +6486,6 @@ var tui;
                                 _this._data["value"] = calendar.get("value");
                             }
                             else {
-                                calendar.set("time", new Date());
                                 _this._data["value"] = null;
                             }
                         },
@@ -6496,7 +6503,6 @@ var tui;
                                 _this._data["value"] = calendar.get("value");
                             }
                             else {
-                                calendar.set("value", new Date());
                                 _this._data["value"] = null;
                             }
                         },
@@ -6589,7 +6595,21 @@ var tui;
                     var obj = (e.target || e.srcElement);
                     var name = obj.getAttribute("name");
                     if (name === "today") {
-                        _this.set("value", tui.time.now());
+                        var tm = tui.time.now();
+                        var v = _this.get("time");
+                        if (v instanceof Date) {
+                            tm.setHours(v.getHours());
+                            tm.setMinutes(v.getMinutes());
+                            tm.setSeconds(v.getSeconds());
+                            tm.setMilliseconds(v.getMilliseconds());
+                        }
+                        else {
+                            tm.setHours(0);
+                            tm.setMinutes(0);
+                            tm.setSeconds(0);
+                            tm.setMilliseconds(0);
+                        }
+                        _this.set("value", tm);
                         _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this.closeSelect();
                         _this._.focus();

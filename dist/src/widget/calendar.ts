@@ -3,7 +3,7 @@
 
 module tui.widget {
 	"use strict";
-	
+
 	function formatNumber (v: number, maxValue: number): string {
 		if (v < 0)
 			v = 0;
@@ -22,7 +22,7 @@ module tui.widget {
 	}
 
 	export class Calendar extends Widget {
-		
+
 		protected initRestriction(): void {
 			super.initRestriction();
 			this.setRestrictions({
@@ -36,9 +36,14 @@ module tui.widget {
 						}
 					},
 					"get": (): any => {
-						var tm = this._data["time"];
+						var tm = this._data["time"] as Date;
 						if (typeof tm === UNDEFINED || tm === null) {
-							tm = this._data["time"] = time.now();
+							tm = time.now();
+							tm.setHours(0);
+							tm.setMinutes(0);
+							tm.setSeconds(0);
+							tm.setMilliseconds(0);
+							this._data["time"] = tm;
 						}
 						return tm;
 					}
@@ -212,7 +217,7 @@ module tui.widget {
 				"<table cellPadding='0' cellspacing='0' border='0'></table>");
 			this._.appendChild(tb);
 			this._monthOnly = null;
-			
+
 			var timebar = this._components["timeBar"] = <HTMLTableElement>browser.toElement(
 `<div class="tui-calendar-timebar" unselectable='on'>
 <div><span name='hours-plus' class='plus' tabIndex='0' ></span>
@@ -226,14 +231,14 @@ module tui.widget {
 <span name='seconds-minus' class='minus' tabIndex='0'></span></div>
 <a class='tui-update'></a></div>`);
 			this._.appendChild(timebar);
-			
+
 			function getMaxValue(name: string): number {
 				if (name === "hours")
 					return 23;
 				else
 					return 59;
 			}
-			
+
 			var getInputTime = () => {
 				function getInput(index:number): any {
 					return $(timebar).find("input")[index];
@@ -260,7 +265,7 @@ module tui.widget {
 				input.value = formatNumber(v, max);
 				getInputTime();
 			}
-			
+
 			var timebar$ = $(timebar);
 			timebar$.keydown((e) => {
 				var o = <any>(e.srcElement || e.target);
@@ -299,9 +304,9 @@ module tui.widget {
 						o._lastInputTime = now;
 						getInputTime();
 						o.select();
-					} else if (k == 13) 
+					} else if (k == 13)
 						this.fire("click", {e:e,  "time": this.get("time"), "type": "pick" });
-				} 
+				}
 			});
 
 			timebar$.on("mousedown", (e) => {
@@ -338,7 +343,7 @@ module tui.widget {
 					}
 				}
 			});
-			
+
 			timebar$.find("input").on("focus mousedown mouseup", function(e){
 				var o = <any>(e.srcElement || e.target);
 				o.focus();
@@ -359,7 +364,7 @@ module tui.widget {
 			}).click((e) => {
 				this.fire("click", {e:e, "time": this.get("time"), "type": "refresh"});
 			});
-			
+
 			$(tb).mousedown((e) => {
 				if (tui.ffVer > 0) {
 					setTimeout(() => { this._.focus(); });
@@ -407,7 +412,7 @@ module tui.widget {
 				var cell = <any>(e.target || e.srcElement);
 				if (cell.nodeName.toLowerCase() !== "td")
 					return;
-				if (typeof cell["offsetMonth"] === "number" || cell.hasAttribute("month")) 
+				if (typeof cell["offsetMonth"] === "number" || cell.hasAttribute("month"))
 					this.fire("click", {e:e, "time": this.get("time"), "type": "pick"});
 				else if(/^(tui-pm|tui-py|tui-nm|tui-ny)$/.test(cell.className))
 					this.fire("click", {e:e, "time": this.get("time"), "type": "change"});
@@ -472,7 +477,7 @@ module tui.widget {
 			});
 
 		}
-		
+
 		private onPicked(y: number, m: number, d: number) {
 			var oldTime = <Date>this.get("time");
 			var newTime = new Date(y, m - 1, d, oldTime.getHours(), oldTime.getMinutes(), oldTime.getSeconds());
@@ -486,7 +491,7 @@ module tui.widget {
 				t.d = time.totalDaysOfMonth(newDate);
 			this.onPicked(t.y, t.m, t.d);
 		}
-		
+
 		prevMonth() {
 			this.makeTime(function(t: {y: number, m: number, d: number}){
 				if (t.m === 1) {
@@ -538,7 +543,7 @@ module tui.widget {
 							}
 						}
 					}
-				} else {			
+				} else {
 					var firstWeek = firstDay(tm).getDay();
 					var daysOfMonth = time.totalDaysOfMonth(tm);
 					var day = 0;
@@ -594,6 +599,6 @@ module tui.widget {
 			}
 		}
 	}
-	
+
 	register(Calendar, "calendar");
 }

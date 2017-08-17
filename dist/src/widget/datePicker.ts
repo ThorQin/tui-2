@@ -1,7 +1,7 @@
 /// <reference path="selectBase.ts" />
 module tui.widget {
 	"use strict";
-	
+
 	/**
 	 * <tui:date-picker>
 	 * Attributes: value, text(value to string), format, timeBar
@@ -9,7 +9,7 @@ module tui.widget {
 	 * Events: change
 	 */
 	export class DatePicker extends SelectPopupBase {
-		
+
 		protected initRestriction(): void {
 			var calendar = create("calendar");
 			this._components["calendar"] = calendar._;
@@ -21,7 +21,6 @@ module tui.widget {
 							calendar.set("time", value);
 							this._data["value"] = calendar.get("value");
 						} else {
-							calendar.set("time", new Date());
 							this._data["value"] = null;
 						}
 					},
@@ -38,7 +37,6 @@ module tui.widget {
 							calendar.set("value", value);
 							this._data["value"] = calendar.get("value");
 						} else {
-							calendar.set("value", new Date());
 							this._data["value"] = null;
 						}
 					},
@@ -96,7 +94,7 @@ module tui.widget {
 				},
 			});
 		}
-		
+
 		protected init(): void {
 			super.init();
 			if (this.get("mode") === "time") {
@@ -104,16 +102,16 @@ module tui.widget {
 			} else
 				this._set("iconRight", "fa-calendar");
 			var calendar = <Calendar>get(this._components["calendar"]);
-			
-			var container = elem("div"); 
+
+			var container = elem("div");
 			var toolbar = <HTMLElement>container.appendChild(elem("div"));
 			toolbar.className = "tui-select-toolbar";
 			toolbar.setAttribute("unselectable", "on");
 			container.insertBefore(calendar._, container.firstChild);
-			
+
 			var popup = <Popup>get(this._components["popup"]);
 			popup._set("content", container);
-			
+
 			this._components["toolbar"] = <HTMLElement>toolbar;
 			calendar._.style.display = "block";
 			calendar._.style.borderWidth = "0";
@@ -129,7 +127,20 @@ module tui.widget {
 				var obj = <HTMLElement>(e.target || e.srcElement);
 				var name = obj.getAttribute("name");
 				if (name === "today") {
-					this.set("value", time.now());
+					var tm = time.now();
+					var v = this.get("time") as Date;
+					if (v instanceof Date) {
+						tm.setHours(v.getHours());
+						tm.setMinutes(v.getMinutes());
+						tm.setSeconds(v.getSeconds());
+						tm.setMilliseconds(v.getMilliseconds());
+					} else {
+						tm.setHours(0);
+						tm.setMinutes(0);
+						tm.setSeconds(0);
+						tm.setMilliseconds(0);
+					}
+					this.set("value", tm);
 					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this.closeSelect();
 					this._.focus();
@@ -145,9 +156,9 @@ module tui.widget {
 					this._.focus();
 				}
 			});
-			
+
 		}
-		
+
 		openSelect() {
 			var calendar = <Calendar>get(this._components["calendar"]);
 			var popup = <Popup>get(this._components["popup"]);
@@ -163,14 +174,14 @@ module tui.widget {
 				toolbar.innerHTML = okButton + " | " + todayButton + " | " + clearButton;
 			else
 				toolbar.innerHTML = okButton + " | " + todayButton;
-			
+
 			popup.open(this._, "Lb");
 			setTimeout(() => {
 				calendar._.focus();
 			});
 		}
 	}
-	
-	
+
+
 	register(DatePicker, "date-picker");
 }
