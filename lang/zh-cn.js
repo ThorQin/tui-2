@@ -123,6 +123,7 @@ tui.dict("zh-cn", {
 	"form.at.most": "至多",
 	"form.at.least.p": "至少选择 {0} 个！",
 	"form.at.most.p": "至多选择 {0} 个！",
+	"form.value.as.label": "使用取值作为标题",
 	"file.count.p": "{0} 个文件",
 	"item.count.p": "{0} 个条目",
 	"form.option.group.desc": "多个选项由换行分割，选项可以是 'key:value' 或字符串。",

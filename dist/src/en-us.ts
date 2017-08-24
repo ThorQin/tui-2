@@ -51,6 +51,7 @@ tui.dict("en-us", {
 	"form.use.search": "Enable Search",
 	"form.description": "Description",
 	"form.textbox.selection.desc": "A group predefined input content, separated with newline characters.",
+	"form.value.as.label": "Use value as label",
 	"message.cannot.be.empty": "Cannot be empty!",
 	"message.invalid.format": "Invalid format!",
 	"message.invalid.value": "Invalid value!",

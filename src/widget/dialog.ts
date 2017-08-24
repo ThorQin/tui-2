@@ -152,7 +152,8 @@ module tui.widget {
 
 		setContent(content: any, render = true) {
 			var contentDiv = this._components["content"];
-			contentDiv.innerHTML = "";
+			while (contentDiv.childNodes.length > 0)
+				contentDiv.removeChild(contentDiv.lastChild)
 			if (typeof content === "object" && content.nodeName) {
 				content.style.display = "block";
 				contentDiv.appendChild(content);

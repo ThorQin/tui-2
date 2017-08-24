@@ -604,6 +604,7 @@ module tui.widget {
 		fontSize: number;
 		align: string;
 		display?: string;
+		valueAsLabel?: boolean;
 	}
 	class FormSection extends FormControl<SectionFormItem> {
 		static icon = "fa-font";
@@ -624,7 +625,16 @@ module tui.widget {
 			var d = this.define;
 			if (!/^(visible|invisible|newline)$/.test(this.define.display))
 				this.define.display = "visible";
-			if (d.label) {
+			var l;
+			if (d.value != "" && d.value != null && typeof d.value != UNDEFINED && d.valueAsLabel)
+				l = d.value + "";
+			else
+				l = d.label;
+			if (!l)
+				this.label.innerHTML = "&nbsp;";
+			else
+				this.label.innerHTML = browser.toSafeText(l);
+			if (l) {
 				this._hr.className = "tui-form-line-label";
 				if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48) {
 					this.label.style.fontSize = d.fontSize + "px";
@@ -647,7 +657,8 @@ module tui.widget {
 		}
 
 		getValue(): any {
-			return typeof this.define.value !== UNDEFINED ? this.define.value : null;
+			var v = typeof this.define.value !== UNDEFINED ? this.define.value : null;
+			return v;
 		}
 		setValue(value: any): void {
 			if (typeof value !== UNDEFINED)
@@ -701,6 +712,17 @@ module tui.widget {
 						"value": this.define.value
 					}, {
 						"type": "options",
+						"key": "valueAsLabel",
+						"label": str("form.value.as.label"),
+						"atMost": 1,
+						"options": [{"data":[
+							{value: "enable", text: str("form.enable")},
+							{value: "disable", text: str("form.disable")}
+						]}],
+						"size": 6,
+						"value": this.define.valueAsLabel ? "enable" : "disable"
+					},{
+						"type": "options",
 						"key": "align",
 						"label": str("form.text.align"),
 						"atMost": 1,
@@ -739,6 +761,11 @@ module tui.widget {
 				this.define.align = "left";
 			this.define.value = values.value;
 			this.define.display = values.display;
+			if (values.valueAsLabel == "enable") {
+				this.define.valueAsLabel = true;
+			} else {
+				this.define.valueAsLabel = false;
+			}
 		}
 		validate(): boolean {
 			return true;

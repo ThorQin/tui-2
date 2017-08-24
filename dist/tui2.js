@@ -365,6 +365,7 @@ tui.dict("en-us", {
     "form.use.search": "Enable Search",
     "form.description": "Description",
     "form.textbox.selection.desc": "A group predefined input content, separated with newline characters.",
+    "form.value.as.label": "Use value as label",
     "message.cannot.be.empty": "Cannot be empty!",
     "message.invalid.format": "Invalid format!",
     "message.invalid.value": "Invalid value!",
@@ -2881,7 +2882,8 @@ var tui;
             Dialog.prototype.setContent = function (content, render) {
                 if (render === void 0) { render = true; }
                 var contentDiv = this._components["content"];
-                contentDiv.innerHTML = "";
+                while (contentDiv.childNodes.length > 0)
+                    contentDiv.removeChild(contentDiv.lastChild);
                 if (typeof content === "object" && content.nodeName) {
                     content.style.display = "block";
                     contentDiv.appendChild(content);
@@ -7564,7 +7566,16 @@ var tui;
                 var d = this.define;
                 if (!/^(visible|invisible|newline)$/.test(this.define.display))
                     this.define.display = "visible";
-                if (d.label) {
+                var l;
+                if (d.value != "" && d.value != null && typeof d.value != tui.UNDEFINED && d.valueAsLabel)
+                    l = d.value + "";
+                else
+                    l = d.label;
+                if (!l)
+                    this.label.innerHTML = "&nbsp;";
+                else
+                    this.label.innerHTML = tui.browser.toSafeText(l);
+                if (l) {
                     this._hr.className = "tui-form-line-label";
                     if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48) {
                         this.label.style.fontSize = d.fontSize + "px";
@@ -7587,7 +7598,8 @@ var tui;
                 return false;
             };
             FormSection.prototype.getValue = function () {
-                return typeof this.define.value !== tui.UNDEFINED ? this.define.value : null;
+                var v = typeof this.define.value !== tui.UNDEFINED ? this.define.value : null;
+                return v;
             };
             FormSection.prototype.setValue = function (value) {
                 if (typeof value !== tui.UNDEFINED)
@@ -7643,6 +7655,17 @@ var tui;
                                 "value": this.define.value
                             }, {
                                 "type": "options",
+                                "key": "valueAsLabel",
+                                "label": tui.str("form.value.as.label"),
+                                "atMost": 1,
+                                "options": [{ "data": [
+                                            { value: "enable", text: tui.str("form.enable") },
+                                            { value: "disable", text: tui.str("form.disable") }
+                                        ] }],
+                                "size": 6,
+                                "value": this.define.valueAsLabel ? "enable" : "disable"
+                            }, {
+                                "type": "options",
                                 "key": "align",
                                 "label": tui.str("form.text.align"),
                                 "atMost": 1,
@@ -7681,6 +7704,12 @@ var tui;
                     this.define.align = "left";
                 this.define.value = values.value;
                 this.define.display = values.display;
+                if (values.valueAsLabel == "enable") {
+                    this.define.valueAsLabel = true;
+                }
+                else {
+                    this.define.valueAsLabel = false;
+                }
             };
             FormSection.prototype.validate = function () {
                 return true;
