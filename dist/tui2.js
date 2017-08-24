@@ -4635,6 +4635,8 @@ var tui;
             }
             function matchNumber(v, key, min, max) {
                 var len = v.length;
+                if (len == 0)
+                    return false;
                 var m = dtStr.match("^[0-9]{1," + len + "}");
                 if (m === null)
                     return false;
@@ -10226,8 +10228,11 @@ var tui;
                 var content = this._components["content"];
                 var scrollLeft = this._hbar.get("value");
                 var columns = this.get("columns");
-                head.scrollLeft = scrollLeft;
-                content.scrollLeft = scrollLeft;
+                try {
+                    head.scrollLeft = scrollLeft;
+                    content.scrollLeft = scrollLeft;
+                }
+                catch (e) { }
                 var used = 0;
                 for (var i = 0; i < columns.length; i++) {
                     this._vLines[i].style.left = used + vval(columns[i].width) +
@@ -10556,10 +10561,10 @@ var tui;
                                 "color", "date", "datetime", "month",
                                 "week", "time", "datetime-local"].indexOf(value) < 0)
                                 return;
-                            textbox.setAttribute("type", value);
+                            textbox.type = value;
                         },
                         "get": function () {
-                            return textbox.getAttribute("type");
+                            return textbox.type;
                         }
                     }
                 });
@@ -10695,7 +10700,10 @@ var tui;
                 textbox.focus();
             };
             Input.prototype.render = function () {
-                this._.scrollLeft = 0;
+                try {
+                    this._.scrollLeft = 0;
+                }
+                catch (e) { }
                 var $root = $(this._);
                 var textbox = this._components["textbox"];
                 var iconLeft = this._components["iconLeft"];

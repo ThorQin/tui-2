@@ -1215,8 +1215,10 @@ module tui.widget {
 			var content = this._components["content"];
 			var scrollLeft: number = this._hbar.get("value");
 			var columns = <ColumnInfo[]>this.get("columns");
-			head.scrollLeft = scrollLeft;
-			content.scrollLeft = scrollLeft;
+			try {
+				head.scrollLeft = scrollLeft;
+				content.scrollLeft = scrollLeft;
+			} catch (e) {} // catch for ie8
 			var used = 0;
 			for (var i = 0; i < columns.length; i++) {
 				this._vLines[i].style.left = used + vval(columns[i].width) +

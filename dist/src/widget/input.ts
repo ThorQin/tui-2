@@ -2,16 +2,16 @@
 /// <reference path="../browser/keyboard.ts" />
 module tui.widget {
 	"use strict";
-	
+
 	/**
 	 * <input>
 	 * Attributes: value, text, type, iconLeft, iconRight, autoValidate
 	 * Events: input, change, left-icon-mousedown, right-icon-mousedown, left-icon-click, right-icon-click
 	 */
 	export class Input extends InputBase {
-		
+
 		static PADDING = 6;
-		
+
 		protected initRestriction(): void {
 			super.initRestriction();
 			var textbox = this._components["textbox"] = <HTMLInputElement>elem("input");
@@ -35,16 +35,16 @@ module tui.widget {
 				},
 				"type": {
 					"set": (value: any) => {
-						value = value.toLowerCase();						
-						if (["text", "password", "email", 
-								"url", "number", "search", "tel", 
-								"color", "date", "datetime", "month", 
+						value = value.toLowerCase();
+						if (["text", "password", "email",
+								"url", "number", "search", "tel",
+								"color", "date", "datetime", "month",
 								"week", "time", "datetime-local"].indexOf(value) < 0)
 							return;
-						textbox.setAttribute("type", value);
+						textbox.type = value;
 					},
 					"get": (): any => {
-						return textbox.getAttribute("type");
+						return textbox.type;
 					}
 				}
 			});
@@ -55,7 +55,7 @@ module tui.widget {
 			this.reset();
 			this.fire("input", e);
 		}
-		
+
 		protected init(): void {
 			var $root = $(this._);
 			var placeholder = this._components["placeholder"] = elem("span");
@@ -74,7 +74,7 @@ module tui.widget {
 			this._.appendChild(iconInvalid);
 			this._.appendChild(iconRight);
 			this._.appendChild(clearButton);
-			
+
 			$(textbox).focus(() => {
 				$root.addClass("tui-active");
 				this.render();
@@ -88,7 +88,7 @@ module tui.widget {
 					this.validate();
 				}
 			});
-			
+
 			if (tui.ieVer > 0 && tui.ieVer < 9) {
 				$(textbox).on("propertychange", (e: any) => {
 					if (e.originalEvent.propertyName !== 'value')
@@ -124,7 +124,7 @@ module tui.widget {
 					textbox.focus();
 				});
 			});
-			
+
 			$root.mousedown((e)=>{
 				if (this.get("disable"))
 					return;
@@ -174,7 +174,7 @@ module tui.widget {
 					this.fire("right-icon-click", e);
 				}
 			});
-			
+
 			this.on("resize", () => {
 				this.render();
 			});
@@ -184,11 +184,13 @@ module tui.widget {
 			var textbox = this._components["textbox"];
 			textbox.focus();
 		}
-		
+
 		render(): void {
-			this._.scrollLeft = 0;
+			try {
+				this._.scrollLeft = 0;
+			} catch(e) {} // catch for ie8
 			var $root = $(this._);
-            
+
 			var textbox = this._components["textbox"];
 			var iconLeft = this._components["iconLeft"];
 			var iconRight = this._components["iconRight"];
@@ -197,14 +199,14 @@ module tui.widget {
 			var clearButton = this._components["clearButton"];
 			if (this.get("disable")) {
 				$root.addClass("tui-disable");
-				textbox.setAttribute("readonly", "readonly"); 
+				textbox.setAttribute("readonly", "readonly");
 			} else {
 				$root.removeClass("tui-disable");
 				textbox.removeAttribute("readonly");
 			}
 			var marginLeft = 0;
 			if (this.get("iconLeft")) {
-				iconLeft.className = this.get("iconLeft"); 
+				iconLeft.className = this.get("iconLeft");
 				iconLeft.style.display = "";
 				iconLeft.style.left = "0";
 			} else {
@@ -212,10 +214,10 @@ module tui.widget {
 				iconLeft.style.display = "none";
 				marginLeft = Input.PADDING;
 			}
-			
+
 			var marginRight = 0;
 			if (this.get("iconRight")) {
-				iconRight.className = this.get("iconRight"); 
+				iconRight.className = this.get("iconRight");
 				iconRight.style.display = "";
 				iconRight.style.right = "0";
 			} else {
@@ -223,7 +225,7 @@ module tui.widget {
 				iconRight.style.display = "none";
 				marginRight = Input.PADDING;
 			}
-			
+
 			if (!this._valid) {
 				$root.addClass("tui-invalid");
 				iconInvalid.style.display = "";
@@ -237,24 +239,24 @@ module tui.widget {
 
 			if (this.get("clearable") && this.get("value").length > 0 && $root.hasClass("tui-active") && !this.get("disable") ) {
 				clearButton.style.display = "";
-				clearButton.style.right = iconRight.offsetWidth + iconInvalid.offsetWidth + "px";  
+				clearButton.style.right = iconRight.offsetWidth + iconInvalid.offsetWidth + "px";
 			} else {
 				clearButton.style.display = "none";
 			}
-			
+
 			textbox.style.left = iconLeft.offsetWidth + marginLeft + "px";
-			var width = this._.clientWidth - 
-				iconLeft.offsetWidth - 
-				iconInvalid.offsetWidth - 
-				iconRight.offsetWidth - 
+			var width = this._.clientWidth -
+				iconLeft.offsetWidth -
+				iconInvalid.offsetWidth -
+				iconRight.offsetWidth -
 				clearButton.offsetWidth -
 				marginLeft - marginRight;
 			if (width < 0)
 				width = 0;
 			textbox.style.width = width + "px";
-			
+
 			var phText = this.get("placeholder");
-			var showPh = phText && !this.get("value"); 
+			var showPh = phText && !this.get("value");
 			if (showPh) {
 				$(placeholder).text(phText);
 				placeholder.style.left = iconLeft.offsetWidth + marginLeft + "px";
@@ -263,7 +265,7 @@ module tui.widget {
 			} else {
 				placeholder.style.display = "none";
 			}
-			
+
 			if (!this._valid && this._invalidMessage) {
 				this._set("follow-tooltip", this._invalidMessage);
 			} else {
@@ -271,7 +273,7 @@ module tui.widget {
 			}
 		}
 	}
-	
+
 	register(Input, "input");
 	registerResize("input");
 }

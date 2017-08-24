@@ -178,6 +178,8 @@ module tui.time {
 		}
 		function matchNumber(v: string, key?: string, min?: number, max?: number): boolean {
 			var len = v.length;
+			if (len == 0)
+				return false;
 			var m = dtStr.match("^[0-9]{1," + len + "}");
 			if (m === null)
 				return false;
