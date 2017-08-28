@@ -152,8 +152,8 @@ var tui;
                 };
                 FormDialogSelect.prototype.update = function () {
                     _super.prototype.update.call(this);
-                    this._widget._set("clearable", !this.define.required);
                     this._list._set("checkable", !!this.define.multiple);
+                    this._widget._set("clearable", true);
                     this.setValueInternal(this.define.value);
                     if (this.define.required) {
                         this._widget._set("validate", [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }]);
@@ -185,7 +185,7 @@ var tui;
                                     obj[this._key] = item[this._key];
                                     obj.name = item.name;
                                     items.push(obj);
-                                    if (items.length > 0)
+                                    if (items.length > 1)
                                         text += ", ";
                                     text += item.name;
                                 }
