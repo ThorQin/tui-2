@@ -250,6 +250,8 @@ module tui.browser {
 	}
 
 	export function getWindowScrollElement(): HTMLElement {
+		if (document.scrollingElement)
+			return <HTMLElement>document.scrollingElement;
 		if (tui.ieVer > 0 || tui.ffVer > 0) {
 			return window.document.documentElement;
 		} else {

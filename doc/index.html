@@ -9,7 +9,7 @@
 		<link rel="apple-touch-icon" href="icon114.png" sizes="114x114">
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
 		<title>TUI2 手册</title>
-		
+
 		<link rel="stylesheet" href="../depends/font-awesome-4.7.0/css/font-awesome.css">
 		<link rel="stylesheet" href="../dist/tui2.css" />
 		<link rel="stylesheet" href="../dist/plugins/navigator/navigator.css" />
@@ -43,7 +43,7 @@
 						var scrollElement = tui.browser.getWindowScrollElement();
 					}, animate);
 				}
-				
+
 				function hideMenu(cb) {
 					$("#navi").animate({left: "-250px"}, animateDelay);
 					// $("#navi").css({left: "-250px"});
@@ -218,7 +218,7 @@
 								line = repeat("#", level) + " <span id='" + item.path + "'>" + item.text.trim() + "</span>" + "\n";
 							else
 								line = repeat("#", level) + " " + item.text.trim() + "\n";
-						} 
+						}
 						buffer += line;
 					}
 					$$("navi").set("items", index);
