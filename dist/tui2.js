@@ -877,6 +877,8 @@ var tui;
         }
         browser.getWindow = getWindow;
         function getWindowScrollElement() {
+            if (document.scrollingElement)
+                return document.scrollingElement;
             if (tui.ieVer > 0 || tui.ffVer > 0) {
                 return window.document.documentElement;
             }

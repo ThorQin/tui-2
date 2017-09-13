@@ -40,6 +40,8 @@ tui\:menu>div {
 	cursor: default;
 	outline: none;
 	color:@textColor;
+	height:@itemHeight;
+	line-height: @itemHeight;
 	>* {
 		display: inline-block;
 		height:@itemHeight;
@@ -74,7 +76,7 @@ tui\:menu>div {
 		float:right;
 		text-align: center;
 	}
-	
+
 	&.tui-line {
 		height: 0px;
 		border-top:1px solid @borderColor;
@@ -94,6 +96,8 @@ tui\:menu>div {
 	}
 }
 tui\:menu.tui-big>div {
+	height: @itemHeight + 10px;
+	line-height: @itemHeight + 10px;
 	>* {
 		display: inline-block;
 		height:@itemHeight + 10px;
