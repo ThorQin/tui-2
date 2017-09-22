@@ -1017,7 +1017,7 @@ module tui.widget {
 
 		protected drawLine(line: HTMLElement, index: number, lineHeight: number, columns: ColumnInfo[], lineData: any) {
 			var isTree = this.get("dataType") === "tree";
-			var item = isTree ? lineData.item : lineData;
+			var item = lineData ? (isTree ? lineData.item : lineData) : [];
 			var tipKey = this.get("rowTooltipKey");
 			if (item[tipKey]) {
 				line.setAttribute("tooltip", item[tipKey]);

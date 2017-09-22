@@ -4010,19 +4010,26 @@ var tui;
                 return _this;
             }
             RemoteList.prototype.length = function () {
+                var _this = this;
                 if (this._length === null) {
-                    this.fire("query", {
-                        begin: 0,
-                        size: this._cacheSize,
-                        filter: this._filter,
-                        order: this._order
-                    });
+                    if (this._queryTimer != null) {
+                        clearTimeout(this._queryTimer);
+                    }
+                    this._queryTimer = setTimeout(function () {
+                        _this.fire("query", {
+                            begin: 0,
+                            size: _this._cacheSize,
+                            filter: _this._filter,
+                            order: _this._order
+                        });
+                    }, 16);
                     return 0;
                 }
                 else
                     return this._length;
             };
             RemoteList.prototype.get = function (index) {
+                var _this = this;
                 if (index >= 0 && index < this.length()) {
                     var item = this.getFromCache(index, this._cache1);
                     if (item === null)
@@ -4037,12 +4044,21 @@ var tui;
                         else {
                             this._fillCache = Math.abs(page - this._cache1.page) > Math.abs(page - this._cache2.page) ? 1 : 2;
                         }
-                        this.fire("query", {
-                            begin: page * this._cacheSize,
-                            size: this._cacheSize,
-                            filter: this._filter,
-                            rder: this._order
-                        });
+                        if (this._queryTimer != null) {
+                            clearTimeout(this._queryTimer);
+                        }
+                        this._queryTimer = setTimeout(function () {
+                            _this.fire("query", {
+                                begin: page * _this._cacheSize,
+                                size: _this._cacheSize,
+                                filter: _this._filter,
+                                rder: _this._order
+                            });
+                            _this._queryTimer = null;
+                        }, 16);
+                    }
+                    else {
+                        return item;
                     }
                 }
                 else
@@ -10119,7 +10135,7 @@ var tui;
             };
             Grid.prototype.drawLine = function (line, index, lineHeight, columns, lineData) {
                 var isTree = this.get("dataType") === "tree";
-                var item = isTree ? lineData.item : lineData;
+                var item = lineData ? (isTree ? lineData.item : lineData) : [];
                 var tipKey = this.get("rowTooltipKey");
                 if (item[tipKey]) {
                     line.setAttribute("tooltip", item[tipKey]);

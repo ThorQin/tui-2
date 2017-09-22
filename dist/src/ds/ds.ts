@@ -148,6 +148,7 @@ module tui.ds {
 		private _length: number = null;
 		private _cacheSize: number;
 		private _fillCache: number;
+		private _queryTimer: number;
 
 		constructor(cacheSize: number = 50, filter: Filter[] = null, order: Order[] = null) {
 			super();
@@ -159,12 +160,17 @@ module tui.ds {
 
 		length(): number {
 			if (this._length === null) {
-				this.fire("query", {
-					begin: 0,
-					size: this._cacheSize,
-					filter: this._filter,
-					order: this._order
-				});
+				if (this._queryTimer != null) {
+					clearTimeout(this._queryTimer);
+				}
+				this._queryTimer = setTimeout(() => {
+					this.fire("query", {
+						begin: 0,
+						size: this._cacheSize,
+						filter: this._filter,
+						order: this._order
+					});
+				}, 16);
 				return 0;
 			} else
 				return this._length;
@@ -184,12 +190,20 @@ module tui.ds {
 					else {
 						this._fillCache = Math.abs(page - this._cache1.page) > Math.abs(page - this._cache2.page) ? 1 : 2;
 					}
-					this.fire("query", {
-						begin: page * this._cacheSize,
-						size: this._cacheSize,
-						filter: this._filter,
-						rder: this._order
-					});
+					if (this._queryTimer != null) {
+						clearTimeout(this._queryTimer);
+					}
+					this._queryTimer = setTimeout(() => {
+						this.fire("query", {
+							begin: page * this._cacheSize,
+							size: this._cacheSize,
+							filter: this._filter,
+							rder: this._order
+						});
+						this._queryTimer = null;
+					}, 16);
+				} else {
+					return item;
 				}
 			} else
 				return null;

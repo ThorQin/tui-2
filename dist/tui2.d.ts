@@ -528,6 +528,7 @@ declare module tui.ds {
         private _length;
         private _cacheSize;
         private _fillCache;
+        private _queryTimer;
         constructor(cacheSize?: number, filter?: Filter[], order?: Order[]);
         length(): number;
         get(index: number): any;
