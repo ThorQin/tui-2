@@ -500,10 +500,36 @@ module tui.widget {
 					this.drawLine(this._buffer.lines[target.line - this._buffer.begin],
 						target.line, this.get("lineHeight"), this.get("columns"), data.get(target.line));
 					ev.preventDefault();
-					this.fire("rowcheck", {e: ev, row: target.line, col: target.col, checked: checked });
+					if (this.fire("rowcheck", {e: ev, row: target.line, col: target.col, checked: checked }) !== false) {
+						onRowCheck({col: target.col, row: target.line, checked: checked});
+					}
 				} else {
 					this.fire("rowmousedown", {e: ev, row: target.line, col: target.col});
 				}
+			};
+
+			var CHECKCOL_MATCHER = /^(un)?checked|tristate$/;
+			var onRowCheck = (e: {row: number, col: number, checked: boolean}) => {
+				var colums = this.get("columns");
+				var col = <ColumnInfo>colums[e.col];
+				if (!CHECKCOL_MATCHER.test(col.checkCol))
+					return;
+				var data = this.get("data")._data;
+				var cc = 0, uc = 0;
+				for (var i = 0; i < data.length; i++) {
+						if (data[i][col.checkKey] === true)
+							cc++;
+						else
+							uc++;
+				}
+				if (cc == 0) {
+					col.checkCol = "unchecked";
+				} else if (uc == 0) {
+					col.checkCol = "checked";
+				} else {
+					col.checkCol = "tristate";
+				}
+				this.render();
 			};
 
 			$(this._).on("mousedown", (ev) => {
@@ -676,6 +702,24 @@ module tui.widget {
 				}
 			});
 
+			var onCheckCol = (e: {col: number, state: string}) => {
+				var colums = this.get("columns");
+				var col = <ColumnInfo>colums[e.col];
+				var data = this.get("data")._data
+				if (e.state === "checked") {
+					for (var i = 0; i < data.length; i++) {
+						if (data[i][col.checkKey] === false)
+							data[i][col.checkKey] = true;
+					}
+				} else if (e.state === "unchecked"){
+					for (var i = 0; i < data.length; i++) {
+						if (data[i][col.checkKey] === true)
+							data[i][col.checkKey] = false;
+					}
+				}
+				this.render();
+			};
+
 			$(head).click((ev) => { // header click: change sort flag
 				if (this.get("disable"))
 					return;
@@ -687,11 +731,15 @@ module tui.widget {
 						if (columns[col].checkCol === "checked") {
 							columns[col].checkCol = "unchecked";
 							this.drawHeader();
-							this.fire("checkcol", {e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol})
+							if (this.fire("checkcol", {e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol}) !== false) {
+								onCheckCol({col: col, state: columns[col].checkCol});
+							}
 						} else if (columns[col].checkCol === "unchecked" || columns[col].checkCol === "tristate") {
 							columns[col].checkCol = "checked";
 							this.drawHeader();
-							this.fire("checkcol", {e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol})
+							if (this.fire("checkcol", {e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol}) != false) {
+								onCheckCol({col: col, state: columns[col].checkCol});
+							}
 						} else if (columns[col].sortable) {
 							var sortType = "asc";
 							if (this.get("sortColumn") == col) {

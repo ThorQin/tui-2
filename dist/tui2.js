@@ -9587,11 +9587,38 @@ var tui;
                         }
                         _this.drawLine(_this._buffer.lines[target.line - _this._buffer.begin], target.line, _this.get("lineHeight"), _this.get("columns"), data.get(target.line));
                         ev.preventDefault();
-                        _this.fire("rowcheck", { e: ev, row: target.line, col: target.col, checked: checked });
+                        if (_this.fire("rowcheck", { e: ev, row: target.line, col: target.col, checked: checked }) !== false) {
+                            onRowCheck({ col: target.col, row: target.line, checked: checked });
+                        }
                     }
                     else {
                         _this.fire("rowmousedown", { e: ev, row: target.line, col: target.col });
                     }
+                };
+                var CHECKCOL_MATCHER = /^(un)?checked|tristate$/;
+                var onRowCheck = function (e) {
+                    var colums = _this.get("columns");
+                    var col = colums[e.col];
+                    if (!CHECKCOL_MATCHER.test(col.checkCol))
+                        return;
+                    var data = _this.get("data")._data;
+                    var cc = 0, uc = 0;
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i][col.checkKey] === true)
+                            cc++;
+                        else
+                            uc++;
+                    }
+                    if (cc == 0) {
+                        col.checkCol = "unchecked";
+                    }
+                    else if (uc == 0) {
+                        col.checkCol = "checked";
+                    }
+                    else {
+                        col.checkCol = "tristate";
+                    }
+                    _this.render();
                 };
                 $(this._).on("mousedown", function (ev) {
                     testLine(ev);
@@ -9779,6 +9806,24 @@ var tui;
                         e.stopPropagation();
                     }
                 });
+                var onCheckCol = function (e) {
+                    var colums = _this.get("columns");
+                    var col = colums[e.col];
+                    var data = _this.get("data")._data;
+                    if (e.state === "checked") {
+                        for (var i = 0; i < data.length; i++) {
+                            if (data[i][col.checkKey] === false)
+                                data[i][col.checkKey] = true;
+                        }
+                    }
+                    else if (e.state === "unchecked") {
+                        for (var i = 0; i < data.length; i++) {
+                            if (data[i][col.checkKey] === true)
+                                data[i][col.checkKey] = false;
+                        }
+                    }
+                    _this.render();
+                };
                 $(head).click(function (ev) {
                     if (_this.get("disable"))
                         return;
@@ -9790,12 +9835,16 @@ var tui;
                             if (columns[col].checkCol === "checked") {
                                 columns[col].checkCol = "unchecked";
                                 _this.drawHeader();
-                                _this.fire("checkcol", { e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol });
+                                if (_this.fire("checkcol", { e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol }) !== false) {
+                                    onCheckCol({ col: col, state: columns[col].checkCol });
+                                }
                             }
                             else if (columns[col].checkCol === "unchecked" || columns[col].checkCol === "tristate") {
                                 columns[col].checkCol = "checked";
                                 _this.drawHeader();
-                                _this.fire("checkcol", { e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol });
+                                if (_this.fire("checkcol", { e: ev, column: columns[col], col: col, checkCol: columns[col].checkCol }) != false) {
+                                    onCheckCol({ col: col, state: columns[col].checkCol });
+                                }
                             }
                             else if (columns[col].sortable) {
                                 var sortType = "asc";
