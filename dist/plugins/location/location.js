@@ -312,11 +312,11 @@ var tui;
                 FormAddress.prototype.validate = function () {
                     return this._widget.validate();
                 };
+                FormAddress.icon = "fa-map-marker";
+                FormAddress.desc = "form.address";
+                FormAddress.order = 100;
                 return FormAddress;
             }(widget.BasicFormControl));
-            FormAddress.icon = "fa-map-marker";
-            FormAddress.desc = "form.address";
-            FormAddress.order = 100;
             widget.Form.register("address", FormAddress);
         })(ext = widget.ext || (widget.ext = {}));
     })(widget = tui.widget || (tui.widget = {}));

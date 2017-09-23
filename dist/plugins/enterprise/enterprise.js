@@ -306,18 +306,18 @@ var tui;
                     this._key = "account";
                     this._allowMultiSelect = true;
                 };
+                FormUserSelect.icon = "fa-user-o";
+                FormUserSelect.desc = "label.user";
+                FormUserSelect.order = 200;
+                FormUserSelect.queryApi = null;
+                FormUserSelect.listApi = null;
+                FormUserSelect.init = {
+                    multiple: false,
+                    withSubCompany: true
+                };
+                FormUserSelect.translator = translateValue;
                 return FormUserSelect;
             }(FormDialogSelect));
-            FormUserSelect.icon = "fa-user-o";
-            FormUserSelect.desc = "label.user";
-            FormUserSelect.order = 200;
-            FormUserSelect.queryApi = null;
-            FormUserSelect.listApi = null;
-            FormUserSelect.init = {
-                multiple: false,
-                withSubCompany: true
-            };
-            FormUserSelect.translator = translateValue;
             widget.Form.register("user", FormUserSelect);
             var FormOrganSelect = (function (_super) {
                 __extends(FormOrganSelect, _super);
@@ -334,18 +334,18 @@ var tui;
                     this._key = "id";
                     this._allowMultiSelect = false;
                 };
+                FormOrganSelect.icon = "fa-building-o";
+                FormOrganSelect.desc = "label.organization";
+                FormOrganSelect.order = 201;
+                FormOrganSelect.queryApi = null;
+                FormOrganSelect.listApi = null;
+                FormOrganSelect.init = {
+                    multiple: false,
+                    withSubCompany: true
+                };
+                FormOrganSelect.translator = translateValue;
                 return FormOrganSelect;
             }(FormDialogSelect));
-            FormOrganSelect.icon = "fa-building-o";
-            FormOrganSelect.desc = "label.organization";
-            FormOrganSelect.order = 201;
-            FormOrganSelect.queryApi = null;
-            FormOrganSelect.listApi = null;
-            FormOrganSelect.init = {
-                multiple: false,
-                withSubCompany: true
-            };
-            FormOrganSelect.translator = translateValue;
             widget.Form.register("organ", FormOrganSelect);
             tui.dict("en-us", {
                 "label.user": "User",

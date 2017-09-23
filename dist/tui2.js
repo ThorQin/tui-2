@@ -2745,9 +2745,9 @@ var tui;
                     tui.browser.removeClass(this._, "tui-form-design-mode");
                 }
             };
+            Form.ITEM_SIZE = 220;
             return Form;
         }(widget.Widget));
-        Form.ITEM_SIZE = 220;
         widget.Form = Form;
         widget.register(Form, "form");
         widget.registerResize("form");
@@ -6520,9 +6520,9 @@ var tui;
                     this._set("follow-tooltip", null);
                 }
             };
+            SelectBase.PADDING = 6;
             return SelectBase;
         }(widget.InputBase));
-        SelectBase.PADDING = 6;
         widget.SelectBase = SelectBase;
         var SelectPopupBase = (function (_super) {
             __extends(SelectPopupBase, _super);
@@ -7784,11 +7784,11 @@ var tui;
             FormSection.prototype.validate = function () {
                 return true;
             };
+            FormSection.icon = "fa-font";
+            FormSection.desc = "form.section";
+            FormSection.order = 0;
             return FormSection;
         }(FormControl));
-        FormSection.icon = "fa-font";
-        FormSection.desc = "form.section";
-        FormSection.order = 0;
         widget.Form.register("section", FormSection);
         var FormTextbox = (function (_super) {
             __extends(FormTextbox, _super);
@@ -7931,11 +7931,11 @@ var tui;
             FormTextbox.prototype.validate = function () {
                 return this._widget.validate();
             };
+            FormTextbox.icon = "fa-pencil";
+            FormTextbox.desc = "form.textbox";
+            FormTextbox.order = 1;
             return FormTextbox;
         }(BasicFormControl));
-        FormTextbox.icon = "fa-pencil";
-        FormTextbox.desc = "form.textbox";
-        FormTextbox.order = 1;
         widget.Form.register("textbox", FormTextbox);
         var FormTextarea = (function (_super) {
             __extends(FormTextarea, _super);
@@ -8022,14 +8022,14 @@ var tui;
             FormTextarea.prototype.validate = function () {
                 return this._widget.validate();
             };
+            FormTextarea.icon = "fa-edit";
+            FormTextarea.desc = "form.textarea";
+            FormTextarea.order = 2;
+            FormTextarea.init = {
+                maxHeight: 300
+            };
             return FormTextarea;
         }(BasicFormControl));
-        FormTextarea.icon = "fa-edit";
-        FormTextarea.desc = "form.textarea";
-        FormTextarea.order = 2;
-        FormTextarea.init = {
-            maxHeight: 300
-        };
         widget.Form.register("textarea", FormTextarea);
         var FormOptions = (function (_super) {
             __extends(FormOptions, _super);
@@ -8267,31 +8267,31 @@ var tui;
                 }
                 return true;
             };
+            FormOptions.icon = "fa-check-square-o";
+            FormOptions.desc = "form.option.group";
+            FormOptions.order = 3;
+            FormOptions.init = {
+                "options": [{
+                        "data": [
+                            { "value": "A" },
+                            { "value": "B" },
+                            { "value": "C" },
+                            { "value": "D" }
+                        ]
+                    }
+                ]
+            };
+            FormOptions.translator = function (value, item, index) {
+                if (value instanceof Array) {
+                    return document.createTextNode(value.join(", "));
+                }
+                else if (value != null)
+                    return document.createTextNode(value + "");
+                else
+                    return null;
+            };
             return FormOptions;
         }(FormControl));
-        FormOptions.icon = "fa-check-square-o";
-        FormOptions.desc = "form.option.group";
-        FormOptions.order = 3;
-        FormOptions.init = {
-            "options": [{
-                    "data": [
-                        { "value": "A" },
-                        { "value": "B" },
-                        { "value": "C" },
-                        { "value": "D" }
-                    ]
-                }
-            ]
-        };
-        FormOptions.translator = function (value, item, index) {
-            if (value instanceof Array) {
-                return document.createTextNode(value.join(", "));
-            }
-            else if (value != null)
-                return document.createTextNode(value + "");
-            else
-                return null;
-        };
         widget.Form.register("options", FormOptions);
         var FormSelect = (function (_super) {
             __extends(FormSelect, _super);
@@ -8452,31 +8452,31 @@ var tui;
                 }
                 return true;
             };
+            FormSelect.icon = "fa-toggle-down";
+            FormSelect.desc = "form.selection";
+            FormSelect.order = 4;
+            FormSelect.init = {
+                "atMost": 1,
+                "selection": [{
+                        "condition": null,
+                        "data": [
+                            { "value": "A", "check": false },
+                            { "value": "B", "check": false },
+                            { "value": "C", "check": false }
+                        ]
+                    }]
+            };
+            FormSelect.translator = function (value, item, index) {
+                if (value instanceof Array) {
+                    return document.createTextNode(value.join(", "));
+                }
+                else if (value != null)
+                    return document.createTextNode(value + "");
+                else
+                    return null;
+            };
             return FormSelect;
         }(BasicFormControl));
-        FormSelect.icon = "fa-toggle-down";
-        FormSelect.desc = "form.selection";
-        FormSelect.order = 4;
-        FormSelect.init = {
-            "atMost": 1,
-            "selection": [{
-                    "condition": null,
-                    "data": [
-                        { "value": "A", "check": false },
-                        { "value": "B", "check": false },
-                        { "value": "C", "check": false }
-                    ]
-                }]
-        };
-        FormSelect.translator = function (value, item, index) {
-            if (value instanceof Array) {
-                return document.createTextNode(value.join(", "));
-            }
-            else if (value != null)
-                return document.createTextNode(value + "");
-            else
-                return null;
-        };
         widget.Form.register("select", FormSelect);
         var FormDatePicker = (function (_super) {
             __extends(FormDatePicker, _super);
@@ -8569,11 +8569,11 @@ var tui;
             FormDatePicker.prototype.validate = function () {
                 return this._widget.validate();
             };
+            FormDatePicker.icon = "fa-calendar-o";
+            FormDatePicker.desc = "form.datepicker";
+            FormDatePicker.order = 5;
             return FormDatePicker;
         }(BasicFormControl));
-        FormDatePicker.icon = "fa-calendar-o";
-        FormDatePicker.desc = "form.datepicker";
-        FormDatePicker.order = 5;
         widget.Form.register("datepicker", FormDatePicker);
         var FormPicture = (function (_super) {
             __extends(FormPicture, _super);
@@ -8645,22 +8645,22 @@ var tui;
                     return true;
                 }
             };
+            FormPicture.icon = "fa-file-image-o";
+            FormPicture.desc = "form.picture";
+            FormPicture.order = 6;
+            FormPicture.translator = function (value, item, index) {
+                if (value != null) {
+                    if (value.fileName)
+                        return document.createTextNode(value.fileName);
+                    else
+                        return document.createTextNode("[ " + tui.str("form.picture") + " ]");
+                }
+                else
+                    return null;
+            };
+            FormPicture.MIME = "^image/(png|jpeg|gif)(\\s*,\\s*image/(png|jpeg|gif))*$";
             return FormPicture;
         }(BasicFormControl));
-        FormPicture.icon = "fa-file-image-o";
-        FormPicture.desc = "form.picture";
-        FormPicture.order = 6;
-        FormPicture.translator = function (value, item, index) {
-            if (value != null) {
-                if (value.fileName)
-                    return document.createTextNode(value.fileName);
-                else
-                    return document.createTextNode("[ " + tui.str("form.picture") + " ]");
-            }
-            else
-                return null;
-        };
-        FormPicture.MIME = "^image/(png|jpeg|gif)(\\s*,\\s*image/(png|jpeg|gif))*$";
         widget.Form.register("picture", FormPicture);
         var FormFile = (function (_super) {
             __extends(FormFile, _super);
@@ -8718,21 +8718,21 @@ var tui;
             FormFile.prototype.validate = function () {
                 return this._widget.validate();
             };
+            FormFile.icon = "fa-file-text-o";
+            FormFile.desc = "form.file";
+            FormFile.order = 7;
+            FormFile.translator = function (value, item, index) {
+                if (value != null) {
+                    if (value.fileName)
+                        return document.createTextNode(value.fileName);
+                    else
+                        return document.createTextNode("[ " + tui.str("form.file") + " ]");
+                }
+                else
+                    return null;
+            };
             return FormFile;
         }(BasicFormControl));
-        FormFile.icon = "fa-file-text-o";
-        FormFile.desc = "form.file";
-        FormFile.order = 7;
-        FormFile.translator = function (value, item, index) {
-            if (value != null) {
-                if (value.fileName)
-                    return document.createTextNode(value.fileName);
-                else
-                    return document.createTextNode("[ " + tui.str("form.file") + " ]");
-            }
-            else
-                return null;
-        };
         widget.Form.register("file", FormFile);
         var FormFiles = (function (_super) {
             __extends(FormFiles, _super);
@@ -8842,18 +8842,18 @@ var tui;
                 }
                 return true;
             };
+            FormFiles.icon = "fa-copy";
+            FormFiles.desc = "form.files";
+            FormFiles.order = 8;
+            FormFiles.translator = function (value, item, index) {
+                if (value instanceof Array) {
+                    return document.createTextNode("[ " + tui.strp("file.count.p", value.length) + " ]");
+                }
+                else
+                    return null;
+            };
             return FormFiles;
         }(BasicFormControl));
-        FormFiles.icon = "fa-copy";
-        FormFiles.desc = "form.files";
-        FormFiles.order = 8;
-        FormFiles.translator = function (value, item, index) {
-            if (value instanceof Array) {
-                return document.createTextNode("[ " + tui.strp("file.count.p", value.length) + " ]");
-            }
-            else
-                return null;
-        };
         widget.Form.register("files", FormFiles);
         var FormGrid = (function (_super) {
             __extends(FormGrid, _super);
@@ -9052,18 +9052,18 @@ var tui;
                 else
                     return true;
             };
+            FormGrid.icon = "fa-table";
+            FormGrid.desc = "form.grid";
+            FormGrid.order = 9;
+            FormGrid.translator = function (value, item, index) {
+                if (value instanceof Array) {
+                    return document.createTextNode("[ " + tui.strp("item.count.p", value.length) + " ]");
+                }
+                else
+                    return null;
+            };
             return FormGrid;
         }(BasicFormControl));
-        FormGrid.icon = "fa-table";
-        FormGrid.desc = "form.grid";
-        FormGrid.order = 9;
-        FormGrid.translator = function (value, item, index) {
-            if (value instanceof Array) {
-                return document.createTextNode("[ " + tui.strp("item.count.p", value.length) + " ]");
-            }
-            else
-                return null;
-        };
         widget.Form.register("grid", FormGrid);
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
@@ -10488,10 +10488,10 @@ var tui;
                     this.removeClass("tui-disable");
                 }
             };
+            Grid.CELL_SPACE = 4;
+            Grid.LINE_HEIGHT = 31;
             return Grid;
         }(widget.Widget));
-        Grid.CELL_SPACE = 4;
-        Grid.LINE_HEIGHT = 31;
         widget.Grid = Grid;
         widget.register(Grid, "grid");
         widget.registerResize("grid");
@@ -10661,9 +10661,9 @@ var tui;
                 });
                 this.render();
             };
+            List.LINE_HEIGHT = 30;
             return List;
         }(Grid));
-        List.LINE_HEIGHT = 30;
         widget.List = List;
         widget.register(List, "list");
         widget.registerResize("list");
@@ -10935,9 +10935,9 @@ var tui;
                     this._set("follow-tooltip", null);
                 }
             };
+            Input.PADDING = 6;
             return Input;
         }(widget.InputBase));
-        Input.PADDING = 6;
         widget.Input = Input;
         widget.register(Input, "input");
         widget.registerResize("input");
@@ -12294,9 +12294,9 @@ var tui;
                     _this.changeSize();
                 });
             };
+            Select.LIST_LINE_HEIGHT = 28;
             return Select;
         }(widget.SelectPopupBase));
-        Select.LIST_LINE_HEIGHT = 28;
         widget.Select = Select;
         widget.register(Select, "select");
         var DialogSelect = (function (_super) {

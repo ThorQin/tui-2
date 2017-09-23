@@ -23,7 +23,7 @@
     "email": "thor.qin@qq.com"
   },
   "devDependencies": {
-    "uglifyjs": "latest",
+    "uglify-js": "latest",
     "fs-extra-cli": "latest",
     "json-server": "latest",
     "less": "latest",
@@ -33,23 +33,17 @@
     "npm-run-all": "latest"
   },
   "scripts": {
-
     "build:ts": "tsc --sourceRoot src",
-    "compress:ts": "cd dist && uglifyjs tui2.js > tui2.min.js --compress --support-ie8 --source-map tui2.min.js.map",
-
+    "compress:ts": "cd dist && uglifyjs tui2.js -o tui2.min.js --compress --ie8 --source-map",
     "prebuild:less": "fsys --task=copy --filesFolders=less --destination=dist --clobber='true' --preserveTimestamps='false'",
     "build:less": "cd dist && lessc less/tui2.less tui2.css --clean-css=\"--s1 --advanced --compatibility=ie8\" --source-map",
-
     "build:tools": "tsc --lib ES5,ES2015.Promise --target ES5 plugins/build.ts",
     "build:plugins": "node --harmony plugins/build.js",
-
     "prebuild": "fsys --task=emptyDir --dir=dist",
     "build": "npm run build:ts && npm run compress:ts && npm run build:less && npm run build:plugins",
     "postbuild": "fsys --task=copy --filesFolders=lang,src --destination=dist --clobber='true' --preserveTimestamps='false'",
-
     "watch:less": "watch \"npm run build:less\" less -d -u",
     "watch:ts": "watch \"npm run build:ts\" src -d -u",
-
     "server": "json-server ./doc/db.json --port 8000 --static . --middlewares ./doc/api.js ",
     "start": "npm-run-all --parallel watch:* server"
   }

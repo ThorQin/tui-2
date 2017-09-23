@@ -160,8 +160,10 @@ module tui.widget.ext {
 			if (!$elem.hasClass("tui-collapse")) {
 				$elem.removeClass("tui-expand");
 				$elem.addClass("tui-collapse");
-				$elem.next().animate({height: "toggle"}, () => {
-					this.checkScroll();
+				$elem.next().animate({height: "toggle"}, {
+					complete: () => {
+						this.checkScroll();
+					}
 				});
 			}
 		}
@@ -172,8 +174,10 @@ module tui.widget.ext {
 			if (!$elem.hasClass("tui-expand")) {
 				$elem.removeClass("tui-collapse");
 				$elem.addClass("tui-expand");
-				$elem.next().animate({height: "toggle"}, () => {
+				$elem.next().animate({height: "toggle"}, { 
+					complete: () => {
 					this.checkScroll();
+					}
 				});
 			}
 		}
