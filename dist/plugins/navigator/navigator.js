@@ -167,8 +167,10 @@ var tui;
                     if (!$elem.hasClass("tui-collapse")) {
                         $elem.removeClass("tui-expand");
                         $elem.addClass("tui-collapse");
-                        $elem.next().animate({ height: "toggle" }, function () {
-                            _this.checkScroll();
+                        $elem.next().animate({ height: "toggle" }, {
+                            complete: function () {
+                                _this.checkScroll();
+                            }
                         });
                     }
                 };
@@ -179,8 +181,10 @@ var tui;
                     if (!$elem.hasClass("tui-expand")) {
                         $elem.removeClass("tui-collapse");
                         $elem.addClass("tui-expand");
-                        $elem.next().animate({ height: "toggle" }, function () {
-                            _this.checkScroll();
+                        $elem.next().animate({ height: "toggle" }, {
+                            complete: function () {
+                                _this.checkScroll();
+                            }
                         });
                     }
                 };

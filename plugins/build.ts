@@ -30,8 +30,8 @@ function compress(pluginName) {
 		cwd: path.join(dir, "../dist/plugins/", pluginName)
 	};
 	return new Promise<any>((resovle, reject) => {
-		ps.exec("uglifyjs " + pluginName + ".js > " + pluginName + 
-			".min.js --compress --support-ie8 --source-map " + pluginName + ".min.js.map", 
+		ps.exec("uglifyjs " + pluginName + ".js -o " + pluginName + 
+			".min.js --compress --ie8 --source-map ", 
 			options, (error: Error, stdout: string, stderr: string) => {
 			if (error) {
 				reject([error, stdout]);
