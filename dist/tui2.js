@@ -314,6 +314,11 @@ var tui;
     })();
 })(tui || (tui = {}));
 tui.dict("en-us", {
+    "allow.append": "Allow Append",
+    "allow.delete": "Allow Delete",
+    "allow.edit": "Allow Edit",
+    "auto.height": "Auto Height",
+    "auto.column.width": "Auto Column Width",
     "success": "Success",
     "warning": "Warning",
     "confirm": "Confirm",
@@ -327,9 +332,11 @@ tui.dict("en-us", {
     "ok": "OK",
     "close": "Close",
     "cancel": "Cancel",
-    "append": "Append",
     "accept": "Accept",
     "agree": "Agree",
+    "append": "Append",
+    "delete": "Delete",
+    "edit": "Edit",
     "reject": "Reject",
     "yes": "Yes",
     "no": "No",
@@ -340,6 +347,7 @@ tui.dict("en-us", {
     "address": "Address",
     "invalid.file.type": "Invalid file type!",
     "geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service.",
+    "form.grid.features": "Features",
     "form.section": "Title",
     "form.textbox": "Textbox",
     "form.textarea": "Textarea",
@@ -7195,6 +7203,14 @@ var tui;
             }
             return result;
         }
+        function exist(arr, option) {
+            if (arr instanceof Array && arr.indexOf(option) >= 0) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
         var FormControl = (function () {
             function FormControl(form, define) {
                 var _this = this;
@@ -8862,9 +8878,8 @@ var tui;
                 _this._widget._.style.margin = "2px";
                 _this._buttonBar = tui.elem("div");
                 _this.div.appendChild(_this._buttonBar);
-                var gp = widget.create("button-group");
                 _this._btnAdd = widget.create("button", { text: "<i class='fa fa-plus'></i>" });
-                _this._btnAdd.appendTo(gp._);
+                _this._btnAdd.appendTo(_this._buttonBar);
                 _this._btnAdd.on("click", function () {
                     var dialog = widget.create("dialog");
                     var fm = widget.create("form");
@@ -8885,14 +8900,14 @@ var tui;
                     });
                 });
                 _this._btnEdit = widget.create("button", { text: "<i class='fa fa-pencil'></i>" });
-                _this._btnEdit.appendTo(gp._);
+                _this._btnEdit.appendTo(_this._buttonBar);
                 _this._btnEdit.on("click", function () {
                     _this.editRow();
                 });
                 _this._widget.on("rowdblclick", function () {
-                    _this.editRow();
+                    if (exist(_this.define.features, "edit"))
+                        _this.editRow();
                 });
-                gp.appendTo(_this._buttonBar);
                 _this._btnDelete = widget.create("button", { text: "<i class='fa fa-trash'></i>" });
                 _this._btnDelete.appendTo(_this._buttonBar);
                 _this._btnDelete.on("click", function () {
@@ -8947,6 +8962,8 @@ var tui;
                         if (!subDef.key)
                             continue;
                         var type = widget.Form.getType(subDef.type);
+                        if (!type || type == FormSection)
+                            continue;
                         var col = { name: subDef.label, key: subDef.key, translator: type.translator };
                         columns.push(col);
                     }
@@ -8954,14 +8971,6 @@ var tui;
                 }
                 else {
                     this._widget._set("columns", []);
-                }
-                if (typeof d.height === "number" && !isNaN(d.height) ||
-                    typeof d.height === "string" && /^\d+$/.test(d.height)) {
-                    this._widget._.style.height = d.height + "px";
-                }
-                else {
-                    this._widget._.style.height = "";
-                    d.height = null;
                 }
                 if (this.define.disable) {
                     this._btnAdd.set("disable", true);
@@ -8975,12 +8984,45 @@ var tui;
                     this._btnDelete.set("disable", false);
                     this._widget.set("disable", false);
                 }
+                this._btnAdd._.style.display = exist(this.define.features, "append") ? "inline-block" : "none";
+                this._btnEdit._.style.display = exist(this.define.features, "edit") ? "inline-block" : "none";
+                this._btnDelete._.style.display = exist(this.define.features, "delete") ? "inline-block" : "none";
+                if (exist(this.define.features, "autoHeight")) {
+                    this._widget._.style.height = "";
+                    this._widget.set("autoHeight", true);
+                }
+                else {
+                    this._widget.set("autoHeight", false);
+                    if (typeof d.height === "number" && !isNaN(d.height) ||
+                        typeof d.height === "string" && /^\d+$/.test(d.height)) {
+                        this._widget._.style.height = d.height + "px";
+                    }
+                    else {
+                        this._widget._.style.height = "";
+                        d.height = null;
+                    }
+                }
+                this._widget.set("autoWidth", exist(this.define.features, "autoColumnWidth"));
             };
             FormGrid.prototype.getProperties = function () {
                 return [{
                         name: tui.str("form.grid"),
                         properties: [
                             {
+                                "type": "options",
+                                "key": "features",
+                                "label": tui.str("form.grid.features"),
+                                "value": this.define.features,
+                                "options": [{ "data": [
+                                            { "value": "append", "text": tui.str("allow.append") },
+                                            { "value": "delete", "text": tui.str("allow.delete") },
+                                            { "value": "edit", "text": tui.str("allow.edit") },
+                                            { "value": "autoHeight", "text": tui.str("auto.height") },
+                                            { "value": "autoColumnWidth", "text": tui.str("auto.column.width") }
+                                        ] }],
+                                "size": 6,
+                                "newline": true
+                            }, {
                                 "type": "textbox",
                                 "inputType": "number",
                                 "key": "height",
@@ -8988,7 +9030,8 @@ var tui;
                                 "value": /^\d+$/.test(this.define.height + "") ? this.define.height : null,
                                 "validation": [
                                     { "format": "*digital", "message": tui.str("message.invalid.value") }
-                                ]
+                                ],
+                                "condition": "features !~ 'autoHeight'"
                             }, {
                                 "type": "textbox",
                                 "inputType": "number",
@@ -9024,6 +9067,7 @@ var tui;
                 this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
                 this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
                 this.define.definitions = properties[2];
+                this.define.features = values.features;
             };
             FormGrid.prototype.getValue = function () {
                 return this._values;
@@ -9057,6 +9101,9 @@ var tui;
         FormGrid.icon = "fa-table";
         FormGrid.desc = "form.grid";
         FormGrid.order = 9;
+        FormGrid.init = {
+            features: ['append', 'delete', 'edit']
+        };
         FormGrid.translator = function (value, item, index) {
             if (value instanceof Array) {
                 return document.createTextNode("[ " + tui.strp("item.count.p", value.length) + " ]");

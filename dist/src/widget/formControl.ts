@@ -138,6 +138,14 @@ module tui.widget {
 		return result;
 	}
 
+	function exist(arr: string[]| null, option: string): boolean {
+		if (arr instanceof Array && arr.indexOf(option) >= 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	export abstract class FormControl<D extends FormItem> {
 		mask: HTMLElement;
 		div: HTMLElement;
@@ -1910,6 +1918,7 @@ module tui.widget {
 	interface GridFormItem extends FormItem {
 		definitions: FormItem[];
 		items: any[];
+		features: string[];
 		atLeast?: number;
 		atMost?: number;
 		height?: number;
@@ -1918,6 +1927,9 @@ module tui.widget {
 		static icon = "fa-table";
 		static desc = "form.grid";
 		static order = 9;
+		static init = {
+			features: ['append', 'delete', 'edit']
+		};
 		static translator = function (value: any, item: any, index: number): Node {
 			if (value instanceof Array) {
 				return document.createTextNode("[ " + strp("item.count.p", value.length) + " ]");
@@ -1937,9 +1949,9 @@ module tui.widget {
 			this._widget._.style.margin = "2px";
 			this._buttonBar = elem("div");
 			this.div.appendChild(this._buttonBar);
-			var gp = <ButtonGroup>create("button-group");
+			//var gp = <ButtonGroup>create("button-group");
 			this._btnAdd = <Button>create("button", {text: "<i class='fa fa-plus'></i>"});
-			this._btnAdd.appendTo(gp._);
+			this._btnAdd.appendTo(this._buttonBar);
 			this._btnAdd.on("click", () => {
 				var dialog = <Dialog>create("dialog");
 				var fm = <Form>create("form");
@@ -1960,15 +1972,16 @@ module tui.widget {
 			});
 
 			this._btnEdit = <Button>create("button", {text: "<i class='fa fa-pencil'></i>"});
-			this._btnEdit.appendTo(gp._);
+			this._btnEdit.appendTo(this._buttonBar);
 			this._btnEdit.on("click", () => {
 				this.editRow();
 			});
 			this._widget.on("rowdblclick", () => {
-				this.editRow();
+				if (exist(this.define.features, "edit"))
+					this.editRow();
 			});
 
-			gp.appendTo(this._buttonBar);
+			//gp.appendTo(this._buttonBar);
 
 			this._btnDelete = <Button>create("button", {text: "<i class='fa fa-trash'></i>"});
 			this._btnDelete.appendTo(this._buttonBar);
@@ -2023,6 +2036,8 @@ module tui.widget {
 					if (!subDef.key)
 						continue;
 					let type = Form.getType( subDef.type);
+					if (!type || type == FormSection)
+						continue;
 					let col = { name: subDef.label, key: subDef.key, translator: type.translator };
 					columns.push(col);
 				}
@@ -2030,13 +2045,7 @@ module tui.widget {
 			} else {
 				this._widget._set("columns", []);
 			}
-			if (typeof d.height === "number" && !isNaN(d.height) ||
-				typeof d.height === "string" && /^\d+$/.test(d.height)) {
-				this._widget._.style.height = d.height + "px";
-			} else {
-				this._widget._.style.height = "";
-				d.height = null;
-			}
+
 			if (this.define.disable) {
 				this._btnAdd.set("disable", true);
 				this._btnEdit.set("disable", true);
@@ -2048,6 +2057,24 @@ module tui.widget {
 				this._btnDelete.set("disable", false);
 				this._widget.set("disable", false);
 			}
+
+			this._btnAdd._.style.display = exist(this.define.features, "append") ? "inline-block" : "none";
+			this._btnEdit._.style.display = exist(this.define.features, "edit") ? "inline-block" : "none";
+			this._btnDelete._.style.display = exist(this.define.features, "delete") ? "inline-block" : "none";
+			if (exist(this.define.features, "autoHeight")) {
+				this._widget._.style.height = "";
+				this._widget.set("autoHeight", true);
+			} else {
+				this._widget.set("autoHeight", false);
+				if (typeof d.height === "number" && !isNaN(d.height) ||
+					typeof d.height === "string" && /^\d+$/.test(d.height)) {
+					this._widget._.style.height = d.height + "px";
+				} else {
+					this._widget._.style.height = "";
+					d.height = null;
+				}
+			}
+			this._widget.set("autoWidth", exist(this.define.features, "autoColumnWidth"));
 		}
 
 		getProperties(): PropertyPage[] {
@@ -2055,6 +2082,20 @@ module tui.widget {
 				name: str("form.grid"),
 				properties: [
 					{
+						"type": "options",
+						"key": "features",
+						"label": str("form.grid.features"),
+						"value": this.define.features,
+						"options": [{"data":[
+							{ "value": "append", "text": str("allow.append") },
+							{ "value": "delete", "text": str("allow.delete") },
+							{ "value": "edit", "text": str("allow.edit") },
+							{ "value": "autoHeight", "text": str("auto.height") },
+							{ "value": "autoColumnWidth", "text": str("auto.column.width") }
+						]}],
+						"size": 6,
+						"newline": true
+					},{
 						"type": "textbox",
 						"inputType": "number",
 						"key": "height",
@@ -2062,7 +2103,8 @@ module tui.widget {
 						"value": /^\d+$/.test(this.define.height + "")? this.define.height : null,
 						"validation": [
 							{ "format": "*digital", "message": str("message.invalid.value") }
-						]
+						],
+						"condition": "features !~ 'autoHeight'"
 					}, {
 						"type": "textbox",
 						"inputType": "number",
@@ -2100,6 +2142,7 @@ module tui.widget {
 			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
 			this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
 			this.define.definitions = properties[2];
+			this.define.features = values.features;
 		}
 		getValue(): any {
 			return this._values;
