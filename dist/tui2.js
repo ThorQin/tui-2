@@ -3023,6 +3023,7 @@ var tui;
                         }
                     }, 50);
                 });
+                return this;
             };
             Dialog.prototype.close = function () {
                 if (!this.get("opened"))
@@ -3034,6 +3035,7 @@ var tui;
                 remove(this);
                 this._set("opened", false);
                 this.fire("close");
+                return this;
             };
             Dialog.prototype.render = function () {
                 if (!this.get("opened"))

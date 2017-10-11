@@ -393,8 +393,8 @@ declare module tui.widget {
         protected init(): void;
         setContent(content: any, render?: boolean): void;
         setButtons(buttonDef?: string, render?: boolean): void;
-        open(buttonDef?: string): void;
-        close(): void;
+        open(buttonDef?: string): Dialog;
+        close(): Dialog;
         render(): void;
     }
 }
