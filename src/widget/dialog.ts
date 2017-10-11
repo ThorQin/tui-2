@@ -187,7 +187,7 @@ module tui.widget {
 				this.render();
 		}
 
-		open(buttonDef: string = null): void {
+		open(buttonDef: string = null): Dialog {
 			if (this.get("opened"))
 				return;
 			this._set("opened", true);
@@ -224,9 +224,10 @@ module tui.widget {
 					}
 				}, 50);
 			});
+			return this;
 		}
 
-		close(): void {
+		close(): Dialog {
 			if (!this.get("opened"))
 				return;
 			clearInterval(this._sizeTimer);
@@ -236,6 +237,7 @@ module tui.widget {
 			remove(this);
 			this._set("opened", false);
 			this.fire("close");
+			return this;
 		}
 
 		render(): void {
