@@ -2152,6 +2152,7 @@ module tui.widget {
 				if (value instanceof Array) {
 					this._values.length = 0;
 					this._values = this._values.concat(value);
+					this._widget._set("list", this._values);
 				}
 			}
 			this._widget.render();
