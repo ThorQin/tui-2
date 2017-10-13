@@ -2150,8 +2150,8 @@ module tui.widget {
 		setValue(value: any): void {
 			if (value !== this._values) {
 				if (value instanceof Array) {
-					this._values.length = 0;
-					this._values = this._values.concat(value);
+					this._values = value;
+					this.define.value = value;
 					this._widget._set("list", this._values);
 				}
 			}
