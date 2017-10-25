@@ -4933,6 +4933,9 @@ var tui;
                 var dt = new Date(dtStr);
                 if (!isNaN(dt.getTime()))
                     return dt;
+                dt = parseDateInternal(dtStr, "yyyy-MM-dd HH:mm:ss.SSS");
+                if (dt !== null)
+                    return dt;
                 dt = parseDateInternal(dtStr, "yyyy-MM-ddTHH:mm:sszzz");
                 if (dt !== null)
                     return dt;
