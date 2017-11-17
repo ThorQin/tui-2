@@ -3928,7 +3928,7 @@ var tui;
                             return false;
                     }
                     try {
-                        var regex = new RegExp(f.value);
+                        var regex = new RegExp(f.value, "i");
                         if (v.toString().match(regex) == null)
                             return false;
                     }

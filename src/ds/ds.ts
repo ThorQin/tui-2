@@ -60,7 +60,7 @@ module tui.ds {
 						return false;
 				}
 				try {
-					let regex = new RegExp(f.value);
+					let regex = new RegExp(f.value, "i");
 					if (v.toString().match(regex) == null)
 						return false;
 				} catch (e) {
