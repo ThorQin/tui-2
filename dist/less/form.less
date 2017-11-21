@@ -97,6 +97,7 @@ tui\:form {
 		display: inline-block;
 		vertical-align: top;
 		position: relative;
+		box-sizing: border-box;
 
 		&>* {
 			display: block !important;
@@ -201,7 +202,7 @@ tui\:form {
 		}
 
 		&.tui-form-item-newline {
-			display: block;
+			display: block !important;
 		}
 
 		div.tui-form-item-label {
@@ -239,25 +240,14 @@ tui\:form {
 			}
 		}
 
-		&.tui-form-item-size-2 {
-			width: 420px;
-		}
-		&.tui-form-item-size-3 {
-			width: 640px;
-		}
-		&.tui-form-item-size-4 {
-			width: 860px;
-		}
-		&.tui-form-item-size-5 {
-			width: 1080px;
-		}
+
 		&.tui-form-item-size-full {
-			display: block;
-			width: auto;
+			display: block !important;
+			width: auto !important;
 		}
 		&.tui-form-item-exceed {
-			display: block;
-			width: auto;
+			display: block !important;
+			width: auto !important;
 		}
 
 		&.tui-form-item-unavailable {
@@ -335,62 +325,43 @@ div.tui-form-new-item-menu {
 	}
 }
 
-tui\:form.tui-form-fixed {
-	width: 1320px;
-	&.tui-panel {
-		margin: 20px auto;
-	}
+tui\:form.tui-panel {
+ 		margin: 20px;
 }
 
 tui\:form.tui-form-property-form {
 	margin-top: 20px;
 }
 
-@media (max-width: 1360px) {
-	tui\:form.tui-form-fixed {
-		width: 1100px;
-	}
-}
-
-@media (max-width: 1140px) {
-	tui\:form.tui-form-fixed {
-		width: 880px;
-	}
-}
-
 tui\:dialog>.tui-content tui\:form {
-	max-width: 880px;
+	width: 1060px;
 	padding: 0;
 	&.tui-form-design-mode {
 		padding-bottom: 20px;
 	}
 }
 
-@media (max-width: 960px) {
+
+@media (max-width: 1120px) {
 	tui\:dialog>.tui-content tui\:form {
-		max-width: 660px;
+		width: 800px;
 	}
 }
 
-@media (max-width: 920px) {
-	tui\:form.tui-form-fixed {
-		width: 660px;
-	}
-}
-
-@media (max-width: 740px) {
+@media (max-width: 860px) {
 	tui\:dialog>.tui-content tui\:form {
-		max-width: 440px;
+		width: 540px;
 	}
 }
 
-@media (max-width: 700px) {
-	tui\:form.tui-form-fixed {
-		width: 440px;
-	}
+tui\:form.tui-form-property-form {
+	max-width: 	540px;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 580px) {
+	tui\:form.tui-panel {
+		margin: 0px;
+	}
 	tui\:dialog>.tui-content tui\:form {
 		width: auto;
 		&.tui-panel {
@@ -403,15 +374,82 @@ tui\:dialog>.tui-content tui\:form {
 	}
 }
 
-@media (max-width: 480px) {
-	tui\:form.tui-form-fixed {
-		width: auto;
-		&.tui-panel {
-			margin: 0px;
+tui\:form.tui-size-2 {
+	width: auto;
+
+	div.tui-form-item-container {
+		display: inline-block;
+		width: 50%;
+		&.tui-form-item-size-2,&.tui-form-item-size-3,&.tui-form-item-size-4,&.tui-form-item-size-5 {
+			width: 100%;
 		}
-		div.tui-form-item-container {
-			width: auto;
-			display: block;
+	}
+}
+
+tui\:form.tui-size-3 {
+	width: auto;
+	div.tui-form-item-container {
+		display: inline-block;
+		width: 33%;
+		&.tui-form-item-size-2 {
+			width: 66%;
+		}
+		&.tui-form-item-size-3,&.tui-form-item-size-4,&.tui-form-item-size-5 {
+			width: 99%;
+		}
+	}
+}
+
+tui\:form.tui-size-4 {
+	width: auto;
+	div.tui-form-item-container {
+		width: 25%;
+		&.tui-form-item-size-2 {
+			width: 50%;
+		}
+		&.tui-form-item-size-3 {
+			width: 75%;
+		}
+		&.tui-form-item-size-4,&.tui-form-item-size-5 {
+			width: 100%;
+		}
+	}
+}
+
+tui\:form.tui-size-5 {
+	width: auto;
+	div.tui-form-item-container {
+		width: 20%;
+		&.tui-form-item-size-2 {
+			width: 40%;
+		}
+		&.tui-form-item-size-3 {
+			width: 60%;
+		}
+		&.tui-form-item-size-4 {
+			width: 80%;
+		}
+		&.tui-form-item-size-5 {
+			width: 100%;
+		}
+	}
+}
+
+tui\:form.tui-size-6 {
+	width: auto;
+	div.tui-form-item-container {
+		width: 16.5%;
+		&.tui-form-item-size-2 {
+			width: 33%;
+		}
+		&.tui-form-item-size-3 {
+			width: 49.5%;
+		}
+		&.tui-form-item-size-4 {
+			width: 66%;
+		}
+		&.tui-form-item-size-5 {
+			width: 82.5%;
 		}
 	}
 }
@@ -424,25 +462,7 @@ tui\:form.tui-size-1 {
 	}
 }
 
-tui\:form.tui-size-2 {
-	width: 440px;
-}
 
-tui\:form.tui-size-3 {
-	width: 660px;
-}
-
-tui\:form.tui-size-4 {
-	width: 880px;
-}
-
-tui\:form.tui-size-5 {
-	width: 1100px;
-}
-
-tui\:form.tui-size-6 {
-	width: 1320px;
-}
 
 tui\:button-group.tui-tab.tui-form-properties-tab>tui\:radio {
 	font-size: 18px;

@@ -2242,22 +2242,6 @@ var tui;
                             return v || "input";
                         }
                     },
-                    "autoSize": {
-                        "set": function (value) {
-                            if (typeof value !== tui.UNDEFINED) {
-                                _this._data["autoSize"] = !!value;
-                                if (!!value) {
-                                    _this.computeSizeByParent();
-                                }
-                                else {
-                                    _this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
-                                }
-                            }
-                        },
-                        "get": function () {
-                            return !!_this._data["autoSize"];
-                        }
-                    },
                     "definition": {
                         "set": function (value) {
                             if (value instanceof Array) {
@@ -2456,12 +2440,8 @@ var tui;
                     }
                 });
                 this.on("resize", function () {
+                    _this.computeSizeByParent();
                     _this.render();
-                });
-                this.on("parentresize", function (e) {
-                    if ((e.data.type & 1) === 1) {
-                        _this.computeSizeByParent();
-                    }
                 });
                 this.on("itemremove", function (e) {
                     _this.removeItem(e.data.control);
@@ -2606,8 +2586,6 @@ var tui;
                 this.computeSizeByParent();
             };
             Form.prototype.computeSizeByParent = function () {
-                if (!this.get("autoSize"))
-                    return;
                 this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
                 var pw = $(this._.parentElement).width() - $(this._).outerWidth(true) + $(this._).width();
                 var s = Form.ITEM_SIZE;
@@ -2753,13 +2731,12 @@ var tui;
                     tui.browser.removeClass(this._, "tui-form-design-mode");
                 }
             };
-            Form.ITEM_SIZE = 220;
+            Form.ITEM_SIZE = 260;
             return Form;
         }(widget.Widget));
         widget.Form = Form;
         widget.register(Form, "form");
         widget.registerResize("form");
-        widget.registerParentResize("form");
     })(widget = tui.widget || (tui.widget = {}));
 })(tui || (tui = {}));
 (function (tui) {
@@ -3072,7 +3049,7 @@ var tui;
                 $(contentDiv).css({
                     "maxWidth": winSize.width - 40 + "px",
                     "maxHeight": winSize.height - 40 - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px",
-                    "minWidth": winSize.width <= 500 ? winSize.width - 80 + "px" : "none"
+                    "minWidth": winSize.width <= 580 ? winSize.width - 80 + "px" : "none"
                 });
                 var box = {
                     left: root.offsetLeft,
