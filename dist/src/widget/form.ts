@@ -41,7 +41,7 @@ module tui.widget {
 
 	export class Form extends Widget {
 
-		static ITEM_SIZE = 220;
+		static ITEM_SIZE = 260;
 
 		protected _definitionChanged: boolean;
 		protected _valueChanged: boolean;
@@ -210,21 +210,6 @@ module tui.widget {
 					"get": (): any => {
 						var v = this._data["mode"];
 						return v || "input";
-					}
-				},
-				"autoSize": {
-					"set": (value: any) => {
-						if (typeof value !== UNDEFINED) {
-							this._data["autoSize"] = !!value;
-							if (!!value) {
-								this.computeSizeByParent();
-							} else {
-								this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
-							}
-						}
-					},
-					"get": (): any => {
-						return !!this._data["autoSize"];
 					}
 				},
 				"definition": {
@@ -425,12 +410,8 @@ module tui.widget {
 			});
 
 			this.on("resize", () => {
+				this.computeSizeByParent();
 				this.render();
-			});
-			this.on("parentresize", (e) => {
-				if ((e.data.type & 1) === 1) {
-					this.computeSizeByParent();
-				}
 			});
 			this.on("itemremove", (e: any) => {
 				this.removeItem(e.data.control);
@@ -577,8 +558,6 @@ module tui.widget {
 		}
 
 		computeSizeByParent() {
-			if (!this.get("autoSize"))
-				return;
 			this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
 			var pw = $(this._.parentElement).width() - $(this._).outerWidth(true) + $(this._).width();
 			var s = Form.ITEM_SIZE;
@@ -719,7 +698,7 @@ module tui.widget {
 
 	register(Form, "form");
 	registerResize("form");
-	registerParentResize("form");
+	//registerParentResize("form");
 }
 
 module tui {
