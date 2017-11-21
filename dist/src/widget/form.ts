@@ -410,7 +410,7 @@ module tui.widget {
 			});
 
 			this.on("resize", () => {
-				this.computeSizeByParent();
+				this.computeSize();
 				this.render();
 			});
 			this.on("itemremove", (e: any) => {
@@ -554,12 +554,12 @@ module tui.widget {
 			newItem.onclick = () => {
 				this.addNewItem(newItem, this._items.length);
 			};
-			this.computeSizeByParent();
+			this.computeSize();
 		}
 
-		computeSizeByParent() {
+		computeSize() {
 			this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
-			var pw = $(this._.parentElement).width() - $(this._).outerWidth(true) + $(this._).width();
+			var pw = $(this._).width();
 			var s = Form.ITEM_SIZE;
 			var i = Math.floor(pw / s);
 			if (i < 1) i = 1;
@@ -675,8 +675,8 @@ module tui.widget {
 			}
 			var cfs = browser.getCurrentStyle(this._);
 			if (cfs.display != "none") {
-				this._.style.width = "2000px";
-				this._.style.width = "";
+				// this._.style.width = "2000px";
+				// this._.style.width = "";
 				var pad = parseFloat(cfs.paddingLeft) + parseFloat(cfs.paddingRight);
 				for (let item of this._items) {
 					if (item.div.offsetWidth > this._.clientWidth - pad) {

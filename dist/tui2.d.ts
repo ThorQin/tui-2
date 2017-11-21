@@ -365,7 +365,7 @@ declare module tui.widget {
         protected update(): void;
         protected initRestriction(): void;
         protected init(): void;
-        computeSizeByParent(): void;
+        computeSize(): void;
         private bindNewItemClick(popup, newItemDiv, type, pos);
         private addNewItem(button, pos);
         validate(): boolean;

@@ -2440,7 +2440,7 @@ var tui;
                     }
                 });
                 this.on("resize", function () {
-                    _this.computeSizeByParent();
+                    _this.computeSize();
                     _this.render();
                 });
                 this.on("itemremove", function (e) {
@@ -2583,11 +2583,11 @@ var tui;
                 newItem.onclick = function () {
                     _this.addNewItem(newItem, _this._items.length);
                 };
-                this.computeSizeByParent();
+                this.computeSize();
             };
-            Form.prototype.computeSizeByParent = function () {
+            Form.prototype.computeSize = function () {
                 this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
-                var pw = $(this._.parentElement).width() - $(this._).outerWidth(true) + $(this._).width();
+                var pw = $(this._).width();
                 var s = Form.ITEM_SIZE;
                 var i = Math.floor(pw / s);
                 if (i < 1)
@@ -2710,8 +2710,6 @@ var tui;
                 }
                 var cfs = tui.browser.getCurrentStyle(this._);
                 if (cfs.display != "none") {
-                    this._.style.width = "2000px";
-                    this._.style.width = "";
                     var pad = parseFloat(cfs.paddingLeft) + parseFloat(cfs.paddingRight);
                     for (var _b = 0, _c = this._items; _b < _c.length; _b++) {
                         var item = _c[_b];
