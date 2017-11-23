@@ -7,7 +7,7 @@ module tui.widget {
 	"use strict";
 
 	export class Component extends Group {
-		
+
 		private _scriptReady: boolean;
 		private _htmlReady: boolean;
 		private _childrenInit: boolean;
@@ -20,7 +20,7 @@ module tui.widget {
 			var hasSrc = !!this.get("src");
 			if ((!hasHandler || hasHandler && this._scriptReady)
 				&& (!hasSrc || hasSrc && this._htmlReady)
-				&& this._changed 
+				&& this._changed
 				&& this._childrenInit
 				&& this._noReadyCount <= 0) {
 				this._changed = false;
@@ -148,7 +148,7 @@ module tui.widget {
 						continue;
 					}
 					let elem = <HTMLElement>node;
-					let widget = (<any>elem).__widget__; 
+					let widget = (<any>elem).__widget__;
 					let name: string;
 					let fullName = getFullName(elem);
 					if (fullName === "tui:component")
@@ -185,12 +185,13 @@ module tui.widget {
 			if (typeof fn === "function") {
 				var params = service.parseParameters(fn, desc);
 				var argv = params.split(",").map((s) => {
+					s = s.trim();
 					if (!s)
 						return null;
 					else if (s[0] === '$') {
 						return tui.service.get(s.substr(1));
 					} else {
-						var c: any = this.getComponent(s.trim());
+						var c: any = this.getComponent(s);
 						if (c && c.__widget__)
 							c = c.__widget__;
 						return c;

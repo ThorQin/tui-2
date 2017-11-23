@@ -68,9 +68,13 @@ module tui.service {
 			tasks.push(ajax.getFunction(s, name));
 		}
 		$.when.apply(null, tasks).done(function(){
-			for (var i = 0; i < arguments.length; i++) {
-				var p: any = arguments[i];
-				register(p[1], p[0]);
+			if (arguments.length === 2 && typeof arguments[0] === "function") {
+				register(arguments[1], arguments[0]);
+			} else {
+				for (var i = 0; i < arguments.length; i++) {
+					var p: any = arguments[i];
+					register(p[1], p[0]);
+				}
 			}
 			ready();
 		}).fail(function(){

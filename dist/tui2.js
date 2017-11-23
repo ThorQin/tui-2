@@ -1371,9 +1371,14 @@ var tui;
                 tasks.push(tui.ajax.getFunction(s, name));
             }
             $.when.apply(null, tasks).done(function () {
-                for (var i = 0; i < arguments.length; i++) {
-                    var p = arguments[i];
-                    register(p[1], p[0]);
+                if (arguments.length === 2 && typeof arguments[0] === "function") {
+                    register(arguments[1], arguments[0]);
+                }
+                else {
+                    for (var i = 0; i < arguments.length; i++) {
+                        var p = arguments[i];
+                        register(p[1], p[0]);
+                    }
                 }
                 ready();
             }).fail(function () {
@@ -6184,13 +6189,14 @@ var tui;
                 if (typeof fn === "function") {
                     var params = tui.service.parseParameters(fn, desc);
                     var argv = params.split(",").map(function (s) {
+                        s = s.trim();
                         if (!s)
                             return null;
                         else if (s[0] === '$') {
                             return tui.service.get(s.substr(1));
                         }
                         else {
-                            var c = _this.getComponent(s.trim());
+                            var c = _this.getComponent(s);
                             if (c && c.__widget__)
                                 c = c.__widget__;
                             return c;
