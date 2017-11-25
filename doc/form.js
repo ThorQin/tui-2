@@ -9,6 +9,6 @@ this.use(function(mode, submit, define, form) {
 			tui.errbox("输入内容有误，请检查表单！");
 	});
 	define.on("click", function(e) {
-		tui.msgbox(JSON.stringify(form.get("definition")));
+		tui.msgbox(JSON.stringify(form.get("definition"), null, 2));
 	});
 });

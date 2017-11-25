@@ -408,6 +408,7 @@ module tui.widget {
 			});
 			var dialog = <Dialog>create("dialog");
 			dialog.set("content", container);
+			dialog.set("mobileModel", true);
 			dialog.open("ok#tui-primary");
 			dialog.on("btnclick", () => {
 				if (typeof this.onPropertyPageSwitch === "function") {
@@ -878,6 +879,7 @@ module tui.widget {
 					}, {
 						"type": "grid",
 						"key": "validation",
+						"features": ['append', 'delete', 'edit'],
 						"label": str("form.validation"),
 						"size": 2,
 						"newline": true,
@@ -979,6 +981,7 @@ module tui.widget {
 					}, {
 						"type": "grid",
 						"key": "validation",
+						"features": ['append', 'delete', 'edit'],
 						"label": str("form.validation"),
 						"size": 2,
 						"newline": true,
@@ -1955,8 +1958,10 @@ module tui.widget {
 			this._btnAdd.on("click", () => {
 				var dialog = <Dialog>create("dialog");
 				var fm = <Form>create("form");
+				fm._.className = "tui-form-property-form";
 				fm.set("definition", tui.clone(this.define.definitions));
 				dialog.set("content", fm._);
+				dialog.set("mobileModel", true);
 				dialog.open("ok#tui-primary");
 				dialog.on("btnclick", () => {
 					if (!fm.validate())
@@ -2005,8 +2010,10 @@ module tui.widget {
 				return;
 			var dialog = <Dialog>create("dialog");
 			var fm = <Form>create("form");
+			fm._.className = "tui-form-property-form";
 			fm.set("definition", tui.clone(this.define.definitions));
 			dialog.set("content", fm._);
+			dialog.set("mobileModel", true);
 			dialog.open("ok#tui-primary");
 			fm.set("value", this._values[i]);
 			dialog.on("btnclick", () => {

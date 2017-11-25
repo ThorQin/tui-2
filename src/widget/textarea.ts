@@ -62,9 +62,11 @@ module tui.widget {
 			
 			$(textbox).focus(() => {
 				$root.addClass("tui-active");
+				this.render();
 			});
 			$(textbox).blur(() => {
 				$root.removeClass("tui-active");
+				this.render();
 				if (this.get("disable"))
 					return;
 				if (this.get("autoValidate")) {

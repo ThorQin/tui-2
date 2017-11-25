@@ -123,6 +123,9 @@ module tui.widget {
 				var o = (e.target || e.srcElement);
 				if (o  === closeIcon)
 					return;
+				if (this.get("mobileModel") && _mask.offsetWidth <= 580) {
+					return;
+				}
 				var dialogX = this._.offsetLeft;
 				var dialogY = this._.offsetTop;
 				var beginX = e.clientX;
@@ -195,6 +198,7 @@ module tui.widget {
 			var contentDiv = this._components["content"];
 			this._init = true;
 			this._moved = false;
+			
 			$(this._).css({
 				"top": "3000px",
 				"left": "0",
@@ -204,6 +208,10 @@ module tui.widget {
 			});
 
 			push(this);
+			var mobileModel = this.get("mobileModel");
+			if (mobileModel) {
+				$(this._).css({"top": _mask.offsetHeight + 1 + "px"});
+			}
 			this.setButtons(buttonDef, false);
 			init(contentDiv);
 			this._.focus();
@@ -248,6 +256,14 @@ module tui.widget {
 			var buttonBar = this._components["buttonBar"];
 			var contentDiv = this._components["content"];
 			var closeIcon = this._components["closeIcon"];
+
+			var mobileModel = this.get("mobileModel");
+			if (mobileModel) {
+				this.addClass("tui-dialog-mobile-model");
+			} else {
+				this.removeClass("tui-dialog-mobile-model");
+			}
+
 			// Adjust title bar
 			if (this.get("title") === null && !this.get("esc")) {
 				titleBar.style.display = "none";
@@ -276,12 +292,25 @@ module tui.widget {
 				"maxWidth": winSize.width + "px",
 				"maxHeight": winSize.height + "px"
 			});
-			$(contentDiv).css({
-				//"maxWidth": winSize.width - $(contentDiv).outerWidth() + $(contentDiv).width() + "px",
-				"maxWidth": winSize.width - 40 + "px",
-				"maxHeight": winSize.height - 40 - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px",
-				"minWidth": winSize.width <= 580 ? winSize.width - 80 + "px" : "none"
-			});
+			if (mobileModel && winSize.width <= 580) {
+				let mobileSize : any = {
+					"width": winSize.width - 40 + "px",
+					"height": winSize.height - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px"
+				};
+				mobileSize.maxWidth = mobileSize.minWidth = mobileSize.width;
+				mobileSize.maxHeight = mobileSize.minHeight = mobileSize.height;
+				$(contentDiv).css(mobileSize);
+			} else {
+				$(contentDiv).css({
+					//"maxWidth": winSize.width - $(contentDiv).outerWidth() + $(contentDiv).width() + "px",
+					"width": "",
+					"height": "",
+					"maxWidth": winSize.width - 40 + "px",
+					"maxHeight": winSize.height - 40 - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px",
+					"minWidth": winSize.width <= 580 ? winSize.width - 80 + "px" : "none",
+					"minHeight": ""
+				});
+			}
 
 			var box: browser.Rect = {
 				left: root.offsetLeft,

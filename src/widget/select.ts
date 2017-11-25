@@ -361,6 +361,7 @@ module tui.widget {
 			if (this.fire("open", this.dialog) === false) {
 				return;
 			}
+			this.dialog._set("mobileModel", this.get("mobileModel"));
 			this.dialog.set("title", this.get("title"));
 			this.dialog.setContent(this.get("content"));
 			this.dialog.open("ok#tui-primary");
