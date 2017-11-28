@@ -16,11 +16,12 @@ tui\:dialog {
 	display:none;
 	position:fixed;
 	background-color:white;
+
+	.tui-content {
+		box-sizing: content-box;
+	}
+
 	.border-radius(@dialogBorderRadius);
-	// .tui-content {
-	// 	min-width:360px;
-	// }
-	//border:1px solid @borderColor;
 	.shadow(0px, 1px, 30px, rgba(0,0,0,0.5));
 	z-index:@dialogLayer;
 	text-align:left;
@@ -38,7 +39,7 @@ tui\:dialog {
 		font-weight: bold;
 		font-size: 18px;
 	//	border-bottom:1px solid @hineColor;
-		
+
 		background-color: @titleBackColor;
 		height:@captionHeight;
 		line-height:@captionHeight;
