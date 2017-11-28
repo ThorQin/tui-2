@@ -78,6 +78,7 @@ module tui.widget.ext {
 			this._dialogDiv.className = "tui-dialog-select-div";
 			this._dialogDiv.appendChild(this._searchBox._);
 			this._dialogDiv.appendChild(this._list._);
+			this._widget._set("mobileModel", true);
 			this._widget._set("title", this._title);
 			this._widget._set("content", this._dialogDiv);
 			this._searchBox.on("enter clear", () => {

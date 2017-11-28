@@ -2894,6 +2894,9 @@ var tui;
                     var o = (e.target || e.srcElement);
                     if (o === closeIcon)
                         return;
+                    if (_this.get("mobileModel") && _mask.offsetWidth <= 580) {
+                        return;
+                    }
                     var dialogX = _this._.offsetLeft;
                     var dialogY = _this._.offsetTop;
                     var beginX = e.clientX;
@@ -2983,6 +2986,10 @@ var tui;
                     "position": "fixed"
                 });
                 push(this);
+                var mobileModel = this.get("mobileModel");
+                if (mobileModel) {
+                    $(this._).css({ "top": _mask.offsetHeight + 1 + "px" });
+                }
                 this.setButtons(buttonDef, false);
                 widget.init(contentDiv);
                 this._.focus();
@@ -3024,6 +3031,13 @@ var tui;
                 var buttonBar = this._components["buttonBar"];
                 var contentDiv = this._components["content"];
                 var closeIcon = this._components["closeIcon"];
+                var mobileModel = this.get("mobileModel");
+                if (mobileModel) {
+                    this.addClass("tui-dialog-mobile-model");
+                }
+                else {
+                    this.removeClass("tui-dialog-mobile-model");
+                }
                 if (this.get("title") === null && !this.get("esc")) {
                     titleBar.style.display = "none";
                 }
@@ -3049,11 +3063,25 @@ var tui;
                     "maxWidth": winSize.width + "px",
                     "maxHeight": winSize.height + "px"
                 });
-                $(contentDiv).css({
-                    "maxWidth": winSize.width - 40 + "px",
-                    "maxHeight": winSize.height - 40 - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px",
-                    "minWidth": winSize.width <= 580 ? winSize.width - 80 + "px" : "none"
-                });
+                if (mobileModel && winSize.width <= 580) {
+                    var mobileSize = {
+                        "width": winSize.width - 40 + "px",
+                        "height": winSize.height - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px"
+                    };
+                    mobileSize.maxWidth = mobileSize.minWidth = mobileSize.width;
+                    mobileSize.maxHeight = mobileSize.minHeight = mobileSize.height;
+                    $(contentDiv).css(mobileSize);
+                }
+                else {
+                    $(contentDiv).css({
+                        "width": "",
+                        "height": "",
+                        "maxWidth": winSize.width - 40 + "px",
+                        "maxHeight": winSize.height - 40 - titleBar.offsetHeight - buttonBar.offsetHeight - $(contentDiv).outerHeight() + $(contentDiv).height() + "px",
+                        "minWidth": winSize.width <= 580 ? winSize.width - 80 + "px" : "none",
+                        "minHeight": ""
+                    });
+                }
                 var box = {
                     left: root.offsetLeft,
                     top: root.offsetTop,
@@ -7441,6 +7469,7 @@ var tui;
                 });
                 var dialog = widget.create("dialog");
                 dialog.set("content", container);
+                dialog.set("mobileModel", true);
                 dialog.open("ok#tui-primary");
                 dialog.on("btnclick", function () {
                     if (typeof _this.onPropertyPageSwitch === "function") {
@@ -7876,6 +7905,7 @@ var tui;
                             }, {
                                 "type": "grid",
                                 "key": "validation",
+                                "features": ['append', 'delete', 'edit'],
                                 "label": tui.str("form.validation"),
                                 "size": 2,
                                 "newline": true,
@@ -7967,6 +7997,7 @@ var tui;
                             }, {
                                 "type": "grid",
                                 "key": "validation",
+                                "features": ['append', 'delete', 'edit'],
                                 "label": tui.str("form.validation"),
                                 "size": 2,
                                 "newline": true,
@@ -8869,8 +8900,10 @@ var tui;
                 _this._btnAdd.on("click", function () {
                     var dialog = widget.create("dialog");
                     var fm = widget.create("form");
+                    fm._.className = "tui-form-property-form";
                     fm.set("definition", tui.clone(_this.define.definitions));
                     dialog.set("content", fm._);
+                    dialog.set("mobileModel", true);
                     dialog.open("ok#tui-primary");
                     dialog.on("btnclick", function () {
                         if (!fm.validate())
@@ -8916,8 +8949,10 @@ var tui;
                     return;
                 var dialog = widget.create("dialog");
                 var fm = widget.create("form");
+                fm._.className = "tui-form-property-form";
                 fm.set("definition", tui.clone(this.define.definitions));
                 dialog.set("content", fm._);
+                dialog.set("mobileModel", true);
                 dialog.open("ok#tui-primary");
                 fm.set("value", this._values[i]);
                 dialog.on("btnclick", function () {
@@ -12342,6 +12377,7 @@ var tui;
                 if (this.fire("open", this.dialog) === false) {
                     return;
                 }
+                this.dialog._set("mobileModel", this.get("mobileModel"));
                 this.dialog.set("title", this.get("title"));
                 this.dialog.setContent(this.get("content"));
                 this.dialog.open("ok#tui-primary");
@@ -12437,9 +12473,11 @@ var tui;
                 this._.appendChild(iconInvalid);
                 $(textbox).focus(function () {
                     $root.addClass("tui-active");
+                    _this.render();
                 });
                 $(textbox).blur(function () {
                     $root.removeClass("tui-active");
+                    _this.render();
                     if (_this.get("disable"))
                         return;
                     if (_this.get("autoValidate")) {

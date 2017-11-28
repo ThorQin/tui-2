@@ -32,14 +32,12 @@ tui\:dialog {
 	}
 	> .tui-title-bar {
 		.top-radius(@dialogBorderRadius);
-		//position:relative;
+
 		overflow:hidden;
 		padding:5px 20px;
 		padding-right: 50px;
 		font-weight: bold;
 		font-size: 18px;
-	//	border-bottom:1px solid @hineColor;
-
 		background-color: @titleBackColor;
 		height:@captionHeight;
 		line-height:@captionHeight;
@@ -99,6 +97,7 @@ tui\:dialog {
 			display: inline-block;
 		}
 	}
+
 }
 
 
@@ -182,6 +181,24 @@ tui\:dialog.tui-wait-box {
 			.tui-spin();
 			// font-size:24px;
 			// color: #017bce;
+		}
+	}
+}
+
+@media (max-width: 580px) {
+	tui\:dialog.tui-dialog-mobile-model {
+		transition: top 0.2s;
+	}
+
+	tui\:dialog.tui-dialog-mobile-model >div.tui-content {
+		padding:0 20px;
+	}
+	tui\:dialog.tui-dialog-mobile-model >.tui-button-bar {
+		border-top: 1px solid #ddd;
+		display: flex !important;
+		flex-direction: row;
+		tui\:button {
+			flex-grow: 1;
 		}
 	}
 }

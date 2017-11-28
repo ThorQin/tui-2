@@ -15,27 +15,29 @@
 	<link rel="stylesheet" href="../dist/tui2.css" />
 	<link rel="stylesheet" href="../dist/plugins/navigator/navigator.css" />
 	<link rel="stylesheet" href="../dist/plugins/location/location.css" />
+	<!-- <link rel="stylesheet" href="../dist/plugins/enterprise/enterprise.css" /> -->
 	<!--[if IE 8]>
 		<script type="text/javascript" src="../depends/es5-shim.min.js"></script>
 		<script type="text/javascript" src="../depends/json2.min.js"></script>
 		<![endif]-->
 	<script type="text/javascript" src="../depends/jquery-1.11.3.min.js"></script>
-	<script type="text/javascript" src="../dist/tui2.js"></script>
+	<script type="text/javascript" src="../dist/tui2.min.js"></script>
 	<script>
-		// tui.lang = "en-us";
+		tui.lang = "zh-CN";
 	</script>
 	<script type="text/javascript" src="../dist/lang/zh-cn.js"></script>
 	<script type="text/javascript" src="../dist/plugins/navigator/navigator.min.js"></script>
-	<script type="text/javascript" src="../dist/plugins/location/location.js"></script>
+	<script type="text/javascript" src="../dist/plugins/location/location.min.js"></script>
+	<!-- <script type="text/javascript" src="../dist/plugins/enterprise/enterprise.min.js"></script> -->
 </head>
 
 <body>
 	<tui:component handler="form.js">
 		<tui:form name="form" class="tui-form-fixed tui-panel" mode="design" title="表单演示"></tui:form>
-		<div style="text-align: center">
+		<div style="text-align: center;margin:20px 0;">
 			<tui:button-group name="mode" type="radio">
-				<tui:button value="design" checked={true}>设计模式</tui:button>
-				<tui:button value="input">输入模式</tui:button>
+				<tui:button value="design" checked={true}><i class="fa fa-th"></i> 设计</tui:button>
+				<tui:button value="input"><i class="fa fa-play"></i> 输入</tui:button>
 			</tui:button-group>
 			<tui:button name="submit" class="tui-primary">提交</tui:button>
 			<tui:button name="define" class="tui-success">定义</tui:button>

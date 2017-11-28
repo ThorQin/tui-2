@@ -1,7 +1,7 @@
 @import '../../../less/commons.less';
 
 .tui-dialog-select-div {
-	width: 480px;
+	min-width: 460px;
 	tui\:input, tui\:list {
 		margin: 0px;
 		display: block;
@@ -12,8 +12,14 @@
 	}
 }
 
-@media (max-width: 500px) {
+@media (max-width: 580px) {
 	.tui-dialog-select-div {
+		height: 100%;
+		min-width: auto;
 		width: auto;
+
+		tui\:list {
+			height: 80%;
+		}	
 	}
 }

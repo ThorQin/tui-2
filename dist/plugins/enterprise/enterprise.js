@@ -32,6 +32,7 @@ var tui;
                     _this._dialogDiv.className = "tui-dialog-select-div";
                     _this._dialogDiv.appendChild(_this._searchBox._);
                     _this._dialogDiv.appendChild(_this._list._);
+                    _this._widget._set("mobileModel", true);
                     _this._widget._set("title", _this._title);
                     _this._widget._set("content", _this._dialogDiv);
                     _this._searchBox.on("enter clear", function () {
