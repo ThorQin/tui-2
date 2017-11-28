@@ -16,6 +16,11 @@ tui\:dialog {
 	display:none;
 	position:fixed;
 	background-color:white;
+
+	.tui-content {
+		box-sizing: content-box;
+	}
+
 	.border-radius(@dialogBorderRadius);
 	.shadow(0px, 1px, 30px, rgba(0,0,0,0.5));
 	z-index:@dialogLayer;
@@ -92,7 +97,7 @@ tui\:dialog {
 			display: inline-block;
 		}
 	}
-	
+
 }
 
 
