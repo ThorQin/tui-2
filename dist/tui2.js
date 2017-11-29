@@ -2747,6 +2747,7 @@ var tui;
     function inputbox(define, title, initValue, callback) {
         var container = tui.elem("div");
         var form = tui.create("form");
+        form._.className = "tui-form-property-form";
         form.set("definition", define);
         if (initValue && typeof initValue != "function") {
             form.set("value", initValue);
@@ -2755,7 +2756,7 @@ var tui;
         var dialog = tui.create("dialog");
         dialog._set("content", container);
         title && dialog._set("title", title);
-        dialog.open("ok#tui-primary,cancel");
+        dialog.open("ok#tui-primary");
         dialog.on("btnclick", function (e) {
             if (e.data.button === "ok") {
                 if (form.validate()) {
@@ -6194,7 +6195,7 @@ var tui;
                             name_4 = elem_4.getAttribute("name");
                             if (typeof name_4 === "string" && name_4.trim().length > 0)
                                 _this._components[name_4] = elem_4;
-                            if (!fullName.match(/^tui:/i) || fullName.match(/^tui:(dialog-select|input-group|group|button-group)$/))
+                            if (!fullName.match(/^tui:/i) || fullName.match(/^tui:(dialog-select|input-group|group|button-group|dialog)$/))
                                 searchElem(node);
                         }
                     }

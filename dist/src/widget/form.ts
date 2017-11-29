@@ -706,6 +706,7 @@ module tui {
 	export function inputbox(define: widget.FormItem[], title?: string, initValue?: any, callback?: (value: any) => JQueryPromise<any> | boolean): widget.Dialog {
 		var container = elem("div");
 		let form = <widget.Form>create("form");
+		form._.className = "tui-form-property-form";
 		form.set("definition", define);
 		if (initValue && typeof initValue != "function") {
 			form.set("value", initValue);
@@ -714,7 +715,7 @@ module tui {
 		var dialog = <widget.Dialog>create("dialog");
 		dialog._set("content", container);
 		title && dialog._set("title", title);
-		dialog.open("ok#tui-primary,cancel");
+		dialog.open("ok#tui-primary");
 		dialog.on("btnclick", (e) => {
 			if (e.data.button === "ok") {
 				if (form.validate()) {
