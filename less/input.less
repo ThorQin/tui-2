@@ -17,7 +17,7 @@ tui\:input,tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file,tui\:textar
 	text-align: left;
 	.border-radius(@buttonBorderRadius);
 	-webkit-tap-highlight-color: transparent;
-	
+
 	&.tui-active {
 		border: 1px solid @borderFocusColor;
 		.shadow(0px, 0px, 4px, #88ccff);
@@ -26,7 +26,7 @@ tui\:input,tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file,tui\:textar
 		background-color: #f5f5f5;
 		color: #bbb;
 	}
-	
+
 	&.tui-invalid {
 		color: red;
 		border: 1px solid red;
@@ -48,7 +48,7 @@ tui\:input,tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file,tui\:textar
 	.tui-invalid-icon {
 		.icon-base();
 		&:before {
-			
+
 			.fa-exclamation-triangle;
 		}
 	}
@@ -80,7 +80,7 @@ tui\:input,tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file,tui\:textar
 }
 
 tui\:input {
-	
+
 	>input {
 		position: absolute;
 		border: none;
@@ -98,7 +98,7 @@ tui\:input {
 		color: @textColor;
 		&:focus {
 			-webkit-tap-highlight-color: transparent;
-    	-webkit-user-modify:read-write-plaintext-only; 
+    	-webkit-user-modify:read-write-plaintext-only;
 		}
 		&::-ms-clear {
 			display: none;
@@ -128,13 +128,14 @@ tui\:textarea {
 		outline: none;
 		word-break:break-all;
 		word-wrap: break-word;
+		white-space: pre-wrap;
 		-webkit-tap-highlight-color: transparent;
 		-webkit-touch-callout: none;
 		resize: none;
 		color: @textColor;
 		&:focus {
 			-webkit-tap-highlight-color: transparent;
-    		-webkit-user-modify:read-write-plaintext-only; 
+    		-webkit-user-modify:read-write-plaintext-only;
 		}
 	}
 	&.tui-invalid>textarea {
@@ -164,7 +165,7 @@ tui\:select,tui\:dialog-select,tui\:date-picker,tui\:file {
 	i {
 		cursor: pointer;
 	}
-	
+
 }
 .tui-select-toolbar {
 	color: #ccc;
