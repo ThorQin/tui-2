@@ -34,6 +34,7 @@ tui.dict("en-us", {
 	"invalid.file.type": "Invalid file type!",
 	"geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service.",
 	"form.grid.features": "Features",
+	"form.foldable": "Foldable",
 	"form.section": "Title",
 	"form.textbox": "Textbox",
 	"form.textarea": "Textarea",

@@ -86,6 +86,7 @@ tui.dict("zh-cn", {
 	"Fill": "填充",
 	"New Line": "换行",
 	"form.grid.features": "功能",
+	"form.foldable": "可折叠",
 	"form.section": "标题",
 	"form.selection.desc": "允许有多个选择组，它可以使用条件表达式来决定哪一组会生效。",
 	"form.textbox": "文本框",

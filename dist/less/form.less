@@ -120,6 +120,7 @@ tui\:form {
 
 		&>div.tui-form-item-mask {
 			position: absolute;
+			cursor: default;
 			display: none !important;
 			left: 0;
 			top: 0;
@@ -186,8 +187,10 @@ tui\:form {
 		}
 
 		&>hr.tui-form-line-label {
+			margin: 0px;
 			margin-top: 5px;
 		}
+
 
 		& > tui\:button-group {
 			>tui\:radio,>tui\:check {
@@ -225,9 +228,7 @@ tui\:form {
 			cursor: default;
 			padding: 2px 5px;
 			padding-right: 22px;
-			&.tui-form-item-emphasize {
-				color: red;
-			}
+
 			&.tui-form-item-required:before {
 				margin-right: 4px;
 				color: red;
@@ -249,7 +250,14 @@ tui\:form {
 					.fa-question-circle();
 				}
 			}
+			&.tui-form-section-label {
+				color: #039be5;
+			}
+			&.tui-form-item-emphasize {
+				color: red;
+			}
 		}
+
 
 
 		&.tui-form-item-size-full {
@@ -261,7 +269,7 @@ tui\:form {
 			width: auto !important;
 		}
 
-		&.tui-form-item-unavailable {
+		&.tui-form-item-unavailable,&.tui-hidden {
 			display: none !important;
 		}
 
@@ -275,6 +283,22 @@ tui\:form {
 			padding:0;
 			> * {
 				display: none !important;
+			}
+		}
+		&.tui-form-section-folder {
+			div.tui-form-item-label:hover {
+				background-color:#f8f8f8;
+				cursor: pointer;
+			}
+			div.tui-form-item-label:before {
+				font-size: 16px;
+				color: #aaa;
+				.icon-base();
+				margin-right: 10px;
+				.fa-minus-square();
+			}
+			&.tui-folded div.tui-form-item-label:before {
+				.fa-plus-square();
 			}
 		}
 	}

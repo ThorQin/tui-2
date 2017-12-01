@@ -657,6 +657,7 @@ module tui.widget {
 					return;
 				}
 			}
+			var folded = false;
 			for (let item of this._items) {
 				if (!item.isPresent())
 					item.show();
@@ -671,7 +672,26 @@ module tui.widget {
 					browser.removeClass(item.div, "tui-form-item-unavailable");
 				}
 				browser.removeClass(item.div, "tui-form-item-exceed");
-				item.render(designMode);
+				if (!designMode) {
+					if (item.define.type != "section") {
+						if (folded) {
+							browser.addClass(item.div, "tui-hidden");
+						} else {
+							browser.removeClass(item.div, "tui-hidden");
+							item.render(designMode);
+						}
+					} else {
+						if (item.define.display == "folder" && item.define.folded) {
+							folded = true;
+						} else {
+							folded = false;
+						}
+						item.render(designMode);
+					}
+				} else {
+					browser.removeClass(item.div, "tui-hidden");
+					item.render(designMode);
+				}
 			}
 			var cfs = browser.getCurrentStyle(this._);
 			if (cfs.display != "none") {

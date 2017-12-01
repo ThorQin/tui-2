@@ -263,6 +263,7 @@ module tui.widget {
 			this.div.appendChild(this.label);
 
 			$(this.mask).mousedown((e: JQueryEventObject) => {
+				e.stopPropagation();
 				this.form.fire("itemmousedown", {e: e, control: this});
 			});
 			$(this.mask).mousemove((e: JQueryEventObject) => {
@@ -614,6 +615,7 @@ module tui.widget {
 		align: string;
 		display?: string;
 		valueAsLabel?: boolean;
+		folded?: boolean;
 	}
 	class FormSection extends FormControl<SectionFormItem> {
 		static icon = "fa-font";
@@ -624,15 +626,24 @@ module tui.widget {
 		constructor(form: Form, define: SectionFormItem) {
 			super(form, define);
 			this._hr = elem("hr")
+			this.label.className = "tui-form-item-label tui-form-section-label";
+			this._hr.className = "tui-form-line-label";
 			this.div.appendChild(this._hr);
 			this.div.style.display = "block";
 			this.div.style.width = "auto";
+			this.label.onmousedown = () => {
+				if (this.define.display != "folder") {
+					return;
+				}
+				this.define.folded = !this.define.folded;
+				this.form.render();
+			}
 		}
 
 		update() {
 			super.update();
 			var d = this.define;
-			if (!/^(visible|invisible|newline)$/.test(this.define.display))
+			if (!/^(visible|folder|invisible|newline)$/.test(this.define.display))
 				this.define.display = "visible";
 			var l;
 			if (d.value != "" && d.value != null && typeof d.value != UNDEFINED && d.valueAsLabel)
@@ -643,21 +654,23 @@ module tui.widget {
 				this.label.innerHTML = "&nbsp;";
 			else
 				this.label.innerHTML = browser.toSafeText(l);
-			if (l) {
-				this._hr.className = "tui-form-line-label";
+			if (l || this.define.display == "folder") {
 				if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48) {
 					this.label.style.fontSize = d.fontSize + "px";
 					this.label.style.lineHeight = d.fontSize + 4 + "px";
 				} else {
-					this.label.style.fontSize = "";
-					this.label.style.lineHeight = "";
+					d.fontSize = 20;
+					this.label.style.fontSize = "20px";
+					this.label.style.lineHeight = "24px";
 				}
-				if (/^(left|right|center)$/.test(d.align))
+				if (d.display == "visible" && /^(left|right|center)$/.test(d.align))
 					this.label.style.textAlign = d.align;
 				else
 					this.label.style.textAlign = "left";
-			} else {
-				this._hr.className = "";
+			}
+			if (d.display == "folder") {
+				d.required = false;
+				browser.removeClass(this.label,"tui-form-item-required");
 			}
 		}
 
@@ -676,23 +689,38 @@ module tui.widget {
 		}
 
 		render(designMode: boolean): void {
+			if (!this.define.label && !this.define.description && this.define.display != "folder") {
+				browser.addClass(this.label, "tui-hidden");
+			} else {
+				browser.removeClass(this.label, "tui-hidden");
+			}
 			if (designMode) {
 				browser.removeClass(this.div, "tui-hidden");
 				browser.removeClass(this._hr, "tui-hidden");
 				browser.removeClass(this.div, "tui-form-section-newline");
-				if (!this.define.label && !this.define.description) {
-					browser.addClass(this.label, "tui-hidden");
-				} else
-					browser.removeClass(this.label, "tui-hidden");
+				browser.removeClass(this.div, "tui-form-section-folder");
+				browser.removeClass(this.div, "tui-folded");
+				if (this.define.display === "folder") {
+					browser.addClass(this.div, "tui-form-section-folder");
+					if (!!this.define.folded) {
+						browser.addClass(this.div, "tui-folded");
+					}
+				}
 			} else {
+				browser.removeClass(this.div, "tui-form-section-newline");
+				browser.removeClass(this.div, "tui-form-section-folder");
+				browser.removeClass(this.div, "tui-folded");
+				browser.removeClass(this.div, "tui-hidden");
 				if (this.define.display === "invisible") {
 					browser.addClass(this.div, "tui-hidden");
 				} else {
-					browser.removeClass(this.div, "tui-hidden");
 					if (this.define.display === "newline") {
 						browser.addClass(this.div, "tui-form-section-newline");
-					} else {
-						browser.removeClass(this.div, "tui-form-section-newline");
+					} else if (this.define.display === "folder") {
+						browser.addClass(this.div, "tui-form-section-folder");
+						if (!!this.define.folded) {
+							browser.addClass(this.div, "tui-folded");
+						}
 					}
 				}
 			}
@@ -732,6 +760,19 @@ module tui.widget {
 						"value": this.define.valueAsLabel ? "enable" : "disable"
 					},{
 						"type": "options",
+						"key": "display",
+						"label": str("form.display"),
+						"atMost": 1,
+						"options": [{"data":[
+							{value: "visible", text: str("form.section")},
+							{value: "folder", text: str("form.foldable")},
+							{value: "invisible", text: str("form.invisible")},
+							{value: "newline", text: str("form.newline")}
+						]}],
+						"size": 6,
+						"value": /^(visible|folder|invisible|newline)$/.test(this.define.display) ? this.define.display : "visible"
+					},{
+						"type": "options",
 						"key": "align",
 						"label": str("form.text.align"),
 						"atMost": 1,
@@ -741,19 +782,8 @@ module tui.widget {
 							{value: "right", text: str("form.align.right")}
 						]}],
 						"size": 6,
-						"value": this.define.align || "left"
-					}, {
-						"type": "options",
-						"key": "display",
-						"label": str("form.display"),
-						"atMost": 1,
-						"options": [{"data":[
-							{value: "visible", text: str("form.visible")},
-							{value: "invisible", text: str("form.invisible")},
-							{value: "newline", text: str("form.newline")}
-						]}],
-						"size": 6,
-						"value": /^(visible|invisible|newline)$/.test(this.define.display) ? this.define.display : "visible"
+						"value": this.define.align || "left",
+						"condition": "display = \"visible\""
 					}
 				]
 			}];
@@ -764,10 +794,13 @@ module tui.widget {
 				this.define.fontSize = parseInt(values.fontSize);
 			else
 				this.define.fontSize = null;
-			if (values.align && /^(left|center|right)$/.test(values.align))
+			if (values.display == "visible" && /^(left|center|right)$/.test(values.align))
 				this.define.align = values.align;
 			else
 				this.define.align = "left";
+			if (values.display == "folder") {
+				this.define.required = false;
+			}
 			this.define.value = values.value;
 			this.define.display = values.display;
 			if (values.valueAsLabel == "enable") {

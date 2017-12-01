@@ -348,6 +348,7 @@ tui.dict("en-us", {
     "invalid.file.type": "Invalid file type!",
     "geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service.",
     "form.grid.features": "Features",
+    "form.foldable": "Foldable",
     "form.section": "Title",
     "form.textbox": "Textbox",
     "form.textarea": "Textarea",
@@ -2694,6 +2695,7 @@ var tui;
                         return;
                     }
                 }
+                var folded = false;
                 for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
                     var item = _a[_i];
                     if (!item.isPresent())
@@ -2711,7 +2713,30 @@ var tui;
                         tui.browser.removeClass(item.div, "tui-form-item-unavailable");
                     }
                     tui.browser.removeClass(item.div, "tui-form-item-exceed");
-                    item.render(designMode);
+                    if (!designMode) {
+                        if (item.define.type != "section") {
+                            if (folded) {
+                                tui.browser.addClass(item.div, "tui-hidden");
+                            }
+                            else {
+                                tui.browser.removeClass(item.div, "tui-hidden");
+                                item.render(designMode);
+                            }
+                        }
+                        else {
+                            if (item.define.display == "folder" && item.define.folded) {
+                                folded = true;
+                            }
+                            else {
+                                folded = false;
+                            }
+                            item.render(designMode);
+                        }
+                    }
+                    else {
+                        tui.browser.removeClass(item.div, "tui-hidden");
+                        item.render(designMode);
+                    }
                 }
                 var cfs = tui.browser.getCurrentStyle(this._);
                 if (cfs.display != "none") {
@@ -7262,6 +7287,7 @@ var tui;
                 this.label.className = "tui-form-item-label";
                 this.div.appendChild(this.label);
                 $(this.mask).mousedown(function (e) {
+                    e.stopPropagation();
                     _this.form.fire("itemmousedown", { e: e, control: _this });
                 });
                 $(this.mask).mousemove(function (e) {
@@ -7658,15 +7684,24 @@ var tui;
             function FormSection(form, define) {
                 var _this = _super.call(this, form, define) || this;
                 _this._hr = tui.elem("hr");
+                _this.label.className = "tui-form-item-label tui-form-section-label";
+                _this._hr.className = "tui-form-line-label";
                 _this.div.appendChild(_this._hr);
                 _this.div.style.display = "block";
                 _this.div.style.width = "auto";
+                _this.label.onmousedown = function () {
+                    if (_this.define.display != "folder") {
+                        return;
+                    }
+                    _this.define.folded = !_this.define.folded;
+                    _this.form.render();
+                };
                 return _this;
             }
             FormSection.prototype.update = function () {
                 _super.prototype.update.call(this);
                 var d = this.define;
-                if (!/^(visible|invisible|newline)$/.test(this.define.display))
+                if (!/^(visible|folder|invisible|newline)$/.test(this.define.display))
                     this.define.display = "visible";
                 var l;
                 if (d.value != "" && d.value != null && typeof d.value != tui.UNDEFINED && d.valueAsLabel)
@@ -7677,23 +7712,24 @@ var tui;
                     this.label.innerHTML = "&nbsp;";
                 else
                     this.label.innerHTML = tui.browser.toSafeText(l);
-                if (l) {
-                    this._hr.className = "tui-form-line-label";
+                if (l || this.define.display == "folder") {
                     if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48) {
                         this.label.style.fontSize = d.fontSize + "px";
                         this.label.style.lineHeight = d.fontSize + 4 + "px";
                     }
                     else {
-                        this.label.style.fontSize = "";
-                        this.label.style.lineHeight = "";
+                        d.fontSize = 20;
+                        this.label.style.fontSize = "20px";
+                        this.label.style.lineHeight = "24px";
                     }
-                    if (/^(left|right|center)$/.test(d.align))
+                    if (d.display == "visible" && /^(left|right|center)$/.test(d.align))
                         this.label.style.textAlign = d.align;
                     else
                         this.label.style.textAlign = "left";
                 }
-                else {
-                    this._hr.className = "";
+                if (d.display == "folder") {
+                    d.required = false;
+                    tui.browser.removeClass(this.label, "tui-form-item-required");
                 }
             };
             FormSection.prototype.isResizable = function () {
@@ -7709,27 +7745,42 @@ var tui;
                 this.form.fire("itemvaluechanged", { control: this });
             };
             FormSection.prototype.render = function (designMode) {
+                if (!this.define.label && !this.define.description && this.define.display != "folder") {
+                    tui.browser.addClass(this.label, "tui-hidden");
+                }
+                else {
+                    tui.browser.removeClass(this.label, "tui-hidden");
+                }
                 if (designMode) {
                     tui.browser.removeClass(this.div, "tui-hidden");
                     tui.browser.removeClass(this._hr, "tui-hidden");
                     tui.browser.removeClass(this.div, "tui-form-section-newline");
-                    if (!this.define.label && !this.define.description) {
-                        tui.browser.addClass(this.label, "tui-hidden");
+                    tui.browser.removeClass(this.div, "tui-form-section-folder");
+                    tui.browser.removeClass(this.div, "tui-folded");
+                    if (this.define.display === "folder") {
+                        tui.browser.addClass(this.div, "tui-form-section-folder");
+                        if (!!this.define.folded) {
+                            tui.browser.addClass(this.div, "tui-folded");
+                        }
                     }
-                    else
-                        tui.browser.removeClass(this.label, "tui-hidden");
                 }
                 else {
+                    tui.browser.removeClass(this.div, "tui-form-section-newline");
+                    tui.browser.removeClass(this.div, "tui-form-section-folder");
+                    tui.browser.removeClass(this.div, "tui-folded");
+                    tui.browser.removeClass(this.div, "tui-hidden");
                     if (this.define.display === "invisible") {
                         tui.browser.addClass(this.div, "tui-hidden");
                     }
                     else {
-                        tui.browser.removeClass(this.div, "tui-hidden");
                         if (this.define.display === "newline") {
                             tui.browser.addClass(this.div, "tui-form-section-newline");
                         }
-                        else {
-                            tui.browser.removeClass(this.div, "tui-form-section-newline");
+                        else if (this.define.display === "folder") {
+                            tui.browser.addClass(this.div, "tui-form-section-folder");
+                            if (!!this.define.folded) {
+                                tui.browser.addClass(this.div, "tui-folded");
+                            }
                         }
                     }
                 }
@@ -7768,6 +7819,19 @@ var tui;
                                 "value": this.define.valueAsLabel ? "enable" : "disable"
                             }, {
                                 "type": "options",
+                                "key": "display",
+                                "label": tui.str("form.display"),
+                                "atMost": 1,
+                                "options": [{ "data": [
+                                            { value: "visible", text: tui.str("form.section") },
+                                            { value: "folder", text: tui.str("form.foldable") },
+                                            { value: "invisible", text: tui.str("form.invisible") },
+                                            { value: "newline", text: tui.str("form.newline") }
+                                        ] }],
+                                "size": 6,
+                                "value": /^(visible|folder|invisible|newline)$/.test(this.define.display) ? this.define.display : "visible"
+                            }, {
+                                "type": "options",
                                 "key": "align",
                                 "label": tui.str("form.text.align"),
                                 "atMost": 1,
@@ -7777,19 +7841,8 @@ var tui;
                                             { value: "right", text: tui.str("form.align.right") }
                                         ] }],
                                 "size": 6,
-                                "value": this.define.align || "left"
-                            }, {
-                                "type": "options",
-                                "key": "display",
-                                "label": tui.str("form.display"),
-                                "atMost": 1,
-                                "options": [{ "data": [
-                                            { value: "visible", text: tui.str("form.visible") },
-                                            { value: "invisible", text: tui.str("form.invisible") },
-                                            { value: "newline", text: tui.str("form.newline") }
-                                        ] }],
-                                "size": 6,
-                                "value": /^(visible|invisible|newline)$/.test(this.define.display) ? this.define.display : "visible"
+                                "value": this.define.align || "left",
+                                "condition": "display = \"visible\""
                             }
                         ]
                     }];
@@ -7800,10 +7853,13 @@ var tui;
                     this.define.fontSize = parseInt(values.fontSize);
                 else
                     this.define.fontSize = null;
-                if (values.align && /^(left|center|right)$/.test(values.align))
+                if (values.display == "visible" && /^(left|center|right)$/.test(values.align))
                     this.define.align = values.align;
                 else
                     this.define.align = "left";
+                if (values.display == "folder") {
+                    this.define.required = false;
+                }
                 this.define.value = values.value;
                 this.define.display = values.display;
                 if (values.valueAsLabel == "enable") {
@@ -12474,11 +12530,9 @@ var tui;
                 this._.appendChild(iconInvalid);
                 $(textbox).focus(function () {
                     $root.addClass("tui-active");
-                    _this.render();
                 });
                 $(textbox).blur(function () {
                     $root.removeClass("tui-active");
-                    _this.render();
                     if (_this.get("disable"))
                         return;
                     if (_this.get("autoValidate")) {
@@ -12505,17 +12559,6 @@ var tui;
                 }
                 $(textbox).on("change", function (e) {
                     _this.fire("change", e);
-                });
-                $root.mousedown(function (e) {
-                    if (_this.get("disable"))
-                        return;
-                    var obj = e.target || e.srcElement;
-                    if (obj === textbox) {
-                        return;
-                    }
-                    setTimeout(function () {
-                        textbox.focus();
-                    }, 0);
                 });
                 this.on("resize", function () {
                     _this.render();
