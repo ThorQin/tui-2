@@ -21,7 +21,7 @@
 		<script type="text/javascript" src="../depends/json2.min.js"></script>
 		<![endif]-->
 	<script type="text/javascript" src="../depends/jquery-1.11.3.min.js"></script>
-	<script type="text/javascript" src="../dist/tui2.min.js"></script>
+	<script type="text/javascript" src="../dist/tui2.js"></script>
 	<script>
 		tui.lang = "zh-CN";
 	</script>
@@ -33,7 +33,7 @@
 
 <body>
 	<tui:component handler="form.js">
-		<tui:form name="form" class="tui-form-fixed tui-panel" mode="design" title="表单演示"></tui:form>
+		<tui:form name="form" class="tui-panel" mode="design"></tui:form>
 		<div style="text-align: center;margin:20px 0;">
 			<tui:button-group name="mode" type="radio">
 				<tui:button value="design" checked={true}><i class="fa fa-th"></i> 设计</tui:button>

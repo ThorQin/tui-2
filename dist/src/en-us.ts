@@ -65,6 +65,7 @@ tui.dict("en-us", {
 	"message.invalid.format": "Invalid format!",
 	"message.invalid.value": "Invalid value!",
 	"form.text.align": "Text Align",
+	"form.arrange": "Arrange",
 	"form.align": "Align",
 	"form.align.left": "Left",
 	"form.align.center": "Center",

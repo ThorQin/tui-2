@@ -116,6 +116,7 @@ tui.dict("zh-cn", {
 	"message.invalid.format": "无效的格式！",
 	"message.invalid.value": "无效的取值！",
 	"form.text.align": "文字对齐",
+	"form.arrange": "排列",
 	"form.align": "对齐",
 	"form.align.left": "居左",
 	"form.align.center": "居中",

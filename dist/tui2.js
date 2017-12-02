@@ -379,6 +379,7 @@ tui.dict("en-us", {
     "message.invalid.format": "Invalid format!",
     "message.invalid.value": "Invalid value!",
     "form.text.align": "Text Align",
+    "form.arrange": "Arrange",
     "form.align": "Align",
     "form.align.left": "Left",
     "form.align.center": "Center",
@@ -2232,7 +2233,7 @@ var tui;
                 this.setRestrictions({
                     "mode": {
                         "set": function (value) {
-                            if (/^(design|init|input|view)$/.test(value)) {
+                            if (/^(design|input|view)$/.test(value)) {
                                 if (value != _this.get("mode")) {
                                     _this._data["mode"] = value;
                                     _this._valueChanged = true;
@@ -2309,7 +2310,7 @@ var tui;
                                         calc: computeValue,
                                         path: searchPath
                                     });
-                                    me._items[index[key]].define.available = true;
+                                    me._items[index[key]].available = true;
                                 }
                                 else {
                                     if (searchPath.indexOf(key) >= 0)
@@ -2330,12 +2331,12 @@ var tui;
                                                 calc: computeValue,
                                                 path: searchPath
                                             });
-                                            me._items[index[key]].define.available = true;
+                                            me._items[index[key]].available = true;
                                         }
                                         else {
                                             searchPath.pop();
                                             me._valueCache[key] = null;
-                                            me._items[index[key]].define.available = false;
+                                            me._items[index[key]].available = false;
                                         }
                                     }
                                     catch (e) {
@@ -2371,7 +2372,7 @@ var tui;
                                                     throw new Error("Invalid expression: Field \"" + k + "\" not found in control[" + i + "] condition.");
                                                 }
                                             })) {
-                                                item.define.available = true;
+                                                item.available = true;
                                                 item.getValue({
                                                     cache: me._valueCache,
                                                     calc: computeValue,
@@ -2379,11 +2380,11 @@ var tui;
                                                 });
                                             }
                                             else {
-                                                item.define.available = false;
+                                                item.available = false;
                                             }
                                         }
                                         else {
-                                            item.define.available = true;
+                                            item.available = true;
                                             item.getValue({
                                                 cache: me._valueCache,
                                                 calc: computeValue,
@@ -2408,22 +2409,10 @@ var tui;
                 var _this = this;
                 this._maxId = 0;
                 this._.setAttribute("unselectable", "on");
-                var toolbar = this._components["toolbar"] = tui.elem("div");
-                toolbar.className = "tui-form-toolbar";
-                var title = tui.elem("div");
-                title.className = "tui-form-title";
-                var buttons = tui.elem("div");
-                buttons.className = "tui-form-buttons";
-                var btnPrint = tui.elem("span");
-                btnPrint.className = "tui-form-btn tui-form-btn-print";
                 var newItem = this._components["newitem"] = tui.elem("div");
                 newItem.className = "tui-form-new-item-box";
                 var errmsg = this._components["errmsg"] = tui.elem("div");
                 errmsg.className = "tui-form-error";
-                buttons.appendChild(btnPrint);
-                toolbar.appendChild(title);
-                toolbar.appendChild(buttons);
-                this._.appendChild(toolbar);
                 $(this._).mousedown(function () {
                     if (tui.ieVer > 0 && _this.get("mode") === "design")
                         tui.browser.focusWithoutScroll(_this._);
@@ -2654,31 +2643,13 @@ var tui;
                 var result = true;
                 for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
                     var item = _a[_i];
-                    if (item.define.available && !item.validate())
+                    if (item.available && !item.validate())
                         result = false;
                 }
                 this.render();
                 return result;
             };
             Form.prototype.render = function () {
-                var toolbar = this._components["toolbar"];
-                var titleText = this.get("title");
-                if (titleText || this.get("toolbar")) {
-                    if (!titleText)
-                        titleText = "";
-                    toolbar.children[0].innerHTML = tui.browser.toSafeText(titleText);
-                    if (this.get("toolbar")) {
-                        toolbar.children[1].style.display = "block";
-                    }
-                    else
-                        toolbar.children[1].style.display = "none";
-                    toolbar.style.display = "block";
-                    $(this._).addClass("tui-form-show-toolbar");
-                }
-                else {
-                    toolbar.style.display = "none";
-                    $(this._).removeClass("tui-form-show-toolbar");
-                }
                 var newItem = this._components["newitem"];
                 tui.browser.removeNode(newItem);
                 var errmsg = this._components["errmsg"];
@@ -2703,7 +2674,7 @@ var tui;
                     item.setDesign(designMode);
                     if (!designMode) {
                         item.select(false);
-                        if (!item.define.available) {
+                        if (!item.available) {
                             tui.browser.addClass(item.div, "tui-form-item-unavailable");
                         }
                         else
@@ -2769,10 +2740,15 @@ var tui;
 })(tui || (tui = {}));
 (function (tui) {
     "use strict";
-    function inputbox(define, title, initValue, callback) {
+    function inputbox(define, title, initValue, callback, maxWidth) {
         var container = tui.elem("div");
         var form = tui.create("form");
-        form._.className = "tui-form-property-form";
+        if (typeof maxWidth === "number" && maxWidth >= 1 && maxWidth <= 5) {
+            form._.className = "tui-form-max-" + maxWidth;
+        }
+        else {
+            form._.className = "tui-form-property-form";
+        }
         form.set("definition", define);
         if (initValue && typeof initValue != "function") {
             form.set("value", initValue);
@@ -7156,7 +7132,7 @@ var tui;
             }
             return result;
         }
-        function textToOptions(text) {
+        function textToOptions(text, multiOption) {
             var result = [];
             if (!text)
                 return result;
@@ -7175,12 +7151,12 @@ var tui;
                 s = s.trim();
                 var pos = s.indexOf(":");
                 if (pos < 0) {
-                    return { value: s, text: s, check: false };
+                    return { value: s, text: s, check: (multiOption ? false : undefined) };
                 }
                 else {
                     var value = s.substring(0, pos).trim();
                     var text = s.substring(pos + 1).trim();
-                    return { value: value, text: text, check: false };
+                    return { value: value, text: text, check: (multiOption ? false : undefined) };
                 }
             }
             function toTree(list) {
@@ -7210,7 +7186,7 @@ var tui;
             }
             var tmp = [];
             var arr = text.split("\n");
-            var condition = null;
+            var condition = undefined;
             var nodeList = null;
             for (var _i = 0, arr_1 = arr; _i < arr_1.length; _i++) {
                 var s = arr_1[_i];
@@ -7305,7 +7281,7 @@ var tui;
                 var menu = widget.create("menu");
                 this.btnSize.on("click", function () {
                     menu._set("items", [
-                        { type: "radio", text: "1x", group: "size", value: 1, checked: _this.define.size === 1 },
+                        { type: "radio", text: "1x", group: "size", value: 1, checked: (_this.define.size === 1 || !_this.define.size) },
                         { type: "radio", text: "2x", group: "size", value: 2, checked: _this.define.size === 2 },
                         { type: "radio", text: "3x", group: "size", value: 3, checked: _this.define.size === 3 },
                         { type: "radio", text: "4x", group: "size", value: 4, checked: _this.define.size === 4 },
@@ -7518,13 +7494,13 @@ var tui;
                             customValues.push(pages[i].form.get("value"));
                         }
                     }
-                    _this.define.label = values.label;
-                    _this.define.key = values.key;
-                    _this.define.condition = values.condition;
-                    _this.define.description = values.description;
-                    _this.define.disable = (values.options.indexOf("disable") >= 0);
-                    _this.define.required = (values.options.indexOf("required") >= 0);
-                    _this.define.emphasize = (values.options.indexOf("emphasize") >= 0);
+                    _this.define.label = values.label ? values.label : undefined;
+                    _this.define.key = values.key ? values.key : undefined;
+                    _this.define.condition = values.condition ? values.condition : undefined;
+                    _this.define.description = values.description ? values.description : undefined;
+                    _this.define.disable = (values.options.indexOf("disable") >= 0 ? true : undefined);
+                    _this.define.required = (values.options.indexOf("required") >= 0 ? true : undefined);
+                    _this.define.emphasize = (values.options.indexOf("emphasize") >= 0 ? true : undefined);
                     _this.setProperties(customValues);
                     _this.update();
                     _this.form.fire("itemvaluechanged", { control: _this });
@@ -7621,13 +7597,13 @@ var tui;
                     define.size = FULL;
                 }
                 else
-                    define.size = 1;
+                    define.size = undefined;
                 if (define.newline) {
                     define.newline = true;
                     tui.browser.addClass(this.div, "tui-form-item-newline");
                 }
                 else {
-                    define.newline = false;
+                    define.newline = undefined;
                 }
             };
             return FormControl;
@@ -7712,23 +7688,28 @@ var tui;
                     this.label.innerHTML = "&nbsp;";
                 else
                     this.label.innerHTML = tui.browser.toSafeText(l);
+                if (d.description) {
+                    var desc = tui.elem("span");
+                    desc.setAttribute("tooltip", d.description);
+                    this.label.appendChild(desc);
+                }
                 if (l || this.define.display == "folder") {
-                    if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48) {
-                        this.label.style.fontSize = d.fontSize + "px";
-                        this.label.style.lineHeight = d.fontSize + 4 + "px";
+                    if (typeof d.fontSize !== "number") {
+                        d.fontSize = 22;
                     }
-                    else {
-                        d.fontSize = 20;
-                        this.label.style.fontSize = "20px";
-                        this.label.style.lineHeight = "24px";
-                    }
+                    if (d.fontSize < 12)
+                        d.fontSize = 12;
+                    if (d.fontSize > 48)
+                        d.fontSize = 48;
+                    this.label.style.fontSize = d.fontSize + "px";
+                    this.label.style.lineHeight = d.fontSize + 4 + "px";
                     if (d.display == "visible" && /^(left|right|center)$/.test(d.align))
                         this.label.style.textAlign = d.align;
                     else
                         this.label.style.textAlign = "left";
                 }
                 if (d.display == "folder") {
-                    d.required = false;
+                    d.required = undefined;
                     tui.browser.removeClass(this.label, "tui-form-item-required");
                 }
             };
@@ -7852,13 +7833,13 @@ var tui;
                 if (values.fontSize && /^\d+$/.test(values.fontSize))
                     this.define.fontSize = parseInt(values.fontSize);
                 else
-                    this.define.fontSize = null;
+                    this.define.fontSize = undefined;
                 if (values.display == "visible" && /^(left|center|right)$/.test(values.align))
-                    this.define.align = values.align;
+                    this.define.align = values.align == "left" ? undefined : values.align;
                 else
-                    this.define.align = "left";
+                    this.define.align = undefined;
                 if (values.display == "folder") {
-                    this.define.required = false;
+                    this.define.required = undefined;
                 }
                 this.define.value = values.value;
                 this.define.display = values.display;
@@ -7866,7 +7847,7 @@ var tui;
                     this.define.valueAsLabel = true;
                 }
                 else {
-                    this.define.valueAsLabel = false;
+                    this.define.valueAsLabel = undefined;
                 }
             };
             FormSection.prototype.validate = function () {
@@ -8010,9 +7991,9 @@ var tui;
                             selection.push(s);
                     }
                 }
-                this.define.selection = selection;
-                this.define.inputType = values.inputType;
-                this.define.validation = values.validation;
+                this.define.selection = selection.length > 0 ? selection : undefined;
+                this.define.inputType = values.inputType != "text" ? values.inputType : undefined;
+                this.define.validation = (values.validation && values.validation.length) > 0 ? values.validation : undefined;
             };
             FormTextbox.prototype.onPropertyPageSwitch = function (pages, recentPage) {
                 FormControl.detectRequiredByValidation(pages, recentPage);
@@ -8100,7 +8081,7 @@ var tui;
             };
             FormTextarea.prototype.setProperties = function (properties) {
                 var values = properties[1];
-                this.define.validation = values.validation;
+                this.define.validation = (values.validation && values.validation.length) > 0 ? values.validation : undefined;
                 if (/\d+/.test(values.maxHeight + ""))
                     this.define.maxHeight = values.maxHeight;
                 else
@@ -8116,7 +8097,9 @@ var tui;
             FormTextarea.desc = "form.textarea";
             FormTextarea.order = 2;
             FormTextarea.init = {
-                maxHeight: 300
+                maxHeight: 300,
+                size: 2,
+                newline: true
             };
             return FormTextarea;
         }(BasicFormControl));
@@ -8289,7 +8272,7 @@ var tui;
                             }, {
                                 "type": "options",
                                 "key": "align",
-                                "label": tui.str("form.align"),
+                                "label": tui.str("form.arrange"),
                                 "value": this.define.align === "vertical" ? "vertical" : "normal",
                                 "options": [{ "data": [
                                             { "value": "normal", "text": tui.str("normal") },
@@ -8322,10 +8305,10 @@ var tui;
             };
             FormOptions.prototype.setProperties = function (properties) {
                 var values = properties[1];
-                this.define.align = values.align;
-                this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
-                this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
-                this.define.options = textToOptions(values.options);
+                this.define.align = values.align != "normal" ? values.align : undefined;
+                this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : undefined;
+                this.define.atMost = values.atMost ? parseInt(values.atMost) : undefined;
+                this.define.options = textToOptions(values.options, false);
             };
             FormOptions.prototype.onPropertyPageSwitch = function (pages, recentPage) {
                 FormControl.detectRequired(pages, recentPage);
@@ -8472,9 +8455,9 @@ var tui;
             };
             FormSelect.prototype.setProperties = function (properties) {
                 var values = properties[1];
-                this.define.atLeast = values.atLeast > 0 ? parseInt(values.atLeast) : null;
-                this.define.atMost = values.atMost > 0 ? parseInt(values.atMost) : null;
-                this.define.selection = textToOptions(values.selection);
+                this.define.atLeast = values.atLeast > 0 ? parseInt(values.atLeast) : undefined;
+                this.define.atMost = values.atMost > 0 ? parseInt(values.atMost) : undefined;
+                this.define.selection = textToOptions(values.selection, this.define.atMost != 1);
                 this.define.canSearch = tui.text.parseBoolean(values.canSearch);
             };
             FormSelect.prototype.onPropertyPageSwitch = function (pages, recentPage) {
@@ -8548,11 +8531,10 @@ var tui;
             FormSelect.init = {
                 "atMost": 1,
                 "selection": [{
-                        "condition": null,
                         "data": [
-                            { "value": "A", "check": false },
-                            { "value": "B", "check": false },
-                            { "value": "C", "check": false }
+                            { "value": "A" },
+                            { "value": "B" },
+                            { "value": "C" }
                         ]
                     }]
             };
@@ -8646,15 +8628,15 @@ var tui;
             };
             FormDatePicker.prototype.setProperties = function (properties) {
                 var values = properties[1];
-                this.define.format = values.format ? values.format : null;
+                this.define.format = values.format ? values.format : undefined;
                 this.define.mode = values.mode;
                 if (this.define.required) {
                     this.define.validation = [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }];
                 }
                 else
-                    this.define.validation = null;
+                    this.define.validation = undefined;
                 this.define.timezone = values.timezone;
-                this.define.autoInit = !!values.autoInit;
+                this.define.autoInit = values.autoInit ? true : undefined;
             };
             FormDatePicker.prototype.validate = function () {
                 return this._widget.validate();
@@ -8797,13 +8779,13 @@ var tui;
             };
             FormFile.prototype.setProperties = function (properties) {
                 var values = properties[1];
-                this.define.accept = values.accept;
+                this.define.accept = values.accept ? values.accept : undefined;
                 this.define.action = values.action;
                 if (this.define.required) {
                     this.define.validation = [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }];
                 }
                 else
-                    this.define.validation = null;
+                    this.define.validation = undefined;
             };
             FormFile.prototype.validate = function () {
                 return this._widget.validate();
@@ -8897,10 +8879,10 @@ var tui;
             };
             FormFiles.prototype.setProperties = function (properties) {
                 var values = properties[1];
-                this.define.accept = values.accept;
+                this.define.accept = values.accept ? values.accept : undefined;
                 this.define.action = values.action;
-                this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
-                this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
+                this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : undefined;
+                this.define.atMost = values.atMost ? parseInt(values.atMost) : undefined;
             };
             FormFiles.prototype.onPropertyPageSwitch = function (pages, recentPage) {
                 FormControl.detectRequired(pages, recentPage);
@@ -8935,6 +8917,10 @@ var tui;
             FormFiles.icon = "fa-copy";
             FormFiles.desc = "form.files";
             FormFiles.order = 8;
+            FormFiles.init = {
+                size: 2,
+                newline: true
+            };
             FormFiles.translator = function (value, item, index) {
                 if (value instanceof Array) {
                     return document.createTextNode("[ " + tui.strp("file.count.p", value.length) + " ]");
@@ -9077,7 +9063,7 @@ var tui;
                     }
                     else {
                         this._widget._.style.height = "";
-                        d.height = null;
+                        d.height = undefined;
                     }
                 }
                 this._widget.set("autoWidth", exist(this.define.features, "autoColumnWidth"));
@@ -9103,16 +9089,6 @@ var tui;
                             }, {
                                 "type": "textbox",
                                 "inputType": "number",
-                                "key": "height",
-                                "label": tui.str("form.height"),
-                                "value": /^\d+$/.test(this.define.height + "") ? this.define.height : null,
-                                "validation": [
-                                    { "format": "*digital", "message": tui.str("message.invalid.value") }
-                                ],
-                                "condition": "features !~ 'autoHeight'"
-                            }, {
-                                "type": "textbox",
-                                "inputType": "number",
                                 "key": "atLeast",
                                 "label": tui.str("form.at.least"),
                                 "value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast : "",
@@ -9128,6 +9104,16 @@ var tui;
                                 "validation": [
                                     { "format": "*digital", "message": tui.str("message.invalid.value") }
                                 ]
+                            }, {
+                                "type": "textbox",
+                                "inputType": "number",
+                                "key": "height",
+                                "label": tui.str("form.height"),
+                                "value": /^\d+$/.test(this.define.height + "") ? this.define.height : null,
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                ],
+                                "condition": "features !~ 'autoHeight'"
                             }
                         ]
                     }, {
@@ -9141,9 +9127,9 @@ var tui;
             };
             FormGrid.prototype.setProperties = function (properties) {
                 var values = properties[1];
-                this.define.height = /^\d+$/.test(values.height) ? values.height : null;
-                this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
-                this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
+                this.define.height = /^\d+$/.test(values.height) ? values.height : undefined;
+                this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : undefined;
+                this.define.atMost = values.atMost ? parseInt(values.atMost) : undefined;
                 this.define.definitions = properties[2];
                 this.define.features = values.features;
             };
@@ -9179,6 +9165,7 @@ var tui;
             FormGrid.desc = "form.grid";
             FormGrid.order = 9;
             FormGrid.init = {
+                size: 6,
                 features: ['append', 'delete', 'edit']
             };
             FormGrid.translator = function (value, item, index) {

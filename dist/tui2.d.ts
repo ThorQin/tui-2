@@ -327,7 +327,6 @@ declare module tui.widget {
         required?: boolean;
         emphasize?: boolean;
         description?: string;
-        available?: boolean;
         [index: string]: any;
     }
     interface FormControlConstructor {
@@ -361,7 +360,7 @@ declare module tui.widget {
         addItem(type: string, label?: string, pos?: number): void;
         removeItem(target: FormControl<FormItem>): void;
         selectNext(): boolean;
-        protected selectPrevious(): boolean;
+        selectPrevious(): boolean;
         protected update(): void;
         protected initRestriction(): void;
         protected init(): void;
@@ -373,7 +372,7 @@ declare module tui.widget {
     }
 }
 declare module tui {
-    function inputbox(define: widget.FormItem[], title?: string, initValue?: any, callback?: (value: any) => JQueryPromise<any> | boolean): widget.Dialog;
+    function inputbox(define: widget.FormItem[], title?: string, initValue?: any, callback?: (value: any) => JQueryPromise<any> | boolean, maxWidth?: number): widget.Dialog;
 }
 declare module tui.widget {
     var dialogStack: Dialog[];
@@ -743,6 +742,7 @@ declare module tui.widget {
         btnMoveUp: Button;
         btnMoveDown: Button;
         btnSize: Button;
+        available: boolean;
         protected form: Form;
         protected selected: boolean;
         static detectRequired(pages: PropertyPage[], recentPage: number): void;

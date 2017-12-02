@@ -16,7 +16,6 @@ module tui.widget {
 		required?: boolean;
 		emphasize?: boolean;
 		description?: string;
-		available?: boolean;
 		[index: string]: any;
 	}
 
@@ -162,7 +161,7 @@ module tui.widget {
 			return false;
 		}
 
-		protected selectPrevious() {
+		selectPrevious() {
 			var found = false;
 			for (let i = 0; i < this._items.length; i++) {
 				if (this._items[i].isSelect()) {
@@ -197,7 +196,7 @@ module tui.widget {
 			this.setRestrictions({
 				"mode": {
 					"set": (value: any) => {
-						if (/^(design|init|input|view)$/.test(value)) {
+						if (/^(design|input|view)$/.test(value)) {
 							if (value != this.get("mode")) {
 								this._data["mode"] = value;
 								this._valueChanged = true;
@@ -267,7 +266,7 @@ module tui.widget {
 									calc: computeValue,
 									path: searchPath
 								});
-								me._items[index[key]].define.available = true;
+								me._items[index[key]].available = true;
 							} else {
 								if (searchPath.indexOf(key) >= 0)
 									throw new Error("Invalid expression: Cycle reference was detected on field: \"" + key + "\"");
@@ -287,11 +286,11 @@ module tui.widget {
 											calc: computeValue,
 											path: searchPath
 										});
-										me._items[index[key]].define.available = true;
+										me._items[index[key]].available = true;
 									} else {
 										searchPath.pop();
 										me._valueCache[key] = null;
-										me._items[index[key]].define.available = false;
+										me._items[index[key]].available = false;
 									}
 								} catch (e) {
 									throw new Error(e.message + " (" + key + ")");
@@ -333,17 +332,17 @@ module tui.widget {
 												throw new Error("Invalid expression: Field \"" + k + "\" not found in control[" + i + "] condition.");
 											}
 										})) {
-											item.define.available = true;
+											item.available = true;
 											item.getValue({
 												cache: me._valueCache,
 												calc: computeValue,
 												path: []
 											});
 										} else {
-											item.define.available = false;
+											item.available = false;
 										}
 									} else {
-										item.define.available = true;
+										item.available = true;
 										item.getValue({
 											cache: me._valueCache,
 											calc: computeValue,
@@ -368,25 +367,12 @@ module tui.widget {
 		protected init(): void {
 			this._maxId = 0;
 			this._.setAttribute("unselectable", "on");
-			var toolbar = this._components["toolbar"] = elem("div");
-			toolbar.className = "tui-form-toolbar";
-			var title = elem("div");
-			title.className = "tui-form-title";
-			var buttons = elem("div");
-			buttons.className = "tui-form-buttons";
-			var btnPrint = elem("span");
-			btnPrint.className = "tui-form-btn tui-form-btn-print";
-
+			
 			var newItem = this._components["newitem"] = elem("div");
 			newItem.className = "tui-form-new-item-box";
 
 			var errmsg = this._components["errmsg"] = elem("div");
 			errmsg.className = "tui-form-error";
-
-			buttons.appendChild(btnPrint);
-			toolbar.appendChild(title);
-			toolbar.appendChild(buttons);
-			this._.appendChild(toolbar);
 
 			$(this._).mousedown(() => {
 				if (tui.ieVer > 0 && this.get("mode") === "design")
@@ -618,7 +604,7 @@ module tui.widget {
 		validate(): boolean {
 			var result = true;
 			for (let item of this._items) {
-				if (item.define.available && !item.validate())
+				if (item.available && !item.validate())
 					result = false;
 			}
 			this.render();
@@ -626,22 +612,6 @@ module tui.widget {
 		}
 
 		render() {
-			var toolbar = this._components["toolbar"];
-			var titleText = this.get("title");
-			if (titleText || this.get("toolbar")) {
-				if (!titleText)
-					titleText = "";
-				toolbar.children[0].innerHTML = browser.toSafeText(titleText);
-				if (this.get("toolbar")) {
-					(<HTMLElement>toolbar.children[1]).style.display = "block";
-				} else
-					(<HTMLElement>toolbar.children[1]).style.display = "none";
-				toolbar.style.display = "block";
-				$(this._).addClass("tui-form-show-toolbar");
-			} else {
-				toolbar.style.display = "none";
-				$(this._).removeClass("tui-form-show-toolbar");
-			}
 			var newItem = this._components["newitem"];
 			browser.removeNode(newItem);
 			var errmsg = this._components["errmsg"];
@@ -664,7 +634,7 @@ module tui.widget {
 				item.setDesign(designMode);
 				if (!designMode) {
 					item.select(false);
-					if (!item.define.available) {
+					if (!item.available) {
 						browser.addClass(item.div, "tui-form-item-unavailable");
 					} else
 						browser.removeClass(item.div, "tui-form-item-unavailable");
@@ -723,10 +693,14 @@ module tui.widget {
 
 module tui {
 	"use strict";
-	export function inputbox(define: widget.FormItem[], title?: string, initValue?: any, callback?: (value: any) => JQueryPromise<any> | boolean): widget.Dialog {
+	export function inputbox(define: widget.FormItem[], title?: string, initValue?: any, callback?: (value: any) => JQueryPromise<any> | boolean, maxWidth?: number): widget.Dialog {
 		var container = elem("div");
 		let form = <widget.Form>create("form");
-		form._.className = "tui-form-property-form";
+		if (typeof maxWidth === "number" && maxWidth >= 1 && maxWidth <= 5) {
+			form._.className = "tui-form-max-" + maxWidth;
+		} else {
+			form._.className = "tui-form-property-form";
+		}
 		form.set("definition", define);
 		if (initValue && typeof initValue != "function") {
 			form.set("value", initValue);

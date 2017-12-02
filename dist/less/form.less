@@ -31,11 +31,6 @@ tui\:form {
 		vertical-align: top;
 	}
 
-	@toolbarSize: 40px;
-	&.tui-form-show-toolbar {
-		padding-top: @toolbarSize + 10px;
-	}
-
 	&>div.tui-form-error {
 		padding: 20px;
 		color: red;
@@ -44,60 +39,6 @@ tui\:form {
 			font-weight: bold;
 			display: block;
 			padding-bottom: 20px;
-		}
-	}
-
-	div.tui-form-toolbar {
-		position: absolute;
-		display: block;
-		margin: 0;
-		background-color: #636363;
-		left:0;
-		top:0;
-		height: @toolbarSize;
-		right: 0;
-		color: #ccc;
-
-		&>div.tui-form-title {
-			font-size: 16px;
-			font-weight: bold;
-			position: absolute;
-			left:0;
-			top:0;
-			height: @toolbarSize;
-			right: 80px;
-			line-height: @toolbarSize;
-			padding: 0 20px;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			white-space: nowrap;
-		}
-		&>div.tui-form-buttons {
-			position: absolute;
-			top:5px;
-			height: @toolbarSize;
-			right: 20px;
-			padding:0 0px;
-			span.tui-form-btn {
-				border: 1px solid #aaa;
-				.border-radius(@buttonBorderRadius);
-
-				display: inline-block;
-				height: @toolbarSize - 10px;
-				line-height: @toolbarSize - 10px;
-				text-align: center;
-				vertical-align: middle;
-				cursor: pointer;
-				padding: 0 10px;
-				font-size: 14px;
-				.icon-base();
-				&.tui-form-btn-print:before {
-					.fa-print;
-				}
-				&:hover {
-					background-color: #555;
-				}
-			}
 		}
 	}
 
@@ -364,10 +305,6 @@ tui\:form.tui-panel {
  		margin: 20px;
 }
 
-tui\:form.tui-form-property-form {
-	margin-top: 20px;
-}
-
 tui\:dialog>.tui-content tui\:form {
 	width: 1060px;
 	padding: 0;
@@ -389,8 +326,24 @@ tui\:dialog>.tui-content tui\:form {
 	}
 }
 
-tui\:form.tui-form-property-form {
+tui\:form.tui-form-max-1 {
+	max-width: 	280px;
+}
+
+tui\:form.tui-form-property-form,tui\:form.tui-form-max-2 {
 	max-width: 	540px;
+}
+
+tui\:form.tui-form-max-3 {
+	max-width: 	800px;
+}
+
+tui\:form.tui-form-max-4 {
+	max-width: 	1060px;
+}
+
+tui\:form.tui-form-max-5 {
+	max-width: 	1320px;
 }
 
 @media (max-width: 580px) {
@@ -429,12 +382,12 @@ tui\:form.tui-size-3 {
 	width: auto;
 	div.tui-form-item-container {
 		display: inline-block;
-		width: 33%;
+		width: 33.3%;
 		&.tui-form-item-size-2 {
-			width: 66%;
+			width: 66.6%;
 		}
 		&.tui-form-item-size-3,&.tui-form-item-size-4,&.tui-form-item-size-5 {
-			width: 99%;
+			width: 99.9%;
 		}
 	}
 }
@@ -477,18 +430,18 @@ tui\:form.tui-size-5 {
 tui\:form.tui-size-6 {
 	width: auto;
 	div.tui-form-item-container {
-		width: 16.5%;
+		width: 16.65%;
 		&.tui-form-item-size-2 {
-			width: 33%;
+			width: 33.3%;
 		}
 		&.tui-form-item-size-3 {
-			width: 49.5%;
+			width: 49.95%;
 		}
 		&.tui-form-item-size-4 {
-			width: 66%;
+			width: 66.6%;
 		}
 		&.tui-form-item-size-5 {
-			width: 82.5%;
+			width: 83.25%;
 		}
 	}
 }
@@ -501,8 +454,9 @@ tui\:form.tui-size-1 {
 	}
 }
 
-
-
-tui\:button-group.tui-tab.tui-form-properties-tab>tui\:radio {
-	font-size: 18px;
+tui\:button-group.tui-tab.tui-form-properties-tab {
+	margin-bottom: 20px;
+	>tui\:radio {
+		font-size: 18px;
+	}
 }

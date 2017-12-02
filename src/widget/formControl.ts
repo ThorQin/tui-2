@@ -58,7 +58,7 @@ module tui.widget {
 		return result;
 	}
 
-	function textToOptions(text: string): OptionGroup[] {
+	function textToOptions(text: string, multiOption: boolean): OptionGroup[] {
 		var result: OptionGroup[] = [];
 		if (!text)
 			return result;
@@ -76,11 +76,11 @@ module tui.widget {
 			s = s.trim();
 			var pos = s.indexOf(":");
 			if (pos < 0) {
-				return { value: s, text: s, check: false};
+				return { value: s, text: s, check: (multiOption ? false : undefined)};
 			} else {
 				var value = s.substring(0, pos).trim();
 				var text = s.substring(pos + 1).trim();
-				return { value: value, text: text, check: false};
+				return { value: value, text: text, check: (multiOption ? false : undefined)};
 			}
 		}
 		function toTree(list: string[]) : Option[] {
@@ -107,7 +107,7 @@ module tui.widget {
 		}
 		var tmp: {condition: string, list: string[]}[] = [];
 		var arr = text.split("\n");
-		var condition: string = null;
+		var condition: string = undefined;
 		var nodeList: string[] = null;
 		for (let s of arr) {
 			if (s.trim().length > 0) {
@@ -158,6 +158,7 @@ module tui.widget {
 		btnMoveUp: Button;
 		btnMoveDown: Button;
 		btnSize: Button;
+		available: boolean;
 
 		protected form: Form;
 		protected selected: boolean;
@@ -281,7 +282,7 @@ module tui.widget {
 			var menu = <Popup>create("menu");
 			this.btnSize.on("click", () => {
 				menu._set("items", [
-					{type: "radio", text: "1x", group: "size", value: 1, checked: this.define.size === 1},
+					{type: "radio", text: "1x", group: "size", value: 1, checked: (this.define.size === 1 || !this.define.size)},
 					{type: "radio", text: "2x", group: "size", value: 2, checked: this.define.size === 2},
 					{type: "radio", text: "3x", group: "size", value: 3, checked: this.define.size === 3},
 					{type: "radio", text: "4x", group: "size", value: 4, checked: this.define.size === 4},
@@ -430,13 +431,13 @@ module tui.widget {
 						customValues.push(pages[i].form.get("value"));
 					}
 				}
-				this.define.label = values.label;
-				this.define.key = values.key;
-				this.define.condition = values.condition;
-				this.define.description = values.description;
-				this.define.disable = (values.options.indexOf("disable") >= 0);
-				this.define.required = (values.options.indexOf("required") >= 0);
-				this.define.emphasize = (values.options.indexOf("emphasize") >= 0);
+				this.define.label = values.label ? values.label : undefined;
+				this.define.key = values.key ? values.key : undefined;
+				this.define.condition = values.condition ? values.condition : undefined;
+				this.define.description = values.description ? values.description : undefined;
+				this.define.disable = (values.options.indexOf("disable") >= 0 ? true : undefined);
+				this.define.required = (values.options.indexOf("required") >= 0 ? true : undefined);
+				this.define.emphasize = (values.options.indexOf("emphasize") >= 0 ? true : undefined);
 				this.setProperties(customValues);
 				this.update();
 				this.form.fire("itemvaluechanged", {control: this});
@@ -533,12 +534,12 @@ module tui.widget {
 				browser.addClass(this.div, "tui-form-item-size-full");
 				define.size = FULL;
 			} else
-				define.size = 1;
+				define.size = undefined;
 			if (define.newline) {
 				define.newline = true;
 				browser.addClass(this.div, "tui-form-item-newline");
 			} else {
-				define.newline = false;
+				define.newline = undefined;
 			}
 		}
 
@@ -654,22 +655,29 @@ module tui.widget {
 				this.label.innerHTML = "&nbsp;";
 			else
 				this.label.innerHTML = browser.toSafeText(l);
+			if (d.description) {
+				var desc = elem("span");
+				desc.setAttribute("tooltip", d.description);
+				this.label.appendChild(desc);
+			}
 			if (l || this.define.display == "folder") {
-				if (typeof d.fontSize === "number" && d.fontSize >= 12 && d.fontSize <= 48) {
-					this.label.style.fontSize = d.fontSize + "px";
-					this.label.style.lineHeight = d.fontSize + 4 + "px";
-				} else {
-					d.fontSize = 20;
-					this.label.style.fontSize = "20px";
-					this.label.style.lineHeight = "24px";
+				if (typeof d.fontSize !== "number") {
+					d.fontSize = 22;
 				}
+				if (d.fontSize < 12)
+					d.fontSize = 12;
+				if (d.fontSize > 48)
+					d.fontSize = 48;
+				this.label.style.fontSize = d.fontSize + "px";
+				this.label.style.lineHeight = d.fontSize + 4 + "px";
+
 				if (d.display == "visible" && /^(left|right|center)$/.test(d.align))
 					this.label.style.textAlign = d.align;
 				else
 					this.label.style.textAlign = "left";
 			}
 			if (d.display == "folder") {
-				d.required = false;
+				d.required = undefined;
 				browser.removeClass(this.label,"tui-form-item-required");
 			}
 		}
@@ -793,20 +801,20 @@ module tui.widget {
 			if (values.fontSize && /^\d+$/.test(values.fontSize))
 				this.define.fontSize = parseInt(values.fontSize);
 			else
-				this.define.fontSize = null;
+				this.define.fontSize = undefined;
 			if (values.display == "visible" && /^(left|center|right)$/.test(values.align))
-				this.define.align = values.align;
+				this.define.align = values.align == "left" ? undefined : values.align;
 			else
-				this.define.align = "left";
+				this.define.align = undefined;
 			if (values.display == "folder") {
-				this.define.required = false;
+				this.define.required = undefined;
 			}
 			this.define.value = values.value;
 			this.define.display = values.display;
 			if (values.valueAsLabel == "enable") {
 				this.define.valueAsLabel = true;
 			} else {
-				this.define.valueAsLabel = false;
+				this.define.valueAsLabel = undefined;
 			}
 		}
 		validate(): boolean {
@@ -960,9 +968,9 @@ module tui.widget {
 						selection.push(s);
 				}
 			}
-			this.define.selection = selection;
-			this.define.inputType = values.inputType;
-			this.define.validation = values.validation;
+			this.define.selection = selection.length > 0 ? selection : undefined;
+			this.define.inputType = values.inputType != "text" ? values.inputType : undefined;
+			this.define.validation = (values.validation && values.validation.length) > 0 ? values.validation : undefined;
 		}
 		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
 			FormControl.detectRequiredByValidation(pages, recentPage);
@@ -986,7 +994,9 @@ module tui.widget {
 		static desc = "form.textarea";
 		static order = 2;
 		static init = {
-			maxHeight: 300
+			maxHeight: 300,
+			size: 2,
+			newline: true
 		};
 
 		constructor(form: Form, define: TextareaFormItem) {
@@ -1060,7 +1070,7 @@ module tui.widget {
 		}
 		setProperties(properties: any[]) {
 			var values = properties[1];
-			this.define.validation = values.validation;
+			this.define.validation = (values.validation && values.validation.length) > 0 ? values.validation : undefined;
 			if (/\d+/.test(values.maxHeight + ""))
 				this.define.maxHeight = values.maxHeight;
 			else
@@ -1274,7 +1284,7 @@ module tui.widget {
 					}, {
 						"type": "options",
 						"key": "align",
-						"label": str("form.align"),
+						"label": str("form.arrange"),
 						"value": this.define.align === "vertical" ? "vertical" : "normal",
 						"options": [{"data":[
 							{ "value": "normal", "text": str("normal") },
@@ -1307,10 +1317,10 @@ module tui.widget {
 		}
 		setProperties(properties: any[]) {
 			var values = properties[1];
-			this.define.align = values.align;
-			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
-			this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
-			this.define.options = textToOptions(values.options);
+			this.define.align = values.align != "normal" ? values.align : undefined;
+			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : undefined;
+			this.define.atMost = values.atMost ? parseInt(values.atMost) : undefined;
+			this.define.options = textToOptions(values.options, false);
 		}
 		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
 			FormControl.detectRequired(pages, recentPage);
@@ -1363,11 +1373,10 @@ module tui.widget {
 		static init = {
 			"atMost": 1,
 			"selection": [{
-				"condition":<string>null,
 				"data": [
-					{"value":"A", "check": false},
-					{"value":"B", "check": false},
-					{"value":"C", "check": false}
+					{"value":"A"},
+					{"value":"B"},
+					{"value":"C"}
 				]
 			}]
 		};
@@ -1470,9 +1479,9 @@ module tui.widget {
 		}
 		setProperties(properties: any[]) {
 			var values = properties[1];
-			this.define.atLeast = values.atLeast  > 0 ? parseInt(values.atLeast) : null;
-			this.define.atMost = values.atMost > 0 ? parseInt(values.atMost) : null;
-			this.define.selection = textToOptions(values.selection);
+			this.define.atLeast = values.atLeast  > 0 ? parseInt(values.atLeast) : undefined;
+			this.define.atMost = values.atMost > 0 ? parseInt(values.atMost) : undefined;
+			this.define.selection = textToOptions(values.selection, this.define.atMost != 1);
 			this.define.canSearch = text.parseBoolean(values.canSearch);
 		}
 		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
@@ -1630,14 +1639,14 @@ module tui.widget {
 		}
 		setProperties(properties: any[]) {
 			var values = properties[1];
-			this.define.format = values.format ? values.format : null;
+			this.define.format = values.format ? values.format : undefined;
 			this.define.mode = values.mode;
 			if (this.define.required) {
 				this.define.validation = [{ "format": "*any", "message": str("message.cannot.be.empty")}];
 			} else
-				this.define.validation = null;
+				this.define.validation = undefined;
 			this.define.timezone = values.timezone;
-			this.define.autoInit = !!values.autoInit;
+			this.define.autoInit = values.autoInit ? true : undefined;
 		}
 		validate(): boolean {
 			return this._widget.validate();
@@ -1803,12 +1812,12 @@ module tui.widget {
 		}
 		setProperties(properties: any[]) {
 			var values = properties[1];
-			this.define.accept = values.accept;
+			this.define.accept = values.accept ? values.accept : undefined;
 			this.define.action = values.action;
 			if (this.define.required) {
 				this.define.validation = [{ "format": "*any", "message": str("message.cannot.be.empty")}];
 			} else
-				this.define.validation = null;
+				this.define.validation = undefined;
 		}
 		validate(): boolean {
 			return this._widget.validate();
@@ -1831,6 +1840,10 @@ module tui.widget {
 		static icon = "fa-copy";
 		static desc = "form.files";
 		static order = 8;
+		static init = {
+			size: 2,
+			newline: true
+		};
 		static translator = function (value: any, item: any, index: number): Node {
 			if (value instanceof Array) {
 				return document.createTextNode("[ " + strp("file.count.p", value.length) + " ]");
@@ -1910,10 +1923,10 @@ module tui.widget {
 		}
 		setProperties(properties: any[]) {
 			var values = properties[1];
-			this.define.accept = values.accept;
+			this.define.accept = values.accept ? values.accept : undefined;
 			this.define.action = values.action;
-			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
-			this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
+			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : undefined;
+			this.define.atMost = values.atMost ? parseInt(values.atMost) : undefined;
 		}
 		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
 			FormControl.detectRequired(pages, recentPage);
@@ -1964,6 +1977,7 @@ module tui.widget {
 		static desc = "form.grid";
 		static order = 9;
 		static init = {
+			size: 6,
 			features: ['append', 'delete', 'edit']
 		};
 		static translator = function (value: any, item: any, index: number): Node {
@@ -2111,7 +2125,7 @@ module tui.widget {
 					this._widget._.style.height = d.height + "px";
 				} else {
 					this._widget._.style.height = "";
-					d.height = null;
+					d.height = undefined;
 				}
 			}
 			this._widget.set("autoWidth", exist(this.define.features, "autoColumnWidth"));
@@ -2135,16 +2149,6 @@ module tui.widget {
 						]}],
 						"size": 6,
 						"newline": true
-					},{
-						"type": "textbox",
-						"inputType": "number",
-						"key": "height",
-						"label": str("form.height"),
-						"value": /^\d+$/.test(this.define.height + "")? this.define.height : null,
-						"validation": [
-							{ "format": "*digital", "message": str("message.invalid.value") }
-						],
-						"condition": "features !~ 'autoHeight'"
 					}, {
 						"type": "textbox",
 						"inputType": "number",
@@ -2163,6 +2167,16 @@ module tui.widget {
 						"validation": [
 							{ "format": "*digital", "message": str("message.invalid.value") }
 						]
+					}, {
+						"type": "textbox",
+						"inputType": "number",
+						"key": "height",
+						"label": str("form.height"),
+						"value": /^\d+$/.test(this.define.height + "")? this.define.height : null,
+						"validation": [
+							{ "format": "*digital", "message": str("message.invalid.value") }
+						],
+						"condition": "features !~ 'autoHeight'"
 					}
 				]
 			}, {
@@ -2178,9 +2192,9 @@ module tui.widget {
 
 		setProperties(properties: any[]) {
 			var values = properties[1];
-			this.define.height = /^\d+$/.test(values.height) ? values.height: null;
-			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : null;
-			this.define.atMost = values.atMost ? parseInt(values.atMost) : null;
+			this.define.height = /^\d+$/.test(values.height) ? values.height: undefined;
+			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : undefined;
+			this.define.atMost = values.atMost ? parseInt(values.atMost) : undefined;
 			this.define.definitions = properties[2];
 			this.define.features = values.features;
 		}
