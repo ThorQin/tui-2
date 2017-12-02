@@ -79,6 +79,8 @@ tui\:dialog {
 			overflow: hidden;
 			white-space: nowrap;
 			text-overflow: ellipsis;
+			color: #aaa;
+			font-weight: normal;
 		}
 	}
 	> .tui-button-bar {
@@ -117,16 +119,17 @@ tui\:dialog .tui-title-bar {
 		color:@iconWarnColor;
 	}
 	.tui-dialog-title-ok:before {
-		.fa-check();
+		.fa-check-circle();
 		color:@iconSuccessColor;
 	}
 	.tui-dialog-title-info:before {
-		//.fa-info();
-		.fa-lightbulb-o();
+		.fa-info-circle();
+		//.fa-lightbulb-o();
 		color:@iconInfoColor;
 	}
 	.tui-dialog-title-error:before {
-		.fa-exclamation-circle();
+		//.fa-exclamation-circle();
+		.fa-times-circle();
 		color:red;
 	}
 	span.tui-text i.tui-dialog-title-ask {
