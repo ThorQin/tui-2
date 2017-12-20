@@ -713,6 +713,7 @@ declare module tui.widget {
         protected init(): void;
         private bindRemove(removeIcon, fileIndex);
         private bindDownload(item, url);
+        private bindReorder(item, fileItem);
         render(): void;
     }
 }

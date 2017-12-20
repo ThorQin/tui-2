@@ -6988,6 +6988,15 @@ var tui;
                         "get": function () {
                             return _this._values;
                         }
+                    },
+                    "reorder": {
+                        "set": function (value) {
+                            if (typeof value != tui.UNDEFINED)
+                                _this._data["reorder"] = !!value;
+                        },
+                        "get": function () {
+                            return !!_this._data["reorder"];
+                        }
                     }
                 });
             };
@@ -7052,6 +7061,111 @@ var tui;
                     e.stopPropagation();
                 });
             };
+            Files.prototype.bindReorder = function (item, fileItem) {
+                var _this = this;
+                if (!this.get("reorder")) {
+                    return;
+                }
+                var firstPoint = null;
+                var oldRect = null;
+                $(item).on("mousedown", function (ev) {
+                    if (tui.browser.isLButton(ev)) {
+                        firstPoint = { x: ev.clientX, y: ev.clientY };
+                    }
+                    else
+                        firstPoint = null;
+                });
+                $(item).on("mouseup", function (e) {
+                    firstPoint = null;
+                });
+                $(item).on("mousemove", function (e) {
+                    var ev = e;
+                    ev.preventDefault();
+                    if (!tui.browser.isLButton(ev) || !firstPoint)
+                        return;
+                    if (tui.browser.isPosterity(item, e.target) &&
+                        (Math.abs(ev.clientX - firstPoint.x) >= 5 ||
+                            Math.abs(ev.clientY - firstPoint.y) >= 5)) {
+                        var pos = item._index;
+                        var placeholder = tui.elem("div");
+                        placeholder.className = "tui-files-item";
+                        placeholder.style.verticalAlign = "middle";
+                        var divStyle = tui.browser.getCurrentStyle(item);
+                        placeholder.style.display = divStyle.display;
+                        oldRect = tui.browser.getRectOfScreen(item);
+                        var curWidth = item.offsetWidth - parseFloat(divStyle.paddingLeft) - parseFloat(divStyle.paddingRight);
+                        item.style.position = "fixed";
+                        item.style.zIndex = "100";
+                        item.style.opacity = "0.8";
+                        item.style.filter = "alpha(opacity=80)";
+                        item.style.left = oldRect.left + "px";
+                        item.style.top = oldRect.top + "px";
+                        var savedWidth = item.style.width;
+                        item.style.width = curWidth + "px";
+                        tui.browser.addClass(item, "tui-form-item-moving");
+                        _this._.insertBefore(placeholder, item);
+                        var targetIndex = null;
+                        tui.widget.openDragMask(function (e) {
+                            item.style.left = oldRect.left + e.clientX - firstPoint.x + "px";
+                            item.style.top = oldRect.top + e.clientY - firstPoint.y + "px";
+                            for (var i = 0; i < _this._.childNodes.length; i++) {
+                                var icon = _this._.childNodes[i];
+                                if (icon !== item && typeof icon._index === "number") {
+                                    var testHeight = tui.browser.getCurrentStyle(icon).display === "block" || placeholder.style.display === "block";
+                                    var rc = tui.browser.getRectOfScreen(icon);
+                                    if (testHeight) {
+                                        if (e.clientX > rc.left && e.clientX < rc.left + rc.width &&
+                                            e.clientY > rc.top && e.clientY < rc.top + rc.height / 2) {
+                                            _this._.insertBefore(placeholder, icon);
+                                            targetIndex = icon._index;
+                                            break;
+                                        }
+                                        else if (e.clientX > rc.left && e.clientX < rc.left + rc.width &&
+                                            e.clientY > rc.top + rc.height / 2 && e.clientY < rc.top + rc.height) {
+                                            _this._.insertBefore(placeholder, icon.nextSibling);
+                                            targetIndex = icon._index + 1;
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        if (e.clientX > rc.left && e.clientX < rc.left + rc.width / 2 &&
+                                            e.clientY > rc.top && e.clientY < rc.top + rc.height) {
+                                            _this._.insertBefore(placeholder, icon);
+                                            targetIndex = icon._index;
+                                            break;
+                                        }
+                                        else if (e.clientX > rc.left + rc.width / 2 && e.clientX < rc.left + rc.width &&
+                                            e.clientY > rc.top && e.clientY < rc.top + rc.height) {
+                                            _this._.insertBefore(placeholder, icon.nextSibling);
+                                            targetIndex = icon._index + 1;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }, function (e) {
+                            firstPoint = null;
+                            item.style.position = "";
+                            item.style.zIndex = "";
+                            item.style.opacity = "";
+                            item.style.filter = "";
+                            item.style.left = "";
+                            item.style.top = "";
+                            item.style.width = savedWidth;
+                            tui.browser.removeClass(item, "tui-form-item-moving");
+                            _this._.removeChild(placeholder);
+                            if (targetIndex != null && targetIndex != pos) {
+                                _this._values.splice(pos, 1);
+                                if (targetIndex < pos)
+                                    _this._values.splice(targetIndex, 0, fileItem);
+                                else
+                                    _this._values.splice(targetIndex - 1, 0, fileItem);
+                                _this.render();
+                            }
+                        });
+                    }
+                });
+            };
             Files.prototype.render = function () {
                 tui.browser.removeNode(this._uploadBox);
                 this._.innerHTML = "";
@@ -7060,6 +7174,7 @@ var tui;
                 for (var i = 0; i < this._values.length; i++) {
                     var fileItem = this._values[i];
                     var item = tui.elem("div");
+                    item._index = i;
                     item.className = "tui-files-item";
                     var label = tui.elem("div");
                     item.appendChild(label);
@@ -7079,6 +7194,9 @@ var tui;
                         removeIcon.className = "tui-files-remove-icon";
                         item.appendChild(removeIcon);
                         this.bindRemove(removeIcon, i);
+                        if (this.get("reorder")) {
+                            this.bindReorder(item, fileItem);
+                        }
                     }
                     if (!disable && fileItem && fileItem.url) {
                         this.bindDownload(item, fileItem.url);
