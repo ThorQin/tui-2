@@ -94,6 +94,15 @@ module tui.widget {
 					"get": () : any => {
 						return !!this._data["reorder"];
 					}
+				},
+				"bigLabel": {
+					"set": (value: any) => {
+						if (typeof value != UNDEFINED)
+							this._data["bigLabel"] = !!value;
+					},
+					"get": () : any => {
+						return !!this._data["bigLabel"];
+					}
 				}
 			});
 		}
@@ -192,8 +201,8 @@ module tui.widget {
 
 					var divStyle = browser.getCurrentStyle(item);
 					placeholder.style.display = divStyle.display;
-					// placeholder.style.width = item.offsetWidth + "px";
-					// placeholder.style.height = item.offsetHeight + "px";
+					placeholder.style.width = item.offsetWidth - 2 + "px";
+					placeholder.style.height = item.offsetHeight - 2 + "px";
 
 					oldRect = browser.getRectOfScreen(item);
 					var curWidth = item.offsetWidth - parseFloat(divStyle.paddingLeft) - parseFloat(divStyle.paddingRight);
@@ -279,8 +288,10 @@ module tui.widget {
 				let item = elem("div");
 				(<any>item)._index = i;
 				item.className = "tui-files-item";
+				if (this.get("bigLabel")) {
+					browser.addClass(item, "tui-files-big-label");
+				}
 				let label = elem("div");
-				item.appendChild(label);
 				let nameText = fileItem ? browser.toSafeText(fileItem.fileName) : "NOT FOUND";
 				item.setAttribute("tooltip", nameText)
 				label.innerHTML = nameText;
@@ -291,6 +302,7 @@ module tui.widget {
 				} else {
 					item.className += " " + getFileTypeIcon(fileItem);
 				}
+				item.appendChild(label);
 
 				if (!readonly && !disable) {
 					let removeIcon = <HTMLElement>elem("span");
@@ -310,6 +322,11 @@ module tui.widget {
 			}
 			if (!(readonly || disable || typeof this.get("max") === "number" && this._values.length >= this.get("max")))
 				this._.appendChild(this._uploadBox);
+				if (this.get("bigLabel")) {
+					browser.addClass(this._uploadBox, "tui-files-big-label");
+				} else {
+					browser.removeClass(this._uploadBox, "tui-files-big-label");
+				}
 				this._uploader.createInput();
 		}
 	}

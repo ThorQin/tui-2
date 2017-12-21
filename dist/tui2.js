@@ -6997,6 +6997,15 @@ var tui;
                         "get": function () {
                             return !!_this._data["reorder"];
                         }
+                    },
+                    "bigLabel": {
+                        "set": function (value) {
+                            if (typeof value != tui.UNDEFINED)
+                                _this._data["bigLabel"] = !!value;
+                        },
+                        "get": function () {
+                            return !!_this._data["bigLabel"];
+                        }
                     }
                 });
             };
@@ -7092,6 +7101,8 @@ var tui;
                         placeholder.style.verticalAlign = "middle";
                         var divStyle = tui.browser.getCurrentStyle(item);
                         placeholder.style.display = divStyle.display;
+                        placeholder.style.width = item.offsetWidth - 2 + "px";
+                        placeholder.style.height = item.offsetHeight - 2 + "px";
                         oldRect = tui.browser.getRectOfScreen(item);
                         var curWidth = item.offsetWidth - parseFloat(divStyle.paddingLeft) - parseFloat(divStyle.paddingRight);
                         item.style.position = "fixed";
@@ -7176,8 +7187,10 @@ var tui;
                     var item = tui.elem("div");
                     item._index = i;
                     item.className = "tui-files-item";
+                    if (this.get("bigLabel")) {
+                        tui.browser.addClass(item, "tui-files-big-label");
+                    }
                     var label = tui.elem("div");
-                    item.appendChild(label);
                     var nameText = fileItem ? tui.browser.toSafeText(fileItem.fileName) : "NOT FOUND";
                     item.setAttribute("tooltip", nameText);
                     label.innerHTML = nameText;
@@ -7189,6 +7202,7 @@ var tui;
                     else {
                         item.className += " " + getFileTypeIcon(fileItem);
                     }
+                    item.appendChild(label);
                     if (!readonly && !disable) {
                         var removeIcon = tui.elem("span");
                         removeIcon.className = "tui-files-remove-icon";
@@ -7205,6 +7219,12 @@ var tui;
                 }
                 if (!(readonly || disable || typeof this.get("max") === "number" && this._values.length >= this.get("max")))
                     this._.appendChild(this._uploadBox);
+                if (this.get("bigLabel")) {
+                    tui.browser.addClass(this._uploadBox, "tui-files-big-label");
+                }
+                else {
+                    tui.browser.removeClass(this._uploadBox, "tui-files-big-label");
+                }
                 this._uploader.createInput();
             };
             return Files;
