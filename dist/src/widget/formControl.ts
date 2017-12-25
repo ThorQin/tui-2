@@ -1667,7 +1667,7 @@ module tui.widget {
 
 		constructor(form: Form, define: CalendarFormItem) {
 			super(form, define, "calendar");
-			this._widget.on("click", (e) => {
+			this._widget.on("change", (e) => {
 				this.define.value = this.getValue();
 				form.fire("itemvaluechanged", {control: this});
 			});
