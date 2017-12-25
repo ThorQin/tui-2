@@ -1664,6 +1664,10 @@ module tui.widget {
 		static icon = "fa-calendar";
 		static desc = "form.calendar";
 		static order = 6;
+		static init = {
+			size: 2,
+			newline: true
+		};
 
 		constructor(form: Form, define: CalendarFormItem) {
 			super(form, define, "calendar");

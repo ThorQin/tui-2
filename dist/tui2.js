@@ -8857,6 +8857,10 @@ var tui;
             FormCalendar.icon = "fa-calendar";
             FormCalendar.desc = "form.calendar";
             FormCalendar.order = 6;
+            FormCalendar.init = {
+                size: 2,
+                newline: true
+            };
             return FormCalendar;
         }(BasicFormControl));
         widget.Form.register("calendar", FormCalendar);
