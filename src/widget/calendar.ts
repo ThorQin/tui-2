@@ -268,6 +268,8 @@ module tui.widget {
 
 			var timebar$ = $(timebar);
 			timebar$.keydown((e) => {
+				if (this.get("disable"))
+					return false;
 				var o = <any>(e.srcElement || e.target);
 				var o$ = $(o);
 				var k = e.keyCode;
@@ -310,6 +312,8 @@ module tui.widget {
 			});
 
 			timebar$.on("mousedown", (e) => {
+				if (this.get("disable"))
+					return false;
 				var o = <any>(e.srcElement || e.target);
 				if (o.nodeName.toLowerCase() === "span") {
 					var name = o.getAttribute("name");
@@ -354,6 +358,8 @@ module tui.widget {
 				});
 			}).on("contextmenu", function(e){e.preventDefault();});
 			timebar$.children("a").mousedown((e) => {
+				if (this.get("disable"))
+					return false;
 				let now = time.now();
 				let newTime = new Date(this.get("year"), this.get("month") - 1, this.get("day"),
 					now.getHours(), now.getMinutes(), now.getSeconds());
@@ -362,10 +368,14 @@ module tui.widget {
 				e.stopPropagation();
 				return false;
 			}).click((e) => {
+				if (this.get("disable"))
+					return false;
 				this.fire("click", {e:e, "time": this.get("time"), "type": "refresh"});
 			});
 
 			$(tb).mousedown((e) => {
+				if (this.get("disable"))
+					return false;
 				if (tui.ffVer > 0) {
 					setTimeout(() => { this._.focus(); });
 				}
@@ -409,6 +419,8 @@ module tui.widget {
 					this.onPicked(y, m, 1);
 				}
 			}).click( (e: JQueryEventObject) => {
+				if (this.get("disable"))
+					return false;
 				var cell = <any>(e.target || e.srcElement);
 				if (cell.nodeName.toLowerCase() !== "td")
 					return;
@@ -417,6 +429,8 @@ module tui.widget {
 				else if(/^(tui-pm|tui-py|tui-nm|tui-ny)$/.test(cell.className))
 					this.fire("click", {e:e, "time": this.get("time"), "type": "change"});
 			}).dblclick( (e: JQueryEventObject) => {
+				if (this.get("disable"))
+					return false;
 				var cell = <any>(e.target || e.srcElement);
 				if (cell.nodeName.toLowerCase() !== "td")
 					return;
@@ -424,6 +438,8 @@ module tui.widget {
 					this.fire("dblclick", {e:e, "time": this.get("time")});
 			});
 			$(this._).keydown( (e) => {
+				if (this.get("disable"))
+					return false;
 				var k = e.keyCode;
 				var tm: Date;
 				if ([13, 33, 34, 37, 38, 39, 40].indexOf(k) >= 0) {
@@ -434,6 +450,7 @@ module tui.widget {
 							tm = time.dateAdd(this.get("time"), -1);
 						}
 						this.set("time", tm);
+						this.fire("change", {"time": this.get("time")})
 					} else if (k === 38) { // UP
 						if (this._monthOnly) {
 							tm = time.dateAdd(this.get("time"), -4, "M");
@@ -441,6 +458,7 @@ module tui.widget {
 							var tm = time.dateAdd(this.get("time"), -7);
 						}
 						this.set("time", tm);
+						this.fire("change", {"time": this.get("time")})
 					} else if (k === 39) { // RIGHT
 						if (this._monthOnly) {
 							tm = time.dateAdd(this.get("time"), 1, "M");
@@ -448,6 +466,7 @@ module tui.widget {
 							tm = time.dateAdd(this.get("time"), 1);
 						}
 						this.set("time", tm);
+						this.fire("change", {"time": this.get("time")})
 					} else if (k === 40) { // DOWN
 						if (this._monthOnly) {
 							tm = time.dateAdd(this.get("time"), 4, "M");
@@ -455,6 +474,7 @@ module tui.widget {
 							tm = time.dateAdd(this.get("time"), 7);
 						}
 						this.set("time", tm);
+						this.fire("change", {"time": this.get("time")})
 					} else if (k === 33) { // PRIOR PAGE_UP
 						if (this._monthOnly) {
 							tm = time.dateAdd(this.get("time"), -1, "y");
@@ -462,6 +482,7 @@ module tui.widget {
 							tm = time.dateAdd(this.get("time"), -1, "M");
 						}
 						this.set("time", tm);
+						this.fire("change", {"time": this.get("time")})
 					} else if (k === 34) { // NEXT PAGE_DOWN
 						if (this._monthOnly) {
 							tm = time.dateAdd(this.get("time"), 1, "y");
@@ -469,6 +490,7 @@ module tui.widget {
 							tm = time.dateAdd(this.get("time"), 1, "M");
 						}
 						this.set("time", tm);
+						this.fire("change", {"time": this.get("time")})
 					} else if (k === 13) {
 						this.fire("click", {e:e, "time": this.get("time"), "type": "pick"});
 					}
@@ -482,6 +504,7 @@ module tui.widget {
 			var oldTime = <Date>this.get("time");
 			var newTime = new Date(y, m - 1, d, oldTime.getHours(), oldTime.getMinutes(), oldTime.getSeconds());
 			this.set("time", newTime);
+			this.fire("change", {"time": this.get("time")})
 		}
 		private makeTime(proc: (t: {y: number, m: number, d: number}) => void): void {
 			var t = {y: this.get("year"), m: this.get("month"), d: this.get("day")}

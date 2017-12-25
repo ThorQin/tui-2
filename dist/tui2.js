@@ -349,6 +349,7 @@ tui.dict("en-us", {
     "geo.location.failed": "Get current location failed, please check your browser whether can use geo-location service.",
     "form.grid.features": "Features",
     "form.foldable": "Foldable",
+    "form.calendar": "Calendar",
     "form.section": "Title",
     "form.textbox": "Textbox",
     "form.textarea": "Textarea",
@@ -5529,6 +5530,8 @@ var tui;
                 }
                 var timebar$ = $(timebar);
                 timebar$.keydown(function (e) {
+                    if (_this.get("disable"))
+                        return false;
                     var o = (e.srcElement || e.target);
                     var o$ = $(o);
                     var k = e.keyCode;
@@ -5575,6 +5578,8 @@ var tui;
                     }
                 });
                 timebar$.on("mousedown", function (e) {
+                    if (_this.get("disable"))
+                        return false;
                     var o = (e.srcElement || e.target);
                     if (o.nodeName.toLowerCase() === "span") {
                         var name = o.getAttribute("name");
@@ -5619,6 +5624,8 @@ var tui;
                     });
                 }).on("contextmenu", function (e) { e.preventDefault(); });
                 timebar$.children("a").mousedown(function (e) {
+                    if (_this.get("disable"))
+                        return false;
                     var now = tui.time.now();
                     var newTime = new Date(_this.get("year"), _this.get("month") - 1, _this.get("day"), now.getHours(), now.getMinutes(), now.getSeconds());
                     _this.set("time", newTime);
@@ -5626,9 +5633,13 @@ var tui;
                     e.stopPropagation();
                     return false;
                 }).click(function (e) {
+                    if (_this.get("disable"))
+                        return false;
                     _this.fire("click", { e: e, "time": _this.get("time"), "type": "refresh" });
                 });
                 $(tb).mousedown(function (e) {
+                    if (_this.get("disable"))
+                        return false;
                     if (tui.ffVer > 0) {
                         setTimeout(function () { _this._.focus(); });
                     }
@@ -5681,6 +5692,8 @@ var tui;
                         _this.onPicked(y, m, 1);
                     }
                 }).click(function (e) {
+                    if (_this.get("disable"))
+                        return false;
                     var cell = (e.target || e.srcElement);
                     if (cell.nodeName.toLowerCase() !== "td")
                         return;
@@ -5689,6 +5702,8 @@ var tui;
                     else if (/^(tui-pm|tui-py|tui-nm|tui-ny)$/.test(cell.className))
                         _this.fire("click", { e: e, "time": _this.get("time"), "type": "change" });
                 }).dblclick(function (e) {
+                    if (_this.get("disable"))
+                        return false;
                     var cell = (e.target || e.srcElement);
                     if (cell.nodeName.toLowerCase() !== "td")
                         return;
@@ -5696,6 +5711,8 @@ var tui;
                         _this.fire("dblclick", { e: e, "time": _this.get("time") });
                 });
                 $(this._).keydown(function (e) {
+                    if (_this.get("disable"))
+                        return false;
                     var k = e.keyCode;
                     var tm;
                     if ([13, 33, 34, 37, 38, 39, 40].indexOf(k) >= 0) {
@@ -5707,6 +5724,7 @@ var tui;
                                 tm = tui.time.dateAdd(_this.get("time"), -1);
                             }
                             _this.set("time", tm);
+                            _this.fire("change", { "time": _this.get("time") });
                         }
                         else if (k === 38) {
                             if (_this._monthOnly) {
@@ -5716,6 +5734,7 @@ var tui;
                                 var tm = tui.time.dateAdd(_this.get("time"), -7);
                             }
                             _this.set("time", tm);
+                            _this.fire("change", { "time": _this.get("time") });
                         }
                         else if (k === 39) {
                             if (_this._monthOnly) {
@@ -5725,6 +5744,7 @@ var tui;
                                 tm = tui.time.dateAdd(_this.get("time"), 1);
                             }
                             _this.set("time", tm);
+                            _this.fire("change", { "time": _this.get("time") });
                         }
                         else if (k === 40) {
                             if (_this._monthOnly) {
@@ -5734,6 +5754,7 @@ var tui;
                                 tm = tui.time.dateAdd(_this.get("time"), 7);
                             }
                             _this.set("time", tm);
+                            _this.fire("change", { "time": _this.get("time") });
                         }
                         else if (k === 33) {
                             if (_this._monthOnly) {
@@ -5743,6 +5764,7 @@ var tui;
                                 tm = tui.time.dateAdd(_this.get("time"), -1, "M");
                             }
                             _this.set("time", tm);
+                            _this.fire("change", { "time": _this.get("time") });
                         }
                         else if (k === 34) {
                             if (_this._monthOnly) {
@@ -5752,6 +5774,7 @@ var tui;
                                 tm = tui.time.dateAdd(_this.get("time"), 1, "M");
                             }
                             _this.set("time", tm);
+                            _this.fire("change", { "time": _this.get("time") });
                         }
                         else if (k === 13) {
                             _this.fire("click", { e: e, "time": _this.get("time"), "type": "pick" });
@@ -5764,6 +5787,7 @@ var tui;
                 var oldTime = this.get("time");
                 var newTime = new Date(y, m - 1, d, oldTime.getHours(), oldTime.getMinutes(), oldTime.getSeconds());
                 this.set("time", newTime);
+                this.fire("change", { "time": this.get("time") });
             };
             Calendar.prototype.makeTime = function (proc) {
                 var t = { y: this.get("year"), m: this.get("month"), d: this.get("day") };
@@ -8785,6 +8809,57 @@ var tui;
             return FormDatePicker;
         }(BasicFormControl));
         widget.Form.register("datepicker", FormDatePicker);
+        var FormCalendar = (function (_super) {
+            __extends(FormCalendar, _super);
+            function FormCalendar(form, define) {
+                var _this = _super.call(this, form, define, "calendar") || this;
+                _this._widget.on("change", function (e) {
+                    _this.define.value = _this.getValue();
+                    form.fire("itemvaluechanged", { control: _this });
+                });
+                return _this;
+            }
+            FormCalendar.prototype.update = function () {
+                _super.prototype.update.call(this);
+                this._widget._set("mode", /^(date|month)$/.test(this.define.mode) ? this.define.mode : null);
+                if (this.define.value == null) {
+                    this._widget._set("value", tui.time.now());
+                    this.define.value = this._widget.get("value");
+                }
+            };
+            FormCalendar.prototype.getProperties = function () {
+                return [{
+                        name: tui.str("form.calendar"),
+                        properties: [
+                            {
+                                "type": "options",
+                                "key": "mode",
+                                "label": tui.str("form.format"),
+                                "options": [{ "data": [
+                                            { "value": "date", "text": tui.str("form.date") },
+                                            { "value": "month", "text": tui.str("form.month") }
+                                        ] }],
+                                "atMost": 1,
+                                "value": /^(date|month)$/.test(this.define.mode) ? this.define.mode : "date",
+                                "size": 2,
+                                "newline": true
+                            }
+                        ]
+                    }];
+            };
+            FormCalendar.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                this.define.mode = values.mode;
+            };
+            FormCalendar.prototype.validate = function () {
+                return true;
+            };
+            FormCalendar.icon = "fa-calendar";
+            FormCalendar.desc = "form.calendar";
+            FormCalendar.order = 6;
+            return FormCalendar;
+        }(BasicFormControl));
+        widget.Form.register("calendar", FormCalendar);
         var FormPicture = (function (_super) {
             __extends(FormPicture, _super);
             function FormPicture(form, define) {
@@ -8857,7 +8932,7 @@ var tui;
             };
             FormPicture.icon = "fa-file-image-o";
             FormPicture.desc = "form.picture";
-            FormPicture.order = 6;
+            FormPicture.order = 7;
             FormPicture.translator = function (value, item, index) {
                 if (value != null) {
                     if (value.fileName)
@@ -8930,7 +9005,7 @@ var tui;
             };
             FormFile.icon = "fa-file-text-o";
             FormFile.desc = "form.file";
-            FormFile.order = 7;
+            FormFile.order = 8;
             FormFile.translator = function (value, item, index) {
                 if (value != null) {
                     if (value.fileName)
@@ -9054,7 +9129,7 @@ var tui;
             };
             FormFiles.icon = "fa-copy";
             FormFiles.desc = "form.files";
-            FormFiles.order = 8;
+            FormFiles.order = 9;
             FormFiles.init = {
                 size: 2,
                 newline: true
@@ -9301,7 +9376,7 @@ var tui;
             };
             FormGrid.icon = "fa-table";
             FormGrid.desc = "form.grid";
-            FormGrid.order = 9;
+            FormGrid.order = 10;
             FormGrid.init = {
                 size: 6,
                 features: ['append', 'delete', 'edit']

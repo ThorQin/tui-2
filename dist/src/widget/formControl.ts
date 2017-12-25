@@ -1655,6 +1655,60 @@ module tui.widget {
 	Form.register("datepicker", FormDatePicker);
 
 
+	// CALENDAR
+	// ----------------------------------------------------------------------------------------------------------
+	interface CalendarFormItem extends FormItem {
+		mode: string;
+	}
+	class FormCalendar extends BasicFormControl<Calendar, CalendarFormItem> {
+		static icon = "fa-calendar";
+		static desc = "form.calendar";
+		static order = 6;
+
+		constructor(form: Form, define: CalendarFormItem) {
+			super(form, define, "calendar");
+			this._widget.on("click", (e) => {
+				this.define.value = this.getValue();
+				form.fire("itemvaluechanged", {control: this});
+			});
+		}
+		update() {
+			super.update();
+			this._widget._set("mode", /^(date|month)$/.test(this.define.mode) ? this.define.mode : null);
+			if (this.define.value == null) {
+				this._widget._set("value", time.now());
+				this.define.value = this._widget.get("value");
+			}
+		}
+		getProperties(): PropertyPage[] {
+			return [{
+				name: str("form.calendar"),
+				properties: [
+					{
+						"type": "options",
+						"key": "mode",
+						"label": str("form.format"),
+						"options": [{"data":[
+							{"value": "date", "text": str("form.date") },
+							{"value": "month", "text": str("form.month") }
+						]}],
+						"atMost": 1,
+						"value": /^(date|month)$/.test(this.define.mode) ? this.define.mode : "date",
+						"size": 2,
+						"newline": true
+					}
+				]
+			}];
+		}
+		setProperties(properties: any[]) {
+			var values = properties[1];
+			this.define.mode = values.mode;
+		}
+		validate(): boolean {
+			return true;
+		}
+	}
+	Form.register("calendar", FormCalendar);
 
 
 	// PICTURE
@@ -1666,7 +1720,7 @@ module tui.widget {
 	class FormPicture extends BasicFormControl<Picture, PictureFormItem> {
 		static icon = "fa-file-image-o";
 		static desc = "form.picture";
-		static order = 6;
+		static order = 7;
 		static translator = function (value: any, item: any, index: number): Node {
 			if (value != null) {
 				if (value.fileName)
@@ -1758,7 +1812,7 @@ module tui.widget {
 	class FormFile extends BasicFormControl<File, FileFormItem> {
 		static icon = "fa-file-text-o";
 		static desc = "form.file";
-		static order = 7;
+		static order = 8;
 		static translator = function (value: any, item: any, index: number): Node {
 			if (value != null) {
 				if (value.fileName)
@@ -1839,7 +1893,7 @@ module tui.widget {
 	class FormFiles extends BasicFormControl<Files, FilesFormItem> {
 		static icon = "fa-copy";
 		static desc = "form.files";
-		static order = 8;
+		static order = 9;
 		static init = {
 			size: 2,
 			newline: true
@@ -1975,7 +2029,7 @@ module tui.widget {
 	class FormGrid extends BasicFormControl<Grid, GridFormItem> {
 		static icon = "fa-table";
 		static desc = "form.grid";
-		static order = 9;
+		static order = 10;
 		static init = {
 			size: 6,
 			features: ['append', 'delete', 'edit']

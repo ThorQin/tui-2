@@ -51,6 +51,15 @@ tui\:form {
 		-webkit-box-sizing: border-box !important;
 		box-sizing: border-box !important;
 
+		> tui\:calendar {
+			max-width: none;
+			min-width: 0;
+			margin: 2px;
+			> table {
+				table-layout: fixed;
+			}
+		}
+
 		&>* {
 			display: block !important;
 			width: auto !important;
