@@ -1,8 +1,10 @@
 /// <reference path="core.ts" />
 tui.dict("en-us", {
+	"all": "All",
 	"allow.append": "Allow Append",
 	"allow.delete": "Allow Delete",
 	"allow.edit": "Allow Edit",
+	"support.select.all": "Support Select All",
 	"auto.height": "Auto Height",
 	"auto.column.width": "Auto Column Width",
 	"success": "Success",

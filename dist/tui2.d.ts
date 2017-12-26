@@ -609,10 +609,10 @@ declare module tui.widget {
         render(): void;
     }
     class Check extends Button {
-        init(): void;
+        protected init(): void;
     }
     class Radio extends Button {
-        init(): void;
+        protected init(): void;
     }
 }
 declare module tui.widget {

@@ -56,32 +56,32 @@ module tui.widget {
 			$root.attr({
                 "unselectable": "on"
             });
-			
+
 			$root.mousedown((e) => {
 				if (this.get("disable"))
 					return;
                 $root.focus();
 				this.fire("mousedown", e);
 			});
-			
+
 			$root.mouseup((e) => {
                 if (this.get("disable"))
 					return;
 				this.fire("mouseup", e);
 			});
-			
+
 			$root.keydown((e) => {
 				if (this.get("disable"))
 					return;
 				this.fire("keydown", e);
 			});
-			
+
 			$root.keyup((e) => {
                 if (this.get("disable"))
 					return;
 				this.fire("keyup", e);
 			});
-			
+
 			var onClick = (e: any) => {
 				if (this.get("disable"))
 					return;
@@ -89,10 +89,10 @@ module tui.widget {
 					this.set("checked", !this.get("checked"));
 				} else if (this.get("type") === "radio")
 					this.set("checked", true);
-				
+
 				let parent = this.get("parent");
 				let groupName = this.get("group");
-				if (this.get("type") === "radio" || 
+				if (this.get("type") === "radio" ||
 					this.get("type") === "toggle-radio" && this.get("checked")) {
 					let result: Widget[];
 					if (parent && parent instanceof Group) {
@@ -117,7 +117,7 @@ module tui.widget {
 						elem.set("checked", false);
 					}
 				}
-				
+
 				var onclick = this.get("onclick");
 				if (onclick) {
 					eval.call(window, onclick);
@@ -160,15 +160,15 @@ module tui.widget {
 			$root.html(text);
 		}
 	}
-	
+
 	export class Check extends Button {
-		init(): void {
+		protected init(): void {
 			super.init();
 			this._set("type", "toggle");
 		}
 	}
 	export class Radio extends Button {
-		init(): void {
+		protected init(): void {
 			super.init();
 			this._set("type", "radio");
 		}

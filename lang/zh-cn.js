@@ -1,7 +1,9 @@
 tui.dict("zh-cn", {
+	"all": "全部",
 	"allow.append": "允许添加",
 	"allow.delete": "允许删除",
 	"allow.edit": "允许编辑",
+	"support.select.all": "支持全选",
 	"auto.height": "自动高度",
 	"auto.column.width": "自动列宽",
 	"success": "成功",

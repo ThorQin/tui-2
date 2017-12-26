@@ -314,9 +314,11 @@ var tui;
     })();
 })(tui || (tui = {}));
 tui.dict("en-us", {
+    "all": "All",
     "allow.append": "Allow Append",
     "allow.delete": "Allow Delete",
     "allow.edit": "Allow Edit",
+    "support.select.all": "Support Select All",
     "auto.height": "Auto Height",
     "auto.column.width": "Auto Column Width",
     "success": "Success",
@@ -8277,7 +8279,22 @@ var tui;
             function FormOptions(form, define) {
                 var _this = _super.call(this, form, define) || this;
                 _this._group = widget.create("button-group");
+                _this._allBtn = widget.create("check");
+                _this._allBtn._set("text", "<span>" + tui.str("all") + "</span>");
+                _this._allBtn._set("value", null);
                 _this._group.on("click", function (e) {
+                    if (e.data.button === _this._allBtn) {
+                        var isCheck = !!_this._allBtn.get("checked");
+                        tui.search(_this._group._, function (elem) {
+                            if (elem instanceof widget.Button) {
+                                elem.set("checked", isCheck);
+                            }
+                            return true;
+                        });
+                    }
+                    else {
+                        _this.syncSelectState();
+                    }
                     _this.define.value = _this.getValue();
                     _this._notifyBar.innerHTML = "";
                     form.fire("itemvaluechanged", { control: _this });
@@ -8288,6 +8305,32 @@ var tui;
                 _this.div.appendChild(_this._notifyBar);
                 return _this;
             }
+            FormOptions.prototype.syncSelectState = function () {
+                var _this = this;
+                var selectCount = 0;
+                var totalCount = 0;
+                tui.search(this._group._, function (elem) {
+                    if (elem === _this._allBtn) {
+                        return false;
+                    }
+                    if (elem instanceof widget.Button) {
+                        totalCount++;
+                        if (elem.get("checked"))
+                            selectCount++;
+                    }
+                    return true;
+                });
+                if (selectCount == 0) {
+                    this._allBtn._set("checked", false);
+                }
+                else if (selectCount == totalCount) {
+                    this._allBtn._set("checked", true);
+                    this._allBtn._set("tristate", false);
+                }
+                else {
+                    this._allBtn._set("tristate", true);
+                }
+            };
             FormOptions.prototype.isResizable = function () {
                 return true;
             };
@@ -8311,6 +8354,7 @@ var tui;
                 var define = this.define;
                 var optionType = define.atMost == 1 ? "radio" : "check";
                 this._group._set("type", optionType);
+                tui.browser.removeNode(this._allBtn._);
                 this._group._.innerHTML = "";
                 var key = define.key;
                 var data = [];
@@ -8340,6 +8384,9 @@ var tui;
                     }
                 }
                 if (data.length > 0) {
+                    if (optionType == "check" && exist(this.define.features, "selectAll")) {
+                        this._group._.appendChild(this._allBtn._);
+                    }
                     for (var i = 0; i < data.length; i++) {
                         var option = data[i];
                         var o = widget.create(optionType);
@@ -8355,8 +8402,12 @@ var tui;
                     this._group._.appendChild(padding);
                 }
                 this._group._set("value", define.value);
-                define.value = this._group.get("value");
-                return this._group.get("value");
+                var tmpValue = this._group.get("value");
+                if (data.length > 0 && optionType == "check" && exist(this.define.features, "selectAll") && this._allBtn.get("checked")) {
+                    tmpValue.splice(0, 1);
+                }
+                define.value = tmpValue;
+                return define.value;
             };
             FormOptions.prototype.setValue = function (value) {
                 this._group.set("value", value);
@@ -8386,8 +8437,12 @@ var tui;
                 }
                 var optionType = define.atMost == 1 ? "radio" : "check";
                 this._group._set("type", optionType);
+                tui.browser.removeNode(this._allBtn._);
                 this._group._.innerHTML = "";
                 if (data.length > 0) {
+                    if (optionType == "check" && exist(this.define.features, "selectAll")) {
+                        this._group._.appendChild(this._allBtn._);
+                    }
                     for (var i = 0; i < data.length; i++) {
                         var option = data[i];
                         var o = widget.create(optionType);
@@ -8403,10 +8458,13 @@ var tui;
                     this._group._.appendChild(padding);
                 }
                 this._group._set("value", define.value);
+                this.syncSelectState();
             };
             FormOptions.prototype.render = function (designMode) {
                 if (designMode)
                     this.renderDesign();
+                else
+                    this.syncSelectState();
                 var g = this._group;
                 g.render();
                 for (var i = 0; i < g._.children.length; i++) {
@@ -8447,8 +8505,22 @@ var tui;
                                             { "value": "vertical", "text": tui.str("vertical") }
                                         ] }],
                                 "atMost": 1,
-                                "size": 2,
-                                "newline": true
+                                "size": 1
+                            }, {
+                                "type": "options",
+                                "key": "features",
+                                "label": tui.str("form.grid.features"),
+                                "value": this.define.features,
+                                "options": [{ "data": [
+                                            { "value": "selectAll", "text": tui.str("support.select.all") }
+                                        ] }],
+                                "size": 1,
+                                "condition": "atMost > 1 or atMost = ''"
+                            }, {
+                                "type": "section",
+                                "key": null,
+                                "label": null,
+                                "display": "newline"
                             }, {
                                 "type": "textbox",
                                 "inputType": "number",
@@ -8476,6 +8548,12 @@ var tui;
                 this.define.align = values.align != "normal" ? values.align : undefined;
                 this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : undefined;
                 this.define.atMost = values.atMost ? parseInt(values.atMost) : undefined;
+                if (typeof this.define.atMost != "number" || this.define.atMost > 1) {
+                    this.define.features = values.features;
+                }
+                else {
+                    this.define.features = [];
+                }
                 this.define.options = textToOptions(values.options, false);
             };
             FormOptions.prototype.onPropertyPageSwitch = function (pages, recentPage) {

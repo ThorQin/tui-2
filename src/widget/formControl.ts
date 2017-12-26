@@ -1095,6 +1095,7 @@ module tui.widget {
 		atLeast?: number;
 		atMost?: number;
 		align?: string;
+		features: string[];
 	}
 	class FormOptions extends FormControl<OptionsFormItem> {
 		static icon = "fa-check-square-o";
@@ -1121,11 +1122,26 @@ module tui.widget {
 
 		private _group: Group;
 		private _notifyBar: HTMLElement;
+		private _allBtn: Check;
 
 		constructor(form: Form, define: OptionsFormItem) {
 			super(form, define);
 			this._group = <Group>create("button-group");
+			this._allBtn = <Check>create("check");
+			this._allBtn._set("text", "<span>" + str("all") + "</span>");
+			this._allBtn._set("value", null);
 			this._group.on("click", (e) => {
+				if (e.data.button === this._allBtn) {
+					var isCheck = !!this._allBtn.get("checked");
+					tui.search(this._group._, function(elem: Widget): boolean {
+						if (elem instanceof Button) {
+							elem.set("checked", isCheck);
+						}
+						return true;
+					});
+				} else {
+					this.syncSelectState();
+				}
 				this.define.value = this.getValue();
 				this._notifyBar.innerHTML = "";
 				form.fire("itemvaluechanged", {control: this});
@@ -1134,6 +1150,30 @@ module tui.widget {
 			this._notifyBar = elem("div");
 			this._notifyBar.className = "tui-form-notify-bar";
 			this.div.appendChild(this._notifyBar);
+		}
+
+		private syncSelectState() {
+			var selectCount = 0;
+			var totalCount = 0;
+			tui.search(this._group._, (elem: Widget): boolean => {
+				if (elem === this._allBtn) {
+					return false;
+				}
+				if (elem instanceof Button) {
+					totalCount++;
+					if (elem.get("checked"))
+					selectCount++;
+				}
+				return true;
+			});
+			if (selectCount == 0) {
+				this._allBtn._set("checked", false);
+			} else if (selectCount == totalCount) {
+				this._allBtn._set("checked", true);
+				this._allBtn._set("tristate", false);
+			} else {
+				this._allBtn._set("tristate", true);
+			}
 		}
 
 		isResizable(): boolean {
@@ -1160,6 +1200,7 @@ module tui.widget {
 			var define = this.define;
 			var optionType = define.atMost == 1 ? "radio" : "check";
 			this._group._set("type", optionType);
+			browser.removeNode(this._allBtn._);
 			this._group._.innerHTML = "";
 
 			var key = define.key;
@@ -1188,6 +1229,9 @@ module tui.widget {
 				}
 			}
 			if (data.length > 0) {
+				if (optionType == "check" && exist(this.define.features, "selectAll")) {
+					this._group._.appendChild(this._allBtn._);
+				}
 				for (let i = 0; i < data.length; i++) {
 					let option = data[i];
 					let o = create(optionType);
@@ -1202,8 +1246,12 @@ module tui.widget {
 				this._group._.appendChild(padding);
 			}
 			this._group._set("value", define.value);
-			define.value = this._group.get("value");
-			return this._group.get("value");
+			var tmpValue = this._group.get("value");
+			if (data.length > 0 && optionType == "check" && exist(this.define.features, "selectAll") && this._allBtn.get("checked")) {
+				tmpValue.splice(0, 1);
+			}
+			define.value = tmpValue;
+			return define.value;
 		}
 		setValue(value: any): void {
 			this._group.set("value", value);
@@ -1232,8 +1280,12 @@ module tui.widget {
 			}
 			var optionType = define.atMost == 1 ? "radio" : "check";
 			this._group._set("type", optionType);
+			browser.removeNode(this._allBtn._);
 			this._group._.innerHTML = "";
 			if (data.length > 0) {
+				if (optionType == "check" && exist(this.define.features, "selectAll")) {
+					this._group._.appendChild(this._allBtn._);
+				}
 				for (let i = 0; i < data.length; i++) {
 					let option = data[i];
 					let o = create(optionType);
@@ -1248,10 +1300,13 @@ module tui.widget {
 				this._group._.appendChild(padding);
 			}
 			this._group._set("value", define.value);
+			this.syncSelectState();
 		}
 		render(designMode: boolean): void {
 			if (designMode)
 				this.renderDesign();
+			else
+				this.syncSelectState();
 			var g = this._group;
 			g.render();
 			for (let i = 0; i < g._.children.length; i++) {
@@ -1291,8 +1346,22 @@ module tui.widget {
 							{ "value": "vertical", "text": str("vertical") }
 						]}],
 						"atMost": 1,
-						"size": 2,
-						"newline": true
+						"size": 1
+					}, {
+						"type": "options",
+						"key": "features",
+						"label": str("form.grid.features"),
+						"value": this.define.features,
+						"options": [{"data":[
+							{ "value": "selectAll", "text": str("support.select.all") }
+						]}],
+						"size": 1,
+						"condition": "atMost > 1 or atMost = ''"
+					}, {
+						"type": "section",
+						"key": null,
+						"label": null,
+						"display": "newline"
 					}, {
 						"type": "textbox",
 						"inputType": "number",
@@ -1320,6 +1389,11 @@ module tui.widget {
 			this.define.align = values.align != "normal" ? values.align : undefined;
 			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : undefined;
 			this.define.atMost = values.atMost ? parseInt(values.atMost) : undefined;
+			if (typeof this.define.atMost != "number" || this.define.atMost > 1) {
+				this.define.features = values.features;
+			} else {
+				this.define.features = [];
+			}
 			this.define.options = textToOptions(values.options, false);
 		}
 		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
