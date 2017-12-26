@@ -179,7 +179,10 @@ module tui.widget {
 					var line = <HTMLTableRowElement>tb.insertRow(-1);
 					for (let j = 0; j < 4; j++) {
 						let cell = <HTMLTableCellElement>line.insertCell(-1);
-						cell.className = "tui-month";
+						if (i == 0)
+							cell.className = "tui-month tui-calendar-first-line";
+						else
+							cell.className = "tui-month";
 						let m = i * 4 + j;
 						cell.innerHTML = tui.str(time.shortMonths[m]);
 						cell.setAttribute("month", m + 1 + "");
@@ -604,6 +607,9 @@ module tui.widget {
 							if (this.get("year") === today.getFullYear() && this.get("month") === (today.getMonth() + 1) && day === today.getDate()) {
 								$(cell).addClass("tui-today");
 							}
+							if (i == 5 && mode === "date-time") {
+								$(cell).addClass("tui-calendar-last-line");
+							}
 						}
 					}
 				}
@@ -611,6 +617,7 @@ module tui.widget {
 			} else {
 				tb.style.display = "none";
 			}
+
 			var timebar = <HTMLElement>this._components["timeBar"];
 			if (mode === "date-time" || mode === "time") {
 				timebar.style.display = "";

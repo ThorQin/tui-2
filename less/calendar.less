@@ -26,31 +26,31 @@ tui\:calendar {
 		text-align:center;
 		min-width: 30px;
 		height: 24px;
-		border:1px solid #ddd;
-		background-color: #fafafa;
-		color: #666;
+		// border:1px solid #ddd;
+		// background-color: #fff;
+		color: #555;
 		font-family: calibri, sans-serif, monospace;
-		font-size: 12px;
+		font-size: 13px;
 		box-shadow: inset 1px 1px 0px white;
 		&[colspan='3'] {
 			width:inherit;
 		}
 		&.tui-before,&.tui-after {
 			box-shadow: none;
-    		background-color: #eee;
+    		background-color: #f2f2f2;
 		}
 		// &.tui-weekend {
 		// 	background-color:@weekendBackColor;
 		// }
 		&.tui-today {
-			background-color: #888;
-			box-shadow: inset 1px 1px 0px #777;
+			background-color: #ccc;
+			box-shadow: inset 1px 1px 0px #bbb;
 			color:#fff;
 		}
 		&.tui-actived {
 			background-color:@todayBackColor;
 			color:#fff;
-			box-shadow: inset 1px 1px 0px #8ac;
+			box-shadow: inset 1px 1px 0px #59a;
 		}
 		&.tui-pm,&.tui-py,&.tui-nm,&.tui-ny {
 			cursor:pointer;
@@ -73,6 +73,12 @@ tui\:calendar {
 		&.tui-ny:before {
 			.fa-angle-double-right;
 		}
+		&.tui-calendar-first-line {
+			border-top:1px solid #ddd;
+		}
+		&.tui-calendar-last-line {
+			border-bottom:1px solid #ddd;
+		}
 	}
 	tr.tui-yearbar > td {
 		height:25px;
@@ -89,6 +95,7 @@ tui\:calendar {
 		color: #bbb;
 		border-left: 0 solid transparent;
 		border-right: 0 solid transparent;
+		border-bottom: 1px solid #ddd;
 		box-shadow: none;
 	}
 	.tui-month {
@@ -102,8 +109,8 @@ tui\:calendar {
 		padding:2px 2px;
 		text-align:center;
 		color: #bbb;
-		height: 100px;
-		line-height: 100px;
+		height: 80px;
+		line-height: 80px;
 
 		>div {
 			display: inline-block;
@@ -122,7 +129,7 @@ tui\:calendar {
 			border:0;
 			height: 36px;
 			line-height: 36px;
-			font-size: 22px;
+			font-size: 18px;
 			background-color: transparent;
 			margin:0px;
 			text-align: center;

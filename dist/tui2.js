@@ -5456,7 +5456,10 @@ var tui;
                         var line = tb.insertRow(-1);
                         for (var j_1 = 0; j_1 < 4; j_1++) {
                             var cell_1 = line.insertCell(-1);
-                            cell_1.className = "tui-month";
+                            if (i_1 == 0)
+                                cell_1.className = "tui-month tui-calendar-first-line";
+                            else
+                                cell_1.className = "tui-month";
                             var m = i_1 * 4 + j_1;
                             cell_1.innerHTML = tui.str(tui.time.shortMonths[m]);
                             cell_1.setAttribute("month", m + 1 + "");
@@ -5891,6 +5894,9 @@ var tui;
                                     $(cell).addClass("tui-weekend");
                                 if (this.get("year") === today.getFullYear() && this.get("month") === (today.getMonth() + 1) && day === today.getDate()) {
                                     $(cell).addClass("tui-today");
+                                }
+                                if (i_2 == 5 && mode === "date-time") {
+                                    $(cell).addClass("tui-calendar-last-line");
                                 }
                             }
                         }
