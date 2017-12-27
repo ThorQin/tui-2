@@ -11,7 +11,7 @@ module tui.widget {
 		value?: any;
 		condition?: string;
 		size?: number;
-		newline?: boolean;
+		position?: string;
 		disable?: boolean;
 		required?: boolean;
 		emphasize?: boolean;
@@ -367,7 +367,7 @@ module tui.widget {
 		protected init(): void {
 			this._maxId = 0;
 			this._.setAttribute("unselectable", "on");
-			
+
 			var newItem = this._components["newitem"] = elem("div");
 			newItem.className = "tui-form-new-item-box";
 
@@ -441,6 +441,18 @@ module tui.widget {
 
 					var divStyle = browser.getCurrentStyle(ctrl.div);
 					placeholder.style.display = divStyle.display;
+					placeholder.style.clear = divStyle.clear;
+					if (browser.hasClass(ctrl.div, "tui-form-item-newline")) {
+						browser.addClass(placeholder, "tui-form-item-newline");
+					}
+					if (browser.hasClass(ctrl.div, "tui-form-item-pull-left")) {
+						browser.addClass(placeholder, "tui-form-item-pull-left");
+						placeholder.style.display = "inline-block";
+					}
+					if (browser.hasClass(ctrl.div, "tui-form-item-pull-right")) {
+						browser.addClass(placeholder, "tui-form-item-pull-right");
+						placeholder.style.display = "inline-block";
+					}
 					placeholder.style.width = ctrl.div.offsetWidth + "px";
 					placeholder.style.height = ctrl.div.offsetHeight + "px";
 

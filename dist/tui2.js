@@ -2481,6 +2481,18 @@ var tui;
                         placeholder.className = "tui-form-item-placeholder";
                         var divStyle = tui.browser.getCurrentStyle(ctrl.div);
                         placeholder.style.display = divStyle.display;
+                        placeholder.style.clear = divStyle.clear;
+                        if (tui.browser.hasClass(ctrl.div, "tui-form-item-newline")) {
+                            tui.browser.addClass(placeholder, "tui-form-item-newline");
+                        }
+                        if (tui.browser.hasClass(ctrl.div, "tui-form-item-pull-left")) {
+                            tui.browser.addClass(placeholder, "tui-form-item-pull-left");
+                            placeholder.style.display = "inline-block";
+                        }
+                        if (tui.browser.hasClass(ctrl.div, "tui-form-item-pull-right")) {
+                            tui.browser.addClass(placeholder, "tui-form-item-pull-right");
+                            placeholder.style.display = "inline-block";
+                        }
                         placeholder.style.width = ctrl.div.offsetWidth + "px";
                         placeholder.style.height = ctrl.div.offsetHeight + "px";
                         oldRect = tui.browser.getRectOfScreen(ctrl.div);
@@ -7270,7 +7282,7 @@ var tui;
     var widget;
     (function (widget) {
         "use strict";
-        var FULL = 6;
+        var MAX = 6;
         function optionsToText(options) {
             var result = "";
             if (!options)
@@ -7414,16 +7426,15 @@ var tui;
                 this.btnAdd.appendTo(this.toolbar);
                 this.btnEdit = widget.create("button", { text: "<i class='fa fa-pencil'></i>" });
                 this.btnEdit.appendTo(this.toolbar);
-                this.btnSize = widget.create("button", { text: "<i class='fa fa-arrows-alt'></i>" });
+                this.toolbar.appendChild(tui.elem("span"));
+                this.btnSize = widget.create("button", { text: "1x" });
+                this.btnPosition = widget.create("button", { text: "N" });
                 if (this.isResizable()) {
                     this.btnSize.appendTo(this.toolbar);
+                    this.toolbar.appendChild(tui.elem("span"));
+                    this.btnPosition.appendTo(this.toolbar);
+                    this.toolbar.appendChild(tui.elem("span"));
                 }
-                this.toolbar.appendChild(tui.elem("span"));
-                this.btnMoveUp = widget.create("button", { text: "<i class='fa fa-level-up'></i>" });
-                this.btnMoveUp.appendTo(this.toolbar);
-                this.btnMoveDown = widget.create("button", { text: "<i class='fa fa-level-down'></i>" });
-                this.btnMoveDown.appendTo(this.toolbar);
-                this.toolbar.appendChild(tui.elem("span"));
                 this.btnDelete = widget.create("button", { text: "<i class='fa fa-trash'></i>" });
                 this.btnDelete.appendTo(this.toolbar);
                 this.div.appendChild(this.mask);
@@ -7448,37 +7459,43 @@ var tui;
                 this.btnDelete.on("click", function () {
                     _this.form.fire("itemremove", { control: _this });
                 });
-                var menu = widget.create("menu");
+                var menuSize = widget.create("menu");
                 this.btnSize.on("click", function () {
-                    menu._set("items", [
+                    menuSize._set("items", [
                         { type: "radio", text: "1x", group: "size", value: 1, checked: (_this.define.size === 1 || !_this.define.size) },
                         { type: "radio", text: "2x", group: "size", value: 2, checked: _this.define.size === 2 },
                         { type: "radio", text: "3x", group: "size", value: 3, checked: _this.define.size === 3 },
                         { type: "radio", text: "4x", group: "size", value: 4, checked: _this.define.size === 4 },
                         { type: "radio", text: "5x", group: "size", value: 5, checked: _this.define.size === 5 },
-                        { type: "radio", text: tui.str("Fill"), group: "size", value: FULL, checked: _this.define.size === FULL },
-                        { type: "line" },
-                        { type: "check", text: tui.str("New Line"), value: "newline", checked: _this.define.newline }
+                        { type: "radio", text: "MAX", group: "size", value: MAX, checked: _this.define.size === MAX }
                     ]);
-                    menu.open(_this.btnSize._);
+                    menuSize.open(_this.btnSize._);
                 });
-                menu.on("click", function (e) {
+                menuSize.on("click", function (e) {
                     var v = e.data.item.value;
-                    if (v >= 1 && v <= FULL)
+                    if (v >= 1 && v <= MAX)
                         _this.define.size = v;
-                    else if (v === "newline")
-                        _this.define.newline = !_this.define.newline;
+                    _this.applySize();
+                    _this.form.fire("itemresize", { e: e, control: _this });
+                });
+                var menuPos = widget.create("menu");
+                this.btnPosition.on("click", function () {
+                    menuPos._set("items", [
+                        { type: "radio", text: "Normal", group: "pos", value: "normal", checked: (!/^(left|right|newline)$/.test(_this.define.position)) },
+                        { type: "radio", text: "Left", group: "pos", value: "left", checked: _this.define.position === "left" },
+                        { type: "radio", text: "Right", group: "pos", value: "right", checked: _this.define.position === "right" },
+                        { type: "radio", text: "Newline", group: "pos", value: "newline", checked: _this.define.position === "newline" }
+                    ]);
+                    menuPos.open(_this.btnPosition._);
+                });
+                menuPos.on("click", function (e) {
+                    var v = e.data.item.value;
+                    _this.define.position = v;
                     _this.applySize();
                     _this.form.fire("itemresize", { e: e, control: _this });
                 });
                 this.btnEdit.on("click", function () {
                     _this.showProperties();
-                });
-                this.btnMoveUp.on("click", function () {
-                    _this.form.fire("itemmoveup", { control: _this });
-                });
-                this.btnMoveDown.on("click", function () {
-                    _this.form.fire("itemmovedown", { control: _this });
                 });
                 this.btnAdd.on("click", function () {
                     _this.form.fire("itemadd", { button: _this.btnAdd, control: _this });
@@ -7573,7 +7590,7 @@ var tui;
                                     { "value": "disable", "text": tui.str("form.disable") },
                                     { "value": "emphasize", "text": tui.str("form.emphasize") }
                                 ] }],
-                        "newline": true,
+                        "position": "newline",
                         "value": [this.define.required ? "required" : null, this.define.disable ? "disable" : null, this.define.emphasize ? "emphasize" : null]
                     }, {
                         "type": "textarea",
@@ -7581,14 +7598,14 @@ var tui;
                         "label": tui.str("form.description"),
                         "key": "description",
                         "value": this.define.description,
-                        "size": FULL
+                        "size": MAX
                     }, {
                         "type": "textarea",
                         "maxHeight": 200,
                         "label": tui.str("form.precondition"),
                         "key": "condition",
                         "value": this.define.condition,
-                        "size": FULL
+                        "size": MAX
                     }
                 ];
                 var pages = [{ name: tui.str("form.common"), properties: properties }];
@@ -7757,23 +7774,49 @@ var tui;
             };
             FormControl.prototype.applySize = function () {
                 var define = this.define;
-                tui.browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-5 tui-form-item-size-full tui-form-item-newline");
-                if (define.size > 1 && define.size < FULL) {
+                tui.browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-5 tui-form-item-size-full tui-form-item-newline tui-form-item-pull-left tui-form-item-pull-right");
+                if (define.size > 1 && define.size < MAX) {
                     define.size = Math.floor(define.size);
                     tui.browser.addClass(this.div, " tui-form-item-size-" + define.size);
                 }
-                else if (define.size >= FULL) {
+                else if (define.size >= MAX) {
                     tui.browser.addClass(this.div, "tui-form-item-size-full");
-                    define.size = FULL;
+                    define.size = MAX;
                 }
                 else
-                    define.size = undefined;
-                if (define.newline) {
-                    define.newline = true;
+                    delete define.size;
+                if (define.position === "newline") {
                     tui.browser.addClass(this.div, "tui-form-item-newline");
                 }
+                else if (define.position === "left") {
+                    tui.browser.addClass(this.div, "tui-form-item-pull-left");
+                }
+                else if (define.position === "right") {
+                    tui.browser.addClass(this.div, "tui-form-item-pull-right");
+                }
                 else {
-                    define.newline = undefined;
+                    delete define.position;
+                }
+                if (this.define.position == "left") {
+                    this.btnPosition.set("text", "L");
+                }
+                else if (this.define.position == "right") {
+                    this.btnPosition.set("text", "R");
+                }
+                else if (this.define.position == "newline") {
+                    this.btnPosition.set("text", "NL");
+                }
+                else {
+                    this.btnPosition.set("text", "N");
+                }
+                if (typeof this.define.size != "number" || isNaN(this.define.size) || this.define.size < 1 && this.define.size > MAX) {
+                    this.btnSize.set("text", "1x");
+                }
+                else if (this.define.size == MAX) {
+                    this.btnSize.set("text", "MAX");
+                }
+                else {
+                    this.btnSize.set("text", this.define.size + "x");
                 }
             };
             return FormControl;
@@ -7834,6 +7877,7 @@ var tui;
                 _this._hr.className = "tui-form-line-label";
                 _this.div.appendChild(_this._hr);
                 _this.div.style.display = "block";
+                _this.div.style.clear = "both";
                 _this.div.style.width = "auto";
                 _this.label.onmousedown = function () {
                     if (_this.define.display != "folder") {
@@ -7882,6 +7926,8 @@ var tui;
                     d.required = undefined;
                     tui.browser.removeClass(this.label, "tui-form-item-required");
                 }
+                delete d.position;
+                this.applySize();
             };
             FormSection.prototype.isResizable = function () {
                 return false;
@@ -8101,7 +8147,7 @@ var tui;
                                 "atMost": 1,
                                 "value": this.define.inputType ? this.define.inputType : "text",
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }, {
                                 "type": "textarea",
                                 "maxHeight": 300,
@@ -8116,7 +8162,7 @@ var tui;
                                 "features": ['append', 'delete', 'edit'],
                                 "label": tui.str("form.validation"),
                                 "size": 2,
-                                "newline": true,
+                                "position": "newline",
                                 "height": 120,
                                 "definitions": [
                                     {
@@ -8139,7 +8185,7 @@ var tui;
                                         "required": true,
                                         "label": tui.str("form.message"),
                                         "size": 2,
-                                        "newline": true,
+                                        "position": "newline",
                                         "validation": [
                                             { "format": "*any", "message": tui.str("message.cannot.be.empty") }
                                         ]
@@ -8201,14 +8247,14 @@ var tui;
                                     { "format": "*digital", "message": tui.str("message.invalid.format") }
                                 ],
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }, {
                                 "type": "grid",
                                 "key": "validation",
                                 "features": ['append', 'delete', 'edit'],
                                 "label": tui.str("form.validation"),
                                 "size": 2,
-                                "newline": true,
+                                "position": "newline",
                                 "height": 150,
                                 "definitions": [
                                     {
@@ -8231,7 +8277,7 @@ var tui;
                                         "required": true,
                                         "label": tui.str("form.message"),
                                         "size": 2,
-                                        "newline": true,
+                                        "position": "newline",
                                         "validation": [
                                             { "format": "*any", "message": tui.str("message.cannot.be.empty") }
                                         ]
@@ -8269,7 +8315,7 @@ var tui;
             FormTextarea.init = {
                 maxHeight: 300,
                 size: 2,
-                newline: true
+                position: "newline"
             };
             return FormTextarea;
         }(BasicFormControl));
@@ -8676,7 +8722,7 @@ var tui;
                                         ] }],
                                 "size": 2,
                                 "atMost": 1,
-                                "newline": true
+                                "position": "newline"
                             }, {
                                 "type": "textbox",
                                 "inputType": "number",
@@ -8835,7 +8881,7 @@ var tui;
                                 "atMost": 1,
                                 "value": /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : "date",
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }, {
                                 "type": "options",
                                 "key": "timezone",
@@ -8848,7 +8894,7 @@ var tui;
                                 "atMost": 1,
                                 "value": /^(utc|locale|none)$/.test(this.define.timezone) ? this.define.timezone : "utc",
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }, {
                                 "type": "options",
                                 "key": "autoInit",
@@ -8860,7 +8906,7 @@ var tui;
                                 "atMost": 1,
                                 "value": !!this.define.autoInit,
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }, {
                                 "type": "textbox",
                                 "key": "format",
@@ -8926,7 +8972,7 @@ var tui;
                                 "atMost": 1,
                                 "value": /^(date|month)$/.test(this.define.mode) ? this.define.mode : "date",
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }
                         ]
                     }];
@@ -8942,8 +8988,8 @@ var tui;
             FormCalendar.desc = "form.calendar";
             FormCalendar.order = 6;
             FormCalendar.init = {
-                size: 2,
-                newline: true
+                size: 1,
+                position: "newline"
             };
             return FormCalendar;
         }(BasicFormControl));
@@ -8990,7 +9036,7 @@ var tui;
                                 "value": this.define.action,
                                 "validation": [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }],
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }, {
                                 "type": "textbox",
                                 "key": "accept",
@@ -8998,7 +9044,7 @@ var tui;
                                 "value": this.define.accept,
                                 "validation": [{ "format": FormPicture.MIME, "message": tui.str("message.must.be.image") }],
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }
                         ]
                     }];
@@ -9066,14 +9112,14 @@ var tui;
                                 "value": this.define.action,
                                 "validation": [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }],
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }, {
                                 "type": "textbox",
                                 "key": "accept",
                                 "label": tui.str("form.file.type"),
                                 "value": this.define.accept,
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }
                         ]
                     }];
@@ -9148,14 +9194,14 @@ var tui;
                                 "value": this.define.action,
                                 "validation": [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }],
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }, {
                                 "type": "textbox",
                                 "key": "accept",
                                 "label": tui.str("form.file.type"),
                                 "value": this.define.accept,
                                 "size": 2,
-                                "newline": true
+                                "position": "newline"
                             }, {
                                 "type": "textbox",
                                 "inputType": "number",
@@ -9220,7 +9266,7 @@ var tui;
             FormFiles.order = 9;
             FormFiles.init = {
                 size: 2,
-                newline: true
+                position: "newline"
             };
             FormFiles.translator = function (value, item, index) {
                 if (value instanceof Array) {
@@ -9386,7 +9432,7 @@ var tui;
                                             { "value": "autoColumnWidth", "text": tui.str("auto.column.width") }
                                         ] }],
                                 "size": 6,
-                                "newline": true
+                                "position": "newline"
                             }, {
                                 "type": "textbox",
                                 "inputType": "number",

@@ -4,7 +4,7 @@
 module tui.widget {
 	"use strict";
 
-	const FULL = 6;
+	const MAX = 6;
 
 	export interface PropertyPage {
 		name: string;
@@ -155,9 +155,8 @@ module tui.widget {
 		btnEdit: Button;
 		btnDelete: Button;
 		btnAdd: Button;
-		btnMoveUp: Button;
-		btnMoveDown: Button;
 		btnSize: Button;
+		btnPosition: Button;
 		available: boolean;
 
 		protected form: Form;
@@ -241,16 +240,15 @@ module tui.widget {
 			this.btnAdd.appendTo(this.toolbar);
 			this.btnEdit = <Button>create("button", {text: "<i class='fa fa-pencil'></i>"});
 			this.btnEdit.appendTo(this.toolbar);
-			this.btnSize = <Button>create("button", {text: "<i class='fa fa-arrows-alt'></i>"});
+			this.toolbar.appendChild(elem("span"))
+			this.btnSize = <Button>create("button", {text: "1x"});
+			this.btnPosition = <Button>create("button", {text: "N"});
 			if (this.isResizable()) {
 				this.btnSize.appendTo(this.toolbar);
+				this.toolbar.appendChild(elem("span"))
+				this.btnPosition.appendTo(this.toolbar);
+				this.toolbar.appendChild(elem("span"))
 			}
-			this.toolbar.appendChild(elem("span"))
-			this.btnMoveUp = <Button>create("button", {text: "<i class='fa fa-level-up'></i>"});
-			this.btnMoveUp.appendTo(this.toolbar);
-			this.btnMoveDown = <Button>create("button", {text: "<i class='fa fa-level-down'></i>"});
-			this.btnMoveDown.appendTo(this.toolbar);
-			this.toolbar.appendChild(elem("span"))
 			this.btnDelete = <Button>create("button", {text: "<i class='fa fa-trash'></i>"});
 			this.btnDelete.appendTo(this.toolbar);
 
@@ -279,37 +277,45 @@ module tui.widget {
 			this.btnDelete.on("click", () => {
 				this.form.fire("itemremove", {control: this});
 			});
-			var menu = <Popup>create("menu");
+			var menuSize = <Popup>create("menu");
 			this.btnSize.on("click", () => {
-				menu._set("items", [
+				menuSize._set("items", [
 					{type: "radio", text: "1x", group: "size", value: 1, checked: (this.define.size === 1 || !this.define.size)},
 					{type: "radio", text: "2x", group: "size", value: 2, checked: this.define.size === 2},
 					{type: "radio", text: "3x", group: "size", value: 3, checked: this.define.size === 3},
 					{type: "radio", text: "4x", group: "size", value: 4, checked: this.define.size === 4},
 					{type: "radio", text: "5x", group: "size", value: 5, checked: this.define.size === 5},
-					{type: "radio", text: str("Fill"), group: "size", value: FULL, checked: this.define.size === FULL},
-					{type: "line"},
-					{type: "check", text: str("New Line"), value: "newline", checked: this.define.newline}
+					{type: "radio", text: "MAX", group: "size", value: MAX, checked: this.define.size === MAX}
 				]);
-				menu.open(this.btnSize._);
+				menuSize.open(this.btnSize._);
 			});
-			menu.on("click", (e) => {
+			menuSize.on("click", (e) => {
 				var v = e.data.item.value;
-				if (v >= 1 && v <= FULL)
+				if (v >= 1 && v <= MAX)
 					this.define.size = v;
-				else if (v === "newline")
-					this.define.newline = !this.define.newline;
 				this.applySize();
 				this.form.fire("itemresize", {e: e, control: this});
 			});
+
+			var menuPos = <Popup>create("menu");
+			this.btnPosition.on("click", () => {
+				menuPos._set("items", [
+					{type: "radio", text: "Normal", group: "pos", value: "normal", checked: (!/^(left|right|newline)$/.test(this.define.position))},
+					{type: "radio", text: "Left", group: "pos", value: "left", checked: this.define.position === "left"},
+					{type: "radio", text: "Right", group: "pos", value: "right", checked: this.define.position === "right"},
+					{type: "radio", text: "Newline", group: "pos", value: "newline", checked: this.define.position === "newline"}
+				]);
+				menuPos.open(this.btnPosition._);
+			});
+			menuPos.on("click", (e) => {
+				var v = e.data.item.value;
+				this.define.position = v;
+				this.applySize();
+				this.form.fire("itemresize", {e: e, control: this});
+			});
+
 			this.btnEdit.on("click", () => {
 				this.showProperties();
-			});
-			this.btnMoveUp.on("click", () => {
-				this.form.fire("itemmoveup", {control: this});
-			});
-			this.btnMoveDown.on("click", () => {
-				this.form.fire("itemmovedown", {control: this});
 			});
 			this.btnAdd.on("click", () => {
 				this.form.fire("itemadd", {button: this.btnAdd, control: this});
@@ -342,7 +348,7 @@ module tui.widget {
 						{ "value": "disable", "text": str("form.disable") },
 						{ "value": "emphasize", "text": str("form.emphasize") }
 					]}],
-					"newline": true,
+					"position": "newline",
 					"value": [this.define.required ? "required" : null, this.define.disable ? "disable" : null, this.define.emphasize ? "emphasize" : null]
 				}, {
 					"type": "textarea",
@@ -350,14 +356,14 @@ module tui.widget {
 					"label": str("form.description"),
 					"key": "description",
 					"value": this.define.description,
-					"size": FULL
+					"size": MAX
 				}, {
 					"type": "textarea",
 					"maxHeight": 200,
 					"label": str("form.precondition"),
 					"key": "condition",
 					"value": this.define.condition,
-					"size": FULL
+					"size": MAX
 				}
 			];
 			var pages: PropertyPage[] = [{name: str("form.common"), properties: properties}];
@@ -497,6 +503,7 @@ module tui.widget {
 			this.selected = !!value;
 			if (this.selected) {
 				browser.addClass(this.div, "tui-form-item-selected");
+
 				this.toolbar.style.opacity = "0";
 				this.div.appendChild(this.toolbar);
 				setTimeout(() => {
@@ -526,20 +533,39 @@ module tui.widget {
 
 		protected applySize() {
 			var define = this.define;
-			browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-5 tui-form-item-size-full tui-form-item-newline");
-			if (define.size > 1 && define.size < FULL) {
+			browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-5 tui-form-item-size-full tui-form-item-newline tui-form-item-pull-left tui-form-item-pull-right");
+			if (define.size > 1 && define.size < MAX) {
 				define.size = Math.floor(define.size);
 				browser.addClass(this.div, " tui-form-item-size-" + define.size);
-			} else if (define.size >= FULL) {
+			} else if (define.size >= MAX) {
 				browser.addClass(this.div, "tui-form-item-size-full");
-				define.size = FULL;
+				define.size = MAX;
 			} else
-				define.size = undefined;
-			if (define.newline) {
-				define.newline = true;
+				delete define.size;
+			if (define.position === "newline") {
 				browser.addClass(this.div, "tui-form-item-newline");
+			} else if (define.position === "left") {
+				browser.addClass(this.div, "tui-form-item-pull-left");
+			} else if (define.position === "right") {
+				browser.addClass(this.div, "tui-form-item-pull-right");
 			} else {
-				define.newline = undefined;
+				delete define.position;
+			}
+			if (this.define.position == "left") {
+				this.btnPosition.set("text", "L")
+			} else if (this.define.position == "right") {
+				this.btnPosition.set("text", "R")
+			} else if (this.define.position == "newline") {
+				this.btnPosition.set("text", "NL")
+			} else {
+				this.btnPosition.set("text", "N")
+			}
+			if (typeof this.define.size != "number" || isNaN(this.define.size) || this.define.size < 1 && this.define.size > MAX ) {
+				this.btnSize.set("text", "1x");
+			} else if (this.define.size == MAX) {
+				this.btnSize.set("text", "MAX");
+			} else {
+				this.btnSize.set("text", this.define.size + "x");
 			}
 		}
 
@@ -631,6 +657,7 @@ module tui.widget {
 			this._hr.className = "tui-form-line-label";
 			this.div.appendChild(this._hr);
 			this.div.style.display = "block";
+			this.div.style.clear = "both";
 			this.div.style.width = "auto";
 			this.label.onmousedown = () => {
 				if (this.define.display != "folder") {
@@ -680,6 +707,8 @@ module tui.widget {
 				d.required = undefined;
 				browser.removeClass(this.label,"tui-form-item-required");
 			}
+			delete d.position;
+			this.applySize();
 		}
 
 		isResizable(): boolean {
@@ -908,7 +937,7 @@ module tui.widget {
 						"atMost": 1,
 						"value": this.define.inputType ? this.define.inputType : "text",
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}, {
 						"type": "textarea",
 						"maxHeight": 300,
@@ -923,7 +952,7 @@ module tui.widget {
 						"features": ['append', 'delete', 'edit'],
 						"label": str("form.validation"),
 						"size": 2,
-						"newline": true,
+						"position": "newline",
 						"height": 120,
 						"definitions": [
 							{
@@ -946,7 +975,7 @@ module tui.widget {
 								"required": true,
 								"label": str("form.message"),
 								"size": 2,
-								"newline": true,
+								"position": "newline",
 								"validation": [
 									{ "format": "*any", "message": str("message.cannot.be.empty")}
 								]
@@ -996,7 +1025,7 @@ module tui.widget {
 		static init = {
 			maxHeight: 300,
 			size: 2,
-			newline: true
+			position: "newline"
 		};
 
 		constructor(form: Form, define: TextareaFormItem) {
@@ -1020,14 +1049,14 @@ module tui.widget {
 							{ "format": "*digital", "message": str("message.invalid.format") }
 						],
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}, {
 						"type": "grid",
 						"key": "validation",
 						"features": ['append', 'delete', 'edit'],
 						"label": str("form.validation"),
 						"size": 2,
-						"newline": true,
+						"position": "newline",
 						"height": 150,
 						"definitions": [
 							{
@@ -1050,7 +1079,7 @@ module tui.widget {
 								"required": true,
 								"label": str("form.message"),
 								"size": 2,
-								"newline": true,
+								"position": "newline",
 								"validation": [
 									{ "format": "*any", "message": str("message.cannot.be.empty")}
 								]
@@ -1528,7 +1557,7 @@ module tui.widget {
 						]}],
 						"size": 2,
 						"atMost": 1,
-						"newline": true
+						"position": "newline"
 					}, {
 						"type": "textbox",
 						"inputType": "number",
@@ -1674,7 +1703,7 @@ module tui.widget {
 						"atMost": 1,
 						"value": /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : "date",
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}, {
 						"type": "options",
 						"key": "timezone",
@@ -1687,7 +1716,7 @@ module tui.widget {
 						"atMost": 1,
 						"value": /^(utc|locale|none)$/.test(this.define.timezone) ? this.define.timezone : "utc",
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}, {
 						"type": "options",
 						"key": "autoInit",
@@ -1699,7 +1728,7 @@ module tui.widget {
 						"atMost": 1,
 						"value": !!this.define.autoInit,
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}, {
 						"type": "textbox",
 						"key": "format",
@@ -1739,8 +1768,8 @@ module tui.widget {
 		static desc = "form.calendar";
 		static order = 6;
 		static init = {
-			size: 2,
-			newline: true
+			size: 1,
+			position: "newline"
 		};
 
 		constructor(form: Form, define: CalendarFormItem) {
@@ -1773,7 +1802,7 @@ module tui.widget {
 						"atMost": 1,
 						"value": /^(date|month)$/.test(this.define.mode) ? this.define.mode : "date",
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}
 				]
 			}];
@@ -1849,7 +1878,7 @@ module tui.widget {
 						"value": this.define.action,
 						"validation": [{ "format": "*any", "message": str("message.cannot.be.empty")}],
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}, {
 						"type": "textbox",
 						"key": "accept",
@@ -1857,7 +1886,7 @@ module tui.widget {
 						"value": this.define.accept,
 						"validation": [{ "format": FormPicture.MIME, "message": str("message.must.be.image")}],
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}
 				]
 			}];
@@ -1930,14 +1959,14 @@ module tui.widget {
 						"value": this.define.action,
 						"validation": [{ "format": "*any", "message": str("message.cannot.be.empty")}],
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}, {
 						"type": "textbox",
 						"key": "accept",
 						"label": str("form.file.type"),
 						"value": this.define.accept,
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}
 				]
 			}];
@@ -1974,7 +2003,7 @@ module tui.widget {
 		static order = 9;
 		static init = {
 			size: 2,
-			newline: true
+			position: "newline"
 		};
 		static translator = function (value: any, item: any, index: number): Node {
 			if (value instanceof Array) {
@@ -2023,14 +2052,14 @@ module tui.widget {
 						"value": this.define.action,
 						"validation": [{ "format": "*any", "message": str("message.cannot.be.empty")}],
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}, {
 						"type": "textbox",
 						"key": "accept",
 						"label": str("form.file.type"),
 						"value": this.define.accept,
 						"size": 2,
-						"newline": true
+						"position": "newline"
 					}, {
 						"type": "textbox",
 						"inputType": "number",
@@ -2280,7 +2309,7 @@ module tui.widget {
 							{ "value": "autoColumnWidth", "text": str("auto.column.width") }
 						]}],
 						"size": 6,
-						"newline": true
+						"position": "newline"
 					}, {
 						"type": "textbox",
 						"inputType": "number",

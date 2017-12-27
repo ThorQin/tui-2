@@ -322,7 +322,7 @@ declare module tui.widget {
         value?: any;
         condition?: string;
         size?: number;
-        newline?: boolean;
+        position?: string;
         disable?: boolean;
         required?: boolean;
         emphasize?: boolean;
@@ -740,9 +740,8 @@ declare module tui.widget {
         btnEdit: Button;
         btnDelete: Button;
         btnAdd: Button;
-        btnMoveUp: Button;
-        btnMoveDown: Button;
         btnSize: Button;
+        btnPosition: Button;
         available: boolean;
         protected form: Form;
         protected selected: boolean;
