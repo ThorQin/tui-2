@@ -111,6 +111,9 @@ declare module tui.browser {
         id?: any;
     }[];
     function setInnerHtml(elem: HTMLElement, content: string): void;
+    function safeExec(code: string, context?: {
+        [key: string]: any;
+    }): void;
 }
 declare module tui.browser {
     enum KeyCode {
@@ -317,7 +320,7 @@ declare module tui {
 declare module tui.widget {
     interface FormItem {
         type: string;
-        label: string | null;
+        label?: string | null;
         key?: string | null;
         value?: any;
         condition?: string;
@@ -344,12 +347,16 @@ declare module tui.widget {
         protected _definitionChanged: boolean;
         protected _valueChanged: boolean;
         protected _items: FormControl<FormItem>[];
+        protected _formulas: {
+            [index: string]: string;
+        };
         protected _valueCache: {
             [index: string]: any;
         };
         protected _maxId: number;
         private _autoResizeTimer;
         private _parentWidth;
+        private _formHandler;
         static register(type: string, controlType: FormControlConstructor): void;
         static getType(type: string): FormControlConstructor;
         removeAll(): void;
@@ -357,6 +364,9 @@ declare module tui.widget {
         selectItem(target: FormControl<FormItem>): void;
         getItem(index: number | string): FormControl<FormItem>;
         getSelectedItem(): FormControl<FormItem>;
+        setFormula(key: string, formula: string): void;
+        removeFormula(key: string): void;
+        getFormula(key: string): string;
         addItem(type: string, label?: string, pos?: number): void;
         removeItem(target: FormControl<FormItem>): void;
         selectNext(): boolean;
@@ -364,7 +374,7 @@ declare module tui.widget {
         protected update(): void;
         protected initRestriction(): void;
         protected init(): void;
-        computeSize(): void;
+        private computeSize();
         private bindNewItemClick(popup, newItemDiv, type, pos);
         private addNewItem(button, pos);
         validate(): boolean;

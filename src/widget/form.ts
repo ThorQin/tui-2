@@ -4,9 +4,11 @@
 module tui.widget {
 	"use strict";
 
+	const MAX = 6;
+
 	export interface FormItem {
 		type: string;
-		label: string | null;
+		label?: string | null;
 		key?: string | null;
 		value?: any;
 		condition?: string;
@@ -38,6 +40,11 @@ module tui.widget {
 		init?: {[index:string]: any};
 	}
 
+	interface FormHandler {
+		get: (key: string) => any;
+		set: (key: string, value: any) => void;
+	}
+
 	export class Form extends Widget {
 
 		static ITEM_SIZE = 260;
@@ -45,10 +52,12 @@ module tui.widget {
 		protected _definitionChanged: boolean;
 		protected _valueChanged: boolean;
 		protected _items: FormControl<FormItem>[];
+		protected _formulas: {[index: string]: string};
 		protected _valueCache: { [index: string]: any };
 		protected _maxId: number;
 		private _autoResizeTimer: number;
 		private _parentWidth: number;
+		private _formHandler: FormHandler;
 
 		public static register(type: string, controlType: FormControlConstructor): void {
 			_controls[type] = controlType;
@@ -104,9 +113,25 @@ module tui.widget {
 			return null;
 		}
 
+		setFormula(key: string, formula: string) {
+			if (key && formula) {
+				this._formulas[key] = formula;
+				this.render();
+			}
+		}
+
+		removeFormula(key: string) {
+			delete this._formulas[key];
+			this.render();
+		}
+
+		getFormula(key: string): string {
+			return this._formulas[key];
+		}
+
 		addItem(type: string, label: string = null, pos: number = -1) {
 			var c = _controls[type];
-			if (label === null)
+			if (label === null || label === undefined)
 				label = str(c.desc);
 			var define: FormItem = { type: type, label: label };
 			var key = type + (++this._maxId);
@@ -190,6 +215,7 @@ module tui.widget {
 		protected initRestriction(): void {
 			super.initRestriction();
 			this._items = [];
+			this._formulas = {};
 			this._valueCache = null;
 			this._autoResizeTimer = null;
 			this._parentWidth = null;
@@ -216,11 +242,19 @@ module tui.widget {
 						if (value instanceof Array) {
 							this.removeAll();
 							for (let define of <FormItem[]>value) {
-								let cstor = _controls[define.type];
-								if (cstor) {
-									let item = new cstor(this, define);
-									item.update();
-									this._items.push(item);
+								if (define.type === "formula" && define.key && define.value) {
+									var v = this._formulas[define.key];
+									if (v) {
+										this._formulas[define.key] = v + "\n" + define.value;
+									} else
+										this._formulas[define.key] =  define.value;
+								} else {
+									let cstor = _controls[define.type];
+									if (cstor) {
+										let item = new cstor(this, define);
+										item.update();
+										this._items.push(item);
+									}
 								}
 							}
 						} else if (value === null) {
@@ -232,6 +266,12 @@ module tui.widget {
 						var result: FormItem[] = [];
 						for (let item of this._items) {
 							result.push(item.define);
+						}
+						for (let k in this._formulas) {
+							if (this._formulas.hasOwnProperty(k)) {
+								var v = this._formulas[k];
+								result.push({type: "formula", key: k, value: v, label: null});
+							}
 						}
 						return result;
 					}
@@ -318,6 +358,24 @@ module tui.widget {
 								}
 							}
 
+							// Then compute formulas
+							var f = null;
+							for (let k in this._formulas) {
+								if (this._formulas.hasOwnProperty(k)) {
+									let v = this._formulas[k];
+									if (f) {
+										f += "\n" + v;
+									} else {
+										f = v;
+									}
+								}
+							}
+							if (f) {
+								browser.safeExec(f, {
+									form: this._formHandler
+								});
+							}
+
 							// Then compute all items which does not define the key.
 							for (let i = 0; i < this._items.length; i++) {
 								let item = this._items[i];
@@ -378,6 +436,20 @@ module tui.widget {
 				if (tui.ieVer > 0 && this.get("mode") === "design")
 					browser.focusWithoutScroll(this._);
 			});
+
+			this._formHandler = {
+				get: (key: string): any => {
+					let item = this.getItem(key);
+					if (item)
+						return item.getValue(null);
+					return null;
+				},
+				set: (key: string, value: any) => {
+					let item = this.getItem(key);
+					if (item)
+						return item.setValue(value);
+				}
+			}
 
 			$(this._).on("keydown", (e) => {
 				if (this.get("mode") !== "design")
@@ -555,13 +627,13 @@ module tui.widget {
 			this.computeSize();
 		}
 
-		computeSize() {
+		private computeSize() {
 			this.removeClass("tui-size-1 tui-size-2 tui-size-3 tui-size-4 tui-size-5 tui-size-6");
 			var pw = $(this._).width();
 			var s = Form.ITEM_SIZE;
 			var i = Math.floor(pw / s);
 			if (i < 1) i = 1;
-			if (i > 6) i = 6;
+			if (i > MAX) i = MAX;
 			var c = "tui-size-" + i;
 			this.addClass(c);
 		}

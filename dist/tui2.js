@@ -1195,6 +1195,42 @@ var tui;
             }
         }
         browser.setInnerHtml = setInnerHtml;
+        function safeExec(code, context) {
+            var c = "";
+            var argv = [];
+            if (context) {
+                for (var k in context) {
+                    if (context.hasOwnProperty(k)) {
+                        if (c)
+                            c += ",";
+                        c += k;
+                        argv.push(context[k]);
+                    }
+                }
+            }
+            var namePattern = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+            function exclude() {
+                var keys = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    keys[_i] = arguments[_i];
+                }
+                for (var _a = 0, keys_1 = keys; _a < keys_1.length; _a++) {
+                    var k = keys_1[_a];
+                    if (namePattern.test(k) && (!context || !context.hasOwnProperty(k))) {
+                        if (c)
+                            c += ",";
+                        c += k;
+                    }
+                }
+            }
+            for (var k in window) {
+                exclude(k);
+            }
+            var source = "(function (" + c + "){\n" + code + "\n})";
+            var func = eval(source);
+            func.apply(null, argv);
+        }
+        browser.safeExec = safeExec;
         window.$safe = toSafeText;
     })(browser = tui.browser || (tui.browser = {}));
 })(tui || (tui = {}));
@@ -2085,6 +2121,7 @@ var tui;
     var widget;
     (function (widget) {
         "use strict";
+        var MAX = 6;
         var _controls = {};
         var Form = (function (_super) {
             __extends(Form, _super);
@@ -2145,11 +2182,24 @@ var tui;
                 }
                 return null;
             };
+            Form.prototype.setFormula = function (key, formula) {
+                if (key && formula) {
+                    this._formulas[key] = formula;
+                    this.render();
+                }
+            };
+            Form.prototype.removeFormula = function (key) {
+                delete this._formulas[key];
+                this.render();
+            };
+            Form.prototype.getFormula = function (key) {
+                return this._formulas[key];
+            };
             Form.prototype.addItem = function (type, label, pos) {
                 if (label === void 0) { label = null; }
                 if (pos === void 0) { pos = -1; }
                 var c = _controls[type];
-                if (label === null)
+                if (label === null || label === undefined)
                     label = tui.str(c.desc);
                 var define = { type: type, label: label };
                 var key = type + (++this._maxId);
@@ -2230,6 +2280,7 @@ var tui;
                 var _this = this;
                 _super.prototype.initRestriction.call(this);
                 this._items = [];
+                this._formulas = {};
                 this._valueCache = null;
                 this._autoResizeTimer = null;
                 this._parentWidth = null;
@@ -2258,11 +2309,21 @@ var tui;
                                 _this.removeAll();
                                 for (var _i = 0, _a = value; _i < _a.length; _i++) {
                                     var define = _a[_i];
-                                    var cstor = _controls[define.type];
-                                    if (cstor) {
-                                        var item = new cstor(_this, define);
-                                        item.update();
-                                        _this._items.push(item);
+                                    if (define.type === "formula" && define.key && define.value) {
+                                        var v = _this._formulas[define.key];
+                                        if (v) {
+                                            _this._formulas[define.key] = v + "\n" + define.value;
+                                        }
+                                        else
+                                            _this._formulas[define.key] = define.value;
+                                    }
+                                    else {
+                                        var cstor = _controls[define.type];
+                                        if (cstor) {
+                                            var item = new cstor(_this, define);
+                                            item.update();
+                                            _this._items.push(item);
+                                        }
                                     }
                                 }
                             }
@@ -2276,6 +2337,12 @@ var tui;
                             for (var _i = 0, _a = _this._items; _i < _a.length; _i++) {
                                 var item = _a[_i];
                                 result.push(item.define);
+                            }
+                            for (var k in _this._formulas) {
+                                if (_this._formulas.hasOwnProperty(k)) {
+                                    var v = _this._formulas[k];
+                                    result.push({ type: "formula", key: k, value: v, label: null });
+                                }
                             }
                             return result;
                         }
@@ -2363,6 +2430,23 @@ var tui;
                                         computeValue(k, []);
                                     }
                                 }
+                                var f = null;
+                                for (var k in _this._formulas) {
+                                    if (_this._formulas.hasOwnProperty(k)) {
+                                        var v = _this._formulas[k];
+                                        if (f) {
+                                            f += "\n" + v;
+                                        }
+                                        else {
+                                            f = v;
+                                        }
+                                    }
+                                }
+                                if (f) {
+                                    tui.browser.safeExec(f, {
+                                        form: _this._formHandler
+                                    });
+                                }
                                 var _loop_1 = function (i) {
                                     var item = _this._items[i];
                                     var k = item.getKey();
@@ -2420,6 +2504,19 @@ var tui;
                     if (tui.ieVer > 0 && _this.get("mode") === "design")
                         tui.browser.focusWithoutScroll(_this._);
                 });
+                this._formHandler = {
+                    get: function (key) {
+                        var item = _this.getItem(key);
+                        if (item)
+                            return item.getValue(null);
+                        return null;
+                    },
+                    set: function (key, value) {
+                        var item = _this.getItem(key);
+                        if (item)
+                            return item.setValue(value);
+                    }
+                };
                 $(this._).on("keydown", function (e) {
                     if (_this.get("mode") !== "design")
                         return;
@@ -2602,8 +2699,8 @@ var tui;
                 var i = Math.floor(pw / s);
                 if (i < 1)
                     i = 1;
-                if (i > 6)
-                    i = 6;
+                if (i > MAX)
+                    i = MAX;
                 var c = "tui-size-" + i;
                 this.addClass(c);
             };

@@ -625,5 +625,37 @@ module tui.browser {
 		}
 	}
 
+	export function safeExec(code: string, context?: {[key: string]: any}) {
+		var c = "";
+		var argv = [];
+		if (context) {
+			for (let k in context) {
+				if (context.hasOwnProperty(k)) {
+					if (c)
+						c += ","
+					c += k;
+					argv.push(context[k]);
+				}
+			}
+		}
+
+		var namePattern = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+		function exclude(...keys: string[]) {
+			for (let k of keys) {
+				if (namePattern.test(k) && (!context || !context.hasOwnProperty(k)) ) {
+					if (c)
+						c += ","
+					c += k;
+				}
+			}
+		}
+		for (let k in window) {
+			exclude(k);
+		}
+		var source = "(function (" + c + "){\n" + code + "\n})";
+		var func = <Function>eval(source);
+		func.apply(null, argv);
+	}
+
 	(<any>window).$safe = toSafeText;
 }
