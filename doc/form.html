@@ -15,11 +15,32 @@
 	<link rel="stylesheet" href="../dist/tui2.css" />
 	<link rel="stylesheet" href="../dist/plugins/navigator/navigator.css" />
 	<link rel="stylesheet" href="../dist/plugins/location/location.css" />
+	<style>
+		#toolbar {
+			margin: 0px 20px;
+			margin-top: 20px;
+		}
+		code {
+			display: block;
+			margin: 5px 0;
+			border: 1px solid #ddd;
+			border-radius: 3px;
+			background-color: #ffe;
+			color: black;
+			font-size: 14px;
+			padding: 10px;
+		}
+		@media (max-width:580px) {
+			#toolbar {
+				margin: 20px 0px;
+			}
+		}
+	</style>
 	<!-- <link rel="stylesheet" href="../dist/plugins/enterprise/enterprise.css" /> -->
 	<!--[if IE 8]>
-		<script type="text/javascript" src="../depends/es5-shim.min.js"></script>
-		<script type="text/javascript" src="../depends/json2.min.js"></script>
-		<![endif]-->
+	<script type="text/javascript" src="../depends/es5-shim.min.js"></script>
+	<script type="text/javascript" src="../depends/json2.min.js"></script>
+	<![endif]-->
 	<script type="text/javascript" src="../depends/jquery-1.11.3.min.js"></script>
 	<script type="text/javascript" src="../dist/tui2.js"></script>
 	<script>
@@ -32,17 +53,33 @@
 </head>
 
 <body>
+	<h1 style="text-align: center;margin:20px 0;border-bottom: 1px solid #ddd;padding:10px 0;color:#247">
+		表单设计器
+	</h1>
 	<tui:component handler="form.js">
-		<tui:form name="form" class="tui-panel" mode="design"></tui:form>
-		<div style="text-align: center;margin:20px 0;">
+		<div id="toolbar">
 			<tui:button-group name="mode" type="radio">
 				<tui:button value="design" checked={true}><i class="fa fa-th"></i> 设计</tui:button>
 				<tui:button value="input"><i class="fa fa-play"></i> 输入</tui:button>
 			</tui:button-group>
-			<tui:button name="submit" class="tui-primary">提交</tui:button>
+		</div>
+		<tui:form name="form" class="tui-panel" mode="design"></tui:form>
+		<div style="text-align: center;margin:20px 0;">
 			<tui:button name="define" class="tui-success">定义</tui:button>
+			<tui:button name="submit" class="tui-primary">取值</tui:button>
+			<tui:button name="formula" class="tui-danger">公式</tui:button>
 		</div>
 	</tui:component>
+	<hr>
+	<h2 style="margin: 5px;color: #888">说明</h2>
+	<p style="margin:5px 0; padding:0 10px; white-space:pre-line; color:#555;">
+		&bull; 公式采用 Javascript 语法，直接使用表单元素的 key 可以引用并获取/设置它的值，如：
+		<code>textbox1.value = textbox2.value + textbox3.value</code>
+		&bull; 如果表单元素没有设置 key 值，或 key 值并不是一个合法的变量名，那么可以通过 cells 集合来访问它，如：
+		<code>cells[0].value = cells[1].value + cells["some key"].value</code>
+		&bull; 如果您的浏览器是 IE8, 那么您不能使用 value 属性，您只能使用 setValue() 和 getValue() 方法来代替，如：
+		<code>textbox1.setValue(textbox2.getValue() + textbox3.getValue())</code>
+	</p>
 </body>
 
 </html>

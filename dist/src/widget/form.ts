@@ -32,17 +32,39 @@ module tui.widget {
 
 	var _controls: { [index: string]: FormControlConstructor } = {};
 
+	var namePattern = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+
+	function makeHandler(item: FormControl<FormItem>): Object {
+		let itemHandler = {
+			getValue: function() {
+				if (item && item.available)
+					return item.getValue(null);
+				else
+					return null;
+			},
+			setValue(v: any) {
+				return item.setValue(v);
+			}
+		};
+		if (typeof Object.defineProperty === "function") {
+			Object.defineProperty(itemHandler, "value", {
+				get: function() {
+					return this.getValue();
+				},
+				set: function(v) {
+					this.setValue(v);
+				}
+			});
+		}
+		return itemHandler;
+	}
+
 	interface ControlDesc {
 		type: string;
 		name: string;
 		icon: string;
 		order: number;
 		init?: {[index:string]: any};
-	}
-
-	interface FormHandler {
-		get: (key: string) => any;
-		set: (key: string, value: any) => void;
 	}
 
 	export class Form extends Widget {
@@ -57,7 +79,10 @@ module tui.widget {
 		protected _maxId: number;
 		private _autoResizeTimer: number;
 		private _parentWidth: number;
-		private _formHandler: FormHandler;
+		private _formulaContext = {
+			callStacks: 0,
+			cacheValue: <string>null
+		};
 
 		public static register(type: string, controlType: FormControlConstructor): void {
 			_controls[type] = controlType;
@@ -116,6 +141,7 @@ module tui.widget {
 		setFormula(key: string, formula: string) {
 			if (key && formula) {
 				this._formulas[key] = formula;
+				this._valueChanged = true;
 				this.render();
 			}
 		}
@@ -165,6 +191,10 @@ module tui.widget {
 				this._valueChanged = true;
 				this.render();
 			}
+		}
+
+		getItemIndex(target: FormControl<FormItem>) {
+			return this._items.indexOf(target);
 		}
 
 		selectNext() {
@@ -358,24 +388,6 @@ module tui.widget {
 								}
 							}
 
-							// Then compute formulas
-							var f = null;
-							for (let k in this._formulas) {
-								if (this._formulas.hasOwnProperty(k)) {
-									let v = this._formulas[k];
-									if (f) {
-										f += "\n" + v;
-									} else {
-										f = v;
-									}
-								}
-							}
-							if (f) {
-								browser.safeExec(f, {
-									form: this._formHandler
-								});
-							}
-
 							// Then compute all items which does not define the key.
 							for (let i = 0; i < this._items.length; i++) {
 								let item = this._items[i];
@@ -410,6 +422,58 @@ module tui.widget {
 								}
 							}
 
+							// Then compute formulas
+							var f = null;
+							for (let k in this._formulas) {
+								if (this._formulas.hasOwnProperty(k)) {
+									let v = this._formulas[k];
+									if (f) {
+										f += "\n" + v;
+									} else {
+										f = v;
+									}
+								}
+							}
+
+							if (f) {
+								if (this._formulaContext.callStacks > 30) {
+									throw new Error("Invalid formula: call stacks should not exceed 30!");
+								}
+								// Save all value to handler cache.
+								let formulaValueCache = [];
+								for (let i = 0; i < this._items.length; i++) {
+									if (this._items[i].available)
+										formulaValueCache.push(this._items[i].define.value);
+								}
+								var cacheStr = JSON.stringify(formulaValueCache);
+								if (this._formulaContext.cacheValue != cacheStr) {
+									this._formulaContext.callStacks++;
+									this._formulaContext.cacheValue = cacheStr;
+									try {
+										var cells: any = {};
+										var params: {[key: string]: any} = { cells: cells };
+										for (let i = 0; i < this._items.length; i++) {
+											cells[i] = makeHandler(this._items[i]);
+											let k = this._items[i].getKey();
+											if (k != null) {
+												cells[k] = cells[i];
+												if (namePattern.test(k)) {
+													params[k] = cells[i];
+												}
+											}
+										}
+										browser.safeExec(f, params);
+									} catch (e) {
+										throw new Error("Invalid formula: " + e);
+									} finally {
+										this._formulaContext.callStacks--;
+										if (this._formulaContext.callStacks == 0) {
+											this._formulaContext.cacheValue = null;
+										}
+									}
+								}
+							}
+
 							this._valueChanged = false;
 							return this._valueCache;
 						} else
@@ -436,20 +500,6 @@ module tui.widget {
 				if (tui.ieVer > 0 && this.get("mode") === "design")
 					browser.focusWithoutScroll(this._);
 			});
-
-			this._formHandler = {
-				get: (key: string): any => {
-					let item = this.getItem(key);
-					if (item)
-						return item.getValue(null);
-					return null;
-				},
-				set: (key: string, value: any) => {
-					let item = this.getItem(key);
-					if (item)
-						return item.setValue(value);
-				}
-			}
 
 			$(this._).on("keydown", (e) => {
 				if (this.get("mode") !== "design")
@@ -744,6 +794,7 @@ module tui.widget {
 					}
 				} else {
 					browser.removeClass(item.div, "tui-hidden");
+					item.updateIndex(this.getItemIndex(item));
 					item.render(designMode);
 				}
 			}

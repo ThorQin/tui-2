@@ -143,6 +143,7 @@ tui.dict("zh-cn", {
 	"form.display": "显示",
 	"form.invisible": "不可见",
 	"form.visible": "可见",
+	"form.min.height": "最小高度",
 	"form.max.height": "最大高度",
 	"form.date": "日期",
 	"form.date.time": "日期时间",

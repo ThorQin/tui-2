@@ -356,7 +356,7 @@ declare module tui.widget {
         protected _maxId: number;
         private _autoResizeTimer;
         private _parentWidth;
-        private _formHandler;
+        private _formulaContext;
         static register(type: string, controlType: FormControlConstructor): void;
         static getType(type: string): FormControlConstructor;
         removeAll(): void;
@@ -369,6 +369,7 @@ declare module tui.widget {
         getFormula(key: string): string;
         addItem(type: string, label?: string, pos?: number): void;
         removeItem(target: FormControl<FormItem>): void;
+        getItemIndex(target: FormControl<FormItem>): number;
         selectNext(): boolean;
         selectPrevious(): boolean;
         protected update(): void;
@@ -765,6 +766,7 @@ declare module tui.widget {
         hide(): void;
         show(): void;
         setDesign(value: boolean): void;
+        updateIndex(index: number): void;
         select(value: boolean): void;
         isSelect(): boolean;
         getKey(): string;

@@ -405,6 +405,7 @@ tui.dict("en-us", {
     "form.display": "Display",
     "form.invisible": "Invisible",
     "form.visible": "Visible",
+    "form.min.height": "Min Height",
     "form.max.height": "Max Height",
     "form.date": "Date",
     "form.date.time": "Date Time",
@@ -2123,10 +2124,40 @@ var tui;
         "use strict";
         var MAX = 6;
         var _controls = {};
+        var namePattern = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+        function makeHandler(item) {
+            var itemHandler = {
+                getValue: function () {
+                    if (item && item.available)
+                        return item.getValue(null);
+                    else
+                        return null;
+                },
+                setValue: function (v) {
+                    return item.setValue(v);
+                }
+            };
+            if (typeof Object.defineProperty === "function") {
+                Object.defineProperty(itemHandler, "value", {
+                    get: function () {
+                        return this.getValue();
+                    },
+                    set: function (v) {
+                        this.setValue(v);
+                    }
+                });
+            }
+            return itemHandler;
+        }
         var Form = (function (_super) {
             __extends(Form, _super);
             function Form() {
-                return _super !== null && _super.apply(this, arguments) || this;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this._formulaContext = {
+                    callStacks: 0,
+                    cacheValue: null
+                };
+                return _this;
             }
             Form.register = function (type, controlType) {
                 _controls[type] = controlType;
@@ -2185,6 +2216,7 @@ var tui;
             Form.prototype.setFormula = function (key, formula) {
                 if (key && formula) {
                     this._formulas[key] = formula;
+                    this._valueChanged = true;
                     this.render();
                 }
             };
@@ -2233,6 +2265,9 @@ var tui;
                     this._valueChanged = true;
                     this.render();
                 }
+            };
+            Form.prototype.getItemIndex = function (target) {
+                return this._items.indexOf(target);
             };
             Form.prototype.selectNext = function () {
                 var found = false;
@@ -2430,23 +2465,6 @@ var tui;
                                         computeValue(k, []);
                                     }
                                 }
-                                var f = null;
-                                for (var k in _this._formulas) {
-                                    if (_this._formulas.hasOwnProperty(k)) {
-                                        var v = _this._formulas[k];
-                                        if (f) {
-                                            f += "\n" + v;
-                                        }
-                                        else {
-                                            f = v;
-                                        }
-                                    }
-                                }
-                                if (f) {
-                                    tui.browser.safeExec(f, {
-                                        form: _this._formHandler
-                                    });
-                                }
                                 var _loop_1 = function (i) {
                                     var item = _this._items[i];
                                     var k = item.getKey();
@@ -2483,6 +2501,57 @@ var tui;
                                 for (var i = 0; i < _this._items.length; i++) {
                                     _loop_1(i);
                                 }
+                                var f = null;
+                                for (var k in _this._formulas) {
+                                    if (_this._formulas.hasOwnProperty(k)) {
+                                        var v = _this._formulas[k];
+                                        if (f) {
+                                            f += "\n" + v;
+                                        }
+                                        else {
+                                            f = v;
+                                        }
+                                    }
+                                }
+                                if (f) {
+                                    if (_this._formulaContext.callStacks > 30) {
+                                        throw new Error("Invalid formula: call stacks should not exceed 30!");
+                                    }
+                                    var formulaValueCache = [];
+                                    for (var i = 0; i < _this._items.length; i++) {
+                                        if (_this._items[i].available)
+                                            formulaValueCache.push(_this._items[i].define.value);
+                                    }
+                                    var cacheStr = JSON.stringify(formulaValueCache);
+                                    if (_this._formulaContext.cacheValue != cacheStr) {
+                                        _this._formulaContext.callStacks++;
+                                        _this._formulaContext.cacheValue = cacheStr;
+                                        try {
+                                            var cells = {};
+                                            var params = { cells: cells };
+                                            for (var i = 0; i < _this._items.length; i++) {
+                                                cells[i] = makeHandler(_this._items[i]);
+                                                var k = _this._items[i].getKey();
+                                                if (k != null) {
+                                                    cells[k] = cells[i];
+                                                    if (namePattern.test(k)) {
+                                                        params[k] = cells[i];
+                                                    }
+                                                }
+                                            }
+                                            tui.browser.safeExec(f, params);
+                                        }
+                                        catch (e) {
+                                            throw new Error("Invalid formula: " + e);
+                                        }
+                                        finally {
+                                            _this._formulaContext.callStacks--;
+                                            if (_this._formulaContext.callStacks == 0) {
+                                                _this._formulaContext.cacheValue = null;
+                                            }
+                                        }
+                                    }
+                                }
                                 _this._valueChanged = false;
                                 return _this._valueCache;
                             }
@@ -2504,19 +2573,6 @@ var tui;
                     if (tui.ieVer > 0 && _this.get("mode") === "design")
                         tui.browser.focusWithoutScroll(_this._);
                 });
-                this._formHandler = {
-                    get: function (key) {
-                        var item = _this.getItem(key);
-                        if (item)
-                            return item.getValue(null);
-                        return null;
-                    },
-                    set: function (key, value) {
-                        var item = _this.getItem(key);
-                        if (item)
-                            return item.setValue(value);
-                    }
-                };
                 $(this._).on("keydown", function (e) {
                     if (_this.get("mode") !== "design")
                         return;
@@ -2818,6 +2874,7 @@ var tui;
                     }
                     else {
                         tui.browser.removeClass(item.div, "tui-hidden");
+                        item.updateIndex(this.getItemIndex(item));
                         item.render(designMode);
                     }
                 }
@@ -7517,6 +7574,7 @@ var tui;
                 this.mask.setAttribute("unselectable", "on");
                 this.mask.className = "tui-form-item-mask";
                 this.mask.style.display = "none";
+                this.mask.appendChild(tui.elem("span"));
                 this.toolbar = tui.elem("div");
                 this.toolbar.className = "tui-form-item-toolbar";
                 this.btnAdd = widget.create("button", { text: "<i class='fa fa-plus'></i>" });
@@ -7837,6 +7895,9 @@ var tui;
                     tui.browser.removeClass(this.div, "tui-form-in-design");
                 }
             };
+            FormControl.prototype.updateIndex = function (index) {
+                (this.mask.childNodes[0].innerHTML = index + "");
+            };
             FormControl.prototype.select = function (value) {
                 var _this = this;
                 this.selected = !!value;
@@ -7987,9 +8048,24 @@ var tui;
             }
             FormSection.prototype.update = function () {
                 _super.prototype.update.call(this);
-                var d = this.define;
                 if (!/^(visible|folder|invisible|newline)$/.test(this.define.display))
                     this.define.display = "visible";
+                this.applySize();
+            };
+            FormSection.prototype.isResizable = function () {
+                return false;
+            };
+            FormSection.prototype.getValue = function () {
+                var v = typeof this.define.value !== tui.UNDEFINED ? this.define.value : null;
+                return v;
+            };
+            FormSection.prototype.setValue = function (value) {
+                if (typeof value !== tui.UNDEFINED)
+                    this.define.value = value;
+                this.form.fire("itemvaluechanged", { control: this });
+            };
+            FormSection.prototype.render = function (designMode) {
+                var d = this.define;
                 var l;
                 if (d.value != "" && d.value != null && typeof d.value != tui.UNDEFINED && d.valueAsLabel)
                     l = d.value + "";
@@ -8023,22 +8099,6 @@ var tui;
                     d.required = undefined;
                     tui.browser.removeClass(this.label, "tui-form-item-required");
                 }
-                delete d.position;
-                this.applySize();
-            };
-            FormSection.prototype.isResizable = function () {
-                return false;
-            };
-            FormSection.prototype.getValue = function () {
-                var v = typeof this.define.value !== tui.UNDEFINED ? this.define.value : null;
-                return v;
-            };
-            FormSection.prototype.setValue = function (value) {
-                if (typeof value !== tui.UNDEFINED)
-                    this.define.value = value;
-                this.form.fire("itemvaluechanged", { control: this });
-            };
-            FormSection.prototype.render = function (designMode) {
                 if (!this.define.label && !this.define.description && this.define.display != "folder") {
                     tui.browser.addClass(this.label, "tui-hidden");
                 }
@@ -8336,15 +8396,22 @@ var tui;
                         properties: [
                             {
                                 "type": "textbox",
+                                "key": "minHeight",
+                                "inputType": "number",
+                                "label": tui.str("form.min.height"),
+                                "value": this.define.minHeight,
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.format") }
+                                ]
+                            }, {
+                                "type": "textbox",
                                 "key": "maxHeight",
                                 "inputType": "number",
                                 "label": tui.str("form.max.height"),
                                 "value": this.define.maxHeight,
                                 "validation": [
                                     { "format": "*digital", "message": tui.str("message.invalid.format") }
-                                ],
-                                "size": 2,
-                                "position": "newline"
+                                ]
                             }, {
                                 "type": "grid",
                                 "key": "validation",
@@ -8387,6 +8454,11 @@ var tui;
             };
             FormTextarea.prototype.update = function () {
                 _super.prototype.update.call(this);
+                var box = this._widget.getComponent("textbox");
+                if (/\d+/.test((this.define.minHeight + "").trim()))
+                    box.style.minHeight = (this.define.minHeight + "").trim() + "px";
+                else
+                    box.style.minHeight = "";
                 if (/\d+/.test((this.define.maxHeight + "").trim()))
                     this._widget._.style.maxHeight = (this.define.maxHeight + "").trim() + "px";
                 else
@@ -8395,6 +8467,10 @@ var tui;
             FormTextarea.prototype.setProperties = function (properties) {
                 var values = properties[1];
                 this.define.validation = (values.validation && values.validation.length) > 0 ? values.validation : undefined;
+                if (/\d+/.test(values.minHeight + ""))
+                    this.define.minHeight = values.minHeight;
+                else
+                    this.define.minHeight = null;
                 if (/\d+/.test(values.maxHeight + ""))
                     this.define.maxHeight = values.maxHeight;
                 else

@@ -232,6 +232,7 @@ module tui.widget {
 			this.mask.setAttribute("unselectable", "on");
 			this.mask.className = "tui-form-item-mask";
 			this.mask.style.display = "none";
+			this.mask.appendChild(elem("span"));
 
 			this.toolbar = elem("div");
 			this.toolbar.className = "tui-form-item-toolbar";
@@ -499,11 +500,14 @@ module tui.widget {
 			}
 		}
 
+		updateIndex(index: number) {
+			((<HTMLElement>this.mask.childNodes[0]).innerHTML = index + "");
+		}
+
 		select(value: boolean) {
 			this.selected = !!value;
 			if (this.selected) {
 				browser.addClass(this.div, "tui-form-item-selected");
-
 				this.toolbar.style.opacity = "0";
 				this.div.appendChild(this.toolbar);
 				setTimeout(() => {
@@ -670,9 +674,29 @@ module tui.widget {
 
 		update() {
 			super.update();
-			var d = this.define;
 			if (!/^(visible|folder|invisible|newline)$/.test(this.define.display))
 				this.define.display = "visible";
+
+
+			this.applySize();
+		}
+
+		isResizable(): boolean {
+			return false;
+		}
+
+		getValue(): any {
+			var v = typeof this.define.value !== UNDEFINED ? this.define.value : null;
+			return v;
+		}
+		setValue(value: any): void {
+			if (typeof value !== UNDEFINED)
+				this.define.value = value;
+			this.form.fire("itemvaluechanged", {control: this});
+		}
+
+		render(designMode: boolean): void {
+			var d = this.define;
 			var l;
 			if (d.value != "" && d.value != null && typeof d.value != UNDEFINED && d.valueAsLabel)
 				l = d.value + "";
@@ -707,25 +731,6 @@ module tui.widget {
 				d.required = undefined;
 				browser.removeClass(this.label,"tui-form-item-required");
 			}
-			delete d.position;
-			this.applySize();
-		}
-
-		isResizable(): boolean {
-			return false;
-		}
-
-		getValue(): any {
-			var v = typeof this.define.value !== UNDEFINED ? this.define.value : null;
-			return v;
-		}
-		setValue(value: any): void {
-			if (typeof value !== UNDEFINED)
-				this.define.value = value;
-			this.form.fire("itemvaluechanged", {control: this});
-		}
-
-		render(designMode: boolean): void {
 			if (!this.define.label && !this.define.description && this.define.display != "folder") {
 				browser.addClass(this.label, "tui-hidden");
 			} else {
@@ -1016,6 +1021,7 @@ module tui.widget {
 	// ----------------------------------------------------------------------------------------------------------
 	interface TextareaFormItem extends FormItem {
 		validation?: {format: string, message: string}[];
+		minHeight?: number;
 		maxHeight?: number;
 	}
 	class FormTextarea extends BasicFormControl<Textarea, TextareaFormItem> {
@@ -1041,15 +1047,22 @@ module tui.widget {
 				properties: [
 					{
 						"type": "textbox",
+						"key": "minHeight",
+						"inputType": "number",
+						"label": str("form.min.height"),
+						"value": this.define.minHeight,
+						"validation": [
+							{ "format": "*digital", "message": str("message.invalid.format") }
+						]
+					}, {
+						"type": "textbox",
 						"key": "maxHeight",
 						"inputType": "number",
 						"label": str("form.max.height"),
 						"value": this.define.maxHeight,
 						"validation": [
 							{ "format": "*digital", "message": str("message.invalid.format") }
-						],
-						"size": 2,
-						"position": "newline"
+						]
 					}, {
 						"type": "grid",
 						"key": "validation",
@@ -1092,6 +1105,11 @@ module tui.widget {
 		}
 		update() {
 			super.update();
+			var box = this._widget.getComponent("textbox");
+			if (/\d+/.test((this.define.minHeight + "").trim()))
+				box.style.minHeight = (this.define.minHeight + "").trim() + "px";
+			else
+				box.style.minHeight = "";
 			if (/\d+/.test((this.define.maxHeight + "").trim()))
 				this._widget._.style.maxHeight = (this.define.maxHeight + "").trim() + "px";
 			else
@@ -1100,6 +1118,10 @@ module tui.widget {
 		setProperties(properties: any[]) {
 			var values = properties[1];
 			this.define.validation = (values.validation && values.validation.length) > 0 ? values.validation : undefined;
+			if (/\d+/.test(values.minHeight + ""))
+				this.define.minHeight = values.minHeight;
+			else
+				this.define.minHeight = null;
 			if (/\d+/.test(values.maxHeight + ""))
 				this.define.maxHeight = values.maxHeight;
 			else

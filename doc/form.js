@@ -1,4 +1,4 @@
-this.use(function(mode, submit, define, form) {
+this.use(function(mode, submit, define, formula, form) {
 	mode.on("click", function(e){
 		form.set("mode", this.get("value"));
 	});
@@ -25,6 +25,25 @@ this.use(function(mode, submit, define, form) {
 				return false;
 			}
 			form.set("definition", code);
+		});
+	});
+	formula.on("click", function(e){
+		tui.inputbox([
+			{
+				"type": "textarea",
+				"label": "公式",
+				"key": "code",
+				"minHeight": "200",
+				"maxHeight": "400",
+				"size": 3
+			}
+		], "公式", {code: form.getFormula("formula")}, function(value){
+			try {
+				code = value.code;
+				form.setFormula("formula", code);
+			} catch(e) {
+				tui.errbox("执行错误：" + e);
+			}
 		});
 	});
 });
