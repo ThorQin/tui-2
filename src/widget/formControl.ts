@@ -2149,7 +2149,7 @@ module tui.widget {
 	// ----------------------------------------------------------------------------------------------------------
 	interface GridFormItem extends FormItem {
 		definitions: FormItem[];
-		items: any[];
+	//	items: any[];
 		features: string[];
 		atLeast?: number;
 		atMost?: number;
@@ -2206,19 +2206,7 @@ module tui.widget {
 				});
 			});
 
-			this._btnEdit = <Button>create("button", {text: "<i class='fa fa-pencil'></i>"});
-			this._btnEdit.appendTo(this._buttonBar);
-			this._btnEdit.on("click", () => {
-				this.editRow();
-			});
-			this._widget.on("rowdblclick", () => {
-				if (exist(this.define.features, "edit"))
-					this.editRow();
-			});
-
-			//gp.appendTo(this._buttonBar);
-
-			this._btnDelete = <Button>create("button", {text: "<i class='fa fa-trash'></i>"});
+			this._btnDelete = <Button>create("button", {text: "<i class='fa fa-minus'></i>"});
 			this._btnDelete.appendTo(this._buttonBar);
 			this._btnDelete.on("click", () => {
 				var i = this._widget.get("activeRow");
@@ -2227,6 +2215,16 @@ module tui.widget {
 				this._values.splice(i, 1);
 				this._notifyBar.innerHTML = "";
 				form.fire("itemvaluechanged", {control: this});
+			});
+
+			this._btnEdit = <Button>create("button", {text: "<i class='fa fa-pencil'></i>"});
+			this._btnEdit.appendTo(this._buttonBar);
+			this._btnEdit.on("click", () => {
+				this.editRow();
+			});
+			this._widget.on("rowdblclick", () => {
+				if (exist(this.define.features, "edit"))
+					this.editRow();
 			});
 
 			this._notifyBar = elem("div");

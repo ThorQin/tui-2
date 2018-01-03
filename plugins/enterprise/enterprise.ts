@@ -3,34 +3,120 @@
 module tui.widget.ext {
 	"use strict";
 
-	abstract class FormDialogSelect<D extends FormItem> extends BasicFormControl<DialogSelect, D> {
-		protected _searchBox: Input;
-		protected _list: List;
-		protected _dialogDiv: HTMLElement;
-		// Following variables should be initialized by subclass
-		protected _classType: any;
-		protected _rightIcon: string;
-		protected _title: string;
-		protected _rowType: RegExp;
-		protected _rowTooltip: string;
-		protected _invalidSelectionMessage: string;
-		protected _key: string;
-		protected _allowMultiSelect: boolean;
+	interface ResultItem {
+		name?: string;
+		[index: string]: string;
+	}
 
-		abstract init(): void;
+	function mergeArray(key:string, src: ResultItem[], newValues: ResultItem[]): ResultItem[] {
+		var result: ResultItem[] = [];
+		if (!(newValues instanceof Array))
+			return src;
+		if (!(src instanceof Array) || src.length == 0)
+			return newValues;
+		result.splice(0,0, ...src);
+		for (let i = 0; i < newValues.length; i++) {
+			let k = newValues[i][key];
+			let exists = false;
+			for (let item of result) {
+				if (item[key] == k) {
+					exists = true
+					break;
+				}
+			}
+			if (!exists) {
+				let obj: ResultItem = {};
+				obj[key] = k;
+				obj.name = newValues[i].name;
+				result.push(obj);
+			}
+		}
+		return result;
+	}
 
-		protected queryTree() {
+	function createSelector(key: string, title: string, rowTooltip: string, rowType: RegExp, invalidMessage: string, classType: any, handler: (result: ResultItem | ResultItem[]) => void | boolean) {
+		let searchBox = <Input>create("input");
+		searchBox._set("iconLeft", "fa-search");
+		searchBox._set("clearable", true);
+		searchBox._set("placeholder", str("label.search"));
+		let list = <List>create("list");
+		list._set("rowTooltipKey", rowTooltip);
+		list._set("nameKey", "displayName");
+
+		let dialogDiv = elem("div");
+		dialogDiv.className = "tui-dialog-select-div";
+		dialogDiv.appendChild(searchBox._);
+		dialogDiv.appendChild(list._);
+		let dialog = <Dialog>create("dialog");
+		dialog._set("mobileModel", true);
+		dialog.setContent(dialogDiv);
+		dialog.set("title", title);
+
+
+		let _topOrganId: number;
+		let _withSubCompany: boolean;
+		let _multiple: boolean;
+
+		searchBox.on("enter clear", () => {
+			if (searchBox.get("value")) {
+				queryList();
+			} else {
+				queryTree();
+			}
+		});
+
+		dialog.on("open", function() {
+			searchBox.set("value", "");
+			queryTree();
+		});
+
+		dialog.on("btnclick", (e) => {
+			if (typeof handler !== "function") {
+				return;
+			}
+			if (_multiple) {
+				let values = [];
+				let checkedItems: any[] = list.get("checkedItems");
+				for (let i = 0; i < checkedItems.length; i++) {
+					let obj:ResultItem = {};
+					obj[key] = checkedItems[i][key];
+					obj.name = checkedItems[i].name;
+					values.push(obj);
+				}
+				if (handler(values) !== false) {
+					dialog.close()
+				}
+			} else {
+				let row = list.get("activeRowData");
+				if (row == null) {
+					tui.msgbox(invalidMessage);
+					return;
+				} else if (!rowType.test(row.type)) {
+					tui.msgbox(invalidMessage);
+					return;
+				} else {
+					let obj: ResultItem = {};
+					obj[key] = row[key];
+					obj.name = row.name;
+					if (handler(obj) !== false) {
+						dialog.close()
+					}
+				}
+			}
+		});
+
+		function queryTree() {
 			var datasource = new tui.ds.RemoteTree();
 			datasource.on("query", (e) => {
 				var parentId = (e.data.parent === null ? null: e.data.parent.item.id);
 				var topmost = false;
-				if (parentId === null && this.define.organ && typeof this.define.organ.id === "number") {
-					parentId = this.define.organ.id;
+				if (parentId === null && (typeof _topOrganId === "number" || _topOrganId)) {
+					parentId = _topOrganId;
 					topmost = true;
 				}
-				ajax.post_(this._classType.listApi, {
+				ajax.post_(classType.listApi, {
 					organId: parentId,
-					withSubCompany: !!this.define.withSubCompany,
+					withSubCompany: !!_withSubCompany,
 					topmost: topmost
 				}).done(function(result){
 					datasource.update({
@@ -45,80 +131,53 @@ module tui.widget.ext {
 					tui.errbox(message);
 				});
 			});
-			this._list.set("activeRow", null);
-			this._list.set("tree", datasource);
+			list.set("activeRow", null);
+			list.set("tree", datasource);
 		}
 
-		protected queryList() {
+		function queryList() {
 			var query = {
-				keyword: this._searchBox.get("value"),
-				organId: (this.define.organ && typeof this.define.organ.id === "number" ? this.define.organ.id : null),
-				withSubCompany: !!this.define.withSubCompany
+				keyword: searchBox.get("value"),
+				organId: (typeof _topOrganId === "number" || _topOrganId ? _topOrganId : null),
+				withSubCompany: !!_withSubCompany
 			}
-			ajax.post(this._classType.queryApi, query).done((result) => {
-				this._list.set("activeRow", null);
-				this._list.set("list", result);
+			ajax.post(classType.queryApi, query).done((result) => {
+				list.set("activeRow", null);
+				list.set("list", result);
 			}).fail(() => {
-				this._list.set("list", []);
+				list.set("list", []);
 			});
 		}
+
+		return function (topOrgan: any, withSubCompany: boolean, multiple: boolean) {
+			_topOrganId = (topOrgan ? topOrgan.id: null);
+			_withSubCompany = withSubCompany;
+			_multiple = !!multiple;
+			list.set("checkable", !!multiple);
+			dialog.open("ok#tui-primary");
+		}
+	}
+
+	abstract class FormDialogSelect<D extends FormItem> extends BasicFormControl<DialogSelect, D> {
+		// Following variables should be initialized by subclass
+		protected _classType: any;
+		protected _rightIcon: string;
+		protected _title: string;
+		protected _rowType: RegExp;
+		protected _rowTooltip: string;
+		protected _invalidSelectionMessage: string;
+		protected _key: string;
+		protected _allowMultiSelect: boolean;
+
+		abstract init(): void;
 
 		constructor(form: Form, define: D) {
 			super(form, define, "dialog-select");
 			this.init();
 			this._widget.set("iconRight", this._rightIcon);
-			this._searchBox = <Input>create("input");
-			this._searchBox._set("iconLeft", "fa-search");
-			this._searchBox._set("clearable", true);
-			this._searchBox._set("placeholder", str("label.search"));
-			this._list = <List>create("list");
-			this._list._set("rowTooltipKey", this._rowTooltip);
-			this._list._set("nameKey", "displayName");
-			this._dialogDiv = elem("div");
-			this._dialogDiv.className = "tui-dialog-select-div";
-			this._dialogDiv.appendChild(this._searchBox._);
-			this._dialogDiv.appendChild(this._list._);
-			this._widget._set("mobileModel", true);
-			this._widget._set("title", this._title);
-			this._widget._set("content", this._dialogDiv);
-			this._searchBox.on("enter clear", () => {
-				if (this._searchBox.get("value")) {
-					this.queryList();
-				} else {
-					this.queryTree();
-				}
-			});
-			this._widget.on("open", () => {
-				this._searchBox.set("value", "");
-				this.queryTree();
-			});
-			this._widget.on("clear", () => {
-				if (this.define.multiple)
-					this.define.value = [];
-				else
-					this.define.value = null;
-				form.fire("itemvaluechanged", {control: this});
-			});
-			this._widget.on("select", (e) => {
+			var selector = createSelector(this._key, this._title, this._rowTooltip, this._rowType, this._invalidSelectionMessage, this._classType, (result) => {
 				if (this.define.multiple) {
-					var values = this.define.value;
-					var checkedItems: any[] = this._list.get("checkedItems");
-					for (let i = 0; i < checkedItems.length; i++) {
-						let k = checkedItems[i][this._key];
-						let exists = false;
-						for (let item of values) {
-							if (item[this._key] == k) {
-								exists = true
-								break;
-							}
-						}
-						if (!exists) {
-							let obj:{[index: string]: string} = {};
-							obj[this._key] = k;
-							obj.name = checkedItems[i].name;
-							values.push(obj);
-						}
-					}
+					let values = mergeArray(this._key, this.define.value, <ResultItem[]>result);
 					var text = "";
 					for (let i = 0; i < values.length; i++) {
 						if (i > 0)
@@ -129,28 +188,27 @@ module tui.widget.ext {
 					this._widget.set("text", text);
 					form.fire("itemvaluechanged", {control: this});
 				} else {
-					var row = this._list.get("activeRowData");
-					if (row == null) {
-						tui.msgbox(this._invalidSelectionMessage);
-						return false;
-					} else if (!this._rowType.test(row.type)) {
-						tui.msgbox(this._invalidSelectionMessage);
-						return false;
-					} else {
-						let obj:{[index: string]: string} = {};
-						obj[this._key] = row[this._key];
-						obj.name = row.name;
-						this.define.value = obj;
-						this._widget.set("text", row.name);
-						form.fire("itemvaluechanged", {control: this});
-					}
+					this.define.value = result;
+					this._widget.set("text", (<ResultItem>result).name);
+					form.fire("itemvaluechanged", {control: this});
 				}
 			});
+			this._widget.on("open", () => {
+				selector(this.define.organ, this.define.withSubCompany, this.define.multiple)
+				return false;
+			});
+			this._widget.on("clear", () => {
+				if (this.define.multiple)
+					this.define.value = [];
+				else
+					this.define.value = null;
+				form.fire("itemvaluechanged", {control: this});
+			});
+
 		}
 
 		update() {
 			super.update();
-			this._list._set("checkable", !!this.define.multiple);
 			this._widget._set("clearable", true);
 			this.setValueInternal(this.define.value);
 			if (this.define.required) {
@@ -218,7 +276,7 @@ module tui.widget.ext {
 					"value": this.define.organ,
 					"withSubCompany": true,
 					"size": 2,
-					"newline": true
+					"position": "newline"
 				},{
 					"type": "options",
 					"key": "withSubCompany",
@@ -230,7 +288,7 @@ module tui.widget.ext {
 					]}],
 					"atMost": 1,
 					"size": 2,
-					"newline": true
+					"position": "newline"
 				}
 			];
 			if (this._allowMultiSelect) {
@@ -330,7 +388,7 @@ module tui.widget.ext {
 	class FormOrganSelect extends FormDialogSelect<OrganSelectItem> {
 		static icon = "fa-building-o";
 		static desc = "label.organization";
-		static order = 201;
+		static order = 202;
 		static queryApi: string = null;
 		static listApi: string = null;
 		static init = {
@@ -352,9 +410,196 @@ module tui.widget.ext {
 	}
 	Form.register("organ", FormOrganSelect);
 
+	// --------------------------------------------------------------------------------
+
+	interface UserListFormItem extends FormItem {
+		organ: {id: number, name: string};
+		withSubCompany: boolean;
+		atLeast?: number;
+		atMost?: number;
+		height?: number;
+	}
+	class FormUserList extends BasicFormControl<List, UserListFormItem> {
+		static icon = "fa-list";
+		static desc = "label.user.list";
+		static order = 201;
+		static init = {
+			withSubCompany: true,
+			position: "newline"
+		};
+
+		// private _values: any[];
+		private _buttonBar: HTMLElement;
+		private _btnAdd: Button;
+		private _btnDelete: Button;
+		private _notifyBar: HTMLElement;
+
+		constructor(form: Form, define: UserListFormItem) {
+			super(form, define, "list");
+
+			var selector = createSelector("account", str("label.select.user"), "tooltip", /^user$/, str("message.select.user"), FormUserSelect, (result) => {
+				let values = mergeArray("account", this.define.value, <ResultItem[]>result);
+				this._notifyBar.innerHTML = "";
+				this.setValue(values);
+			});
+
+			this._widget._.style.margin = "2px";
+			this._buttonBar = elem("div");
+			this.div.appendChild(this._buttonBar);
+			this._btnAdd = <Button>create("button", {text: "<i class='fa fa-plus'></i>"});
+			this._btnAdd.appendTo(this._buttonBar);
+			this._btnAdd.on("click", () => {
+				selector(this.define.organ, this.define.withSubCompany, true);
+			});
+
+			this._btnDelete = <Button>create("button", {text: "<i class='fa fa-minus'></i>"});
+			this._btnDelete.appendTo(this._buttonBar);
+			this._btnDelete.on("click", () => {
+				var i = this._widget.get("activeRow");
+				if (i === null)
+					return;
+				this.define.value.splice(i, 1);
+				this._notifyBar.innerHTML = "";
+				form.fire("itemvaluechanged", {control: this});
+			});
+
+			this._notifyBar = elem("div");
+			this._notifyBar.className = "tui-form-notify-bar";
+			this.div.appendChild(this._notifyBar);
+		}
+
+		update() {
+			super.update();
+			this._notifyBar.innerHTML = "";
+			var d = this.define;
+			if (!(d.value instanceof Array)) {
+				d.value = [];
+			}
+			this._widget._set("list", d.value);
+
+			if (this.define.disable) {
+				this._btnAdd.set("disable", true);
+				this._btnAdd._.style.display = "none";
+				this._btnDelete.set("disable", true);
+				this._btnDelete._.style.display = "none";
+				this._widget.set("disable", true);
+			} else {
+				this._btnAdd.set("disable", false);
+				this._btnAdd._.style.display = "inline-block";
+				this._btnDelete.set("disable", false);
+				this._btnDelete._.style.display = "inline-block";
+				this._widget.set("disable", false);
+			}
+			this._widget.set("autoHeight", false);
+			if (typeof d.height === "number" && !isNaN(d.height) ||
+				typeof d.height === "string" && /^\d+$/.test(d.height)) {
+				this._widget._.style.height = d.height + "px";
+			} else {
+				this._widget._.style.height = "";
+				d.height = undefined;
+			}
+		}
+
+		getProperties(): PropertyPage[] {
+			return [{
+				name: str("label.user.list"),
+				properties: [
+					{
+						"type": "organ",
+						"key": "organ",
+						"label": str("label.top.organ"),
+						"value": this.define.organ,
+						"withSubCompany": true,
+						"size": 2,
+						"position": "newline"
+					}, {
+						"type": "options",
+						"key": "withSubCompany",
+						"label": str("label.with.sub.company"),
+						"value": this.define.withSubCompany ? true : false,
+						"options": [{"data": [
+							{"value": true, "text": str("yes")},
+							{"value": false, "text": str("no")}
+						]}],
+						"atMost": 1,
+						"size": 2,
+						"position": "newline"
+					}, {
+						"type": "textbox",
+						"inputType": "number",
+						"key": "atLeast",
+						"label": str("form.at.least"),
+						"value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast: "",
+						"validation": [
+							{ "format": "*digital", "message": str("message.invalid.value") }
+						]
+					}, {
+						"type": "textbox",
+						"inputType": "number",
+						"key": "atMost",
+						"label": str("form.at.most"),
+						"value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost: "",
+						"validation": [
+							{ "format": "*digital", "message": str("message.invalid.value") }
+						]
+					}, {
+						"type": "textbox",
+						"inputType": "number",
+						"key": "height",
+						"label": str("form.height"),
+						"value": /^\d+$/.test(this.define.height + "")? this.define.height : null,
+						"validation": [
+							{ "format": "*digital", "message": str("message.invalid.value") }
+						]
+					}
+				]
+			}];
+		}
+
+		onPropertyPageSwitch(pages: PropertyPage[], recentPage: number) {
+			FormControl.detectRequired(pages, recentPage);
+		}
+
+		setProperties(properties: any[]) {
+			var values = properties[1];
+			this.define.height = /^\d+$/.test(values.height) ? values.height: undefined;
+			this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : undefined;
+			this.define.atMost = values.atMost ? parseInt(values.atMost) : undefined;
+			this.define.withSubCompany = !!values.withSubCompany;
+			this.define.organ = values.organ;
+		}
+		getValue(): any {
+			return this.define.value || [];
+		}
+		setValue(value: any): void {
+			if (value !== this.define.value) {
+				if (value instanceof Array) {
+					this.define.value = value;
+					this._widget._set("list", this.define.value);
+				}
+			}
+			this._widget.render();
+			this.form.fire("itemvaluechanged", {control: this});
+		}
+		validate(): boolean {
+			var d = this.define;
+			var data = this._widget.get("data");
+			if (d.atLeast && data.length() < d.atLeast) {
+				this._notifyBar.innerHTML = browser.toSafeText(strp("form.at.least.p", d.atLeast));
+				return false;
+			} else if (d.atMost && data.length() > d.atMost) {
+				this._notifyBar.innerHTML = browser.toSafeText(strp("form.at.most.p", d.atMost));
+				return false;
+			} else
+				return true;
+		}
+	}
+	Form.register("users", FormUserList);
+
 
 	tui.dict("en-us", {
 		"label.user": "User",
+		"label.user.list": "User List",
 		"label.multiselect": "Multi-Select",
 		"label.search": "Search",
 		"label.select.user": "Select User",
@@ -367,6 +612,7 @@ module tui.widget.ext {
 	});
 	tui.dict("zh-cn", {
 		"label.user": "用户",
+		"label.user.list": "用户列表",
 		"label.multiselect": "多选",
 		"label.search": "搜索",
 		"label.select.user": "选择用户",

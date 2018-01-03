@@ -9481,16 +9481,7 @@ var tui;
                         catch (e) { }
                     });
                 });
-                _this._btnEdit = widget.create("button", { text: "<i class='fa fa-pencil'></i>" });
-                _this._btnEdit.appendTo(_this._buttonBar);
-                _this._btnEdit.on("click", function () {
-                    _this.editRow();
-                });
-                _this._widget.on("rowdblclick", function () {
-                    if (exist(_this.define.features, "edit"))
-                        _this.editRow();
-                });
-                _this._btnDelete = widget.create("button", { text: "<i class='fa fa-trash'></i>" });
+                _this._btnDelete = widget.create("button", { text: "<i class='fa fa-minus'></i>" });
                 _this._btnDelete.appendTo(_this._buttonBar);
                 _this._btnDelete.on("click", function () {
                     var i = _this._widget.get("activeRow");
@@ -9499,6 +9490,15 @@ var tui;
                     _this._values.splice(i, 1);
                     _this._notifyBar.innerHTML = "";
                     form.fire("itemvaluechanged", { control: _this });
+                });
+                _this._btnEdit = widget.create("button", { text: "<i class='fa fa-pencil'></i>" });
+                _this._btnEdit.appendTo(_this._buttonBar);
+                _this._btnEdit.on("click", function () {
+                    _this.editRow();
+                });
+                _this._widget.on("rowdblclick", function () {
+                    if (exist(_this.define.features, "edit"))
+                        _this.editRow();
                 });
                 _this._notifyBar = tui.elem("div");
                 _this._notifyBar.className = "tui-form-notify-bar";

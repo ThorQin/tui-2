@@ -15,111 +15,112 @@ var tui;
         var ext;
         (function (ext) {
             "use strict";
-            var FormDialogSelect = (function (_super) {
-                __extends(FormDialogSelect, _super);
-                function FormDialogSelect(form, define) {
-                    var _this = _super.call(this, form, define, "dialog-select") || this;
-                    _this.init();
-                    _this._widget.set("iconRight", _this._rightIcon);
-                    _this._searchBox = widget.create("input");
-                    _this._searchBox._set("iconLeft", "fa-search");
-                    _this._searchBox._set("clearable", true);
-                    _this._searchBox._set("placeholder", tui.str("label.search"));
-                    _this._list = widget.create("list");
-                    _this._list._set("rowTooltipKey", _this._rowTooltip);
-                    _this._list._set("nameKey", "displayName");
-                    _this._dialogDiv = tui.elem("div");
-                    _this._dialogDiv.className = "tui-dialog-select-div";
-                    _this._dialogDiv.appendChild(_this._searchBox._);
-                    _this._dialogDiv.appendChild(_this._list._);
-                    _this._widget._set("mobileModel", true);
-                    _this._widget._set("title", _this._title);
-                    _this._widget._set("content", _this._dialogDiv);
-                    _this._searchBox.on("enter clear", function () {
-                        if (_this._searchBox.get("value")) {
-                            _this.queryList();
+            function mergeArray(key, src, newValues) {
+                var result = [];
+                if (!(newValues instanceof Array))
+                    return src;
+                if (!(src instanceof Array) || src.length == 0)
+                    return newValues;
+                result.splice.apply(result, [0, 0].concat(src));
+                for (var i = 0; i < newValues.length; i++) {
+                    var k = newValues[i][key];
+                    var exists = false;
+                    for (var _i = 0, result_1 = result; _i < result_1.length; _i++) {
+                        var item = result_1[_i];
+                        if (item[key] == k) {
+                            exists = true;
+                            break;
                         }
-                        else {
-                            _this.queryTree();
-                        }
-                    });
-                    _this._widget.on("open", function () {
-                        _this._searchBox.set("value", "");
-                        _this.queryTree();
-                    });
-                    _this._widget.on("clear", function () {
-                        if (_this.define.multiple)
-                            _this.define.value = [];
-                        else
-                            _this.define.value = null;
-                        form.fire("itemvaluechanged", { control: _this });
-                    });
-                    _this._widget.on("select", function (e) {
-                        if (_this.define.multiple) {
-                            var values = _this.define.value;
-                            var checkedItems = _this._list.get("checkedItems");
-                            for (var i = 0; i < checkedItems.length; i++) {
-                                var k = checkedItems[i][_this._key];
-                                var exists = false;
-                                for (var _i = 0, values_1 = values; _i < values_1.length; _i++) {
-                                    var item = values_1[_i];
-                                    if (item[_this._key] == k) {
-                                        exists = true;
-                                        break;
-                                    }
-                                }
-                                if (!exists) {
-                                    var obj = {};
-                                    obj[_this._key] = k;
-                                    obj.name = checkedItems[i].name;
-                                    values.push(obj);
-                                }
-                            }
-                            var text = "";
-                            for (var i = 0; i < values.length; i++) {
-                                if (i > 0)
-                                    text += ", ";
-                                text += values[i].name;
-                            }
-                            _this.define.value = values;
-                            _this._widget.set("text", text);
-                            form.fire("itemvaluechanged", { control: _this });
-                        }
-                        else {
-                            var row = _this._list.get("activeRowData");
-                            if (row == null) {
-                                tui.msgbox(_this._invalidSelectionMessage);
-                                return false;
-                            }
-                            else if (!_this._rowType.test(row.type)) {
-                                tui.msgbox(_this._invalidSelectionMessage);
-                                return false;
-                            }
-                            else {
-                                var obj = {};
-                                obj[_this._key] = row[_this._key];
-                                obj.name = row.name;
-                                _this.define.value = obj;
-                                _this._widget.set("text", row.name);
-                                form.fire("itemvaluechanged", { control: _this });
-                            }
-                        }
-                    });
-                    return _this;
+                    }
+                    if (!exists) {
+                        var obj = {};
+                        obj[key] = k;
+                        obj.name = newValues[i].name;
+                        result.push(obj);
+                    }
                 }
-                FormDialogSelect.prototype.queryTree = function () {
-                    var _this = this;
+                return result;
+            }
+            function createSelector(key, title, rowTooltip, rowType, invalidMessage, classType, handler) {
+                var searchBox = widget.create("input");
+                searchBox._set("iconLeft", "fa-search");
+                searchBox._set("clearable", true);
+                searchBox._set("placeholder", tui.str("label.search"));
+                var list = widget.create("list");
+                list._set("rowTooltipKey", rowTooltip);
+                list._set("nameKey", "displayName");
+                var dialogDiv = tui.elem("div");
+                dialogDiv.className = "tui-dialog-select-div";
+                dialogDiv.appendChild(searchBox._);
+                dialogDiv.appendChild(list._);
+                var dialog = widget.create("dialog");
+                dialog._set("mobileModel", true);
+                dialog.setContent(dialogDiv);
+                dialog.set("title", title);
+                var _topOrganId;
+                var _withSubCompany;
+                var _multiple;
+                searchBox.on("enter clear", function () {
+                    if (searchBox.get("value")) {
+                        queryList();
+                    }
+                    else {
+                        queryTree();
+                    }
+                });
+                dialog.on("open", function () {
+                    searchBox.set("value", "");
+                    queryTree();
+                });
+                dialog.on("btnclick", function (e) {
+                    if (typeof handler !== "function") {
+                        return;
+                    }
+                    if (_multiple) {
+                        var values = [];
+                        var checkedItems = list.get("checkedItems");
+                        for (var i = 0; i < checkedItems.length; i++) {
+                            var obj = {};
+                            obj[key] = checkedItems[i][key];
+                            obj.name = checkedItems[i].name;
+                            values.push(obj);
+                        }
+                        if (handler(values) !== false) {
+                            dialog.close();
+                        }
+                    }
+                    else {
+                        var row = list.get("activeRowData");
+                        if (row == null) {
+                            tui.msgbox(invalidMessage);
+                            return;
+                        }
+                        else if (!rowType.test(row.type)) {
+                            tui.msgbox(invalidMessage);
+                            return;
+                        }
+                        else {
+                            var obj = {};
+                            obj[key] = row[key];
+                            obj.name = row.name;
+                            if (handler(obj) !== false) {
+                                dialog.close();
+                            }
+                        }
+                    }
+                });
+                function queryTree() {
                     var datasource = new tui.ds.RemoteTree();
                     datasource.on("query", function (e) {
                         var parentId = (e.data.parent === null ? null : e.data.parent.item.id);
                         var topmost = false;
-                        if (parentId === null && _this.define.organ && typeof _this.define.organ.id === "number") {
-                            parentId = _this.define.organ.id;
+                        if (parentId === null && (typeof _topOrganId === "number" || _topOrganId)) {
+                            parentId = _topOrganId;
                             topmost = true;
                         }
-                        tui.ajax.post_(_this._classType.listApi, {
+                        tui.ajax.post_(classType.listApi, {
                             organId: parentId,
-                            withSubCompany: !!_this.define.withSubCompany,
+                            withSubCompany: !!_withSubCompany,
                             topmost: topmost
                         }).done(function (result) {
                             datasource.update({
@@ -134,26 +135,70 @@ var tui;
                             tui.errbox(message);
                         });
                     });
-                    this._list.set("activeRow", null);
-                    this._list.set("tree", datasource);
-                };
-                FormDialogSelect.prototype.queryList = function () {
-                    var _this = this;
+                    list.set("activeRow", null);
+                    list.set("tree", datasource);
+                }
+                function queryList() {
                     var query = {
-                        keyword: this._searchBox.get("value"),
-                        organId: (this.define.organ && typeof this.define.organ.id === "number" ? this.define.organ.id : null),
-                        withSubCompany: !!this.define.withSubCompany
+                        keyword: searchBox.get("value"),
+                        organId: (typeof _topOrganId === "number" || _topOrganId ? _topOrganId : null),
+                        withSubCompany: !!_withSubCompany
                     };
-                    tui.ajax.post(this._classType.queryApi, query).done(function (result) {
-                        _this._list.set("activeRow", null);
-                        _this._list.set("list", result);
+                    tui.ajax.post(classType.queryApi, query).done(function (result) {
+                        list.set("activeRow", null);
+                        list.set("list", result);
                     }).fail(function () {
-                        _this._list.set("list", []);
+                        list.set("list", []);
                     });
+                }
+                return function (topOrgan, withSubCompany, multiple) {
+                    _topOrganId = (topOrgan ? topOrgan.id : null);
+                    _withSubCompany = withSubCompany;
+                    _multiple = !!multiple;
+                    list.set("checkable", !!multiple);
+                    dialog.open("ok#tui-primary");
                 };
+            }
+            var FormDialogSelect = (function (_super) {
+                __extends(FormDialogSelect, _super);
+                function FormDialogSelect(form, define) {
+                    var _this = _super.call(this, form, define, "dialog-select") || this;
+                    _this.init();
+                    _this._widget.set("iconRight", _this._rightIcon);
+                    var selector = createSelector(_this._key, _this._title, _this._rowTooltip, _this._rowType, _this._invalidSelectionMessage, _this._classType, function (result) {
+                        if (_this.define.multiple) {
+                            var values = mergeArray(_this._key, _this.define.value, result);
+                            var text = "";
+                            for (var i = 0; i < values.length; i++) {
+                                if (i > 0)
+                                    text += ", ";
+                                text += values[i].name;
+                            }
+                            _this.define.value = values;
+                            _this._widget.set("text", text);
+                            form.fire("itemvaluechanged", { control: _this });
+                        }
+                        else {
+                            _this.define.value = result;
+                            _this._widget.set("text", result.name);
+                            form.fire("itemvaluechanged", { control: _this });
+                        }
+                    });
+                    _this._widget.on("open", function () {
+                        selector(_this.define.organ, _this.define.withSubCompany, _this.define.multiple);
+                        return false;
+                    });
+                    _this._widget.on("clear", function () {
+                        if (_this.define.multiple)
+                            _this.define.value = [];
+                        else
+                            _this.define.value = null;
+                        form.fire("itemvaluechanged", { control: _this });
+                    });
+                    return _this;
+                }
                 FormDialogSelect.prototype.update = function () {
                     _super.prototype.update.call(this);
-                    this._list._set("checkable", !!this.define.multiple);
                     this._widget._set("clearable", true);
                     this.setValueInternal(this.define.value);
                     if (this.define.required) {
@@ -226,7 +271,7 @@ var tui;
                             "value": this.define.organ,
                             "withSubCompany": true,
                             "size": 2,
-                            "newline": true
+                            "position": "newline"
                         }, {
                             "type": "options",
                             "key": "withSubCompany",
@@ -238,7 +283,7 @@ var tui;
                                     ] }],
                             "atMost": 1,
                             "size": 2,
-                            "newline": true
+                            "position": "newline"
                         }
                     ];
                     if (this._allowMultiSelect) {
@@ -337,7 +382,7 @@ var tui;
                 };
                 FormOrganSelect.icon = "fa-building-o";
                 FormOrganSelect.desc = "label.organization";
-                FormOrganSelect.order = 201;
+                FormOrganSelect.order = 202;
                 FormOrganSelect.queryApi = null;
                 FormOrganSelect.listApi = null;
                 FormOrganSelect.init = {
@@ -348,8 +393,176 @@ var tui;
                 return FormOrganSelect;
             }(FormDialogSelect));
             widget.Form.register("organ", FormOrganSelect);
+            var FormUserList = (function (_super) {
+                __extends(FormUserList, _super);
+                function FormUserList(form, define) {
+                    var _this = _super.call(this, form, define, "list") || this;
+                    var selector = createSelector("account", tui.str("label.select.user"), "tooltip", /^user$/, tui.str("message.select.user"), FormUserSelect, function (result) {
+                        var values = mergeArray("account", _this.define.value, result);
+                        _this._notifyBar.innerHTML = "";
+                        _this.setValue(values);
+                    });
+                    _this._widget._.style.margin = "2px";
+                    _this._buttonBar = tui.elem("div");
+                    _this.div.appendChild(_this._buttonBar);
+                    _this._btnAdd = widget.create("button", { text: "<i class='fa fa-plus'></i>" });
+                    _this._btnAdd.appendTo(_this._buttonBar);
+                    _this._btnAdd.on("click", function () {
+                        selector(_this.define.organ, _this.define.withSubCompany, true);
+                    });
+                    _this._btnDelete = widget.create("button", { text: "<i class='fa fa-minus'></i>" });
+                    _this._btnDelete.appendTo(_this._buttonBar);
+                    _this._btnDelete.on("click", function () {
+                        var i = _this._widget.get("activeRow");
+                        if (i === null)
+                            return;
+                        _this.define.value.splice(i, 1);
+                        _this._notifyBar.innerHTML = "";
+                        form.fire("itemvaluechanged", { control: _this });
+                    });
+                    _this._notifyBar = tui.elem("div");
+                    _this._notifyBar.className = "tui-form-notify-bar";
+                    _this.div.appendChild(_this._notifyBar);
+                    return _this;
+                }
+                FormUserList.prototype.update = function () {
+                    _super.prototype.update.call(this);
+                    this._notifyBar.innerHTML = "";
+                    var d = this.define;
+                    if (!(d.value instanceof Array)) {
+                        d.value = [];
+                    }
+                    this._widget._set("list", d.value);
+                    if (this.define.disable) {
+                        this._btnAdd.set("disable", true);
+                        this._btnAdd._.style.display = "none";
+                        this._btnDelete.set("disable", true);
+                        this._btnDelete._.style.display = "none";
+                        this._widget.set("disable", true);
+                    }
+                    else {
+                        this._btnAdd.set("disable", false);
+                        this._btnAdd._.style.display = "inline-block";
+                        this._btnDelete.set("disable", false);
+                        this._btnDelete._.style.display = "inline-block";
+                        this._widget.set("disable", false);
+                    }
+                    this._widget.set("autoHeight", false);
+                    if (typeof d.height === "number" && !isNaN(d.height) ||
+                        typeof d.height === "string" && /^\d+$/.test(d.height)) {
+                        this._widget._.style.height = d.height + "px";
+                    }
+                    else {
+                        this._widget._.style.height = "";
+                        d.height = undefined;
+                    }
+                };
+                FormUserList.prototype.getProperties = function () {
+                    return [{
+                            name: tui.str("label.user.list"),
+                            properties: [
+                                {
+                                    "type": "organ",
+                                    "key": "organ",
+                                    "label": tui.str("label.top.organ"),
+                                    "value": this.define.organ,
+                                    "withSubCompany": true,
+                                    "size": 2,
+                                    "position": "newline"
+                                }, {
+                                    "type": "options",
+                                    "key": "withSubCompany",
+                                    "label": tui.str("label.with.sub.company"),
+                                    "value": this.define.withSubCompany ? true : false,
+                                    "options": [{ "data": [
+                                                { "value": true, "text": tui.str("yes") },
+                                                { "value": false, "text": tui.str("no") }
+                                            ] }],
+                                    "atMost": 1,
+                                    "size": 2,
+                                    "position": "newline"
+                                }, {
+                                    "type": "textbox",
+                                    "inputType": "number",
+                                    "key": "atLeast",
+                                    "label": tui.str("form.at.least"),
+                                    "value": /^\d+$/.test(this.define.atLeast + "") ? this.define.atLeast : "",
+                                    "validation": [
+                                        { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                    ]
+                                }, {
+                                    "type": "textbox",
+                                    "inputType": "number",
+                                    "key": "atMost",
+                                    "label": tui.str("form.at.most"),
+                                    "value": /^\d+$/.test(this.define.atMost + "") ? this.define.atMost : "",
+                                    "validation": [
+                                        { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                    ]
+                                }, {
+                                    "type": "textbox",
+                                    "inputType": "number",
+                                    "key": "height",
+                                    "label": tui.str("form.height"),
+                                    "value": /^\d+$/.test(this.define.height + "") ? this.define.height : null,
+                                    "validation": [
+                                        { "format": "*digital", "message": tui.str("message.invalid.value") }
+                                    ]
+                                }
+                            ]
+                        }];
+                };
+                FormUserList.prototype.onPropertyPageSwitch = function (pages, recentPage) {
+                    widget.FormControl.detectRequired(pages, recentPage);
+                };
+                FormUserList.prototype.setProperties = function (properties) {
+                    var values = properties[1];
+                    this.define.height = /^\d+$/.test(values.height) ? values.height : undefined;
+                    this.define.atLeast = values.atLeast ? parseInt(values.atLeast) : undefined;
+                    this.define.atMost = values.atMost ? parseInt(values.atMost) : undefined;
+                    this.define.withSubCompany = !!values.withSubCompany;
+                    this.define.organ = values.organ;
+                };
+                FormUserList.prototype.getValue = function () {
+                    return this.define.value || [];
+                };
+                FormUserList.prototype.setValue = function (value) {
+                    if (value !== this.define.value) {
+                        if (value instanceof Array) {
+                            this.define.value = value;
+                            this._widget._set("list", this.define.value);
+                        }
+                    }
+                    this._widget.render();
+                    this.form.fire("itemvaluechanged", { control: this });
+                };
+                FormUserList.prototype.validate = function () {
+                    var d = this.define;
+                    var data = this._widget.get("data");
+                    if (d.atLeast && data.length() < d.atLeast) {
+                        this._notifyBar.innerHTML = tui.browser.toSafeText(tui.strp("form.at.least.p", d.atLeast));
+                        return false;
+                    }
+                    else if (d.atMost && data.length() > d.atMost) {
+                        this._notifyBar.innerHTML = tui.browser.toSafeText(tui.strp("form.at.most.p", d.atMost));
+                        return false;
+                    }
+                    else
+                        return true;
+                };
+                FormUserList.icon = "fa-list";
+                FormUserList.desc = "label.user.list";
+                FormUserList.order = 201;
+                FormUserList.init = {
+                    withSubCompany: true,
+                    position: "newline"
+                };
+                return FormUserList;
+            }(widget.BasicFormControl));
+            widget.Form.register("users", FormUserList);
             tui.dict("en-us", {
                 "label.user": "User",
+                "label.user.list": "User List",
                 "label.multiselect": "Multi-Select",
                 "label.search": "Search",
                 "label.select.user": "Select User",
@@ -362,6 +575,7 @@ var tui;
             });
             tui.dict("zh-cn", {
                 "label.user": "用户",
+                "label.user.list": "用户列表",
                 "label.multiselect": "多选",
                 "label.search": "搜索",
                 "label.select.user": "选择用户",
