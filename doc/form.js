@@ -31,16 +31,15 @@ this.use(function(mode, submit, define, formula, form) {
 		tui.inputbox([
 			{
 				"type": "textarea",
-				"label": "公式",
 				"key": "code",
 				"minHeight": "200",
 				"maxHeight": "400",
 				"size": 3
 			}
-		], "公式", {code: form.getFormula("formula")}, function(value){
+		], "公式", {code: form.getScript("formula")}, function(value){
 			try {
 				code = value.code;
-				form.setFormula("formula", code);
+				form.setScript("formula", code);
 			} catch(e) {
 				tui.errbox("执行错误：" + e);
 			}
