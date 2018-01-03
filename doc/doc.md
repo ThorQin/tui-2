@@ -20,7 +20,7 @@
 或 [thor.qin@qq.com](mailto:thor.qin@qq.com) 或提交 issue 到：[问题列表](https://git.oschina.net/thor.qin/TUI-2/issues)
 
 # 下载`(download)`
-使用 npm 进行安装：
+使用 npm 进行安装，当前最新版本 **<span id="docVersion"></span>**：
 
 ```bash
 npm install tui2

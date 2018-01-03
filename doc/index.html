@@ -20,10 +20,10 @@
 		<script type="text/javascript" src="../depends/json2.min.js"></script>
 		<![endif]-->
 		<script type="text/javascript" src="../depends/jquery-1.11.3.min.js"></script>
-        <script type="text/javascript" src="../dist/tui2.js"></script>
+        <script type="text/javascript" src="../dist/tui2.min.js"></script>
 		<script type="text/javascript" src="../dist/lang/zh-cn.js"></script>
 		<script type="text/javascript" src="../dist/plugins/navigator/navigator.min.js"></script>
-		<script type="text/javascript" src="../dist/plugins/location/location.js"></script>
+		<script type="text/javascript" src="../dist/plugins/location/location.min.js"></script>
 		<script type="text/javascript" src="lib/marked.min.js"></script>
 		<link rel="stylesheet" href="lib/highlightjs/default.min.css">
 		<script src="lib/highlightjs/highlight.min.js"></script>
@@ -151,7 +151,7 @@
 						result += str;
 					return result;
 				}
-				tui.ajax.getScript("doc.md").done(function(result){
+				function renderDoc(result){
 					var buffer = "";
 					var line;
 					var reg = /.*(\r\n|\r|\n)/gm;
@@ -230,6 +230,17 @@
 					if (location.hash && location.hash.length > 0) {
 						scrollToSection(location.hash, false);
 					}
+				}
+				var ver = "";
+				tui.ajax.getScript("doc.md").done(function(result) {
+					renderDoc(result);
+					$("#docVersion").text(ver);
+				});
+				tui.ajax.getScript("../package.json").done(function(jsonText) {
+					var package = JSON.parse(jsonText);
+					ver = package.version;
+					$("#version").text(ver);
+					$("#docVersion").text(ver);
 				});
 			});
 		</script>
@@ -238,6 +249,7 @@
 		<div id="banner" unselectable="on">
 			<span class="fa fa-bars"></span>
 			TUI.JS v2
+			<span id="version" style="float:right;margin-right:10px;"></span>
 		</div>
 		<div id="mask" unselectable="on"></div>
 		<tui:navigator id="navi" selectable={true}></tui:navigator>

@@ -74,10 +74,10 @@ h2 {
 }
 ul, ol {
 	padding-left:20px;
-	margin-top: 5px; 
+	margin-top: 5px;
 }
 li {
-	margin-bottom:5px; 
+	margin-bottom:5px;
 }
 pre {
 	margin:10px;
@@ -117,6 +117,17 @@ code[class] {
 tui\:date-picker.big {
 	width: 250px;
 }
+#banner > #version {
+	height:50px;
+	line-height: 50px;
+	color: black;
+	font-style: italic;
+	font-size: 14px;
+}
+
+#banner > #version:before {
+	content: "v";
+}
 
 @media (max-width: 780px) {
 	#navi {
@@ -129,19 +140,23 @@ tui\:date-picker.big {
 		line-height: 40px;
 		left: 0;
 	}
+	#banner > #version {
+		height:40px;
+		line-height: 40px;
+	}
 	body {
 		padding:10px;
 	}
 	#mask.show {
 		display: block;
 	}
-	
-	tui\:button, 
-	tui\:input, 
-	tui\:textarea, 
-	tui\:select, 
-	tui\:date-picker, 
-	tui\:dialog-select, 
+
+	tui\:button,
+	tui\:input,
+	tui\:textarea,
+	tui\:select,
+	tui\:date-picker,
+	tui\:dialog-select,
 	tui\:file {
 		display: block;
 		margin-top: 10px;
@@ -156,7 +171,7 @@ tui\:date-picker.big {
 	tui\:date-picker.big {
 		width: auto;
 	}
-	
+
 	h1 {
 		font-size: 28px;
 	}
