@@ -2171,6 +2171,7 @@ var tui;
                     item.hide();
                 }
                 this._items = [];
+                this._scripts = {};
             };
             Form.prototype.hideAll = function () {
                 for (var _i = 0, _a = this._items; _i < _a.length; _i++) {
@@ -2213,19 +2214,19 @@ var tui;
                 }
                 return null;
             };
-            Form.prototype.setFormula = function (key, formula) {
+            Form.prototype.setScript = function (key, formula) {
                 if (key && formula) {
-                    this._formulas[key] = formula;
+                    this._scripts[key] = formula;
                     this._valueChanged = true;
                     this.render();
                 }
             };
-            Form.prototype.removeFormula = function (key) {
-                delete this._formulas[key];
+            Form.prototype.removeScript = function (key) {
+                delete this._scripts[key];
                 this.render();
             };
-            Form.prototype.getFormula = function (key) {
-                return this._formulas[key];
+            Form.prototype.getScript = function (key) {
+                return this._scripts[key];
             };
             Form.prototype.addItem = function (type, label, pos) {
                 if (label === void 0) { label = null; }
@@ -2315,7 +2316,7 @@ var tui;
                 var _this = this;
                 _super.prototype.initRestriction.call(this);
                 this._items = [];
-                this._formulas = {};
+                this._scripts = {};
                 this._valueCache = null;
                 this._autoResizeTimer = null;
                 this._parentWidth = null;
@@ -2344,13 +2345,13 @@ var tui;
                                 _this.removeAll();
                                 for (var _i = 0, _a = value; _i < _a.length; _i++) {
                                     var define = _a[_i];
-                                    if (define.type === "formula" && define.key && define.value) {
-                                        var v = _this._formulas[define.key];
+                                    if (define.type === "script" && define.key && define.value) {
+                                        var v = _this._scripts[define.key];
                                         if (v) {
-                                            _this._formulas[define.key] = v + "\n" + define.value;
+                                            _this._scripts[define.key] = v + "\n" + define.value;
                                         }
                                         else
-                                            _this._formulas[define.key] = define.value;
+                                            _this._scripts[define.key] = define.value;
                                     }
                                     else {
                                         var cstor = _controls[define.type];
@@ -2373,10 +2374,10 @@ var tui;
                                 var item = _a[_i];
                                 result.push(item.define);
                             }
-                            for (var k in _this._formulas) {
-                                if (_this._formulas.hasOwnProperty(k)) {
-                                    var v = _this._formulas[k];
-                                    result.push({ type: "formula", key: k, value: v, label: null });
+                            for (var k in _this._scripts) {
+                                if (_this._scripts.hasOwnProperty(k)) {
+                                    var v = _this._scripts[k];
+                                    result.push({ type: "script", key: k, value: v, label: null });
                                 }
                             }
                             return result;
@@ -2501,18 +2502,7 @@ var tui;
                                 for (var i = 0; i < _this._items.length; i++) {
                                     _loop_1(i);
                                 }
-                                var f = null;
-                                for (var k in _this._formulas) {
-                                    if (_this._formulas.hasOwnProperty(k)) {
-                                        var v = _this._formulas[k];
-                                        if (f) {
-                                            f += "\n" + v;
-                                        }
-                                        else {
-                                            f = v;
-                                        }
-                                    }
-                                }
+                                var f = _this._scripts["formula"];
                                 if (f) {
                                     if (_this._formulaContext.callStacks > 30) {
                                         throw new Error("Invalid formula: call stacks should not exceed 30!");

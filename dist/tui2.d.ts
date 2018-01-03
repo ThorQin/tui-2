@@ -347,7 +347,7 @@ declare module tui.widget {
         protected _definitionChanged: boolean;
         protected _valueChanged: boolean;
         protected _items: FormControl<FormItem>[];
-        protected _formulas: {
+        protected _scripts: {
             [index: string]: string;
         };
         protected _valueCache: {
@@ -364,9 +364,9 @@ declare module tui.widget {
         selectItem(target: FormControl<FormItem>): void;
         getItem(index: number | string): FormControl<FormItem>;
         getSelectedItem(): FormControl<FormItem>;
-        setFormula(key: string, formula: string): void;
-        removeFormula(key: string): void;
-        getFormula(key: string): string;
+        setScript(key: string, formula: string): void;
+        removeScript(key: string): void;
+        getScript(key: string): string;
         addItem(type: string, label?: string, pos?: number): void;
         removeItem(target: FormControl<FormItem>): void;
         getItemIndex(target: FormControl<FormItem>): number;

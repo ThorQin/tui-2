@@ -74,7 +74,7 @@ module tui.widget {
 		protected _definitionChanged: boolean;
 		protected _valueChanged: boolean;
 		protected _items: FormControl<FormItem>[];
-		protected _formulas: {[index: string]: string};
+		protected _scripts: {[index: string]: string};
 		protected _valueCache: { [index: string]: any };
 		protected _maxId: number;
 		private _autoResizeTimer: number;
@@ -97,6 +97,7 @@ module tui.widget {
 				item.hide();
 			}
 			this._items = [];
+			this._scripts = {};
 		}
 
 		protected hideAll() {
@@ -138,21 +139,21 @@ module tui.widget {
 			return null;
 		}
 
-		setFormula(key: string, formula: string) {
+		setScript(key: string, formula: string) {
 			if (key && formula) {
-				this._formulas[key] = formula;
+				this._scripts[key] = formula;
 				this._valueChanged = true;
 				this.render();
 			}
 		}
 
-		removeFormula(key: string) {
-			delete this._formulas[key];
+		removeScript(key: string) {
+			delete this._scripts[key];
 			this.render();
 		}
 
-		getFormula(key: string): string {
-			return this._formulas[key];
+		getScript(key: string): string {
+			return this._scripts[key];
 		}
 
 		addItem(type: string, label: string = null, pos: number = -1) {
@@ -245,7 +246,7 @@ module tui.widget {
 		protected initRestriction(): void {
 			super.initRestriction();
 			this._items = [];
-			this._formulas = {};
+			this._scripts = {};
 			this._valueCache = null;
 			this._autoResizeTimer = null;
 			this._parentWidth = null;
@@ -272,12 +273,12 @@ module tui.widget {
 						if (value instanceof Array) {
 							this.removeAll();
 							for (let define of <FormItem[]>value) {
-								if (define.type === "formula" && define.key && define.value) {
-									var v = this._formulas[define.key];
+								if (define.type === "script" && define.key && define.value) {
+									var v = this._scripts[define.key];
 									if (v) {
-										this._formulas[define.key] = v + "\n" + define.value;
+										this._scripts[define.key] = v + "\n" + define.value;
 									} else
-										this._formulas[define.key] =  define.value;
+										this._scripts[define.key] =  define.value;
 								} else {
 									let cstor = _controls[define.type];
 									if (cstor) {
@@ -297,10 +298,10 @@ module tui.widget {
 						for (let item of this._items) {
 							result.push(item.define);
 						}
-						for (let k in this._formulas) {
-							if (this._formulas.hasOwnProperty(k)) {
-								var v = this._formulas[k];
-								result.push({type: "formula", key: k, value: v, label: null});
+						for (let k in this._scripts) {
+							if (this._scripts.hasOwnProperty(k)) {
+								var v = this._scripts[k];
+								result.push({type: "script", key: k, value: v, label: null});
 							}
 						}
 						return result;
@@ -423,18 +424,7 @@ module tui.widget {
 							}
 
 							// Then compute formulas
-							var f = null;
-							for (let k in this._formulas) {
-								if (this._formulas.hasOwnProperty(k)) {
-									let v = this._formulas[k];
-									if (f) {
-										f += "\n" + v;
-									} else {
-										f = v;
-									}
-								}
-							}
-
+							var f = this._scripts["formula"];
 							if (f) {
 								if (this._formulaContext.callStacks > 30) {
 									throw new Error("Invalid formula: call stacks should not exceed 30!");
