@@ -42,17 +42,57 @@ module tui.widget {
 				else
 					return null;
 			},
-			setValue(v: any) {
+			setValue: function(v: any) {
 				return item.setValue(v);
+			},
+			getLabel: function() {
+				return item.define.label;
+			},
+			setLabel: function(label: string) {
+				item.define.label = label;
+				item.update();
+			},
+			getKey: function() {
+				return item.define.key;
+			},
+			getDefinition: function() {
+				if (item)
+					return tui.clone(item.define, "value");
+				else
+					return null;
+			},
+			setDefinition: function(definition: {[index: string]: any}) {
+				if (item && typeof definition === "object") {
+					for (let k in definition) {
+						if (definition.hasOwnProperty(k) && !/^type|key|value$/.test(k)) {
+							item.define[k] = definition[k];
+						}
+					}
+					item.update();
+					item.applySize();
+				}
 			}
 		};
-		if (typeof Object.defineProperty === "function") {
+		if (typeof Object.defineProperty === "function" && (tui.ieVer === -1 || tui.ieVer >= 9)) {
 			Object.defineProperty(itemHandler, "value", {
 				get: function() {
 					return this.getValue();
 				},
 				set: function(v) {
 					this.setValue(v);
+				}
+			});
+			Object.defineProperty(itemHandler, "label", {
+				get: function() {
+					return this.getLabel();
+				},
+				set: function(v) {
+					this.setLabel(v);
+				}
+			});
+			Object.defineProperty(itemHandler, "key", {
+				get: function() {
+					return this.getKey();
 				}
 			});
 		}
@@ -140,8 +180,11 @@ module tui.widget {
 		}
 
 		setScript(key: string, formula: string) {
-			if (key && formula) {
-				this._scripts[key] = formula;
+			if (key) {
+				if (typeof formula == "string" && formula)
+					this._scripts[key] = formula;
+				else
+					delete this._scripts[key];
 				this._valueChanged = true;
 				this.render();
 			}

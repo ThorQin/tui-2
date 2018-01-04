@@ -535,7 +535,7 @@ module tui.widget {
 			return this.define.key || null;
 		}
 
-		protected applySize() {
+		applySize() {
 			var define = this.define;
 			browser.removeClass(this.div, "tui-form-item-size-2 tui-form-item-size-3 tui-form-item-size-4 tui-form-item-size-5 tui-form-item-size-full tui-form-item-newline tui-form-item-pull-left tui-form-item-pull-right");
 			if (define.size > 1 && define.size < MAX) {

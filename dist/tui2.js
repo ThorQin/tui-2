@@ -2135,15 +2135,55 @@ var tui;
                 },
                 setValue: function (v) {
                     return item.setValue(v);
+                },
+                getLabel: function () {
+                    return item.define.label;
+                },
+                setLabel: function (label) {
+                    item.define.label = label;
+                    item.update();
+                },
+                getKey: function () {
+                    return item.define.key;
+                },
+                getDefinition: function () {
+                    if (item)
+                        return tui.clone(item.define, "value");
+                    else
+                        return null;
+                },
+                setDefinition: function (definition) {
+                    if (item && typeof definition === "object") {
+                        for (var k in definition) {
+                            if (definition.hasOwnProperty(k) && !/^type|key|value$/.test(k)) {
+                                item.define[k] = definition[k];
+                            }
+                        }
+                        item.update();
+                        item.applySize();
+                    }
                 }
             };
-            if (typeof Object.defineProperty === "function") {
+            if (typeof Object.defineProperty === "function" && (tui.ieVer === -1 || tui.ieVer >= 9)) {
                 Object.defineProperty(itemHandler, "value", {
                     get: function () {
                         return this.getValue();
                     },
                     set: function (v) {
                         this.setValue(v);
+                    }
+                });
+                Object.defineProperty(itemHandler, "label", {
+                    get: function () {
+                        return this.getLabel();
+                    },
+                    set: function (v) {
+                        this.setLabel(v);
+                    }
+                });
+                Object.defineProperty(itemHandler, "key", {
+                    get: function () {
+                        return this.getKey();
                     }
                 });
             }
@@ -2215,8 +2255,11 @@ var tui;
                 return null;
             };
             Form.prototype.setScript = function (key, formula) {
-                if (key && formula) {
-                    this._scripts[key] = formula;
+                if (key) {
+                    if (typeof formula == "string" && formula)
+                        this._scripts[key] = formula;
+                    else
+                        delete this._scripts[key];
                     this._valueChanged = true;
                     this.render();
                 }
@@ -3387,7 +3430,7 @@ var tui;
         }
         var titleText = "<i class='tui-dialog-title-ask'></i>";
         titleText += title;
-        return makeDialog(message, "tui-ask-box", titleText, "ok#tui-primary,cancel", function (buttonName) {
+        return makeDialog(message, "tui-ask-box", titleText, "cancel,ok#tui-primary", function (buttonName) {
             if (typeof callback === "function")
                 callback(buttonName === "ok");
         });

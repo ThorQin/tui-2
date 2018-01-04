@@ -770,7 +770,7 @@ declare module tui.widget {
         select(value: boolean): void;
         isSelect(): boolean;
         getKey(): string;
-        protected applySize(): void;
+        applySize(): void;
         abstract getValue(cal: Calculator): any;
         abstract setValue(value: any): void;
         abstract isResizable(): boolean;

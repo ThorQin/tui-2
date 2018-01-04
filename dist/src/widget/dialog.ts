@@ -198,7 +198,7 @@ module tui.widget {
 			var contentDiv = this._components["content"];
 			this._init = true;
 			this._moved = false;
-			
+
 			$(this._).css({
 				"top": "3000px",
 				"left": "0",
@@ -451,7 +451,7 @@ module tui {
 		}
 		var titleText = "<i class='tui-dialog-title-ask'></i>";
 		titleText += title;
-		return makeDialog(message, "tui-ask-box", titleText, "ok#tui-primary,cancel", function(buttonName: string){
+		return makeDialog(message, "tui-ask-box", titleText, "cancel,ok#tui-primary", function(buttonName: string){
 			if (typeof callback === "function")
 				callback(buttonName === "ok");
 		});
