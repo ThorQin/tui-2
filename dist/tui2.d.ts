@@ -834,6 +834,7 @@ declare module tui.widget {
         protected initRestriction(): void;
         getRowData(rowIndex: number): any;
         protected init(): void;
+        updateCheckState(colIndex: number): void;
         setSortFlag(col: number, type: string): void;
         scrollTo(index: number): void;
         iterate(func: (item: any, path: number[], treeNode: boolean) => boolean): void;

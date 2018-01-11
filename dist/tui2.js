@@ -9826,6 +9826,7 @@ var tui;
                 return "left";
             }
         }
+        var CHECKCOL_MATCHER = /^(un)?checked|tristate$/;
         var Grid = (function (_super) {
             __extends(Grid, _super);
             function Grid() {
@@ -10277,30 +10278,8 @@ var tui;
                         _this.fire("rowmousedown", { e: ev, row: target.line, col: target.col });
                     }
                 };
-                var CHECKCOL_MATCHER = /^(un)?checked|tristate$/;
                 var onRowCheck = function (e) {
-                    var colums = _this.get("columns");
-                    var col = colums[e.col];
-                    if (!CHECKCOL_MATCHER.test(col.checkCol))
-                        return;
-                    var data = _this.get("data")._data;
-                    var cc = 0, uc = 0;
-                    for (var i = 0; i < data.length; i++) {
-                        if (data[i][col.checkKey] === true)
-                            cc++;
-                        else
-                            uc++;
-                    }
-                    if (cc == 0) {
-                        col.checkCol = "unchecked";
-                    }
-                    else if (uc == 0) {
-                        col.checkCol = "checked";
-                    }
-                    else {
-                        col.checkCol = "tristate";
-                    }
-                    _this.render();
+                    _this.updateCheckState(e.col);
                 };
                 $(this._).on("mousedown", function (ev) {
                     testLine(ev);
@@ -10548,6 +10527,30 @@ var tui;
                             obj = obj.parentNode;
                     }
                 });
+            };
+            Grid.prototype.updateCheckState = function (colIndex) {
+                var colums = this.get("columns");
+                var col = colums[colIndex];
+                if (!CHECKCOL_MATCHER.test(col.checkCol))
+                    return;
+                var data = this.get("data")._data;
+                var cc = 0, uc = 0;
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i][col.checkKey] === true)
+                        cc++;
+                    else
+                        uc++;
+                }
+                if (cc == 0) {
+                    col.checkCol = "unchecked";
+                }
+                else if (uc == 0) {
+                    col.checkCol = "checked";
+                }
+                else {
+                    col.checkCol = "tristate";
+                }
+                this.render();
             };
             Grid.prototype.setSortFlag = function (col, type) {
                 this._set("sortColumn", col);

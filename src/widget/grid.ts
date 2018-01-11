@@ -42,6 +42,8 @@ module tui.widget {
 		}
 	}
 
+	var CHECKCOL_MATCHER = /^(un)?checked|tristate$/;
+
 	/**
 	 * <tui:gird>
 	 * Attributes: data, list(array type data), tree(tree type data),
@@ -508,28 +510,9 @@ module tui.widget {
 				}
 			};
 
-			var CHECKCOL_MATCHER = /^(un)?checked|tristate$/;
+
 			var onRowCheck = (e: {row: number, col: number, checked: boolean}) => {
-				var colums = this.get("columns");
-				var col = <ColumnInfo>colums[e.col];
-				if (!CHECKCOL_MATCHER.test(col.checkCol))
-					return;
-				var data = this.get("data")._data;
-				var cc = 0, uc = 0;
-				for (var i = 0; i < data.length; i++) {
-						if (data[i][col.checkKey] === true)
-							cc++;
-						else
-							uc++;
-				}
-				if (cc == 0) {
-					col.checkCol = "unchecked";
-				} else if (uc == 0) {
-					col.checkCol = "checked";
-				} else {
-					col.checkCol = "tristate";
-				}
-				this.render();
+				this.updateCheckState(e.col);
 			};
 
 			$(this._).on("mousedown", (ev) => {
@@ -759,6 +742,29 @@ module tui.widget {
 						obj = <HTMLElement>obj.parentNode;
 				}
 			});
+		}
+
+		updateCheckState(colIndex: number) {
+			var colums = this.get("columns");
+			var col = <ColumnInfo>colums[colIndex];
+			if (!CHECKCOL_MATCHER.test(col.checkCol))
+				return;
+			var data = this.get("data")._data;
+			var cc = 0, uc = 0;
+			for (var i = 0; i < data.length; i++) {
+					if (data[i][col.checkKey] === true)
+						cc++;
+					else
+						uc++;
+			}
+			if (cc == 0) {
+				col.checkCol = "unchecked";
+			} else if (uc == 0) {
+				col.checkCol = "checked";
+			} else {
+				col.checkCol = "tristate";
+			}
+			this.render();
 		}
 
 		setSortFlag(col: number, type: string) {
