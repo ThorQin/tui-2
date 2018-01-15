@@ -25,6 +25,15 @@ module tui.widget {
 						return textbox.value;
 					}
 				},
+				"maxLength": {
+					"set": (value: any) => {
+						if (typeof value === "number" && value >= 0)
+							textbox.maxLength = value;
+					},
+					"get": (): any => {
+						return textbox.maxLength;
+					}
+				},
 				"text": {
 					"set": (value: any) => {
 						this._set("value", value);

@@ -33,6 +33,15 @@ module tui.widget {
 						return this.get("value");
 					}
 				},
+				"maxLength": {
+					"set": (value: any) => {
+						if (typeof value === "number" && value >= 0)
+							textbox.maxLength = value;
+					},
+					"get": (): any => {
+						return textbox.maxLength;
+					}
+				},
 				"type": {
 					"set": (value: any) => {
 						value = value.toLowerCase();
