@@ -28,16 +28,16 @@ tui\:calendar {
 		height: 24px;
 		// border:1px solid #ddd;
 		// background-color: #fff;
-		color: #555;
+		color: #333;
 		font-family: calibri, sans-serif, monospace;
 		font-size: 13px;
-		box-shadow: inset 1px 1px 0px white;
+		// box-shadow: inset 1px 1px 0px white;
 		&[colspan='3'] {
 			width:inherit;
 		}
 		&.tui-before,&.tui-after {
 			box-shadow: none;
-    		background-color: #f2f2f2;
+    	color: #ccc;
 		}
 		// &.tui-weekend {
 		// 	background-color:@weekendBackColor;
@@ -74,10 +74,10 @@ tui\:calendar {
 			.fa-angle-double-right;
 		}
 		&.tui-calendar-first-line {
-			border-top:1px solid #ddd;
+			border-top:1px solid #8bf;
 		}
 		&.tui-calendar-last-line {
-			border-bottom:1px solid #ddd;
+			border-bottom:1px solid #8bf;
 		}
 	}
 	tr.tui-yearbar > td {
@@ -85,17 +85,17 @@ tui\:calendar {
 		box-shadow: none;
 		border:0;
 		background: transparent;
-		color: block;
+		color: #38a !important;
 		font-weight: bold;
 		font-size: 14px;
 	}
 	.tui-week {
 		font-size: 12px;
 		background: transparent;
-		color: #bbb;
+		color: #38a;
 		border-left: 0 solid transparent;
 		border-right: 0 solid transparent;
-		border-bottom: 1px solid #ddd;
+		border-bottom: 1px solid #8bf;
 		box-shadow: none;
 	}
 	.tui-month {

@@ -224,13 +224,13 @@ module tui.widget {
 			var timebar = this._components["timeBar"] = <HTMLTableElement>browser.toElement(
 `<div class="tui-calendar-timebar" unselectable='on'>
 <div><span name='hours-plus' class='plus' tabIndex='0' ></span>
-<input name='hours' maxLength='2'>
+<input name='hours' type='tel' maxLength='2' unselectable='on'>
 <span name='hours-minus' class='minus' tabIndex='0'></span>
 </div> : <div><span name='minutes-plus' class='plus' tabIndex='0'></span>
-<input name='minutes' maxLength='2'>
+<input name='minutes' type='tel' maxLength='2' unselectable='on'>
 <span name='minutes-minus' class='minus' tabIndex='0'></span>
 </div> : <div><span name='seconds-plus' class='plus' tabIndex='0'></span>
-<input name='seconds' maxLength='2'>
+<input name='seconds' type='tel' maxLength='2' unselectable='on'>
 <span name='seconds-minus' class='minus' tabIndex='0'></span></div>
 <a class='tui-update'></a></div>`);
 			this._.appendChild(timebar);
@@ -294,10 +294,10 @@ module tui.widget {
 							timebar$.find("input[name=seconds]").focus();
 					} else if (k === browser.KeyCode.UP) {
 						plus(o$, input);
-						input.select();
+						//input.select();
 					} else if (k === browser.KeyCode.DOWN) {
 						minus(o$, input);
-						input.select();
+						//input.select();
 					} else if (k >= browser.KeyCode.KEY_0 && k <= browser.KeyCode.KEY_9) {
 						let max = getMaxValue(o$.attr("name"));
 						let v = k - browser.KeyCode.KEY_0;
@@ -308,7 +308,7 @@ module tui.widget {
 							o.value = formatNumber(v, max);
 						o._lastInputTime = now;
 						getInputTime();
-						o.select();
+						//o.select();
 					} else if (k == 13)
 						this.fire("click", {e:e,  "time": this.get("time"), "type": "pick" });
 				}
@@ -354,11 +354,11 @@ module tui.widget {
 			timebar$.find("input").on("focus mousedown mouseup", function(e){
 				var o = <any>(e.srcElement || e.target);
 				o.focus();
-				o.select();
+				//o.select();
 				e.preventDefault();
-				setTimeout(function (){
-					o.select();
-				});
+				// setTimeout(function (){
+				// 	o.select();
+				// });
 			}).on("contextmenu", function(e){e.preventDefault();});
 			timebar$.children("a").mousedown((e) => {
 				if (this.get("disable"))

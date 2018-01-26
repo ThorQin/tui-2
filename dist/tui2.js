@@ -5698,7 +5698,7 @@ var tui;
                 var tb = this._components["table"] = tui.browser.toElement("<table cellPadding='0' cellspacing='0' border='0'></table>");
                 this._.appendChild(tb);
                 this._monthOnly = null;
-                var timebar = this._components["timeBar"] = tui.browser.toElement("<div class=\"tui-calendar-timebar\" unselectable='on'>\n<div><span name='hours-plus' class='plus' tabIndex='0' ></span>\n<input name='hours' maxLength='2'>\n<span name='hours-minus' class='minus' tabIndex='0'></span>\n</div> : <div><span name='minutes-plus' class='plus' tabIndex='0'></span>\n<input name='minutes' maxLength='2'>\n<span name='minutes-minus' class='minus' tabIndex='0'></span>\n</div> : <div><span name='seconds-plus' class='plus' tabIndex='0'></span>\n<input name='seconds' maxLength='2'>\n<span name='seconds-minus' class='minus' tabIndex='0'></span></div>\n<a class='tui-update'></a></div>");
+                var timebar = this._components["timeBar"] = tui.browser.toElement("<div class=\"tui-calendar-timebar\" unselectable='on'>\n<div><span name='hours-plus' class='plus' tabIndex='0' ></span>\n<input name='hours' type='tel' maxLength='2' unselectable='on'>\n<span name='hours-minus' class='minus' tabIndex='0'></span>\n</div> : <div><span name='minutes-plus' class='plus' tabIndex='0'></span>\n<input name='minutes' type='tel' maxLength='2' unselectable='on'>\n<span name='minutes-minus' class='minus' tabIndex='0'></span>\n</div> : <div><span name='seconds-plus' class='plus' tabIndex='0'></span>\n<input name='seconds' type='tel' maxLength='2' unselectable='on'>\n<span name='seconds-minus' class='minus' tabIndex='0'></span></div>\n<a class='tui-update'></a></div>");
                 this._.appendChild(timebar);
                 function getMaxValue(name) {
                     if (name === "hours")
@@ -5759,11 +5759,9 @@ var tui;
                         }
                         else if (k === tui.browser.KeyCode.UP) {
                             plus(o$, input);
-                            input.select();
                         }
                         else if (k === tui.browser.KeyCode.DOWN) {
                             minus(o$, input);
-                            input.select();
                         }
                         else if (k >= tui.browser.KeyCode.KEY_0 && k <= tui.browser.KeyCode.KEY_9) {
                             var max = getMaxValue(o$.attr("name"));
@@ -5775,7 +5773,6 @@ var tui;
                                 o.value = formatNumber(v, max);
                             o._lastInputTime = now;
                             getInputTime();
-                            o.select();
                         }
                         else if (k == 13)
                             _this.fire("click", { e: e, "time": _this.get("time"), "type": "pick" });
@@ -5821,11 +5818,7 @@ var tui;
                 timebar$.find("input").on("focus mousedown mouseup", function (e) {
                     var o = (e.srcElement || e.target);
                     o.focus();
-                    o.select();
                     e.preventDefault();
-                    setTimeout(function () {
-                        o.select();
-                    });
                 }).on("contextmenu", function (e) { e.preventDefault(); });
                 timebar$.children("a").mousedown(function (e) {
                     if (_this.get("disable"))
@@ -11370,6 +11363,15 @@ var tui;
                             return _this.get("value");
                         }
                     },
+                    "maxLength": {
+                        "set": function (value) {
+                            if (typeof value === "number" && value >= 0)
+                                textbox.maxLength = value;
+                        },
+                        "get": function () {
+                            return textbox.maxLength;
+                        }
+                    },
                     "type": {
                         "set": function (value) {
                             value = value.toLowerCase();
@@ -13036,6 +13038,15 @@ var tui;
                         },
                         "get": function () {
                             return textbox.value;
+                        }
+                    },
+                    "maxLength": {
+                        "set": function (value) {
+                            if (typeof value === "number" && value >= 0)
+                                textbox.maxLength = value;
+                        },
+                        "get": function () {
+                            return textbox.maxLength;
                         }
                     },
                     "text": {
