@@ -370,6 +370,7 @@ module tui.time {
 		var millisecond = values.hasOwnProperty("millisecond") ? values["millisecond"] : 0;
 		var tz = values.hasOwnProperty("tz") ? values["tz"] : now.getTimezoneOffset();
 		now.setUTCFullYear(year);
+		now.setUTCDate(1); // Fix IE bug
 		now.setUTCMonth(month);
 		now.setUTCDate(date);
 		now.setUTCHours(hour);
