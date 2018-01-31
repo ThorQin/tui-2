@@ -120,21 +120,25 @@ tui\:calendar {
 
 		input {
 			display: block;
-			width: 100%;
+			width: 60%;
 			box-sizing: border-box; /* css3 rec */
 			-moz-box-sizing: border-box; /* ff2 */
 			-ms-box-sizing: border-box; /* ie8 */
 			-webkit-box-sizing: border-box; /* safari3 */
 			-khtml-box-sizing: border-box; /* konqueror */
 			border:0;
-			height: 36px;
-			line-height: 36px;
+			height: 26px;
+			line-height: 26px;
 			font-size: 18px;
 			background-color: transparent;
-			margin:0px;
+			margin:0px auto;
 			text-align: center;
 			outline:none;
 			color: #424242;
+			&:focus {
+				color: white;
+				background-color: #0af;
+			}
 		}
 
 		span {
