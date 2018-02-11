@@ -5001,7 +5001,7 @@ var tui;
                         return matchEnum(v, null, time.weeks);
                     }
                 },
-                "a|A": function matchNumber(v) {
+                "a|A": function (v) {
                     var m = dtStr.match(/^(am|pm)/i);
                     if (m === null)
                         return false;
@@ -5073,7 +5073,7 @@ var tui;
             while ((result = format.match(regex)) !== null) {
                 for (var k in mapping) {
                     var v = result[mapping[k]];
-                    if (typeof v !== tui.UNDEFINED) {
+                    if (typeof v == "string" && v) {
                         if (rule[k](v) === false)
                             return null;
                         break;

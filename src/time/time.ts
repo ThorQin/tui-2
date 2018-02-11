@@ -246,7 +246,7 @@ module tui.time {
 					return matchEnum(v, null, weeks);
 				}
 			},
-			"a|A": function matchNumber(v: string): boolean {
+			"a|A": function (v: string): boolean {
 				// var len = v.length;
 				var m = dtStr.match(/^(am|pm)/i);
 				if (m === null)
@@ -320,7 +320,7 @@ module tui.time {
 		while ((result = format.match(regex)) !== null) {
 			for (var k in mapping) {
 				var v = result[mapping[k]];
-				if (typeof v !== UNDEFINED) {
+				if (typeof v == "string" && v) {
 					if (rule[k](v) === false)
 						return null;
 					break;
