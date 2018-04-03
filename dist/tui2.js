@@ -378,8 +378,10 @@ tui.dict("en-us", {
     "form.description": "Description",
     "form.textbox.selection.desc": "A group predefined input content, separated with newline characters.",
     "form.value.as.label": "Use value as label",
+    "message.upload.failed": "Upload failed!",
     "message.cannot.be.empty": "Cannot be empty!",
     "message.invalid.format": "Invalid format!",
+    "message.invalid.file": "Invalid file!",
     "message.invalid.value": "Invalid value!",
     "form.text.align": "Text Align",
     "form.arrange": "Arrange",
@@ -3934,13 +3936,24 @@ var tui;
                         }
                         return;
                     }
-                    var doc = iframe.contentDocument ? iframe.contentDocument : window.frames[iframe.id].document;
-                    if (doc.readyState && doc.readyState !== 'complete') {
-                        waitbox.close();
-                        return;
+                    var doc;
+                    try {
+                        doc = iframe.contentDocument ? iframe.contentDocument : window.frames[iframe.id].document;
+                        if (doc.readyState && doc.readyState !== 'complete') {
+                            waitbox.close();
+                            return;
+                        }
+                        if (doc.body && doc.body.innerHTML === "false") {
+                            waitbox.close();
+                            return;
+                        }
                     }
-                    if (doc.body && doc.body.innerHTML === "false") {
+                    catch (err) {
                         waitbox.close();
+                        _this.fireError(tui.str("message.invalid.file"));
+                        toDeleteFlag = true;
+                        iframe.src = "javascript:'<html></html>';";
+                        browser.removeNode(iframe);
                         return;
                     }
                     waitbox.close();
@@ -3987,7 +4000,7 @@ var tui;
             Uploader.prototype.fireError = function (errorMessage) {
                 this.fire("error", {
                     "response": {
-                        error: tui.str("Upload failed!") + (errorMessage ? errorMessage : "")
+                        error: tui.str("message.upload.failed") + (errorMessage ? errorMessage : "")
                     }
                 });
             };

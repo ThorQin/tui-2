@@ -200,16 +200,26 @@ module tui.browser {
 					}
 					return;
 				}
-
-				var doc = iframe.contentDocument ? iframe.contentDocument : (<any>window.frames)[iframe.id].document;
-				// fixing Opera 9.26,10.00
-				if (doc.readyState && doc.readyState !== 'complete') {
+				var doc;
+				try {
+					doc = iframe.contentDocument ? iframe.contentDocument : (<any>window.frames)[iframe.id].document;
+					// fixing Opera 9.26,10.00
+					if (doc.readyState && doc.readyState !== 'complete') {
+						waitbox.close();
+						return;
+					}
+					// fixing Opera 9.64
+					if (doc.body && doc.body.innerHTML === "false") {
+						waitbox.close();
+						return;
+					}
+				} catch (err) {
 					waitbox.close();
-					return;
-				}
-				// fixing Opera 9.64
-				if (doc.body && doc.body.innerHTML === "false") {
-					waitbox.close();
+					this.fireError(tui.str("message.invalid.file"));
+					toDeleteFlag = true;
+					// Fix IE mixed content issue
+					iframe.src = "javascript:'<html></html>';";
+					browser.removeNode(iframe);
 					return;
 				}
 				waitbox.close();
@@ -259,7 +269,7 @@ module tui.browser {
 		private fireError(errorMessage?: string) {
 			this.fire("error", {
 				"response": {
-					error: tui.str("Upload failed!") + (errorMessage ? errorMessage : "")
+					error: tui.str("message.upload.failed") + (errorMessage ? errorMessage : "")
 				}
 			});
 		}
