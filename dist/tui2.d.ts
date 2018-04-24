@@ -814,7 +814,7 @@ declare module tui.widget {
         checkKey?: string;
         prefixKey?: string;
         suffixKey?: string;
-        translator?: (value: any, item: any, index: number) => Node;
+        translator?: (value: any, item: any, index: number, line: HTMLElement) => Node;
     }
     class Grid extends Widget {
         static CELL_SPACE: number;

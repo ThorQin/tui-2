@@ -10886,7 +10886,7 @@ var tui;
                     }
                     var txt = item[columns[i].key];
                     if (typeof columns[i].translator === "function") {
-                        var el = columns[i].translator(txt, item, index);
+                        var el = columns[i].translator(txt, item, index, line);
                         el && cell.appendChild(el);
                     }
                     else

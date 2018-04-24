@@ -24,7 +24,7 @@ module tui.widget {
 		checkKey?: string;
 		prefixKey?: string;
 		suffixKey?: string;
-		translator?: (value: any, item: any, index: number) => Node;
+		translator?: (value: any, item: any, index: number, line: HTMLElement) => Node;
 	}
 
 	function vval(v: number): number {
@@ -1096,7 +1096,7 @@ module tui.widget {
 				}
 				var txt = item[columns[i].key];
 				if (typeof columns[i].translator === "function") {
-					var el = columns[i].translator(txt, item, index);
+					var el = columns[i].translator(txt, item, index, line);
 					el && cell.appendChild(el);
 				} else
 					cell.appendChild(document.createTextNode(txt === null || txt === undefined ? "" : txt));
