@@ -449,7 +449,7 @@ module tui.browser {
 			expires = expires * 1000 * 60 * 60 * 24;
 		}
 		var expires_date = new Date(today.getTime() + (expires));
-		document.cookie = name + "=" + encodeURIComponent(JSON.stringify(value)) +
+		document.cookie = name + "=" + encodeURIComponent(tui.stringify(value)) +
 		((expires) ? ";expires=" + expires_date.toUTCString() : "") +
 		((path) ? ";path=" + path : "") +
 		((domain) ? ";domain=" + domain : "") +
@@ -490,7 +490,7 @@ module tui.browser {
 		try {
 			var storage = (sessionOnly === true ? window.sessionStorage : window.localStorage);
 			if (storage) {
-				storage.setItem(key, JSON.stringify(value));
+				storage.setItem(key, tui.stringify(value));
 			} else
 				saveCookie(key, value, 365);
 		} catch(e) {

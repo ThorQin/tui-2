@@ -478,7 +478,7 @@ module tui.widget {
 									if (this._items[i].available)
 										formulaValueCache.push(this._items[i].define.value);
 								}
-								var cacheStr = JSON.stringify(formulaValueCache);
+								var cacheStr = tui.stringify(formulaValueCache);
 								if (this._formulaContext.cacheValue != cacheStr) {
 									this._formulaContext.callStacks++;
 									this._formulaContext.cacheValue = cacheStr;

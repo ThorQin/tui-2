@@ -292,6 +292,17 @@ module tui {
 	}
 
 	/**
+	 * Safety method for serialize object to JSON
+	 */
+	export function stringify(obj: any) {
+		if (ieVer > 0 && ieVer <= 8) {
+			return JSON.stringify(obj, function(k, v) { return v === "" ? "" : v });
+		} else {
+			return JSON.stringify(obj);
+		}
+	}
+
+	/**
 	 * Deeply copy an object to an other object, but only contain properties without methods
 	 */
 	export function clone(obj: any, excludeProperties?: any) {
@@ -302,7 +313,7 @@ module tui {
 		} else if (excludeProperties instanceof Array) {
 			return cloneInternal(obj, excludeProperties);
 		} else
-			return JSON.parse(JSON.stringify(obj));
+			return JSON.parse(tui.stringify(obj));
 	}
 
 	/**

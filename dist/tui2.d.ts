@@ -32,6 +32,7 @@ declare module tui {
         fire(eventName: string, data?: any): boolean;
     }
     const event: EventObject;
+    function stringify(obj: any): string;
     function clone(obj: any, excludeProperties?: any): any;
     var ieVer: number;
     var ffVer: number;

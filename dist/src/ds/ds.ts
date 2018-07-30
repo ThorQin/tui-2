@@ -484,13 +484,19 @@ module tui.ds {
 				this._rawData = result.data;
 				this.expandItems(null, result.data, this._index, 0);
 			} else {
+				var expand = result.parent.expand;
 				var index = this.findNodeIndex(result.parent);
 				if (index >= 0) {
 					this.collapse(index);
 				}
 				result.parent.item[this._config.children] = result.data;
-				if (index >= 0) {
-					this.expand(index);
+				if (!result.data || result.data.length == 0) {
+					result.parent.hasChild = false;
+				} else {
+					result.parent.hasChild = true;
+					if (index >= 0 && expand) {
+						this.expand(index);
+					}
 				}
 			}
 			this.fire("update", { "completely": true });

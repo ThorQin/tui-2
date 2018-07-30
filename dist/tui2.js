@@ -270,6 +270,15 @@ var tui;
             return newObj;
         }
     }
+    function stringify(obj) {
+        if (tui.ieVer > 0 && tui.ieVer <= 8) {
+            return JSON.stringify(obj, function (k, v) { return v === "" ? "" : v; });
+        }
+        else {
+            return JSON.stringify(obj);
+        }
+    }
+    tui.stringify = stringify;
     function clone(obj, excludeProperties) {
         if (typeof obj === tui.UNDEFINED || obj === null)
             return null;
@@ -280,7 +289,7 @@ var tui;
             return cloneInternal(obj, excludeProperties);
         }
         else
-            return JSON.parse(JSON.stringify(obj));
+            return JSON.parse(tui.stringify(obj));
     }
     tui.clone = clone;
     tui.ieVer = (function () {
@@ -1035,7 +1044,7 @@ var tui;
                 expires = expires * 1000 * 60 * 60 * 24;
             }
             var expires_date = new Date(today.getTime() + (expires));
-            document.cookie = name + "=" + encodeURIComponent(JSON.stringify(value)) +
+            document.cookie = name + "=" + encodeURIComponent(tui.stringify(value)) +
                 ((expires) ? ";expires=" + expires_date.toUTCString() : "") +
                 ((path) ? ";path=" + path : "") +
                 ((domain) ? ";domain=" + domain : "") +
@@ -1063,7 +1072,7 @@ var tui;
             try {
                 var storage = (sessionOnly === true ? window.sessionStorage : window.localStorage);
                 if (storage) {
-                    storage.setItem(key, JSON.stringify(value));
+                    storage.setItem(key, tui.stringify(value));
                 }
                 else
                     saveCookie(key, value, 365);
@@ -2557,7 +2566,7 @@ var tui;
                                         if (_this._items[i].available)
                                             formulaValueCache.push(_this._items[i].define.value);
                                     }
-                                    var cacheStr = JSON.stringify(formulaValueCache);
+                                    var cacheStr = tui.stringify(formulaValueCache);
                                     if (_this._formulaContext.cacheValue != cacheStr) {
                                         _this._formulaContext.callStacks++;
                                         _this._formulaContext.cacheValue = cacheStr;
@@ -3511,7 +3520,7 @@ var tui;
                 "type": method.toUpperCase(),
                 "url": url,
                 "contentType": "application/json",
-                "data": (method.toUpperCase() === "GET" ? data : JSON.stringify(data)),
+                "data": (method.toUpperCase() === "GET" ? data : tui.stringify(data)),
                 "complete": function (jqXHR, status) {
                     waitbox && waitbox.close();
                     if (status === "success") {
@@ -4562,13 +4571,20 @@ var tui;
                     this.expandItems(null, result.data, this._index, 0);
                 }
                 else {
+                    var expand = result.parent.expand;
                     var index = this.findNodeIndex(result.parent);
                     if (index >= 0) {
                         this.collapse(index);
                     }
                     result.parent.item[this._config.children] = result.data;
-                    if (index >= 0) {
-                        this.expand(index);
+                    if (!result.data || result.data.length == 0) {
+                        result.parent.hasChild = false;
+                    }
+                    else {
+                        result.parent.hasChild = true;
+                        if (index >= 0 && expand) {
+                            this.expand(index);
+                        }
                     }
                 }
                 this.fire("update", { "completely": true });

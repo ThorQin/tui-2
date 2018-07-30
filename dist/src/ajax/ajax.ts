@@ -1,14 +1,14 @@
 /// <reference path="../core.ts" />
 /// <reference path="../widget/dialog.ts" />
 module tui.ajax {
-	
+
 	$.ajaxSetup({
 		"timeout": 30000,
 		"xhrFields": {
 			'withCredentials': true
 		}
 	});
-	
+
 	export function send(url: string, method: string, data?: any, options?: {[index: string]: any}): JQueryDeferred<any> {
 		var deffered = $.Deferred<any>();
 		var waitbox: {close: ()=>void} = null;
@@ -18,7 +18,7 @@ module tui.ajax {
 			"type": method.toUpperCase(),
 			"url": url,
 			"contentType": "application/json",
-			"data": (method.toUpperCase() === "GET" ? data : JSON.stringify(data)),
+			"data": (method.toUpperCase() === "GET" ? data : tui.stringify(data)),
 			"complete": function (jqXHR: JQueryXHR, status: string) {
 				waitbox && waitbox.close();
 				if (status === "success") {
@@ -43,7 +43,7 @@ module tui.ajax {
 			},
 			"processData": false
 		};
-		
+
 		if (options) {
 			for (var k in options) {
 				if (options.hasOwnProperty(k)) {
@@ -51,15 +51,15 @@ module tui.ajax {
 				}
 			}
 		}
-		
+
 		$.ajax(ajaxData);
 		return deffered;
 	}
-	
+
 	export function post(url: string, data: any, options?: {[index: string]: any}) {
 		return send(url, "post", data, options);
 	}
-	
+
 	export function post_(url: string, data: any, options?: {[index: string]: any}) {
 		if (!options)
 			options = {"silent": true};
@@ -67,11 +67,11 @@ module tui.ajax {
 			options["silent"] = true;
 		return send(url, "post", data, options);
 	}
-	
+
 	export function get(url: string, options?: {[index: string]: any}) {
 		return send(url, "get", null, options);
 	}
-	
+
 	export function get_(url: string, options?: {[index: string]: any}) {
 		if (!options)
 			options = {"silent": true};
@@ -81,7 +81,7 @@ module tui.ajax {
 	}
 
 	export function getScript(url: string): JQueryDeferred<any> {
-		var deffered = $.Deferred<any>(); 
+		var deffered = $.Deferred<any>();
 		var xhr = new XMLHttpRequest();
 		xhr.onreadystatechange = function(){
 			if (xhr.readyState == 4) {
@@ -182,7 +182,7 @@ module tui.ajax {
 		});
 		return deffered;
 	}
-	
+
 	(<any>window).$ajax = send;
 	(<any>window).$post = post;
 	(<any>window).$post_ = post_; // silent mode
