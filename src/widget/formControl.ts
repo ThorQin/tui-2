@@ -1522,6 +1522,7 @@ module tui.widget {
 			super(form, define, "select");
 			this._widget._set("nameKey", "text");
 			this._widget.on("change", (e) => {
+				this.define.value = this._widget.get("value");
 				this._notifyBar.innerHTML = "";
 				form.fire("itemvaluechanged", {control: this});
 			});
@@ -1642,6 +1643,7 @@ module tui.widget {
 				}
 			}
 			this._widget._set("tree", data);
+			this._widget.set("value", this.define.value);
 			this.define.value = this._widget.get("value");
 			return this.define.value;
 		}

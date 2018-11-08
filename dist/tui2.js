@@ -8893,6 +8893,7 @@ var tui;
                 var _this = _super.call(this, form, define, "select") || this;
                 _this._widget._set("nameKey", "text");
                 _this._widget.on("change", function (e) {
+                    _this.define.value = _this._widget.get("value");
                     _this._notifyBar.innerHTML = "";
                     form.fire("itemvaluechanged", { control: _this });
                 });
@@ -9016,6 +9017,7 @@ var tui;
                     }
                 }
                 this._widget._set("tree", data);
+                this._widget._set("value", this.define.value);
                 this.define.value = this._widget.get("value");
                 return this.define.value;
             };
