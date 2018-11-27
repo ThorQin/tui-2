@@ -560,7 +560,61 @@ var tui;
                 return FormUserList;
             }(widget.BasicFormControl));
             widget.Form.register("users", FormUserList);
+            var QRCode = (function (_super) {
+                __extends(QRCode, _super);
+                function QRCode(form, define) {
+                    var _this = _super.call(this, form, define, "dialog-select") || this;
+                    _this._widget.set("iconRight", "fa-barcode");
+                    _this._widget.on("open", function () {
+                        form.fire("itemevent", { event: "getQRCode", control: _this, callback: function (qrCode) {
+                                if (typeof qrCode != tui.UNDEFINED && qrCode != null) {
+                                    _this.setValue(qrCode + "");
+                                }
+                            } });
+                        return false;
+                    });
+                    _this._widget.on("clear", function () {
+                        _this.define.value = null;
+                        form.fire("itemvaluechanged", { control: _this });
+                    });
+                    return _this;
+                }
+                QRCode.prototype.update = function () {
+                    _super.prototype.update.call(this);
+                    this._widget._set("clearable", true);
+                    this._widget._set("value", this.define.value);
+                    if (this.define.required) {
+                        this._widget._set("validate", [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }]);
+                    }
+                    else {
+                        this._widget._set("validate", []);
+                    }
+                };
+                QRCode.prototype.getValue = function (cal) {
+                    if (cal === void 0) { cal = null; }
+                    return this.define.value;
+                };
+                QRCode.prototype.setValue = function (value) {
+                    this._widget.set("text", value);
+                    this.define.value = value;
+                    this.form.fire("itemvaluechanged", { control: this });
+                };
+                QRCode.prototype.getProperties = function () {
+                    return [];
+                };
+                QRCode.prototype.setProperties = function (properties) { };
+                QRCode.prototype.validate = function () {
+                    return this._widget.validate();
+                };
+                QRCode.icon = "fa-barcode";
+                QRCode.desc = "label.qrcode";
+                QRCode.order = 203;
+                QRCode.init = {};
+                return QRCode;
+            }(widget.BasicFormControl));
+            widget.Form.register("qrcode", QRCode);
             tui.dict("en-us", {
+                "label.qrcode": "QRCode",
                 "label.user": "User",
                 "label.user.list": "User List",
                 "label.multiselect": "Multi-Select",
@@ -574,6 +628,7 @@ var tui;
                 "message.select.user": "Please select an user!"
             });
             tui.dict("zh-cn", {
+                "label.qrcode": "二维码",
                 "label.user": "用户",
                 "label.user.list": "用户列表",
                 "label.multiselect": "多选",

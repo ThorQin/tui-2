@@ -596,8 +596,70 @@ module tui.widget.ext {
 	}
 	Form.register("users", FormUserList);
 
+	interface QRCodeFormItem extends FormItem {
+
+	}
+
+	class QRCode extends BasicFormControl<DialogSelect, QRCodeFormItem> {
+		static icon = "fa-barcode";
+		static desc = "label.qrcode";
+		static order = 203;
+		static init = {};
+
+		constructor(form: Form, define: QRCodeFormItem) {
+			super(form, define, "dialog-select");
+			this._widget.set("iconRight", "fa-barcode");
+			this._widget.on("open", () => {
+				form.fire("itemevent", {event: "getQRCode", control: this, callback: (qrCode: string) => {
+					if (typeof qrCode != tui.UNDEFINED && qrCode != null) {
+						this.setValue(qrCode + "");
+					}
+				}});
+				return false;
+			});
+			this._widget.on("clear", () => {
+				this.define.value = null;
+				form.fire("itemvaluechanged", {control: this});
+			});
+
+		}
+
+		update() {
+			super.update();
+			this._widget._set("clearable", true);
+			this._widget._set("value", this.define.value);
+			if (this.define.required) {
+				this._widget._set("validate", [{ "format": "*any", "message": str("message.cannot.be.empty")}]);
+			} else {
+				this._widget._set("validate", []);
+			}
+		}
+
+		getValue(cal: Calculator = null): any {
+			return this.define.value;
+		}
+		setValue(value: any): void {
+			this._widget.set("text", value);
+			this.define.value = value;
+			this.form.fire("itemvaluechanged", {control: this});
+		}
+
+		getProperties(): PropertyPage[] {
+			return [];
+		}
+
+		setProperties(properties: any[]) {}
+
+		validate(): boolean {
+			return this._widget.validate();
+		}
+	}
+	Form.register("qrcode", QRCode);
+
+
 
 	tui.dict("en-us", {
+		"label.qrcode": "QRCode",
 		"label.user": "User",
 		"label.user.list": "User List",
 		"label.multiselect": "Multi-Select",
@@ -611,6 +673,7 @@ module tui.widget.ext {
 		"message.select.user": "Please select an user!"
 	});
 	tui.dict("zh-cn", {
+		"label.qrcode": "二维码",
 		"label.user": "用户",
 		"label.user.list": "用户列表",
 		"label.multiselect": "多选",
