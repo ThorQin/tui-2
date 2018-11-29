@@ -670,6 +670,13 @@ module tui.widget {
 				this.define.folded = !this.define.folded;
 				this.form.render();
 			}
+
+			this.label.onclick = () => {
+				if (this.define.display != "link" || this.define.disable) {
+					return;
+				}
+				form.fire("itemevent", {event: "openLink", control: this, name: this.define.label, url: this.getValue()});
+			}
 		}
 
 		update() {
@@ -728,11 +735,17 @@ module tui.widget {
 					this.label.style.textAlign = "left";
 			}
 			if (d.display == "link") {
-				// browser.addClass(this._hr, "tui-hidden");
+				browser.addClass(this._hr, "tui-hidden");
 				browser.addClass(this.label,"tui-form-item-link");
+				if (this.define.disable) {
+					browser.addClass(this.label,"tui-disable");
+				} else {
+					browser.removeClass(this.label,"tui-disable");
+				}
 			} else {
-				// browser.removeClass(this._hr, "tui-hidden");
+				browser.removeClass(this._hr, "tui-hidden");
 				browser.removeClass(this.label,"tui-form-item-link");
+				browser.removeClass(this.label,"tui-disable");
 			}
 			if (d.display == "folder" || d.display == "link") {
 				d.required = undefined;
