@@ -674,7 +674,7 @@ module tui.widget {
 
 		update() {
 			super.update();
-			if (!/^(visible|folder|invisible|newline)$/.test(this.define.display))
+			if (!/^(visible|folder|invisible|newline|link)$/.test(this.define.display))
 				this.define.display = "visible";
 
 
@@ -698,7 +698,7 @@ module tui.widget {
 		render(designMode: boolean): void {
 			var d = this.define;
 			var l;
-			if (d.value != "" && d.value != null && typeof d.value != UNDEFINED && d.valueAsLabel)
+			if (d.value != "" && d.value != null && typeof d.value != UNDEFINED && d.valueAsLabel && d.display != "link")
 				l = d.value + "";
 			else
 				l = d.label;
@@ -727,7 +727,14 @@ module tui.widget {
 				else
 					this.label.style.textAlign = "left";
 			}
-			if (d.display == "folder") {
+			if (d.display == "link") {
+				// browser.addClass(this._hr, "tui-hidden");
+				browser.addClass(this.label,"tui-form-item-link");
+			} else {
+				// browser.removeClass(this._hr, "tui-hidden");
+				browser.removeClass(this.label,"tui-form-item-link");
+			}
+			if (d.display == "folder" || d.display == "link") {
 				d.required = undefined;
 				browser.removeClass(this.label,"tui-form-item-required");
 			}
@@ -791,17 +798,6 @@ module tui.widget {
 						"value": this.define.value
 					}, {
 						"type": "options",
-						"key": "valueAsLabel",
-						"label": str("form.value.as.label"),
-						"atMost": 1,
-						"options": [{"data":[
-							{value: "enable", text: str("form.enable")},
-							{value: "disable", text: str("form.disable")}
-						]}],
-						"size": 6,
-						"value": this.define.valueAsLabel ? "enable" : "disable"
-					},{
-						"type": "options",
 						"key": "display",
 						"label": str("form.display"),
 						"atMost": 1,
@@ -809,11 +805,12 @@ module tui.widget {
 							{value: "visible", text: str("form.section")},
 							{value: "folder", text: str("form.foldable")},
 							{value: "invisible", text: str("form.invisible")},
-							{value: "newline", text: str("form.newline")}
+							{value: "newline", text: str("form.newline")},
+							{value: "link", text: str("form.link")}
 						]}],
 						"size": 6,
-						"value": /^(visible|folder|invisible|newline)$/.test(this.define.display) ? this.define.display : "visible"
-					},{
+						"value": /^(visible|folder|invisible|newline|link)$/.test(this.define.display) ? this.define.display : "visible"
+					}, {
 						"type": "options",
 						"key": "align",
 						"label": str("form.text.align"),
@@ -826,6 +823,18 @@ module tui.widget {
 						"size": 6,
 						"value": this.define.align || "left",
 						"condition": "display = \"visible\""
+					}, {
+						"type": "options",
+						"key": "valueAsLabel",
+						"label": str("form.value.as.label"),
+						"atMost": 1,
+						"options": [{"data":[
+							{value: "enable", text: str("form.enable")},
+							{value: "disable", text: str("form.disable")}
+						]}],
+						"size": 6,
+						"value": this.define.valueAsLabel ? "enable" : "disable",
+						"condition": "display != \"link\""
 					}
 				]
 			}];
@@ -840,12 +849,12 @@ module tui.widget {
 				this.define.align = values.align == "left" ? undefined : values.align;
 			else
 				this.define.align = undefined;
-			if (values.display == "folder") {
+			if (values.display == "folder" || this.define.display == "link") {
 				this.define.required = undefined;
 			}
 			this.define.value = values.value;
 			this.define.display = values.display;
-			if (values.valueAsLabel == "enable") {
+			if (values.valueAsLabel == "enable" && this.define.display != "link") {
 				this.define.valueAsLabel = true;
 			} else {
 				this.define.valueAsLabel = undefined;

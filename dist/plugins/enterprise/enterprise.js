@@ -566,9 +566,9 @@ var tui;
                     var _this = _super.call(this, form, define, "dialog-select") || this;
                     _this._widget.set("iconRight", "fa-barcode");
                     _this._widget.on("open", function () {
-                        form.fire("itemevent", { event: "getQRCode", control: _this, callback: function (qrCode) {
-                                if (typeof qrCode != tui.UNDEFINED && qrCode != null) {
-                                    _this.setValue(qrCode + "");
+                        form.fire("itemevent", { event: "getQRCode", control: _this, url: _this.define.url, callback: function (value) {
+                                if (typeof value == "object" && value != null) {
+                                    _this.setValue(value);
                                 }
                             } });
                         return false;
@@ -579,10 +579,22 @@ var tui;
                     });
                     return _this;
                 }
+                QRCode.prototype.setValueInternal = function () {
+                    var v = this.define.value;
+                    if (v) {
+                        var text_1 = (typeof v.text != tui.UNDEFINED && v.text != null ? v.text : v.value);
+                        this._widget._set("value", v.value);
+                        this._widget.set("text", text_1);
+                    }
+                    else {
+                        this._widget._set("value", null);
+                        this._widget.set("text", "");
+                    }
+                };
                 QRCode.prototype.update = function () {
                     _super.prototype.update.call(this);
                     this._widget._set("clearable", true);
-                    this._widget._set("value", this.define.value);
+                    this.setValueInternal();
                     if (this.define.required) {
                         this._widget._set("validate", [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }]);
                     }
@@ -595,14 +607,29 @@ var tui;
                     return this.define.value;
                 };
                 QRCode.prototype.setValue = function (value) {
-                    this._widget.set("text", value);
+                    if (typeof value != "object") {
+                        value = null;
+                    }
                     this.define.value = value;
+                    this.setValueInternal();
                     this.form.fire("itemvaluechanged", { control: this });
                 };
                 QRCode.prototype.getProperties = function () {
-                    return [];
+                    return [{
+                            name: tui.str("label.qrcode"),
+                            properties: [{
+                                    "type": "textbox",
+                                    "key": "url",
+                                    "label": tui.str("label.resolve.address"),
+                                    "size": 2,
+                                    "value": this.define.url ? this.define.url + "" : null
+                                }]
+                        }];
                 };
-                QRCode.prototype.setProperties = function (properties) { };
+                QRCode.prototype.setProperties = function (properties) {
+                    var values = properties[1];
+                    this.define.url = values.url ? values.url + "" : null;
+                };
                 QRCode.prototype.validate = function () {
                     return this._widget.validate();
                 };
@@ -614,6 +641,7 @@ var tui;
             }(widget.BasicFormControl));
             widget.Form.register("qrcode", QRCode);
             tui.dict("en-us", {
+                "label.resolve.address": "Resolve Address",
                 "label.qrcode": "QRCode",
                 "label.user": "User",
                 "label.user.list": "User List",
@@ -628,6 +656,7 @@ var tui;
                 "message.select.user": "Please select an user!"
             });
             tui.dict("zh-cn", {
+                "label.resolve.address": "解析地址",
                 "label.qrcode": "二维码",
                 "label.user": "用户",
                 "label.user.list": "用户列表",

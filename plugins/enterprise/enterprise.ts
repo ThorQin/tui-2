@@ -597,7 +597,7 @@ module tui.widget.ext {
 	Form.register("users", FormUserList);
 
 	interface QRCodeFormItem extends FormItem {
-
+		url?: string;
 	}
 
 	class QRCode extends BasicFormControl<DialogSelect, QRCodeFormItem> {
@@ -610,9 +610,9 @@ module tui.widget.ext {
 			super(form, define, "dialog-select");
 			this._widget.set("iconRight", "fa-barcode");
 			this._widget.on("open", () => {
-				form.fire("itemevent", {event: "getQRCode", control: this, callback: (qrCode: string) => {
-					if (typeof qrCode != tui.UNDEFINED && qrCode != null) {
-						this.setValue(qrCode + "");
+				form.fire("itemevent", {event: "getQRCode", control: this, url: this.define.url, callback: (value: any) => {
+					if (typeof value == "object" && value != null) {
+						this.setValue(value);
 					}
 				}});
 				return false;
@@ -624,10 +624,22 @@ module tui.widget.ext {
 
 		}
 
+		setValueInternal() {
+			let v = this.define.value;
+			if (v) {
+				let text = (typeof v.text != tui.UNDEFINED && v.text != null ? v.text : v.value);
+				this._widget._set("value", v.value);
+				this._widget.set("text", text);
+			} else {
+				this._widget._set("value", null);
+				this._widget.set("text", "");
+			}
+		}
+
 		update() {
 			super.update();
 			this._widget._set("clearable", true);
-			this._widget._set("value", this.define.value);
+			this.setValueInternal();
 			if (this.define.required) {
 				this._widget._set("validate", [{ "format": "*any", "message": str("message.cannot.be.empty")}]);
 			} else {
@@ -639,16 +651,31 @@ module tui.widget.ext {
 			return this.define.value;
 		}
 		setValue(value: any): void {
-			this._widget.set("text", value);
+			if (typeof value != "object") {
+				value = null;
+			}
 			this.define.value = value;
+			this.setValueInternal();
 			this.form.fire("itemvaluechanged", {control: this});
 		}
 
 		getProperties(): PropertyPage[] {
-			return [];
+			return [{
+				name: str("label.qrcode"),
+				properties: [{
+					"type": "textbox",
+					"key": "url",
+					"label": str("label.resolve.address"),
+					"size": 2,
+					"value": this.define.url ? this.define.url + "" : null
+				}]
+			}];
 		}
 
-		setProperties(properties: any[]) {}
+		setProperties(properties: any[]) {
+			var values = properties[1];
+			this.define.url = values.url ? values.url + "" : null;
+		}
 
 		validate(): boolean {
 			return this._widget.validate();
@@ -659,6 +686,7 @@ module tui.widget.ext {
 
 
 	tui.dict("en-us", {
+		"label.resolve.address": "Resolve Address",
 		"label.qrcode": "QRCode",
 		"label.user": "User",
 		"label.user.list": "User List",
@@ -673,6 +701,7 @@ module tui.widget.ext {
 		"message.select.user": "Please select an user!"
 	});
 	tui.dict("zh-cn", {
+		"label.resolve.address": "解析地址",
 		"label.qrcode": "二维码",
 		"label.user": "用户",
 		"label.user.list": "用户列表",

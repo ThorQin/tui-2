@@ -241,6 +241,35 @@ tui\:form {
 			}
 			&.tui-form-section-label {
 				color: #039be5;
+				word-break: break-all;
+				&.tui-form-item-link {
+					padding: 5px;
+					padding-left: 40px;
+					text-indent: -40px;
+					text-decoration: underline;
+					cursor: pointer;
+					font-size: 16px !important;
+					font-weight: normal;
+					&:hover {
+						background-color: #f5f5f5;
+					}
+					&.tui-disable {
+						color: #555;
+						cursor: default;
+						&:hover {
+							background-color: none;
+						}
+					}
+					&:before {
+						text-indent: 0px;
+						width: 40px;
+						text-align: center;
+						margin: 0px;
+						color: black;
+						.icon-base();
+						.fa-link();
+					}
+				}
 			}
 			&.tui-form-item-emphasize {
 				color: red;

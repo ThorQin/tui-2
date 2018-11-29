@@ -49,6 +49,7 @@ tui.dict("en-us", {
 	"form.picture": "Picture",
 	"form.file": "File",
 	"form.files": "Files",
+	"form.link": "Link",
 	"form.grid": "Grid",
 	"form.address": "Address",
 	"form.common": "Common",

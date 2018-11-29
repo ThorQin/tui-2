@@ -101,6 +101,7 @@ tui.dict("zh-cn", {
 	"form.picture": "图片",
 	"form.file": "文件",
 	"form.files": "多个文件",
+	"form.link": "链接",
 	"form.grid": "网格",
 	"form.address": "地址",
 	"form.common": "常规",

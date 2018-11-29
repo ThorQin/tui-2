@@ -372,6 +372,7 @@ tui.dict("en-us", {
     "form.picture": "Picture",
     "form.file": "File",
     "form.files": "Files",
+    "form.link": "Link",
     "form.grid": "Grid",
     "form.address": "Address",
     "form.common": "Common",
@@ -8100,11 +8101,17 @@ var tui;
                     _this.define.folded = !_this.define.folded;
                     _this.form.render();
                 };
+                _this.label.onclick = function () {
+                    if (_this.define.display != "link" || _this.define.disable) {
+                        return;
+                    }
+                    form.fire("itemevent", { event: "openLink", control: _this, name: _this.define.label, url: _this.getValue() });
+                };
                 return _this;
             }
             FormSection.prototype.update = function () {
                 _super.prototype.update.call(this);
-                if (!/^(visible|folder|invisible|newline)$/.test(this.define.display))
+                if (!/^(visible|folder|invisible|newline|link)$/.test(this.define.display))
                     this.define.display = "visible";
                 this.applySize();
             };
@@ -8123,7 +8130,7 @@ var tui;
             FormSection.prototype.render = function (designMode) {
                 var d = this.define;
                 var l;
-                if (d.value != "" && d.value != null && typeof d.value != tui.UNDEFINED && d.valueAsLabel)
+                if (d.value != "" && d.value != null && typeof d.value != tui.UNDEFINED && d.valueAsLabel && d.display != "link")
                     l = d.value + "";
                 else
                     l = d.label;
@@ -8151,7 +8158,22 @@ var tui;
                     else
                         this.label.style.textAlign = "left";
                 }
-                if (d.display == "folder") {
+                if (d.display == "link") {
+                    tui.browser.addClass(this._hr, "tui-hidden");
+                    tui.browser.addClass(this.label, "tui-form-item-link");
+                    if (this.define.disable) {
+                        tui.browser.addClass(this.label, "tui-disable");
+                    }
+                    else {
+                        tui.browser.removeClass(this.label, "tui-disable");
+                    }
+                }
+                else {
+                    tui.browser.removeClass(this._hr, "tui-hidden");
+                    tui.browser.removeClass(this.label, "tui-form-item-link");
+                    tui.browser.removeClass(this.label, "tui-disable");
+                }
+                if (d.display == "folder" || d.display == "link") {
                     d.required = undefined;
                     tui.browser.removeClass(this.label, "tui-form-item-required");
                 }
@@ -8218,17 +8240,6 @@ var tui;
                                 "value": this.define.value
                             }, {
                                 "type": "options",
-                                "key": "valueAsLabel",
-                                "label": tui.str("form.value.as.label"),
-                                "atMost": 1,
-                                "options": [{ "data": [
-                                            { value: "enable", text: tui.str("form.enable") },
-                                            { value: "disable", text: tui.str("form.disable") }
-                                        ] }],
-                                "size": 6,
-                                "value": this.define.valueAsLabel ? "enable" : "disable"
-                            }, {
-                                "type": "options",
                                 "key": "display",
                                 "label": tui.str("form.display"),
                                 "atMost": 1,
@@ -8236,10 +8247,11 @@ var tui;
                                             { value: "visible", text: tui.str("form.section") },
                                             { value: "folder", text: tui.str("form.foldable") },
                                             { value: "invisible", text: tui.str("form.invisible") },
-                                            { value: "newline", text: tui.str("form.newline") }
+                                            { value: "newline", text: tui.str("form.newline") },
+                                            { value: "link", text: tui.str("form.link") }
                                         ] }],
                                 "size": 6,
-                                "value": /^(visible|folder|invisible|newline)$/.test(this.define.display) ? this.define.display : "visible"
+                                "value": /^(visible|folder|invisible|newline|link)$/.test(this.define.display) ? this.define.display : "visible"
                             }, {
                                 "type": "options",
                                 "key": "align",
@@ -8253,6 +8265,18 @@ var tui;
                                 "size": 6,
                                 "value": this.define.align || "left",
                                 "condition": "display = \"visible\""
+                            }, {
+                                "type": "options",
+                                "key": "valueAsLabel",
+                                "label": tui.str("form.value.as.label"),
+                                "atMost": 1,
+                                "options": [{ "data": [
+                                            { value: "enable", text: tui.str("form.enable") },
+                                            { value: "disable", text: tui.str("form.disable") }
+                                        ] }],
+                                "size": 6,
+                                "value": this.define.valueAsLabel ? "enable" : "disable",
+                                "condition": "display != \"link\""
                             }
                         ]
                     }];
@@ -8267,12 +8291,12 @@ var tui;
                     this.define.align = values.align == "left" ? undefined : values.align;
                 else
                     this.define.align = undefined;
-                if (values.display == "folder") {
+                if (values.display == "folder" || this.define.display == "link") {
                     this.define.required = undefined;
                 }
                 this.define.value = values.value;
                 this.define.display = values.display;
-                if (values.valueAsLabel == "enable") {
+                if (values.valueAsLabel == "enable" && this.define.display != "link") {
                     this.define.valueAsLabel = true;
                 }
                 else {
