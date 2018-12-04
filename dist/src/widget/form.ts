@@ -56,9 +56,10 @@ module tui.widget {
 				return item.define.key;
 			},
 			getDefinition: function() {
-				if (item)
+				if (item) {
 					return tui.clone(item.define, "value");
-				else
+					//return tui.clone(item.define, "value");
+				} else
 					return null;
 			},
 			setDefinition: function(definition: {[index: string]: any}) {

@@ -2159,8 +2159,9 @@ var tui;
                     return item.define.key;
                 },
                 getDefinition: function () {
-                    if (item)
+                    if (item) {
                         return tui.clone(item.define, "value");
+                    }
                     else
                         return null;
                 },
@@ -9043,6 +9044,7 @@ var tui;
                 this._widget._set("tree", data);
                 this._widget.set("value", this.define.value);
                 this.define.value = this._widget.get("value");
+                this.define.text = this._widget.get("text");
                 return this.define.value;
             };
             FormSelect.prototype.validate = function () {
