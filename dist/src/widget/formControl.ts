@@ -1324,6 +1324,7 @@ module tui.widget {
 				tmpValue.splice(0, 1);
 			}
 			define.value = tmpValue;
+			define.text = this._group.get("text");
 			return define.value;
 		}
 		setValue(value: any): void {

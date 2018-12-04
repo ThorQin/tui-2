@@ -8707,6 +8707,7 @@ var tui;
                     tmpValue.splice(0, 1);
                 }
                 define.value = tmpValue;
+                define.text = this._group.get("text");
                 return define.value;
             };
             FormOptions.prototype.setValue = function (value) {
