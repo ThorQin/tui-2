@@ -159,6 +159,9 @@ module tui.widget {
 		btnPosition: Button;
 		available: boolean;
 
+		private _sizeSplitter: HTMLElement;
+		private _posSplitter: HTMLElement;
+
 		protected form: Form;
 		protected selected: boolean;
 
@@ -244,12 +247,12 @@ module tui.widget {
 			this.toolbar.appendChild(elem("span"))
 			this.btnSize = <Button>create("button", {text: "1x"});
 			this.btnPosition = <Button>create("button", {text: "N"});
-			if (this.isResizable()) {
-				this.btnSize.appendTo(this.toolbar);
-				this.toolbar.appendChild(elem("span"))
-				this.btnPosition.appendTo(this.toolbar);
-				this.toolbar.appendChild(elem("span"))
-			}
+			this._sizeSplitter = elem("span");
+			this._posSplitter = elem("span");
+			this.btnSize.appendTo(this.toolbar);
+			this.toolbar.appendChild(this._sizeSplitter)
+			this.btnPosition.appendTo(this.toolbar);
+			this.toolbar.appendChild(this._posSplitter)
 			this.btnDelete = <Button>create("button", {text: "<i class='fa fa-trash'></i>"});
 			this.btnDelete.appendTo(this.toolbar);
 
@@ -571,6 +574,17 @@ module tui.widget {
 			} else {
 				this.btnSize.set("text", this.define.size + "x");
 			}
+			if (!this.isResizable()) {
+				this.btnSize.addClass("tui-hidden");
+				this.btnPosition.addClass("tui-hidden");
+				browser.addClass(this._sizeSplitter, "tui-hidden");
+				browser.addClass(this._posSplitter, "tui-hidden");
+			} else {
+				this.btnSize.removeClass("tui-hidden");
+				this.btnPosition.removeClass("tui-hidden");
+				browser.removeClass(this._sizeSplitter, "tui-hidden");
+				browser.removeClass(this._posSplitter, "tui-hidden");
+			}
 		}
 
 		abstract getValue(cal: Calculator): any;
@@ -649,7 +663,7 @@ module tui.widget {
 		folded?: boolean;
 	}
 	class FormSection extends FormControl<SectionFormItem> {
-		static icon = "fa-font";
+		static icon = "fa-header";
 		static desc = "form.section";
 		static order = 0;
 
@@ -880,7 +894,182 @@ module tui.widget {
 	Form.register("section", FormSection);
 
 
+	// TEXTVIEW
+	// ----------------------------------------------------------------------------------------------------------
+	interface TextViewFormItem extends FormItem {
+		style: string;
+		fontSize: number;
+		align: string;
+		color?: string;
+	}
+	class FormTextView extends FormControl<TextViewFormItem> {
+		static icon = "fa-align-left";
+		static desc = "form.textview";
+		static order = 1;
+		static init = {
+			value: str("form.text.content")
+		};
 
+		private _textDiv: HTMLElement;
+		constructor(form: Form, define: TextViewFormItem) {
+			super(form, define);
+			this._textDiv = elem("div")
+			this._textDiv.className = "tui-form-text-view-content";
+			this.div.appendChild(this._textDiv);
+		}
+
+		update() {
+			super.update();
+			if (!/^(normal|inline)$/.test(this.define.style))
+				this.define.style = "normal";
+			if (this.define.style == "inline") {
+				this.define.size = MAX;
+			}
+			this.applySize();
+		}
+
+		isResizable(): boolean {
+			return this.define.style != "inline";
+		}
+
+		getValue(): any {
+			var v = typeof this.define.value !== UNDEFINED ? this.define.value : null;
+			return v;
+		}
+		setValue(value: any): void {
+			if (typeof value !== UNDEFINED)
+				this.define.value = value;
+			this.form.fire("itemvaluechanged", {control: this});
+		}
+
+		render(designMode: boolean): void {
+			var d = this.define;
+			var l = d.label;
+			if (!l)
+				this.label.innerHTML = "&nbsp;";
+			else
+				this.label.innerHTML = browser.toSafeText(l);
+			if (d.description) {
+				if (d.style == "inline") {
+					this.label.setAttribute("tooltip", d.description);
+				} else {
+					var desc = elem("span");
+					desc.setAttribute("tooltip", d.description);
+					this.label.appendChild(desc);
+				}
+			}
+
+			if (typeof d.fontSize == "number") {
+				if (d.fontSize < 12)
+					d.fontSize = 12;
+				if (d.fontSize > 40)
+					d.fontSize = 40;
+				this._textDiv.style.fontSize = d.fontSize + "px";
+				this._textDiv.style.lineHeight = d.fontSize + 4 + "px";
+			} else {
+				this._textDiv.style.fontSize = "";
+				this._textDiv.style.lineHeight = "";
+			}
+			if (!/^(left|right|center)$/.test(d.align)) {
+				d.align = "left";
+			}
+			this._textDiv.style.textAlign = d.align;
+			if (!/^(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6})$/i.test(d.color)) {
+				d.color = "#555";
+			}
+			this._textDiv.style.color = d.color;
+
+			if (d.style == "inline") {
+				browser.addClass(this.div, "tui-text-view-inline");
+			} else {
+				browser.removeClass(this.div, "tui-text-view-inline");
+			}
+			if (!this.define.label && !this.define.description) {
+				browser.addClass(this.label, "tui-hidden");
+			} else {
+				browser.removeClass(this.label, "tui-hidden");
+			}
+			let t = d.value ? browser.toSafeText(d.value) : "&nbsp;";
+			this._textDiv.innerHTML = t;
+		}
+
+		getProperties(): PropertyPage[] {
+			return [{
+				name: str("form.textview"),
+				properties: [
+					{
+						"type": "textarea",
+						"key": "value",
+						"label": str("form.value"),
+						"value": this.define.value,
+						"size": 6
+					}, {
+						"type": "textbox",
+						"key": "fontSize",
+						"inputType": "number",
+						"label": str("form.font.size"),
+						"value": this.define.fontSize,
+						"validation": [
+							{ "format": "*digital", "message": str("message.invalid.format") },
+							{ "format": "*min:12", "message": str("message.invalid.value") },
+							{ "format": "*max:40", "message": str("message.invalid.value") }
+						],
+						"description": "12 ~ 40"
+					}, {
+						"type": "textbox",
+						"key": "color",
+						"label": str("form.text.color"),
+						"value": this.define.color,
+						"validation": [
+							{ "format": "#[0-9a-zA-Z]{3}|#[0-9a-zA-Z]{6}", "message": str("message.invalid.format") },
+						],
+					}, {
+						"type": "options",
+						"key": "style",
+						"label": str("form.text.view.style"),
+						"atMost": 1,
+						"options": [{"data":[
+							{value: "normal", text: str("form.style.normal")},
+							{value: "inline", text: str("form.style.inline")},
+						]}],
+						"value": this.define.style || "normal",
+					}, {
+						"type": "options",
+						"key": "align",
+						"label": str("form.text.align"),
+						"atMost": 1,
+						"options": [{"data":[
+							{value: "left", text: str("form.align.left")},
+							{value: "center", text: str("form.align.center")},
+							{value: "right", text: str("form.align.right")}
+						]}],
+						"value": this.define.align || "left",
+					},
+				]
+			}];
+		}
+		setProperties(properties: any[]) {
+			var values: {[index: string]: any} = properties[1];
+			if (values.fontSize && /^\d+$/.test(values.fontSize))
+				this.define.fontSize = parseInt(values.fontSize);
+			else
+				this.define.fontSize = undefined;
+			if (/^(center|right)$/.test(values.align))
+				this.define.align = values.align;
+			else
+				this.define.align = undefined;
+			this.define.value = values.value;
+			this.define.color = values.color;
+			if (/^(inline)$/.test(values.style))
+				this.define.style = values.style;
+			else
+				this.define.style = undefined;
+		}
+		validate(): boolean {
+			return true;
+		}
+	}
+	Form.register("textview", FormTextView);
 
 
 	// TEXTBOX
@@ -894,10 +1083,20 @@ module tui.widget {
 	class FormTextbox extends BasicFormControl<Input, TextboxFormItem> {
 		static icon = "fa-pencil";
 		static desc = "form.textbox";
-		static order = 1;
+		static order = 2;
 
 		constructor(form: Form, define: FormItem) {
 			super(form, define, "input");
+			this._widget.on("checkexp", (e) => {
+				try {
+					return text.exp.evaluate(e.data.exp, (k) => {
+						let v = this.form.get("value");
+						return v[k];
+					});
+				} catch(e) {
+					return false;
+				}
+			});
 			this._widget.on("change", (e) => {
 				this.define.value = this.getValue();
 				form.fire("itemvaluechanged", {control: this});
@@ -988,11 +1187,11 @@ module tui.widget {
 								"required": true,
 								"label": str("form.format"),
 								"selection": [
-									"*any", "*url", "*email", "*digital", "*integer", "*float", "*number", "*currency", "*date", "*key", "*max:<?>", "*min:<?>", "*maxlen:<?>", "*minlen:<?>"
+									"*any", "*url", "*email", "*digital", "*integer", "*float", "*number", "*currency", "*date", "*key", "*max:<?>", "*min:<?>", "*maxlen:<?>", "*minlen:<?>", "*exp:<?>"
 								],
 								"validation": [
 									{ "format": "*any", "message": str("message.cannot.be.empty")},
-									{ "format": "^(\\*(any|key|integer|number|digital|url|email|float|currency|date|max:\\d+|min:\\d+|maxlen:\\d+|minlen:\\d+)|[^\\*].*)$", "message": str("message.invalid.format")}
+									{ "format": "^(\\*(any|key|integer|number|digital|url|email|float|currency|date|max:\\d+|min:\\d+|maxlen:\\d+|minlen:\\d+|exp:.+)|[^\\*].*)$", "message": str("message.invalid.format")}
 								],
 								"size": 2
 							}, {
@@ -1049,7 +1248,7 @@ module tui.widget {
 	class FormTextarea extends BasicFormControl<Textarea, TextareaFormItem> {
 		static icon = "fa-edit";
 		static desc = "form.textarea";
-		static order = 2;
+		static order = 3;
 		static init = {
 			maxHeight: 300,
 			size: 2,
@@ -1061,6 +1260,16 @@ module tui.widget {
 			this._widget.on("change", (e) => {
 				this.define.value = this.getValue();
 				form.fire("itemvaluechanged", {control: this});
+			});
+			this._widget.on("checkexp", (e) => {
+				try {
+					return text.exp.evaluate(e.data.exp, (k) => {
+						let v = this.form.get("value");
+						return v[k];
+					});
+				} catch(e) {
+					return false;
+				}
 			});
 		}
 		getProperties(): PropertyPage[] {
@@ -1100,11 +1309,11 @@ module tui.widget {
 								"required": true,
 								"label": str("form.format"),
 								"selection": [
-									"*any", "*email", "*url", "*maxlen:<?>", "*minlen:<?>"
+									"*any", "*email", "*url", "*maxlen:<?>", "*minlen:<?>", "*exp:<?>"
 								],
 								"validation": [
 									{ "format": "*any", "message": str("message.cannot.be.empty")},
-									{ "format": "^(\\*(any|url|email|maxlen:\\d+|minlen:\\d+)|[^\\*].*)$", "message": str("message.invalid.format")}
+									{ "format": "^(\\*(any|url|email|maxlen:\\d+|minlen:\\d+|exp:.+)|[^\\*].*)$", "message": str("message.invalid.format")}
 								],
 								"size": 2
 							}, {
@@ -1173,7 +1382,7 @@ module tui.widget {
 	class FormOptions extends FormControl<OptionsFormItem> {
 		static icon = "fa-check-square-o";
 		static desc = "form.option.group";
-		static order = 3;
+		static order = 4;
 		static init = {
 			"options": [{
 				"data": [
@@ -1517,7 +1726,7 @@ module tui.widget {
 	class FormSelect extends BasicFormControl<Select, SelectFormItem> {
 		static icon = "fa-toggle-down";
 		static desc = "form.selection";
-		static order = 4;
+		static order = 5;
 		static init = {
 			"atMost": 1,
 			"selection": [{
@@ -1713,7 +1922,7 @@ module tui.widget {
 	class FormDatePicker extends BasicFormControl<DatePicker, DatePickerFormItem> {
 		static icon = "fa-calendar-o";
 		static desc = "form.datepicker";
-		static order = 5;
+		static order = 6;
 
 		constructor(form: Form, define: DatePickerFormItem) {
 			super(form, define, "date-picker");
@@ -1814,7 +2023,7 @@ module tui.widget {
 	class FormCalendar extends BasicFormControl<Calendar, CalendarFormItem> {
 		static icon = "fa-calendar";
 		static desc = "form.calendar";
-		static order = 6;
+		static order = 7;
 		static init = {
 			size: 1,
 			position: "newline"
@@ -1875,7 +2084,7 @@ module tui.widget {
 	class FormPicture extends BasicFormControl<Picture, PictureFormItem> {
 		static icon = "fa-file-image-o";
 		static desc = "form.picture";
-		static order = 7;
+		static order = 8;
 		static translator = function (value: any, item: any, index: number): Node {
 			if (value != null) {
 				if (value.fileName)
@@ -1967,7 +2176,7 @@ module tui.widget {
 	class FormFile extends BasicFormControl<File, FileFormItem> {
 		static icon = "fa-file-text-o";
 		static desc = "form.file";
-		static order = 8;
+		static order = 9;
 		static translator = function (value: any, item: any, index: number): Node {
 			if (value != null) {
 				if (value.fileName)
@@ -2048,7 +2257,7 @@ module tui.widget {
 	class FormFiles extends BasicFormControl<Files, FilesFormItem> {
 		static icon = "fa-copy";
 		static desc = "form.files";
-		static order = 9;
+		static order = 10;
 		static init = {
 			size: 2,
 			position: "newline"
@@ -2184,7 +2393,7 @@ module tui.widget {
 	class FormGrid extends BasicFormControl<Grid, GridFormItem> {
 		static icon = "fa-table";
 		static desc = "form.grid";
-		static order = 10;
+		static order = 11;
 		static init = {
 			size: 6,
 			features: ['append', 'delete', 'edit']

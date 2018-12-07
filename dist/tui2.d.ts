@@ -755,6 +755,8 @@ declare module tui.widget {
         btnSize: Button;
         btnPosition: Button;
         available: boolean;
+        private _sizeSplitter;
+        private _posSplitter;
         protected form: Form;
         protected selected: boolean;
         static detectRequired(pages: PropertyPage[], recentPage: number): void;

@@ -20,7 +20,7 @@ module tui.widget {
 		updateEmptyState(empty: boolean): void;
 		validate(e?: JQueryEventObject): boolean;
 	}
-	
+
 	export abstract class InputBase extends Widget implements Validatable {
 		protected _valid: boolean = true;
 		protected _invalidMessage: string = null;
@@ -39,11 +39,11 @@ module tui.widget {
 			}
 			return validators;
 		}
-		
+
 		protected initChildren(childNodes: Node[]) {
 			this._set("validate", InputBase.parseValidators(childNodes));
 		}
-		
+
 		reset() {
 			if (this._valid !== true) {
 				this._valid = true;
@@ -51,7 +51,7 @@ module tui.widget {
 				this.render();
 			}
 		}
-		
+
 		updateEmptyState(empty: boolean) {
 			if (this._isEmpty !== empty) {
 				this._isEmpty = empty;
@@ -59,21 +59,21 @@ module tui.widget {
 					this.render();
 			}
 		}
-		
+
 		validate(e?: JQueryEventObject): boolean {
 			var text = this.get("text");
 			if (text === null)
 				text = "";
 			this._valid = true;
 			var validator = this.get("validate");
-			
+
 			if (text === "" && this.get("allowEmpty")) {
 				return true;
 			}
-			
+
 			if (!(validator instanceof Array))
 				return true;
-				
+
 			for (let item of validator) {
 				let k: string = item.format;
 				if (k === "*password") {
@@ -128,6 +128,9 @@ module tui.widget {
 					} else {
 						this._valid = false;
 					}
+				} else if (k.substr(0, 5) === "*exp:") {
+					let other = k.substr(5);
+					this._valid = !!this.fire("checkexp", {e: e, exp: other});
 				} else {
 					var regexp: RegExp;
 					if (k.substr(0, 1) === "*") {
@@ -150,8 +153,7 @@ module tui.widget {
 				this._invalidMessage = tui.str("Invalid input.");
 			}
 			this.render();
-			if (e)
-				this.fire("validate", {e: e, valid: this._valid, message: this._invalidMessage});
+			this.fire("validate", {e: e, valid: this._valid, message: this._invalidMessage});
 			return this._valid;
 		}
 	}

@@ -242,6 +242,7 @@ tui\:form {
 			&.tui-form-section-label {
 				color: #039be5;
 				word-break: break-all;
+				word-wrap: break-word;
 				&.tui-form-item-link {
 					padding: 5px;
 					padding-left: 40px;
@@ -276,7 +277,19 @@ tui\:form {
 			}
 		}
 
+		div.tui-form-text-view-content {
+			padding: 2px 5px;
+			word-break: break-all;
+			word-wrap: break-word;
+			white-space: pre-line;
+		}
 
+		&.tui-text-view-inline>div.tui-form-item-label {
+			flex: 0.3;
+		}
+		&.tui-text-view-inline>div.tui-form-text-view-content {
+			flex: 0.7;
+		}
 
 		&.tui-form-item-size-full {
 			display: block !important;
@@ -289,6 +302,13 @@ tui\:form {
 			width: auto !important;
 			float: none;
 			clear:both;
+		}
+
+		&.tui-text-view-inline {
+			display: flex !important;
+			flex-direction: row;
+			align-items: stretch;
+			border-bottom: 1px solid #ddd;
 		}
 
 		&.tui-form-item-unavailable,&.tui-hidden {

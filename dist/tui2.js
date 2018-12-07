@@ -393,7 +393,13 @@ tui.dict("en-us", {
     "message.invalid.format": "Invalid format!",
     "message.invalid.file": "Invalid file!",
     "message.invalid.value": "Invalid value!",
+    "form.textview": "Text View",
+    "form.text.content": "Text Content",
+    "form.style.normal": "Normal",
+    "form.style.inline": "Inline",
     "form.text.align": "Text Align",
+    "form.text.color": "Text Color",
+    "form.text.view.style": "Display Style",
     "form.arrange": "Arrange",
     "form.align": "Align",
     "form.align.left": "Left",
@@ -6630,6 +6636,10 @@ var tui;
                             this._valid = false;
                         }
                     }
+                    else if (k.substr(0, 5) === "*exp:") {
+                        var other = k.substr(5);
+                        this._valid = !!this.fire("checkexp", { e: e, exp: other });
+                    }
                     else {
                         var regexp;
                         if (k.substr(0, 1) === "*") {
@@ -6653,8 +6663,7 @@ var tui;
                     this._invalidMessage = tui.str("Invalid input.");
                 }
                 this.render();
-                if (e)
-                    this.fire("validate", { e: e, valid: this._valid, message: this._invalidMessage });
+                this.fire("validate", { e: e, valid: this._valid, message: this._invalidMessage });
                 return this._valid;
             };
             return InputBase;
@@ -7642,12 +7651,12 @@ var tui;
                 this.toolbar.appendChild(tui.elem("span"));
                 this.btnSize = widget.create("button", { text: "1x" });
                 this.btnPosition = widget.create("button", { text: "N" });
-                if (this.isResizable()) {
-                    this.btnSize.appendTo(this.toolbar);
-                    this.toolbar.appendChild(tui.elem("span"));
-                    this.btnPosition.appendTo(this.toolbar);
-                    this.toolbar.appendChild(tui.elem("span"));
-                }
+                this._sizeSplitter = tui.elem("span");
+                this._posSplitter = tui.elem("span");
+                this.btnSize.appendTo(this.toolbar);
+                this.toolbar.appendChild(this._sizeSplitter);
+                this.btnPosition.appendTo(this.toolbar);
+                this.toolbar.appendChild(this._posSplitter);
                 this.btnDelete = widget.create("button", { text: "<i class='fa fa-trash'></i>" });
                 this.btnDelete.appendTo(this.toolbar);
                 this.div.appendChild(this.mask);
@@ -8034,6 +8043,18 @@ var tui;
                 else {
                     this.btnSize.set("text", this.define.size + "x");
                 }
+                if (!this.isResizable()) {
+                    this.btnSize.addClass("tui-hidden");
+                    this.btnPosition.addClass("tui-hidden");
+                    tui.browser.addClass(this._sizeSplitter, "tui-hidden");
+                    tui.browser.addClass(this._posSplitter, "tui-hidden");
+                }
+                else {
+                    this.btnSize.removeClass("tui-hidden");
+                    this.btnPosition.removeClass("tui-hidden");
+                    tui.browser.removeClass(this._sizeSplitter, "tui-hidden");
+                    tui.browser.removeClass(this._posSplitter, "tui-hidden");
+                }
             };
             return FormControl;
         }());
@@ -8307,16 +8328,193 @@ var tui;
             FormSection.prototype.validate = function () {
                 return true;
             };
-            FormSection.icon = "fa-font";
+            FormSection.icon = "fa-header";
             FormSection.desc = "form.section";
             FormSection.order = 0;
             return FormSection;
         }(FormControl));
         widget.Form.register("section", FormSection);
+        var FormTextView = (function (_super) {
+            __extends(FormTextView, _super);
+            function FormTextView(form, define) {
+                var _this = _super.call(this, form, define) || this;
+                _this._textDiv = tui.elem("div");
+                _this._textDiv.className = "tui-form-text-view-content";
+                _this.div.appendChild(_this._textDiv);
+                return _this;
+            }
+            FormTextView.prototype.update = function () {
+                _super.prototype.update.call(this);
+                if (!/^(normal|inline)$/.test(this.define.style))
+                    this.define.style = "normal";
+                if (this.define.style == "inline") {
+                    this.define.size = MAX;
+                }
+                this.applySize();
+            };
+            FormTextView.prototype.isResizable = function () {
+                return this.define.style != "inline";
+            };
+            FormTextView.prototype.getValue = function () {
+                var v = typeof this.define.value !== tui.UNDEFINED ? this.define.value : null;
+                return v;
+            };
+            FormTextView.prototype.setValue = function (value) {
+                if (typeof value !== tui.UNDEFINED)
+                    this.define.value = value;
+                this.form.fire("itemvaluechanged", { control: this });
+            };
+            FormTextView.prototype.render = function (designMode) {
+                var d = this.define;
+                var l = d.label;
+                if (!l)
+                    this.label.innerHTML = "&nbsp;";
+                else
+                    this.label.innerHTML = tui.browser.toSafeText(l);
+                if (d.description) {
+                    if (d.style == "inline") {
+                        this.label.setAttribute("tooltip", d.description);
+                    }
+                    else {
+                        var desc = tui.elem("span");
+                        desc.setAttribute("tooltip", d.description);
+                        this.label.appendChild(desc);
+                    }
+                }
+                if (typeof d.fontSize == "number") {
+                    if (d.fontSize < 12)
+                        d.fontSize = 12;
+                    if (d.fontSize > 40)
+                        d.fontSize = 40;
+                    this._textDiv.style.fontSize = d.fontSize + "px";
+                    this._textDiv.style.lineHeight = d.fontSize + 4 + "px";
+                }
+                else {
+                    this._textDiv.style.fontSize = "";
+                    this._textDiv.style.lineHeight = "";
+                }
+                if (!/^(left|right|center)$/.test(d.align)) {
+                    d.align = "left";
+                }
+                this._textDiv.style.textAlign = d.align;
+                if (!/^(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6})$/i.test(d.color)) {
+                    d.color = "#555";
+                }
+                this._textDiv.style.color = d.color;
+                if (d.style == "inline") {
+                    tui.browser.addClass(this.div, "tui-text-view-inline");
+                }
+                else {
+                    tui.browser.removeClass(this.div, "tui-text-view-inline");
+                }
+                if (!this.define.label && !this.define.description) {
+                    tui.browser.addClass(this.label, "tui-hidden");
+                }
+                else {
+                    tui.browser.removeClass(this.label, "tui-hidden");
+                }
+                var t = d.value ? tui.browser.toSafeText(d.value) : "&nbsp;";
+                this._textDiv.innerHTML = t;
+            };
+            FormTextView.prototype.getProperties = function () {
+                return [{
+                        name: tui.str("form.textview"),
+                        properties: [
+                            {
+                                "type": "textarea",
+                                "key": "value",
+                                "label": tui.str("form.value"),
+                                "value": this.define.value,
+                                "size": 6
+                            }, {
+                                "type": "textbox",
+                                "key": "fontSize",
+                                "inputType": "number",
+                                "label": tui.str("form.font.size"),
+                                "value": this.define.fontSize,
+                                "validation": [
+                                    { "format": "*digital", "message": tui.str("message.invalid.format") },
+                                    { "format": "*min:12", "message": tui.str("message.invalid.value") },
+                                    { "format": "*max:40", "message": tui.str("message.invalid.value") }
+                                ],
+                                "description": "12 ~ 40"
+                            }, {
+                                "type": "textbox",
+                                "key": "color",
+                                "label": tui.str("form.text.color"),
+                                "value": this.define.color,
+                                "validation": [
+                                    { "format": "#[0-9a-zA-Z]{3}|#[0-9a-zA-Z]{6}", "message": tui.str("message.invalid.format") },
+                                ],
+                            }, {
+                                "type": "options",
+                                "key": "style",
+                                "label": tui.str("form.text.view.style"),
+                                "atMost": 1,
+                                "options": [{ "data": [
+                                            { value: "normal", text: tui.str("form.style.normal") },
+                                            { value: "inline", text: tui.str("form.style.inline") },
+                                        ] }],
+                                "value": this.define.style || "normal",
+                            }, {
+                                "type": "options",
+                                "key": "align",
+                                "label": tui.str("form.text.align"),
+                                "atMost": 1,
+                                "options": [{ "data": [
+                                            { value: "left", text: tui.str("form.align.left") },
+                                            { value: "center", text: tui.str("form.align.center") },
+                                            { value: "right", text: tui.str("form.align.right") }
+                                        ] }],
+                                "value": this.define.align || "left",
+                            },
+                        ]
+                    }];
+            };
+            FormTextView.prototype.setProperties = function (properties) {
+                var values = properties[1];
+                if (values.fontSize && /^\d+$/.test(values.fontSize))
+                    this.define.fontSize = parseInt(values.fontSize);
+                else
+                    this.define.fontSize = undefined;
+                if (/^(center|right)$/.test(values.align))
+                    this.define.align = values.align;
+                else
+                    this.define.align = undefined;
+                this.define.value = values.value;
+                this.define.color = values.color;
+                if (/^(inline)$/.test(values.style))
+                    this.define.style = values.style;
+                else
+                    this.define.style = undefined;
+            };
+            FormTextView.prototype.validate = function () {
+                return true;
+            };
+            FormTextView.icon = "fa-align-left";
+            FormTextView.desc = "form.textview";
+            FormTextView.order = 1;
+            FormTextView.init = {
+                value: tui.str("form.text.content")
+            };
+            return FormTextView;
+        }(FormControl));
+        widget.Form.register("textview", FormTextView);
         var FormTextbox = (function (_super) {
             __extends(FormTextbox, _super);
             function FormTextbox(form, define) {
                 var _this = _super.call(this, form, define, "input") || this;
+                _this._widget.on("checkexp", function (e) {
+                    try {
+                        return tui.text.exp.evaluate(e.data.exp, function (k) {
+                            var v = _this.form.get("value");
+                            return v[k];
+                        });
+                    }
+                    catch (e) {
+                        return false;
+                    }
+                });
                 _this._widget.on("change", function (e) {
                     _this.define.value = _this.getValue();
                     form.fire("itemvaluechanged", { control: _this });
@@ -8409,11 +8607,11 @@ var tui;
                                         "required": true,
                                         "label": tui.str("form.format"),
                                         "selection": [
-                                            "*any", "*url", "*email", "*digital", "*integer", "*float", "*number", "*currency", "*date", "*key", "*max:<?>", "*min:<?>", "*maxlen:<?>", "*minlen:<?>"
+                                            "*any", "*url", "*email", "*digital", "*integer", "*float", "*number", "*currency", "*date", "*key", "*max:<?>", "*min:<?>", "*maxlen:<?>", "*minlen:<?>", "*exp:<?>"
                                         ],
                                         "validation": [
                                             { "format": "*any", "message": tui.str("message.cannot.be.empty") },
-                                            { "format": "^(\\*(any|key|integer|number|digital|url|email|float|currency|date|max:\\d+|min:\\d+|maxlen:\\d+|minlen:\\d+)|[^\\*].*)$", "message": tui.str("message.invalid.format") }
+                                            { "format": "^(\\*(any|key|integer|number|digital|url|email|float|currency|date|max:\\d+|min:\\d+|maxlen:\\d+|minlen:\\d+|exp:.+)|[^\\*].*)$", "message": tui.str("message.invalid.format") }
                                         ],
                                         "size": 2
                                     }, {
@@ -8457,7 +8655,7 @@ var tui;
             };
             FormTextbox.icon = "fa-pencil";
             FormTextbox.desc = "form.textbox";
-            FormTextbox.order = 1;
+            FormTextbox.order = 2;
             return FormTextbox;
         }(BasicFormControl));
         widget.Form.register("textbox", FormTextbox);
@@ -8468,6 +8666,17 @@ var tui;
                 _this._widget.on("change", function (e) {
                     _this.define.value = _this.getValue();
                     form.fire("itemvaluechanged", { control: _this });
+                });
+                _this._widget.on("checkexp", function (e) {
+                    try {
+                        return tui.text.exp.evaluate(e.data.exp, function (k) {
+                            var v = _this.form.get("value");
+                            return v[k];
+                        });
+                    }
+                    catch (e) {
+                        return false;
+                    }
                 });
                 return _this;
             }
@@ -8508,11 +8717,11 @@ var tui;
                                         "required": true,
                                         "label": tui.str("form.format"),
                                         "selection": [
-                                            "*any", "*email", "*url", "*maxlen:<?>", "*minlen:<?>"
+                                            "*any", "*email", "*url", "*maxlen:<?>", "*minlen:<?>", "*exp:<?>"
                                         ],
                                         "validation": [
                                             { "format": "*any", "message": tui.str("message.cannot.be.empty") },
-                                            { "format": "^(\\*(any|url|email|maxlen:\\d+|minlen:\\d+)|[^\\*].*)$", "message": tui.str("message.invalid.format") }
+                                            { "format": "^(\\*(any|url|email|maxlen:\\d+|minlen:\\d+|exp:.+)|[^\\*].*)$", "message": tui.str("message.invalid.format") }
                                         ],
                                         "size": 2
                                     }, {
@@ -8565,7 +8774,7 @@ var tui;
             };
             FormTextarea.icon = "fa-edit";
             FormTextarea.desc = "form.textarea";
-            FormTextarea.order = 2;
+            FormTextarea.order = 3;
             FormTextarea.init = {
                 maxHeight: 300,
                 size: 2,
@@ -8889,7 +9098,7 @@ var tui;
             };
             FormOptions.icon = "fa-check-square-o";
             FormOptions.desc = "form.option.group";
-            FormOptions.order = 3;
+            FormOptions.order = 4;
             FormOptions.init = {
                 "options": [{
                         "data": [
@@ -9077,7 +9286,7 @@ var tui;
             };
             FormSelect.icon = "fa-toggle-down";
             FormSelect.desc = "form.selection";
-            FormSelect.order = 4;
+            FormSelect.order = 5;
             FormSelect.init = {
                 "atMost": 1,
                 "selection": [{
@@ -9193,7 +9402,7 @@ var tui;
             };
             FormDatePicker.icon = "fa-calendar-o";
             FormDatePicker.desc = "form.datepicker";
-            FormDatePicker.order = 5;
+            FormDatePicker.order = 6;
             return FormDatePicker;
         }(BasicFormControl));
         widget.Form.register("datepicker", FormDatePicker);
@@ -9244,7 +9453,7 @@ var tui;
             };
             FormCalendar.icon = "fa-calendar";
             FormCalendar.desc = "form.calendar";
-            FormCalendar.order = 6;
+            FormCalendar.order = 7;
             FormCalendar.init = {
                 size: 1,
                 position: "newline"
@@ -9324,7 +9533,7 @@ var tui;
             };
             FormPicture.icon = "fa-file-image-o";
             FormPicture.desc = "form.picture";
-            FormPicture.order = 7;
+            FormPicture.order = 8;
             FormPicture.translator = function (value, item, index) {
                 if (value != null) {
                     if (value.fileName)
@@ -9397,7 +9606,7 @@ var tui;
             };
             FormFile.icon = "fa-file-text-o";
             FormFile.desc = "form.file";
-            FormFile.order = 8;
+            FormFile.order = 9;
             FormFile.translator = function (value, item, index) {
                 if (value != null) {
                     if (value.fileName)
@@ -9521,7 +9730,7 @@ var tui;
             };
             FormFiles.icon = "fa-copy";
             FormFiles.desc = "form.files";
-            FormFiles.order = 9;
+            FormFiles.order = 10;
             FormFiles.init = {
                 size: 2,
                 position: "newline"
@@ -9768,7 +9977,7 @@ var tui;
             };
             FormGrid.icon = "fa-table";
             FormGrid.desc = "form.grid";
-            FormGrid.order = 10;
+            FormGrid.order = 11;
             FormGrid.init = {
                 size: 6,
                 features: ['append', 'delete', 'edit']
