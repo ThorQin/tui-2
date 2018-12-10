@@ -1,18 +1,18 @@
 {
 	"compilerOptions": {
 		"target": "es5",
-        "noImplicitAny": true,
+		"noImplicitAny": false,
 		"declaration": true,
-        "removeComments": true,
-        "outFile": "dist/tui2.js",
-        "sourceMap": true,
+		"removeComments": true,
+		"outFile": "dist/tui2.js",
+		"sourceMap": true,
 		"noEmitOnError": true
 	},
 	"include": [
 		"src/**/*.ts"
 	],
-    "exclude": [
-        "depends",
+	"exclude": [
+		"depends",
 		"dist",
 		"doc",
 		"extentions",
@@ -20,5 +20,5 @@
 		"node_modules",
 		"lang",
 		"test"
-    ]
+	]
 }

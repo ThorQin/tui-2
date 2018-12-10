@@ -1,5 +1,5 @@
 /// <reference path="base.ts" />
-
+/// <reference path="../exp/expression.ts" />
 
 module tui.widget {
 	"use strict";
@@ -387,12 +387,15 @@ module tui.widget {
 									throw new Error("Invalid expression: Cycle reference was detected on field: \"" + key + "\"");
 								searchPath.push(key);
 								try {
-									if (text.exp.evaluate(exp, function (k: string) {
-										if (me._valueCache.hasOwnProperty(k))
-											return me._valueCache[k];
+									if (tui.exp.evaluate(exp, function (id) {
+										if (id.type == 'function') {
+											return tui.exp.processStandardFunc(id);
+										}
+										if (me._valueCache.hasOwnProperty(id.name))
+											return me._valueCache[id.name];
 										else {
-											computeValue(k, searchPath);
-											return me._valueCache[k];
+											computeValue(id.name, searchPath);
+											return me._valueCache[id.name];
 										}
 									})) {
 										searchPath.pop();
@@ -440,11 +443,14 @@ module tui.widget {
 
 								if (k === null) {
 									if (item.define.condition) {
-										if (text.exp.evaluate(item.define.condition, function (k: string) {
-											if (me._valueCache.hasOwnProperty(k))
-												return me._valueCache[k];
+										if (tui.exp.evaluate(item.define.condition, function (id) {
+											if (id.type == 'function') {
+												return tui.exp.processStandardFunc(id);
+											}
+											if (me._valueCache.hasOwnProperty(id.name))
+												return me._valueCache[id.name];
 											else {
-												throw new Error("Invalid expression: Field \"" + k + "\" not found in control[" + i + "] condition.");
+												throw new Error("Invalid expression: Field \"" + id.name + "\" not found in control[" + i + "] condition.");
 											}
 										})) {
 											item.available = true;

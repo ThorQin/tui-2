@@ -318,6 +318,59 @@ declare module tui {
     var create: typeof widget.create;
     var search: typeof widget.search;
 }
+declare namespace tui.exp {
+    enum OPType {
+        COMMA = 0,
+        AND = 1,
+        OR = 2,
+        NOT = 3,
+        CP = 4,
+        PLUMIN = 5,
+        MULDIV = 6,
+        SIGN = 7,
+        FN = 8,
+        LP = 9,
+        RP = 10,
+        EOF = 11,
+    }
+    interface TokenBase {
+        type: 'constant' | 'variable' | 'operator' | 'function';
+        name?: string;
+        value?: any;
+        operator?: 'eof' | 'and' | 'or' | 'not' | '=' | '!=' | '~' | '!~' | '>' | '>=' | '<' | '<=' | '+' | '-' | 'positive' | 'negative' | '*' | '/' | '(' | ')' | 'fn' | ',';
+        operatorType?: OPType;
+    }
+    interface Token extends TokenBase {
+        pos: number;
+    }
+    class Parser {
+        private _input;
+        private _rex;
+        private _last;
+        constructor(source: string);
+        reset(): void;
+        next(): Token;
+    }
+}
+declare namespace tui.exp {
+    interface Identifier {
+        name: string;
+        type: 'function' | 'variable';
+        args?: any[];
+    }
+    interface Resolver {
+        (identifier: Identifier): any;
+    }
+    interface Node extends exp.Token {
+        isUnary?: boolean;
+        left?: Node;
+        right?: Node;
+    }
+    function parse(expression: string): Node;
+    function evaluate(exp: Node, resolver: Resolver): any;
+    function evaluate(exp: string, resolver: Resolver): any;
+    function processStandardFunc(id: Identifier): any;
+}
 declare module tui.widget {
     interface FormItem {
         type: string;
@@ -592,12 +645,6 @@ declare module tui.ds {
         update(result: TreeQueryResult): void;
         protected build(): void;
     }
-}
-declare module tui.text.exp {
-    interface Evaluator {
-        (variable: string): any;
-    }
-    function evaluate(expression: string, evaluator: Evaluator): boolean;
 }
 declare module tui.time {
     var shortWeeks: string[];

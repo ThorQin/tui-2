@@ -2137,6 +2137,591 @@ var tui;
 })(tui || (tui = {}));
 var tui;
 (function (tui) {
+    var exp;
+    (function (exp) {
+        var OPType;
+        (function (OPType) {
+            OPType[OPType["COMMA"] = 0] = "COMMA";
+            OPType[OPType["AND"] = 1] = "AND";
+            OPType[OPType["OR"] = 2] = "OR";
+            OPType[OPType["NOT"] = 3] = "NOT";
+            OPType[OPType["CP"] = 4] = "CP";
+            OPType[OPType["PLUMIN"] = 5] = "PLUMIN";
+            OPType[OPType["MULDIV"] = 6] = "MULDIV";
+            OPType[OPType["SIGN"] = 7] = "SIGN";
+            OPType[OPType["FN"] = 8] = "FN";
+            OPType[OPType["LP"] = 9] = "LP";
+            OPType[OPType["RP"] = 10] = "RP";
+            OPType[OPType["EOF"] = 11] = "EOF";
+        })(OPType = exp.OPType || (exp.OPType = {}));
+        var TEMPLATE = {
+            'and': { type: 'operator', operator: 'and', operatorType: OPType.AND },
+            'or': { type: 'operator', operator: 'or', operatorType: OPType.OR },
+            'not': { type: 'operator', operator: 'not', operatorType: OPType.NOT },
+            'true': {
+                type: 'constant',
+                value: true,
+            },
+            'false': {
+                type: 'constant',
+                value: false,
+            },
+            'null': {
+                type: 'constant',
+                value: null,
+            },
+            '=': { type: 'operator', operator: '=', operatorType: OPType.CP },
+            '!=': { type: 'operator', operator: '!=', operatorType: OPType.CP },
+            '~': { type: 'operator', operator: '~', operatorType: OPType.CP },
+            '!~': { type: 'operator', operator: '!~', operatorType: OPType.CP },
+            '>': { type: 'operator', operator: '>', operatorType: OPType.CP },
+            '>=': { type: 'operator', operator: '>=', operatorType: OPType.CP },
+            '<': { type: 'operator', operator: '<', operatorType: OPType.CP },
+            '<=': { type: 'operator', operator: '<=', operatorType: OPType.CP },
+            '+': { type: 'operator', operator: '+', operatorType: OPType.PLUMIN },
+            '-': { type: 'operator', operator: '-', operatorType: OPType.PLUMIN },
+            '*': { type: 'operator', operator: '*', operatorType: OPType.MULDIV },
+            '/': { type: 'operator', operator: '/', operatorType: OPType.MULDIV },
+            '(': { type: 'operator', operator: '(', operatorType: OPType.LP },
+            ')': { type: 'operator', operator: ')', operatorType: OPType.RP },
+            ',': { type: 'operator', operator: ',', operatorType: OPType.COMMA }
+        };
+        function getPredefined(key) {
+            var token = TEMPLATE[key];
+            if (token) {
+                var ret = {};
+                for (var k in token) {
+                    ret[k] = token[k];
+                }
+                return ret;
+            }
+            else {
+                return null;
+            }
+        }
+        var LEXER_REGEX = /(\s+)|((?:true|false|null|and|or|not)(?=\W|$))|([a-zA-Z_]\w*(?:\.\w+)*(?=\s*\())|([a-zA-Z_]\w*(?:\.\w+)*)|(<=|>=|!=|!~|[,\-+*/=~<>()])|(\d+(?:\.\d+)?)|("(?:[^"]|\\")*"|'(?:[^']|\\')*')|(.+)/gm;
+        var LexType;
+        (function (LexType) {
+            LexType[LexType["SPACE"] = 0] = "SPACE";
+            LexType[LexType["KEYWORD"] = 1] = "KEYWORD";
+            LexType[LexType["FN"] = 2] = "FN";
+            LexType[LexType["ID"] = 3] = "ID";
+            LexType[LexType["OP"] = 4] = "OP";
+            LexType[LexType["NUM"] = 5] = "NUM";
+            LexType[LexType["STR"] = 6] = "STR";
+            LexType[LexType["UNKNOW"] = 7] = "UNKNOW";
+        })(LexType || (LexType = {}));
+        function parseString(str) {
+            str = str.substr(1, str.length - 2);
+            return str.replace(/\\(.)/gm, function (s, w) {
+                switch (w) {
+                    case 'n':
+                        return '\n';
+                    case 'r':
+                        return '\r';
+                    case 't':
+                        return '\t';
+                    case 'v':
+                        return '\v';
+                    case 'f':
+                        return '\f';
+                    case 'b':
+                        return '\b';
+                    default:
+                        return w;
+                }
+            });
+        }
+        function formatMsg(match) {
+            var msg = match[0].substr(0, 20);
+            return "(pos: " + match.index + "): ----> " + msg + " <----";
+        }
+        function addPos(token, pos) {
+            token.pos = pos;
+            return token;
+        }
+        function findIndex(match) {
+            for (var i = 1; i < match.length; i++) {
+                if (typeof match[i] == 'string')
+                    return i - 1;
+            }
+        }
+        var Parser = (function () {
+            function Parser(source) {
+                this._last = null;
+                this._input = source;
+                this._rex = new RegExp(LEXER_REGEX);
+            }
+            Parser.prototype.reset = function () {
+                this._rex.lastIndex = 0;
+                this._last = null;
+            };
+            Parser.prototype.next = function () {
+                var match;
+                while ((match = this._rex.exec(this._input)) != null) {
+                    var type = findIndex(match);
+                    if (type == LexType.SPACE) {
+                        continue;
+                    }
+                    else if (type == LexType.FN) {
+                        this._last = {
+                            type: 'function',
+                            name: match[0],
+                            operator: 'fn',
+                            operatorType: OPType.FN,
+                            pos: match.index
+                        };
+                        return this._last;
+                    }
+                    else if (type == LexType.ID || type == LexType.KEYWORD) {
+                        var token = getPredefined(match[0]);
+                        if (token) {
+                            this._last = addPos(token, match.index);
+                            return this._last;
+                        }
+                        else {
+                            this._last = { type: 'variable', name: match[0], pos: match.index };
+                            return this._last;
+                        }
+                    }
+                    else if (type == LexType.NUM) {
+                        this._last = {
+                            type: 'constant',
+                            value: parseFloat(match[0]),
+                            pos: match.index
+                        };
+                        return this._last;
+                    }
+                    else if (type == LexType.STR) {
+                        this._last = {
+                            type: 'constant',
+                            value: parseString(match[0]),
+                            pos: match.index
+                        };
+                        return this._last;
+                    }
+                    else if (type == LexType.OP) {
+                        var op = match[0];
+                        if (op == '+' || op == '-') {
+                            if (this._last == null ||
+                                this._last.type == 'operator' && this._last.operator != ')') {
+                                this._last = {
+                                    type: 'operator',
+                                    operator: op == '+' ? 'positive' : 'negative',
+                                    operatorType: OPType.SIGN,
+                                    pos: match.index
+                                };
+                                return this._last;
+                            }
+                        }
+                        var token = getPredefined(op);
+                        if (token) {
+                            this._last = addPos(token, match.index);
+                            return this._last;
+                        }
+                        else {
+                            throw new Error("Internal error: Undefined operator: " + formatMsg(match));
+                        }
+                    }
+                    else {
+                        throw new Error("Unexpected token: " + formatMsg(match));
+                    }
+                }
+                return {
+                    type: 'operator',
+                    operator: 'eof',
+                    operatorType: OPType.EOF,
+                    pos: this._input.length
+                };
+            };
+            return Parser;
+        }());
+        exp.Parser = Parser;
+    })(exp = tui.exp || (tui.exp = {}));
+})(tui || (tui = {}));
+var tui;
+(function (tui) {
+    var exp;
+    (function (exp_1) {
+        var H = 1, L = 0, E = -1, S = -2;
+        var Priority;
+        (function (Priority) {
+            Priority[Priority["High"] = H] = "High";
+            Priority[Priority["Low"] = L] = "Low";
+            Priority[Priority["Error"] = E] = "Error";
+            Priority[Priority["Same"] = S] = "Same";
+        })(Priority || (Priority = {}));
+        var PRIORITIES = [
+            H, L, L, L, L, L, L, L, L, L, H, H,
+            H, H, H, L, L, L, L, L, L, L, H, H,
+            H, L, H, L, L, L, L, L, L, L, H, H,
+            H, H, H, L, H, H, H, L, L, L, H, H,
+            H, H, H, L, H, L, L, L, L, L, H, H,
+            H, H, H, L, H, H, L, L, L, L, H, H,
+            H, H, H, L, H, H, H, L, L, L, H, H,
+            H, H, H, L, H, H, H, L, L, L, H, H,
+            H, H, H, E, H, H, H, E, E, L, H, H,
+            L, L, L, L, L, L, L, L, L, L, S, E,
+            H, H, H, H, H, H, H, H, E, E, H, H,
+            L, L, L, L, L, L, L, L, L, L, E, S,
+        ];
+        function getPriority(opQueue, opScan) {
+            return PRIORITIES[opQueue * (exp.OPType.EOF + 1) + opScan];
+        }
+        ;
+        function isOP(node) {
+            return node.type == 'operator' || node.type == 'function';
+        }
+        function isVal(node) {
+            return node.type == 'constant' || node.type == 'variable';
+        }
+        function makeNode(token) {
+            var node = token;
+            node.isUnary = (node.operator == 'not' ||
+                node.operator == 'fn' ||
+                node.operator == 'positive' ||
+                node.operator == 'negative');
+            return node;
+        }
+        function parse(expression) {
+            if (typeof expression != 'string') {
+                throw new Error('Invalid parameter, should be expression!');
+            }
+            function formatMsg(pos) {
+                return "(pos: " + pos + "): ----> " + expression.substr(pos, 20) + " <----";
+            }
+            var valStack = [];
+            var opStack = [{
+                    type: 'operator',
+                    operator: 'eof',
+                    operatorType: exp.OPType.EOF,
+                    pos: 0
+                }];
+            var last = opStack[0];
+            function lastOp() {
+                return opStack[opStack.length - 1];
+            }
+            var lexer = new exp.Parser(expression);
+            for (;;) {
+                var token = lexer.next();
+                var current = makeNode(token);
+                if (isVal(current)) {
+                    if (isVal(last) || last.operator == ')') {
+                        throw new Error("Unexpected token: " + formatMsg(current.pos));
+                    }
+                    valStack.push(current);
+                }
+                else {
+                    for (;;) {
+                        var priority = getPriority(lastOp().operatorType, current.operatorType);
+                        if (priority == E) {
+                            if (current.operator == 'eof') {
+                                throw new Error("Unexpected EOF: " + current.pos);
+                            }
+                            else
+                                throw new Error("Unexpected token: " + formatMsg(current.pos));
+                        }
+                        else if (priority == L) {
+                            opStack.push(current);
+                            break;
+                        }
+                        else if (priority == H) {
+                            if (opStack.length < 1) {
+                                throw new Error("Unexpected operator: " + formatMsg(current.pos));
+                            }
+                            var op = opStack.pop();
+                            if (valStack.length < 1) {
+                                if (op.type != 'function') {
+                                    throw new Error("Unexpected operator: " + formatMsg(op.pos));
+                                }
+                            }
+                            else {
+                                var val = valStack.pop();
+                                if (val.pos > op.pos) {
+                                    op.right = val;
+                                }
+                                else {
+                                    if (op.type != 'function') {
+                                        throw new Error("Unexpected operator: " + formatMsg(op.pos));
+                                    }
+                                    else {
+                                        valStack.push(val);
+                                    }
+                                }
+                            }
+                            if (!op.isUnary) {
+                                if (valStack.length < 1) {
+                                    throw new Error("Unexpected operator: " + formatMsg(op.pos));
+                                }
+                                var val = valStack.pop();
+                                if (val.pos < op.pos) {
+                                    op.left = val;
+                                }
+                                else {
+                                    throw new Error("Unexpected operator: " + formatMsg(op.pos));
+                                }
+                            }
+                            valStack.push(op);
+                        }
+                        else {
+                            opStack.pop();
+                            break;
+                        }
+                    }
+                }
+                last = current;
+                if (current.operator == 'eof') {
+                    break;
+                }
+            }
+            if (valStack.length != 1) {
+                throw new Error("Unexpected EOF: " + last.pos);
+            }
+            if (opStack.length != 0) {
+                throw new Error("Unexpected operator: " + formatMsg(opStack.pop().pos));
+            }
+            return valStack[0];
+        }
+        exp_1.parse = parse;
+        var CALCULATOR = {
+            '+': function (l, r) {
+                return l + r;
+            },
+            '-': function (l, r) {
+                return l - r;
+            },
+            '*': function (l, r) {
+                return l * r;
+            },
+            '/': function (l, r) {
+                return l / r;
+            },
+            '=': function (l, r) {
+                return l == r;
+            },
+            '!=': function (l, r) {
+                return l != r;
+            },
+            '~': function (l, r) {
+                var rex = new RegExp(r + '');
+                return rex.test(l + '');
+            },
+            '!~': function (l, r) {
+                var rex = new RegExp(r + '');
+                return !rex.test(l + '');
+            },
+            '>': function (l, r) {
+                return l > r;
+            },
+            '>=': function (l, r) {
+                return l >= r;
+            },
+            '<': function (l, r) {
+                return l < r;
+            },
+            '<=': function (l, r) {
+                return l <= r;
+            },
+            ',': function (l, r) {
+                return r;
+            },
+            'not': function (l, r) {
+                return !r;
+            },
+            'positive': function (l, r) {
+                return +r;
+            },
+            'negative': function (l, r) {
+                return -r;
+            },
+        };
+        function evaluate(exp, resolver) {
+            var root;
+            if (typeof exp == 'string') {
+                root = parse(exp);
+            }
+            else if (exp instanceof Node) {
+                root = exp;
+            }
+            else {
+                throw new Error('Invalid parameter, should be expression or exp tree!');
+            }
+            function evalArgs(node) {
+                var args = [];
+                if (node == null) {
+                    return args;
+                }
+                if (node.operator == ',') {
+                    if (node.left.operator == ',') {
+                        args = args.concat(evalArgs(node.left));
+                    }
+                    else {
+                        args.push(evalNode(node.left));
+                    }
+                    args.push(evalNode(node.right));
+                }
+                else {
+                    args.push(evalNode(node));
+                }
+                return args;
+            }
+            function evalNode(node) {
+                if (!node) {
+                    return null;
+                }
+                if (node.type == 'function') {
+                    if (typeof resolver != 'function') {
+                        throw new Error("Cannot evaluate function: '" + node.name + "': no resolver provide!");
+                    }
+                    var args = evalArgs(node.right);
+                    return resolver({
+                        name: node.name,
+                        type: 'function',
+                        args: args,
+                    });
+                }
+                else if (node.type == 'variable') {
+                    if (typeof resolver != 'function') {
+                        throw new Error("Cannot evaluate variable: '" + node.name + "': no resolver provide!");
+                    }
+                    return resolver({
+                        name: node.name,
+                        type: 'variable',
+                    });
+                }
+                else if (node.type == 'constant') {
+                    return node.value;
+                }
+                else {
+                    if (node.operator == 'and') {
+                        return evalNode(node.left) && evalNode(node.right);
+                    }
+                    else if (node.operator == 'or') {
+                        return evalNode(node.left) || evalNode(node.right);
+                    }
+                    else {
+                        var cacl = CALCULATOR[node.operator];
+                        if (cacl) {
+                            return cacl(evalNode(node.left), evalNode(node.right));
+                        }
+                        else {
+                            throw new Error("Unexpected operator: '" + node.operator + "': internal error!");
+                        }
+                    }
+                }
+            }
+            return evalNode(root);
+        }
+        exp_1.evaluate = evaluate;
+        function processStandardFunc(id) {
+            if (id.name == 'len') {
+                if (id.args.length < 1) {
+                    throw new Error("Invalid parameter for function 'len()'");
+                }
+                var v = id.args[0];
+                if (v instanceof Array) {
+                    return v.length;
+                }
+                else if (v == null) {
+                    return 0;
+                }
+                else {
+                    return (v + "").length;
+                }
+            }
+            else if (id.name == 'has') {
+                if (id.args.length < 2) {
+                    throw new Error("Invalid parameter for function 'has()'");
+                }
+                var arr = id.args[0];
+                if (arr == null) {
+                    return false;
+                }
+                else if (!(arr instanceof Array)) {
+                    arr = [arr];
+                }
+                for (var i = 1; i < id.args.length; i++) {
+                    var t = id.args[i];
+                    for (var _i = 0, arr_1 = arr; _i < arr_1.length; _i++) {
+                        var v = arr_1[_i];
+                        if (t == v) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            else if (id.name == 'hasAll') {
+                if (id.args.length < 2) {
+                    throw new Error("Invalid parameter for function 'hasAll()'");
+                }
+                var arr = id.args[0];
+                if (arr == null) {
+                    return false;
+                }
+                else if (!(arr instanceof Array)) {
+                    arr = [arr];
+                }
+                for (var i = 1; i < id.args.length; i++) {
+                    var t = id.args[i];
+                    var find = false;
+                    for (var _a = 0, arr_2 = arr; _a < arr_2.length; _a++) {
+                        var v = arr_2[_a];
+                        if (t == v) {
+                            find = true;
+                            break;
+                        }
+                    }
+                    if (!find) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            else if (id.name == 'get') {
+                if (id.args.length < 2) {
+                    throw new Error("Invalid parameter for function 'get()'");
+                }
+                var obj = id.args[0];
+                if (obj == null) {
+                    return null;
+                }
+                if (obj instanceof Object || obj instanceof Array) {
+                    var k = id.args[1];
+                    return obj[k];
+                }
+                else {
+                    throw new Error("Invalid parameter for function 'get()'");
+                }
+            }
+            else if (id.name == 'getAll') {
+                if (id.args.length < 2) {
+                    throw new Error("Invalid parameter for function 'getAll()'");
+                }
+                var arr = id.args[0];
+                if (arr == null) {
+                    return null;
+                }
+                if (!(arr instanceof Array)) {
+                    arr = [arr];
+                }
+                var k = id.args[1];
+                var result = [];
+                for (var _b = 0, arr_3 = arr; _b < arr_3.length; _b++) {
+                    var item = arr_3[_b];
+                    result.push(item[k]);
+                }
+                return result;
+            }
+            else {
+                throw new Error("Invalid expression: Undefined function: '" + id.name + "()'");
+            }
+        }
+        exp_1.processStandardFunc = processStandardFunc;
+    })(exp = tui.exp || (tui.exp = {}));
+})(tui || (tui = {}));
+var tui;
+(function (tui) {
     var widget;
     (function (widget) {
         "use strict";
@@ -2485,12 +3070,15 @@ var tui;
                                         throw new Error("Invalid expression: Cycle reference was detected on field: \"" + key + "\"");
                                     searchPath.push(key);
                                     try {
-                                        if (tui.text.exp.evaluate(exp, function (k) {
-                                            if (me._valueCache.hasOwnProperty(k))
-                                                return me._valueCache[k];
+                                        if (tui.exp.evaluate(exp, function (id) {
+                                            if (id.type == 'function') {
+                                                return tui.exp.processStandardFunc(id);
+                                            }
+                                            if (me._valueCache.hasOwnProperty(id.name))
+                                                return me._valueCache[id.name];
                                             else {
-                                                computeValue(k, searchPath);
-                                                return me._valueCache[k];
+                                                computeValue(id.name, searchPath);
+                                                return me._valueCache[id.name];
                                             }
                                         })) {
                                             searchPath.pop();
@@ -2533,11 +3121,14 @@ var tui;
                                     var k = item.getKey();
                                     if (k === null) {
                                         if (item.define.condition) {
-                                            if (tui.text.exp.evaluate(item.define.condition, function (k) {
-                                                if (me._valueCache.hasOwnProperty(k))
-                                                    return me._valueCache[k];
+                                            if (tui.exp.evaluate(item.define.condition, function (id) {
+                                                if (id.type == 'function') {
+                                                    return tui.exp.processStandardFunc(id);
+                                                }
+                                                if (me._valueCache.hasOwnProperty(id.name))
+                                                    return me._valueCache[id.name];
                                                 else {
-                                                    throw new Error("Invalid expression: Field \"" + k + "\" not found in control[" + i + "] condition.");
+                                                    throw new Error("Invalid expression: Field \"" + id.name + "\" not found in control[" + i + "] condition.");
                                                 }
                                             })) {
                                                 item.available = true;
@@ -4607,202 +5198,6 @@ var tui;
         }(TreeBase));
         ds.RemoteTree = RemoteTree;
     })(ds = tui.ds || (tui.ds = {}));
-})(tui || (tui = {}));
-var tui;
-(function (tui) {
-    var text;
-    (function (text) {
-        var exp;
-        (function (exp) {
-            "use strict";
-            var Type;
-            (function (Type) {
-                Type[Type["_"] = 0] = "_";
-                Type[Type["SP"] = 1] = "SP";
-                Type[Type["LOGIC"] = 2] = "LOGIC";
-                Type[Type["COMPARE"] = 3] = "COMPARE";
-                Type[Type["BOOL"] = 4] = "BOOL";
-                Type[Type["NULL"] = 5] = "NULL";
-                Type[Type["ID"] = 6] = "ID";
-                Type[Type["STR"] = 7] = "STR";
-                Type[Type["NUM"] = 8] = "NUM";
-                Type[Type["L"] = 9] = "L";
-                Type[Type["R"] = 10] = "R";
-                Type[Type["UNKNOW"] = 11] = "UNKNOW";
-            })(Type || (Type = {}));
-            var LEVEL = {};
-            LEVEL[Type.LOGIC] = 1;
-            LEVEL[Type.COMPARE] = 2;
-            LEVEL[Type.L] = 0;
-            var SYMBOL = /([\r\n\s]+)|((?:and|or)(?=$|\s|\r|\n))|(<|<=|>|>=|=|!=|~|!~)|((?:true|false)(?=$|\s|\r|\n))|(null(?=$|\s|\r|\n))|([$_a-zA-Z][$_a-zA-Z0-9]*)|("[^"]*"|'[^']*'|`[^`]*`)|([+-]?[0-9]+(?:\.[0-9]+)?)|(\()|(\))|(.+)/gm;
-            function error(match, msg) {
-                if (match) {
-                    if (msg)
-                        throw new Error("Invalid expression! (Position: " + match.index + ", cause: " + msg + " )");
-                    else
-                        throw new Error("Invalid expression! (Position: " + match.index + " )");
-                }
-                else {
-                    if (msg)
-                        throw new Error(msg);
-                    else
-                        throw new Error("Invalid expression!");
-                }
-            }
-            function convert(type, value) {
-                var v;
-                if (type == Type.NUM) {
-                    v = parseFloat(value);
-                }
-                else if (type == Type.BOOL) {
-                    v = text.parseBoolean(value);
-                }
-                else if (type == Type.NULL) {
-                    v = null;
-                }
-                else if (type == Type.STR) {
-                    v = value.substr(1, value.length - 2);
-                }
-                else
-                    v = value;
-                return v;
-            }
-            function getNode(match) {
-                for (var i = Type.SP; i <= Type.UNKNOW; i++) {
-                    if (match[i])
-                        return { type: i, value: convert(i, match[i]) };
-                }
-                error(match);
-            }
-            function isData(node) {
-                switch (node.type) {
-                    case Type.BOOL:
-                    case Type.ID:
-                    case Type.NULL:
-                    case Type.NUM:
-                    case Type.STR:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-            function isOp(node) {
-                switch (node.type) {
-                    case Type.LOGIC:
-                    case Type.COMPARE:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-            function evaluate(expression, evaluator) {
-                if (!expression)
-                    error();
-                var data = [];
-                var op = [];
-                function getValue(n) {
-                    var v;
-                    if (n.type == Type.ID) {
-                        if (evaluator)
-                            v = evaluator(n.value);
-                        if (typeof v === tui.UNDEFINED)
-                            v = null;
-                    }
-                    else
-                        v = n.value;
-                    return v;
-                }
-                function calculate(m) {
-                    if (data.length < 2)
-                        error(m);
-                    var b = data.pop();
-                    var a = data.pop();
-                    if (op.length < 1)
-                        error(m);
-                    var o = op.pop();
-                    var v1 = getValue(a);
-                    var v2 = getValue(b);
-                    if (o.type == Type.LOGIC) {
-                        if (o.value == "and")
-                            data.push({ type: Type.BOOL, value: v1 && v2 });
-                        else if (o.value == "or")
-                            data.push({ type: Type.BOOL, value: v1 || v2 });
-                    }
-                    else if (o.type == Type.COMPARE) {
-                        if (o.value == "=") {
-                            data.push({ type: Type.BOOL, value: v1 == v2 });
-                        }
-                        else if (o.value == "<") {
-                            data.push({ type: Type.BOOL, value: v1 < v2 });
-                        }
-                        else if (o.value == "<=") {
-                            data.push({ type: Type.BOOL, value: v1 <= v2 });
-                        }
-                        else if (o.value == ">") {
-                            data.push({ type: Type.BOOL, value: v1 > v2 });
-                        }
-                        else if (o.value == ">=") {
-                            data.push({ type: Type.BOOL, value: v1 >= v2 });
-                        }
-                        else if (o.value == "!=") {
-                            data.push({ type: Type.BOOL, value: v1 != v2 });
-                        }
-                        else if (o.value == "~") {
-                            if (typeof v2 != "string")
-                                error(m, "Invalid regular expression, must be a string value.");
-                            data.push({ type: Type.BOOL, value: String(v1).match(v2) });
-                        }
-                        else if (o.value == "!~") {
-                            if (typeof v2 != "string")
-                                error(m, "Invalid regular expression, must be a string value.");
-                            data.push({ type: Type.BOOL, value: !String(v1).match(v2) });
-                        }
-                    }
-                }
-                SYMBOL.lastIndex = 0;
-                var m;
-                var last = null;
-                while ((m = SYMBOL.exec(expression)) != null) {
-                    var node = getNode(m);
-                    if (node.type == Type.SP)
-                        continue;
-                    if (node.type == Type.UNKNOW)
-                        error(m);
-                    if (last != null) {
-                        if (isData(last) && isData(node))
-                            error(m);
-                        else if (isOp(last) && isOp(node))
-                            error(m);
-                    }
-                    last = node;
-                    if (isData(node)) {
-                        data.push(node);
-                    }
-                    else if (node.type == Type.L) {
-                        op.push(node);
-                    }
-                    else if (node.type == Type.R) {
-                        while (op[op.length - 1].type != Type.L) {
-                            calculate(m);
-                        }
-                        op.pop();
-                    }
-                    else {
-                        while (op.length > 0 && LEVEL[node.type] <= LEVEL[op[op.length - 1].type]) {
-                            calculate(m);
-                        }
-                        op.push(node);
-                    }
-                }
-                while (op.length > 0)
-                    calculate(m);
-                if (data.length != 1)
-                    error(m);
-                return data.pop().value;
-            }
-            exp.evaluate = evaluate;
-        })(exp = text.exp || (text.exp = {}));
-    })(text = tui.text || (tui.text = {}));
 })(tui || (tui = {}));
 var tui;
 (function (tui) {
@@ -7591,8 +7986,8 @@ var tui;
             var arr = text.split("\n");
             var condition = undefined;
             var nodeList = null;
-            for (var _i = 0, arr_1 = arr; _i < arr_1.length; _i++) {
-                var s = arr_1[_i];
+            for (var _i = 0, arr_4 = arr; _i < arr_4.length; _i++) {
+                var s = arr_4[_i];
                 if (s.trim().length > 0) {
                     s = s.trim();
                     if (s[0] === '[') {
@@ -8506,9 +8901,12 @@ var tui;
                 var _this = _super.call(this, form, define, "input") || this;
                 _this._widget.on("checkexp", function (e) {
                     try {
-                        return tui.text.exp.evaluate(e.data.exp, function (k) {
+                        return tui.exp.evaluate(e.data.exp, function (id) {
+                            if (id.type == 'function') {
+                                return tui.exp.processStandardFunc(id);
+                            }
                             var v = _this.form.get("value");
-                            return v[k];
+                            return v[id.name];
                         });
                     }
                     catch (e) {
@@ -8669,9 +9067,12 @@ var tui;
                 });
                 _this._widget.on("checkexp", function (e) {
                     try {
-                        return tui.text.exp.evaluate(e.data.exp, function (k) {
+                        return tui.exp.evaluate(e.data.exp, function (id) {
+                            if (id.type == 'function') {
+                                return tui.exp.processStandardFunc(id);
+                            }
                             var v = _this.form.get("value");
-                            return v[k];
+                            return v[id.name];
                         });
                     }
                     catch (e) {
@@ -8874,12 +9275,15 @@ var tui;
                     for (var _i = 0, _a = this.define.options; _i < _a.length; _i++) {
                         var d = _a[_i];
                         if (d.condition) {
-                            if (tui.text.exp.evaluate(d.condition, function (k) {
-                                if (cal.cache.hasOwnProperty(k))
-                                    return cal.cache[k];
+                            if (tui.exp.evaluate(d.condition, function (id) {
+                                if (id.type == 'function') {
+                                    return tui.exp.processStandardFunc(id);
+                                }
+                                if (cal.cache.hasOwnProperty(id.name))
+                                    return cal.cache[id.name];
                                 else {
-                                    cal.calc(k, cal.path);
-                                    return cal.cache[k];
+                                    cal.calc(id.name, cal.path);
+                                    return cal.cache[id.name];
                                 }
                             })) {
                                 if (d.data && d.data.length > 0)
@@ -9233,12 +9637,15 @@ var tui;
                     for (var _i = 0, _a = this.define.selection; _i < _a.length; _i++) {
                         var d = _a[_i];
                         if (d.condition) {
-                            if (tui.text.exp.evaluate(d.condition, function (k) {
-                                if (cal.cache.hasOwnProperty(k))
-                                    return cal.cache[k];
+                            if (tui.exp.evaluate(d.condition, function (id) {
+                                if (id.type == 'function') {
+                                    return tui.exp.processStandardFunc(id);
+                                }
+                                if (cal.cache.hasOwnProperty(id.name))
+                                    return cal.cache[id.name];
                                 else {
-                                    cal.calc(k, cal.path);
-                                    return cal.cache[k];
+                                    cal.calc(id.name, cal.path);
+                                    return cal.cache[id.name];
                                 }
                             })) {
                                 if (d.data && d.data.length > 0)

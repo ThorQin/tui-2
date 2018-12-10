@@ -1,6 +1,5 @@
 /// <reference path="form.ts" />
 
-
 module tui.widget {
 	"use strict";
 
@@ -1089,9 +1088,12 @@ module tui.widget {
 			super(form, define, "input");
 			this._widget.on("checkexp", (e) => {
 				try {
-					return text.exp.evaluate(e.data.exp, (k) => {
+					return tui.exp.evaluate(e.data.exp, (id) => {
+						if (id.type == 'function') {
+							return tui.exp.processStandardFunc(id);
+						}
 						let v = this.form.get("value");
-						return v[k];
+						return v[id.name];
 					});
 				} catch(e) {
 					return false;
@@ -1263,9 +1265,12 @@ module tui.widget {
 			});
 			this._widget.on("checkexp", (e) => {
 				try {
-					return text.exp.evaluate(e.data.exp, (k) => {
+					return tui.exp.evaluate(e.data.exp, (id) => {
+						if (id.type == 'function') {
+							return tui.exp.processStandardFunc(id);
+						}
 						let v = this.form.get("value");
-						return v[k];
+						return v[id.name];
 					});
 				} catch(e) {
 					return false;
@@ -1493,12 +1498,15 @@ module tui.widget {
 				cal.path.push(key);
 				for (let d of this.define.options) {
 					if (d.condition) {
-						if (text.exp.evaluate(d.condition, function (k: string) {
-							if (cal.cache.hasOwnProperty(k))
-								return cal.cache[k];
+						if (tui.exp.evaluate(d.condition, function (id) {
+							if (id.type == 'function') {
+								return tui.exp.processStandardFunc(id);
+							}
+							if (cal.cache.hasOwnProperty(id.name))
+								return cal.cache[id.name];
 							else {
-								cal.calc(k, cal.path);
-								return cal.cache[k];
+								cal.calc(id.name, cal.path);
+								return cal.cache[id.name];
 							}
 						})) {
 							if (d.data && d.data.length > 0)
@@ -1857,12 +1865,15 @@ module tui.widget {
 				cal.path.push(key);
 				for (let d of this.define.selection) {
 					if (d.condition) {
-						if (text.exp.evaluate(d.condition, function (k: string) {
-							if (cal.cache.hasOwnProperty(k))
-								return cal.cache[k];
+						if (tui.exp.evaluate(d.condition, function (id) {
+							if (id.type == 'function') {
+								return tui.exp.processStandardFunc(id);
+							}
+							if (cal.cache.hasOwnProperty(id.name))
+								return cal.cache[id.name];
 							else {
-								cal.calc(k, cal.path);
-								return cal.cache[k];
+								cal.calc(id.name, cal.path);
+								return cal.cache[id.name];
 							}
 						})) {
 							if (d.data && d.data.length > 0)
