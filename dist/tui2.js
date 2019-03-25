@@ -425,6 +425,8 @@ tui.dict("en-us", {
     "form.visible": "Visible",
     "form.min.height": "Min Height",
     "form.max.height": "Max Height",
+    "form.min.value": "Min Value",
+    "form.max.value": "Max Value",
     "form.date": "Date",
     "form.date.time": "Date Time",
     "form.time": "Time",
@@ -3052,6 +3054,26 @@ var tui;
                         "get": function () {
                             var index;
                             var me = _this;
+                            function itemFunc(id, searchPath) {
+                                if (id.args.length != 1) {
+                                    throw new Error("Invalid parameter for function 'item()'");
+                                }
+                                var key = id.args[0];
+                                if (typeof key != 'string') {
+                                    throw new Error("Invalid parameter for function 'item()'");
+                                }
+                                if (me._valueCache.hasOwnProperty(key))
+                                    return me._valueCache[key];
+                                else {
+                                    if (typeof searchPath == 'number') {
+                                        throw new Error("Invalid expression: Field \"" + key + "\" not found in control[" + searchPath + "] condition.");
+                                    }
+                                    else {
+                                        computeValue(key, searchPath);
+                                        return me._valueCache[key];
+                                    }
+                                }
+                            }
                             function computeValue(key, searchPath) {
                                 if (!index.hasOwnProperty(key)) {
                                     throw new Error("Invalid expression: Field \"" + key + "\" was not found in \"" + searchPath[searchPath.length - 1] + "\"'s condition expression.");
@@ -3072,7 +3094,12 @@ var tui;
                                     try {
                                         if (tui.exp.evaluate(exp, function (id) {
                                             if (id.type == 'function') {
-                                                return tui.exp.processStandardFunc(id);
+                                                if (id.name == 'item') {
+                                                    return itemFunc(id, searchPath);
+                                                }
+                                                else {
+                                                    return tui.exp.processStandardFunc(id);
+                                                }
                                             }
                                             if (me._valueCache.hasOwnProperty(id.name))
                                                 return me._valueCache[id.name];
@@ -3123,7 +3150,12 @@ var tui;
                                         if (item.define.condition) {
                                             if (tui.exp.evaluate(item.define.condition, function (id) {
                                                 if (id.type == 'function') {
-                                                    return tui.exp.processStandardFunc(id);
+                                                    if (id.name == 'item') {
+                                                        return itemFunc(id, i);
+                                                    }
+                                                    else {
+                                                        return tui.exp.processStandardFunc(id);
+                                                    }
                                                 }
                                                 if (me._valueCache.hasOwnProperty(id.name))
                                                     return me._valueCache[id.name];
@@ -5575,10 +5607,7 @@ var tui;
             if (typeof format === "string")
                 return parseDateInternal(dtStr, format);
             else if (typeof format === tui.UNDEFINED) {
-                var dt = new Date(dtStr);
-                if (!isNaN(dt.getTime()))
-                    return dt;
-                dt = parseDateInternal(dtStr, "yyyy-MM-dd HH:mm:ss.SSS");
+                var dt = parseDateInternal(dtStr, "yyyy-MM-dd HH:mm:ss.SSS");
                 if (dt !== null)
                     return dt;
                 dt = parseDateInternal(dtStr, "yyyy-MM-ddTHH:mm:sszzz");
@@ -5604,6 +5633,9 @@ var tui;
                     return dt;
                 dt = parseDateInternal(dtStr, "HH:mm:ss");
                 if (dt !== null)
+                    return dt;
+                dt = new Date(dtStr);
+                if (!isNaN(dt.getTime()))
                     return dt;
             }
             return null;
@@ -5937,17 +5969,69 @@ var tui;
                 var _this = this;
                 _super.prototype.initRestriction.call(this);
                 this.setRestrictions({
-                    "time": {
+                    "min": {
                         "set": function (value) {
                             if (value instanceof Date)
-                                _this._data["time"] = value;
+                                _this._data["min"] = new Date(value.valueOf());
                             else if (typeof value === "string") {
                                 value = tui.time.parseDate(value);
-                                _this._data["time"] = value;
+                                _this._data["min"] = value;
+                            }
+                            else if (value === null) {
+                                _this._data["min"] = null;
                             }
                         },
                         "get": function () {
+                            if (_this._data["min"] instanceof Date) {
+                                return new Date(_this._data["min"].valueOf());
+                            }
+                            else {
+                                return null;
+                            }
+                        }
+                    },
+                    "max": {
+                        "set": function (value) {
+                            if (value instanceof Date)
+                                _this._data["max"] = value;
+                            else if (typeof value === "string") {
+                                value = tui.time.parseDate(value);
+                                _this._data["max"] = value;
+                            }
+                            else if (value === null) {
+                                _this._data["max"] = null;
+                            }
+                        },
+                        "get": function () {
+                            if (_this._data["max"] instanceof Date) {
+                                return new Date(_this._data["max"].valueOf());
+                            }
+                            else {
+                                return null;
+                            }
+                        }
+                    },
+                    "time": {
+                        "set": function (value) {
+                            var tm = new Date();
+                            if (value instanceof Date)
+                                tm = value;
+                            else if (typeof value === "string") {
+                                tm = tui.time.parseDate(value);
+                            }
+                            var min = _this.get("min");
+                            if (min instanceof Date && tm < min) {
+                                tm = min;
+                            }
+                            var max = _this.get("max");
+                            if (max instanceof Date && tm > max) {
+                                tm = max;
+                            }
+                            _this._data["time"] = tm;
+                        },
+                        "get": function () {
                             var tm = _this._data["time"];
+                            var mode = _this.get("mode");
                             if (typeof tm === tui.UNDEFINED || tm === null) {
                                 tm = tui.time.now();
                                 tm.setHours(0);
@@ -5955,6 +6039,20 @@ var tui;
                                 tm.setSeconds(0);
                                 tm.setMilliseconds(0);
                                 _this._data["time"] = tm;
+                            }
+                            else if (mode == "date" || mode == "month") {
+                                tm.setHours(0);
+                                tm.setMinutes(0);
+                                tm.setSeconds(0);
+                                tm.setMilliseconds(0);
+                            }
+                            var min = _this.get("min");
+                            if (min instanceof Date && tm < min) {
+                                tm = min;
+                            }
+                            var max = _this.get("max");
+                            if (max instanceof Date && tm > max) {
+                                tm = new Date(max.valueOf());
                             }
                             return tm;
                         }
@@ -6459,6 +6557,25 @@ var tui;
                     t.y++;
                 });
             };
+            Calendar.prototype.isValidDate = function (tm) {
+                var min = this._data["min"];
+                if (min instanceof Date) {
+                    var md = new Date(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0, 0);
+                    var td = new Date(tm.getFullYear(), tm.getMonth(), tm.getDate(), 0, 0, 0, 0);
+                    if (td < md) {
+                        return false;
+                    }
+                }
+                var max = this._data["max"];
+                if (max instanceof Date) {
+                    var md = new Date(max.getFullYear(), max.getMonth(), max.getDate(), 0, 0, 0, 0);
+                    var td = new Date(tm.getFullYear(), tm.getMonth(), tm.getDate(), 0, 0, 0, 0);
+                    if (td > md) {
+                        return false;
+                    }
+                }
+                return true;
+            };
             Calendar.prototype.render = function () {
                 this.makeTable();
                 var tb = this._components["table"];
@@ -6485,7 +6602,10 @@ var tui;
                         var firstWeek = firstDay(tm).getDay();
                         var daysOfMonth = tui.time.totalDaysOfMonth(tm);
                         var day = 0;
-                        tb.rows[0].cells[2].innerHTML = tm.getFullYear() + " - " + this.get("month");
+                        var currentYear = this.get("year");
+                        var currentMonth = this.get("month");
+                        var currentDay = this.get("day");
+                        tb.rows[0].cells[2].innerHTML = tm.getFullYear() + " - " + currentMonth;
                         for (var i_2 = 0; i_2 < 6; i_2++) {
                             for (var j_2 = 0; j_2 < 7; j_2++) {
                                 var cell = tb.rows[i_2 + 2].cells[j_2];
@@ -6493,11 +6613,18 @@ var tui;
                                 if (day === 0) {
                                     if (j_2 === firstWeek) {
                                         day = 1;
+                                        var d = new Date(tm.getFullYear(), tm.getMonth(), day);
+                                        if (!this.isValidDate(d)) {
+                                            $(cell).addClass('invalid');
+                                        }
                                         cell.innerHTML = day + "";
                                         cell.offsetMonth = 0;
                                     }
                                     else {
                                         var preMonthDay = new Date(firstDay(tm).valueOf() - ((firstWeek - j_2) * 1000 * 24 * 60 * 60));
+                                        if (!this.isValidDate(preMonthDay)) {
+                                            $(cell).addClass('invalid');
+                                        }
                                         cell.innerHTML = preMonthDay.getDate() + "";
                                         cell.offsetMonth = -1;
                                         $(cell).addClass("tui-before");
@@ -6506,20 +6633,30 @@ var tui;
                                 else {
                                     day++;
                                     if (day <= daysOfMonth) {
+                                        var d = new Date(tm.getFullYear(), tm.getMonth(), day);
+                                        if (!this.isValidDate(d)) {
+                                            $(cell).addClass('invalid');
+                                        }
                                         cell.innerHTML = day + "";
                                         cell.offsetMonth = 0;
                                     }
                                     else {
+                                        var d = new Date(tm.getFullYear(), tm.getMonth(), 1);
+                                        d = tui.time.dateAdd(d, 1, 'M');
+                                        d = tui.time.dateAdd(d, (day - daysOfMonth), 'd');
+                                        if (!this.isValidDate(d)) {
+                                            $(cell).addClass('invalid');
+                                        }
                                         cell.innerHTML = (day - daysOfMonth) + "";
                                         cell.offsetMonth = 1;
                                         $(cell).addClass("tui-after");
                                     }
                                 }
-                                if (day === this.get("day"))
+                                if (day === currentDay)
                                     $(cell).addClass("tui-actived");
                                 if (j_2 === 0 || j_2 === 6)
                                     $(cell).addClass("tui-weekend");
-                                if (this.get("year") === today.getFullYear() && this.get("month") === (today.getMonth() + 1) && day === today.getDate()) {
+                                if (currentYear === today.getFullYear() && currentMonth === (today.getMonth() + 1) && day === today.getDate()) {
                                     $(cell).addClass("tui-today");
                                 }
                                 if (i_2 == 5 && mode === "date-time") {
@@ -7237,6 +7374,26 @@ var tui;
                 this._components["calendar"] = calendar._;
                 _super.prototype.initRestriction.call(this);
                 this.setRestrictions({
+                    "min": {
+                        "set": function (value) {
+                            if (value instanceof Date || typeof value === "string" || value == null) {
+                                calendar.set("min", value);
+                            }
+                        },
+                        "get": function () {
+                            return calendar.get("max");
+                        }
+                    },
+                    "max": {
+                        "set": function (value) {
+                            if (value instanceof Date || typeof value === "string" || value == null) {
+                                calendar.set("max", value);
+                            }
+                        },
+                        "get": function () {
+                            return calendar.get("max");
+                        }
+                    },
                     "time": {
                         "set": function (value) {
                             if (value instanceof Date || typeof value === "string") {
@@ -9729,6 +9886,8 @@ var tui;
             FormDatePicker.prototype.update = function () {
                 _super.prototype.update.call(this);
                 this._widget._set("format", this.define.format || null);
+                this._widget._set("min", this.define.min || null);
+                this._widget._set("max", this.define.max || null);
                 this._widget._set("mode", /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : null);
                 if (!/^(utc|locale|none)$/.test(this.define.timezone))
                     this.define.timezone = "none";
@@ -9782,11 +9941,26 @@ var tui;
                                 "size": 2,
                                 "position": "newline"
                             }, {
+                                "type": "datepicker",
+                                "key": "min",
+                                "mode": "date-time",
+                                "label": tui.str("form.min.value"),
+                                "value": this.define.min || null,
+                                "size": 1
+                            }, {
+                                "type": "datepicker",
+                                "key": "max",
+                                "mode": "date-time",
+                                "label": tui.str("form.max.value"),
+                                "value": this.define.max || null,
+                                "size": 1
+                            }, {
                                 "type": "textbox",
                                 "key": "format",
                                 "label": tui.str("form.custom.format"),
                                 "description": tui.str("form.date.desc"),
                                 "value": this.define.format ? this.define.format : null,
+                                "position": "newline",
                                 "size": 2
                             }
                         ]
@@ -9796,6 +9970,8 @@ var tui;
                 var values = properties[1];
                 this.define.format = values.format ? values.format : undefined;
                 this.define.mode = values.mode;
+                this.define.min = values.min;
+                this.define.max = values.max;
                 if (this.define.required) {
                     this.define.validation = [{ "format": "*any", "message": tui.str("message.cannot.be.empty") }];
                 }
@@ -9825,6 +10001,8 @@ var tui;
             }
             FormCalendar.prototype.update = function () {
                 _super.prototype.update.call(this);
+                this._widget._set("min", this.define.min || null);
+                this._widget._set("max", this.define.max || null);
                 this._widget._set("mode", /^(date|month)$/.test(this.define.mode) ? this.define.mode : null);
                 if (this.define.value == null) {
                     this._widget._set("value", tui.time.now());
@@ -9847,6 +10025,20 @@ var tui;
                                 "value": /^(date|month)$/.test(this.define.mode) ? this.define.mode : "date",
                                 "size": 2,
                                 "position": "newline"
+                            }, {
+                                "type": "datepicker",
+                                "key": "min",
+                                "mode": "date-time",
+                                "label": tui.str("form.min.value"),
+                                "value": this.define.min || null,
+                                "size": 1
+                            }, {
+                                "type": "datepicker",
+                                "key": "max",
+                                "mode": "date-time",
+                                "label": tui.str("form.max.value"),
+                                "value": this.define.max || null,
+                                "size": 1
                             }
                         ]
                     }];
@@ -9854,6 +10046,8 @@ var tui;
             FormCalendar.prototype.setProperties = function (properties) {
                 var values = properties[1];
                 this.define.mode = values.mode;
+                this.define.min = values.min;
+                this.define.max = values.max;
             };
             FormCalendar.prototype.validate = function () {
                 return true;

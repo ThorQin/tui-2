@@ -370,6 +370,25 @@ module tui.widget {
 					"get": (): any => {
 						var index: { [index: string]: number };
 						var me = this;
+						function itemFunc(id, searchPath) {
+							if (id.args.length != 1) {
+								throw new Error("Invalid parameter for function 'item()'");
+							}
+							let key = id.args[0];
+							if (typeof key != 'string') {
+								throw new Error("Invalid parameter for function 'item()'");
+							}
+							if (me._valueCache.hasOwnProperty(key))
+								return me._valueCache[key];
+							else {
+								if (typeof searchPath == 'number') {
+									throw new Error("Invalid expression: Field \"" + key + "\" not found in control[" + searchPath + "] condition.");
+								} else {
+									computeValue(key, searchPath);
+									return me._valueCache[key];
+								}
+							}
+						}
 						function computeValue(key: string, searchPath: string[]) {
 							if (!index.hasOwnProperty(key)) {
 								throw new Error("Invalid expression: Field \"" + key + "\" was not found in \"" + searchPath[searchPath.length - 1] + "\"'s condition expression.");
@@ -389,7 +408,11 @@ module tui.widget {
 								try {
 									if (tui.exp.evaluate(exp, function (id) {
 										if (id.type == 'function') {
-											return tui.exp.processStandardFunc(id);
+											if (id.name == 'item') {
+												return itemFunc(id, searchPath);
+											} else {
+												return tui.exp.processStandardFunc(id);
+											}
 										}
 										if (me._valueCache.hasOwnProperty(id.name))
 											return me._valueCache[id.name];
@@ -445,7 +468,11 @@ module tui.widget {
 									if (item.define.condition) {
 										if (tui.exp.evaluate(item.define.condition, function (id) {
 											if (id.type == 'function') {
-												return tui.exp.processStandardFunc(id);
+												if (id.name == 'item') {
+													return itemFunc(id, i);
+												} else {
+													return tui.exp.processStandardFunc(id);
+												}
 											}
 											if (me._valueCache.hasOwnProperty(id.name))
 												return me._valueCache[id.name];

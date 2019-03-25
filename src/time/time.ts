@@ -397,10 +397,7 @@ module tui.time {
 		if (typeof format === "string")
 			return parseDateInternal(dtStr, format);
 		else if (typeof format === UNDEFINED) {
-			var dt = new Date(dtStr);
-			if (!isNaN(dt.getTime()))
-				return dt;
-			dt = parseDateInternal(dtStr, "yyyy-MM-dd HH:mm:ss.SSS");
+			var dt = parseDateInternal(dtStr, "yyyy-MM-dd HH:mm:ss.SSS");
 			if (dt !== null)
 				return dt;
 			dt = parseDateInternal(dtStr, "yyyy-MM-ddTHH:mm:sszzz");
@@ -426,6 +423,9 @@ module tui.time {
 				return dt;
 			dt = parseDateInternal(dtStr, "HH:mm:ss");
 			if (dt !== null)
+				return dt;
+			dt = new Date(dtStr);
+			if (!isNaN(dt.getTime()))
 				return dt;
 		}
 		return null;

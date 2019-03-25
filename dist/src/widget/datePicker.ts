@@ -15,6 +15,26 @@ module tui.widget {
 			this._components["calendar"] = calendar._;
 			super.initRestriction();
 			this.setRestrictions({
+				"min": {
+					"set":  (value: any) => {
+						if (value instanceof Date || typeof value === "string" || value == null) {
+							calendar.set("min", value);
+						}
+					},
+					"get": (): any => {
+						return calendar.get("max");
+					}
+				},
+				"max": {
+					"set":  (value: any) => {
+						if (value instanceof Date || typeof value === "string" || value == null) {
+							calendar.set("max", value);
+						}
+					},
+					"get": (): any => {
+						return calendar.get("max");
+					}
+				},
 				"time": {
 					"set":  (value: any) => {
 						if (value instanceof Date || typeof value === "string") {

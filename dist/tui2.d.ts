@@ -686,6 +686,7 @@ declare module tui.widget {
         nextMonth(): void;
         prevYear(): void;
         nextYear(): void;
+        isValidDate(tm: Date): boolean;
         render(): void;
     }
 }

@@ -154,6 +154,8 @@ tui.dict("zh-cn", {
 	"form.visible": "可见",
 	"form.min.height": "最小高度",
 	"form.max.height": "最大高度",
+	"form.min.value": "最小值",
+	"form.max.value": "最大值",
 	"form.date": "日期",
 	"form.date.time": "日期时间",
 	"form.time": "时间",

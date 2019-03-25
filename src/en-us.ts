@@ -102,6 +102,8 @@ tui.dict("en-us", {
 	"form.visible": "Visible",
 	"form.min.height": "Min Height",
 	"form.max.height": "Max Height",
+	"form.min.value": "Min Value",
+	"form.max.value": "Max Value",
 	"form.date": "Date",
 	"form.date.time": "Date Time",
 	"form.time": "Time",

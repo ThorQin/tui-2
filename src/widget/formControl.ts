@@ -1929,6 +1929,8 @@ module tui.widget {
 		format: string;
 		timezone: string;
 		autoInit: boolean;
+		min: string;
+		max: string;
 	}
 	class FormDatePicker extends BasicFormControl<DatePicker, DatePickerFormItem> {
 		static icon = "fa-calendar-o";
@@ -1945,6 +1947,8 @@ module tui.widget {
 		update() {
 			super.update();
 			this._widget._set("format", this.define.format || null);
+			this._widget._set("min", this.define.min || null);
+			this._widget._set("max", this.define.max || null);
 			this._widget._set("mode", /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : null);
 			if (!/^(utc|locale|none)$/.test(this.define.timezone))
 				this.define.timezone = "none";
@@ -1998,11 +2002,26 @@ module tui.widget {
 						"size": 2,
 						"position": "newline"
 					}, {
+						"type": "datepicker",
+						"key": "min",
+						"mode": "date-time",
+						"label": str("form.min.value"),
+						"value": this.define.min || null,
+						"size": 1
+					}, {
+						"type": "datepicker",
+						"key": "max",
+						"mode": "date-time",
+						"label": str("form.max.value"),
+						"value": this.define.max || null,
+						"size": 1
+					}, {
 						"type": "textbox",
 						"key": "format",
 						"label": str("form.custom.format"),
 						"description": str("form.date.desc"),
 						"value": this.define.format ? this.define.format : null,
+						"position": "newline",
 						"size": 2
 					}
 				]
@@ -2012,6 +2031,8 @@ module tui.widget {
 			var values = properties[1];
 			this.define.format = values.format ? values.format : undefined;
 			this.define.mode = values.mode;
+			this.define.min = values.min;
+			this.define.max = values.max;
 			if (this.define.required) {
 				this.define.validation = [{ "format": "*any", "message": str("message.cannot.be.empty")}];
 			} else
@@ -2030,6 +2051,8 @@ module tui.widget {
 	// ----------------------------------------------------------------------------------------------------------
 	interface CalendarFormItem extends FormItem {
 		mode: string;
+		min: string;
+		max: string;
 	}
 	class FormCalendar extends BasicFormControl<Calendar, CalendarFormItem> {
 		static icon = "fa-calendar";
@@ -2049,6 +2072,8 @@ module tui.widget {
 		}
 		update() {
 			super.update();
+			this._widget._set("min", this.define.min || null);
+			this._widget._set("max", this.define.max || null);
 			this._widget._set("mode", /^(date|month)$/.test(this.define.mode) ? this.define.mode : null);
 			if (this.define.value == null) {
 				this._widget._set("value", time.now());
@@ -2071,6 +2096,20 @@ module tui.widget {
 						"value": /^(date|month)$/.test(this.define.mode) ? this.define.mode : "date",
 						"size": 2,
 						"position": "newline"
+					}, {
+						"type": "datepicker",
+						"key": "min",
+						"mode": "date-time",
+						"label": str("form.min.value"),
+						"value": this.define.min || null,
+						"size": 1
+					}, {
+						"type": "datepicker",
+						"key": "max",
+						"mode": "date-time",
+						"label": str("form.max.value"),
+						"value": this.define.max || null,
+						"size": 1
 					}
 				]
 			}];
@@ -2078,6 +2117,8 @@ module tui.widget {
 		setProperties(properties: any[]) {
 			var values = properties[1];
 			this.define.mode = values.mode;
+			this.define.min = values.min;
+			this.define.max = values.max;
 		}
 		validate(): boolean {
 			return true;

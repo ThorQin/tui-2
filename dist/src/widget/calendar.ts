@@ -26,17 +26,65 @@ module tui.widget {
 		protected initRestriction(): void {
 			super.initRestriction();
 			this.setRestrictions({
-				"time": {
-					"set": (value: any): void => {
+				"min": {
+					"set":  (value: any) => {
 						if (value instanceof Date)
-							this._data["time"] = value;
+							this._data["min"] = new Date(value.valueOf());
 						else if (typeof value === "string") {
 							value = time.parseDate(value);
-							this._data["time"] = value;
+							this._data["min"] = value;
+						} else if (value === null) {
+							this._data["min"] = null;
 						}
 					},
 					"get": (): any => {
+						if (this._data["min"] instanceof Date) {
+							return new Date(this._data["min"].valueOf());
+						} else {
+							return null;
+						}
+					}
+				},
+				"max": {
+					"set":  (value: any) => {
+						if (value instanceof Date)
+							this._data["max"] = value;
+						else if (typeof value === "string") {
+							value = time.parseDate(value);
+							this._data["max"] = value;
+						} else if (value === null) {
+							this._data["max"] = null;
+						}
+					},
+					"get": (): any => {
+						if (this._data["max"] instanceof Date) {
+							return new Date(this._data["max"].valueOf());
+						} else {
+							return null;
+						}
+					}
+				},
+				"time": {
+					"set": (value: any): void => {
+						let tm = new Date();
+						if (value instanceof Date)
+							tm = value;
+						else if (typeof value === "string") {
+							tm = time.parseDate(value);
+						}
+						let min = this.get("min");
+						if (min instanceof Date && tm < min) {
+							tm = min;
+						}
+						let max = this.get("max");
+						if (max instanceof Date && tm > max) {
+							tm = max;
+						}
+						this._data["time"] = tm;
+					},
+					"get": (): any => {
 						var tm = this._data["time"] as Date;
+						var mode = this.get("mode");
 						if (typeof tm === UNDEFINED || tm === null) {
 							tm = time.now();
 							tm.setHours(0);
@@ -44,6 +92,19 @@ module tui.widget {
 							tm.setSeconds(0);
 							tm.setMilliseconds(0);
 							this._data["time"] = tm;
+						} else if (mode == "date" || mode == "month") {
+							tm.setHours(0);
+							tm.setMinutes(0);
+							tm.setSeconds(0);
+							tm.setMilliseconds(0);
+						}
+						let min = this.get("min");
+						if (min instanceof Date && tm < min) {
+							tm = min;
+						}
+						let max = this.get("max");
+						if (max instanceof Date && tm > max) {
+							tm = new Date(max.valueOf());
 						}
 						return tm;
 					}
@@ -548,7 +609,25 @@ module tui.widget {
 				t.y++;
 			});
 		}
-
+		isValidDate(tm: Date) {
+			let min = this._data["min"];
+			if (min instanceof Date) {
+				let md = new Date(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0, 0);
+				let td = new Date(tm.getFullYear(), tm.getMonth(), tm.getDate(), 0, 0, 0, 0);
+				if (td < md) {
+					return false;
+				}
+			}
+			let max = this._data["max"];
+			if (max instanceof Date) {
+				let md = new Date(max.getFullYear(), max.getMonth(), max.getDate(), 0, 0, 0, 0);
+				let td = new Date(tm.getFullYear(), tm.getMonth(), tm.getDate(), 0, 0, 0, 0);
+				if (td > md) {
+					return false;
+				}
+			}
+			return true;
+		}
 		render() {
 			this.makeTable();
 			var tb = <HTMLTableElement>this._components["table"];
@@ -573,7 +652,10 @@ module tui.widget {
 					var firstWeek = firstDay(tm).getDay();
 					var daysOfMonth = time.totalDaysOfMonth(tm);
 					var day = 0;
-					(<HTMLTableRowElement>tb.rows[0]).cells[2].innerHTML = tm.getFullYear() + " - " + this.get("month");
+					var currentYear = this.get("year");
+					var currentMonth = this.get("month");
+					var currentDay = this.get("day");
+					(<HTMLTableRowElement>tb.rows[0]).cells[2].innerHTML = tm.getFullYear() + " - " + currentMonth;
 					for (let i = 0; i < 6; i++) {
 						for (let j = 0; j < 7; j++) {
 							let cell: HTMLTableCellElement = <HTMLTableCellElement>(<HTMLTableRowElement>tb.rows[i + 2]).cells[j];
@@ -581,10 +663,17 @@ module tui.widget {
 							if (day === 0) {
 								if (j === firstWeek) {
 									day = 1;
+									let d = new Date(tm.getFullYear(), tm.getMonth(), day);
+									if (!this.isValidDate(d)) {
+										$(cell).addClass('invalid');
+									}
 									(<HTMLTableCellElement>cell).innerHTML = day + "";
 									(<any>cell).offsetMonth = 0;
 								} else {
 									var preMonthDay = new Date(firstDay(tm).valueOf() - ((firstWeek - j) * 1000 * 24 * 60 * 60));
+									if (!this.isValidDate(preMonthDay)) {
+										$(cell).addClass('invalid');
+									}
 									(<HTMLTableCellElement>cell).innerHTML = preMonthDay.getDate() + "";
 									(<any>cell).offsetMonth = -1;
 									$(cell).addClass("tui-before");
@@ -592,19 +681,29 @@ module tui.widget {
 							} else {
 								day++;
 								if (day <= daysOfMonth) {
+									let d = new Date(tm.getFullYear(), tm.getMonth(), day);
+									if (!this.isValidDate(d)) {
+										$(cell).addClass('invalid');
+									}
 									cell.innerHTML = day + "";
 									(<any>cell).offsetMonth = 0;
 								} else {
+									let d = new Date(tm.getFullYear(), tm.getMonth(), 1);
+									d = time.dateAdd(d, 1, 'M');
+									d = time.dateAdd(d, (day - daysOfMonth), 'd');
+									if (!this.isValidDate(d)) {
+										$(cell).addClass('invalid');
+									}
 									cell.innerHTML = (day - daysOfMonth) + "";
 									(<any>cell).offsetMonth = 1;
 									$(cell).addClass("tui-after");
 								}
 							}
-							if (day === this.get("day"))
+							if (day === currentDay)
 								$(cell).addClass("tui-actived");
 							if (j === 0 || j === 6)
 								$(cell).addClass("tui-weekend");
-							if (this.get("year") === today.getFullYear() && this.get("month") === (today.getMonth() + 1) && day === today.getDate()) {
+							if (currentYear === today.getFullYear() && currentMonth === (today.getMonth() + 1) && day === today.getDate()) {
 								$(cell).addClass("tui-today");
 							}
 							if (i == 5 && mode === "date-time") {
