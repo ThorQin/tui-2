@@ -8056,6 +8056,31 @@ var tui;
     (function (widget) {
         "use strict";
         var MAX = 6;
+        function itemFunc(id, cal) {
+            if (id.args.length != 1) {
+                throw new Error("Invalid parameter for function 'item()'");
+            }
+            var key = id.args[0];
+            if (typeof key != 'string') {
+                throw new Error("Invalid parameter for function 'item()'");
+            }
+            if (cal.cache.hasOwnProperty(key))
+                return cal.cache[key];
+            else {
+                cal.calc(key, cal.path);
+                return cal.cache[key];
+            }
+        }
+        function itemValueFunc(id, values) {
+            if (id.args.length != 1) {
+                throw new Error("Invalid parameter for function 'item()'");
+            }
+            var key = id.args[0];
+            if (typeof key != 'string') {
+                throw new Error("Invalid parameter for function 'item()'");
+            }
+            return values[key];
+        }
         function optionsToText(options) {
             var result = "";
             if (!options)
@@ -9060,7 +9085,13 @@ var tui;
                     try {
                         return tui.exp.evaluate(e.data.exp, function (id) {
                             if (id.type == 'function') {
-                                return tui.exp.processStandardFunc(id);
+                                if (id.name == 'item') {
+                                    var v_1 = _this.form.get("value");
+                                    return itemValueFunc(id, v_1);
+                                }
+                                else {
+                                    return tui.exp.processStandardFunc(id);
+                                }
                             }
                             var v = _this.form.get("value");
                             return v[id.name];
@@ -9226,7 +9257,13 @@ var tui;
                     try {
                         return tui.exp.evaluate(e.data.exp, function (id) {
                             if (id.type == 'function') {
-                                return tui.exp.processStandardFunc(id);
+                                if (id.name == 'item') {
+                                    var v_2 = _this.form.get("value");
+                                    return itemValueFunc(id, v_2);
+                                }
+                                else {
+                                    return tui.exp.processStandardFunc(id);
+                                }
                             }
                             var v = _this.form.get("value");
                             return v[id.name];
@@ -9434,7 +9471,12 @@ var tui;
                         if (d.condition) {
                             if (tui.exp.evaluate(d.condition, function (id) {
                                 if (id.type == 'function') {
-                                    return tui.exp.processStandardFunc(id);
+                                    if (id.name == 'item') {
+                                        return itemFunc(id, cal);
+                                    }
+                                    else {
+                                        return tui.exp.processStandardFunc(id);
+                                    }
                                 }
                                 if (cal.cache.hasOwnProperty(id.name))
                                     return cal.cache[id.name];
@@ -9796,7 +9838,12 @@ var tui;
                         if (d.condition) {
                             if (tui.exp.evaluate(d.condition, function (id) {
                                 if (id.type == 'function') {
-                                    return tui.exp.processStandardFunc(id);
+                                    if (id.name == 'item') {
+                                        return itemFunc(id, cal);
+                                    }
+                                    else {
+                                        return tui.exp.processStandardFunc(id);
+                                    }
                                 }
                                 if (cal.cache.hasOwnProperty(id.name))
                                     return cal.cache[id.name];

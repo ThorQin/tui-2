@@ -5,6 +5,33 @@ module tui.widget {
 
 	const MAX = 6;
 
+	function itemFunc(id: exp.Identifier, cal: Calculator) {
+		if (id.args.length != 1) {
+			throw new Error("Invalid parameter for function 'item()'");
+		}
+		let key = id.args[0];
+		if (typeof key != 'string') {
+			throw new Error("Invalid parameter for function 'item()'");
+		}
+		if (cal.cache.hasOwnProperty(key))
+			return cal.cache[key];
+		else {
+			cal.calc(key, cal.path);
+			return cal.cache[key];
+		}
+	}
+
+	function itemValueFunc(id: exp.Identifier, values: {[index: string]: any}) {
+		if (id.args.length != 1) {
+			throw new Error("Invalid parameter for function 'item()'");
+		}
+		let key = id.args[0];
+		if (typeof key != 'string') {
+			throw new Error("Invalid parameter for function 'item()'");
+		}
+		return values[key];
+	}
+
 	export interface PropertyPage {
 		name: string;
 		properties: FormItem[];
@@ -1090,7 +1117,12 @@ module tui.widget {
 				try {
 					return tui.exp.evaluate(e.data.exp, (id) => {
 						if (id.type == 'function') {
-							return tui.exp.processStandardFunc(id);
+							if (id.name == 'item') {
+								let v = this.form.get("value");
+								return itemValueFunc(id, v);
+							} else {
+								return tui.exp.processStandardFunc(id);
+							}
 						}
 						let v = this.form.get("value");
 						return v[id.name];
@@ -1267,7 +1299,12 @@ module tui.widget {
 				try {
 					return tui.exp.evaluate(e.data.exp, (id) => {
 						if (id.type == 'function') {
-							return tui.exp.processStandardFunc(id);
+							if (id.name == 'item') {
+								let v = this.form.get("value");
+								return itemValueFunc(id, v);
+							} else {
+								return tui.exp.processStandardFunc(id);
+							}
 						}
 						let v = this.form.get("value");
 						return v[id.name];
@@ -1500,7 +1537,11 @@ module tui.widget {
 					if (d.condition) {
 						if (tui.exp.evaluate(d.condition, function (id) {
 							if (id.type == 'function') {
-								return tui.exp.processStandardFunc(id);
+								if (id.name == 'item') {
+									return itemFunc(id, cal);
+								} else {
+									return tui.exp.processStandardFunc(id);
+								}
 							}
 							if (cal.cache.hasOwnProperty(id.name))
 								return cal.cache[id.name];
@@ -1867,7 +1908,11 @@ module tui.widget {
 					if (d.condition) {
 						if (tui.exp.evaluate(d.condition, function (id) {
 							if (id.type == 'function') {
-								return tui.exp.processStandardFunc(id);
+								if (id.name == 'item') {
+									return itemFunc(id, cal);
+								} else {
+									return tui.exp.processStandardFunc(id);
+								}
 							}
 							if (cal.cache.hasOwnProperty(id.name))
 								return cal.cache[id.name];
