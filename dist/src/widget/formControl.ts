@@ -664,8 +664,11 @@ module tui.widget {
 		}
 		setValue(value: any): void {
 			this._widget.set("value", value);
+			let oldValue = this.define.value;
 			this.define.value = value;
-			this.form.fire("itemvaluechanged", {control: this});
+			if (oldValue != value) {
+				this.form.fire("itemvaluechanged", {control: this});
+			}
 		}
 		render(designMode: boolean): void {
 			if (designMode && typeof (<any>this._widget).reset === "function") {
@@ -737,9 +740,13 @@ module tui.widget {
 			return v;
 		}
 		setValue(value: any): void {
-			if (typeof value !== UNDEFINED)
+			if (typeof value !== UNDEFINED) {
+				let oldValue = this.define.value;
 				this.define.value = value;
-			this.form.fire("itemvaluechanged", {control: this});
+				if (oldValue != value) {
+					this.form.fire("itemvaluechanged", {control: this});
+				}
+			}
 		}
 
 		render(designMode: boolean): void {
@@ -963,9 +970,13 @@ module tui.widget {
 			return v;
 		}
 		setValue(value: any): void {
-			if (typeof value !== UNDEFINED)
+			if (typeof value !== UNDEFINED) {
+				let oldValue = this.define.value;
 				this.define.value = value;
-			this.form.fire("itemvaluechanged", {control: this});
+				if (oldValue != value) {
+					this.form.fire("itemvaluechanged", {control: this});
+				}
+			}
 		}
 
 		render(designMode: boolean): void {
@@ -1587,8 +1598,11 @@ module tui.widget {
 		}
 		setValue(value: any): void {
 			this._group.set("value", value);
+			let oldValue = this.define.value;
 			this.define.value = value;
-			this.form.fire("itemvaluechanged", {control: this});
+			if (oldValue !== value) {
+				this.form.fire("itemvaluechanged", {control: this});
+			}
 		}
 		renderDesign() {
 			var define = this.define;
@@ -2721,9 +2735,11 @@ module tui.widget {
 					this.define.value = value;
 					this._widget._set("list", this._values);
 				}
+				this._widget.render();
+				this.form.fire("itemvaluechanged", {control: this});
+			} else {
+				this._widget.render();
 			}
-			this._widget.render();
-			this.form.fire("itemvaluechanged", {control: this});
 		}
 		validate(): boolean {
 			var d = this.define;

@@ -8670,8 +8670,11 @@ var tui;
             };
             BasicFormControl.prototype.setValue = function (value) {
                 this._widget.set("value", value);
+                var oldValue = this.define.value;
                 this.define.value = value;
-                this.form.fire("itemvaluechanged", { control: this });
+                if (oldValue != value) {
+                    this.form.fire("itemvaluechanged", { control: this });
+                }
             };
             BasicFormControl.prototype.render = function (designMode) {
                 if (designMode && typeof this._widget.reset === "function") {
@@ -8722,9 +8725,13 @@ var tui;
                 return v;
             };
             FormSection.prototype.setValue = function (value) {
-                if (typeof value !== tui.UNDEFINED)
+                if (typeof value !== tui.UNDEFINED) {
+                    var oldValue = this.define.value;
                     this.define.value = value;
-                this.form.fire("itemvaluechanged", { control: this });
+                    if (oldValue != value) {
+                        this.form.fire("itemvaluechanged", { control: this });
+                    }
+                }
             };
             FormSection.prototype.render = function (designMode) {
                 var d = this.define;
@@ -8937,9 +8944,13 @@ var tui;
                 return v;
             };
             FormTextView.prototype.setValue = function (value) {
-                if (typeof value !== tui.UNDEFINED)
+                if (typeof value !== tui.UNDEFINED) {
+                    var oldValue = this.define.value;
                     this.define.value = value;
-                this.form.fire("itemvaluechanged", { control: this });
+                    if (oldValue != value) {
+                        this.form.fire("itemvaluechanged", { control: this });
+                    }
+                }
             };
             FormTextView.prototype.render = function (designMode) {
                 var d = this.define;
@@ -9524,8 +9535,11 @@ var tui;
             };
             FormOptions.prototype.setValue = function (value) {
                 this._group.set("value", value);
+                var oldValue = this.define.value;
                 this.define.value = value;
-                this.form.fire("itemvaluechanged", { control: this });
+                if (oldValue !== value) {
+                    this.form.fire("itemvaluechanged", { control: this });
+                }
             };
             FormOptions.prototype.renderDesign = function () {
                 var define = this.define;
@@ -10605,9 +10619,12 @@ var tui;
                         this.define.value = value;
                         this._widget._set("list", this._values);
                     }
+                    this._widget.render();
+                    this.form.fire("itemvaluechanged", { control: this });
                 }
-                this._widget.render();
-                this.form.fire("itemvaluechanged", { control: this });
+                else {
+                    this._widget.render();
+                }
             };
             FormGrid.prototype.validate = function () {
                 var d = this.define;
