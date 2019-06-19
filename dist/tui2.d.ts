@@ -646,6 +646,12 @@ declare module tui.ds {
         protected build(): void;
     }
 }
+declare module tui.template {
+    const HTML_BASIC = "\n<!DOCTYPE html>\n<html lang=\"zh-cn\">\n\t<head>\n\t\t<meta charset=\"utf-8\">\n\t\t<meta name=\"viewport\" content=\"width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1\">\n\t\t{{unsafe:header}}\n\t</head>\n\t<body>\n\t\t{{unsafe:body}}\n\t</body>\n</html>\n";
+    function safeText(t: any): any;
+    function render(template: any, data: any): string;
+    function renderSafety(template: any, data: any): string;
+}
 declare module tui.time {
     var shortWeeks: string[];
     var weeks: string[];

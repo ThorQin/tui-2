@@ -5233,6 +5233,301 @@ var tui;
 })(tui || (tui = {}));
 var tui;
 (function (tui) {
+    var template;
+    (function (template_1) {
+        template_1.HTML_BASIC = "\n<!DOCTYPE html>\n<html lang=\"zh-cn\">\n\t<head>\n\t\t<meta charset=\"utf-8\">\n\t\t<meta name=\"viewport\" content=\"width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1\">\n\t\t{{unsafe:header}}\n\t</head>\n\t<body>\n\t\t{{unsafe:body}}\n\t</body>\n</html>\n";
+        var CMD_LOOP = /^@loop\s+(?:([_$a-zA-Z][_$a-zA-Z0-9]*)\s*:\s*)?([_$a-zA-Z][_$a-zA-Z0-9]*)\s+of\s+(.+)$/;
+        var CMD_END_LOOP = /^@end\s+loop\s*$/;
+        var CMD_IF = /^@if\s+(.+)$/;
+        var CMD_ELSE = /^@else\s*$/;
+        var CMD_END_IF = /^@end\s+if\s*$/;
+        var HtmlError = (function (_super) {
+            __extends(HtmlError, _super);
+            function HtmlError() {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                return _super.apply(this, args) || this;
+            }
+            return HtmlError;
+        }(Error));
+        function error(match, msg) {
+            if (msg === void 0) { msg = 'unexpected command'; }
+            var newline = /\n/g;
+            var m;
+            var lines = 1;
+            while ((m = newline.exec(match.input)) != null) {
+                if (m.index < match.index) {
+                    lines++;
+                }
+                else
+                    break;
+            }
+            var message;
+            if (msg instanceof Object) {
+                message = msg.message;
+                lines += (msg.lines - 1);
+            }
+            else {
+                message = "Render HTML error: " + msg + ": '" + match[0] + "'";
+            }
+            var errObj = new HtmlError(message);
+            errObj.lines = lines;
+            errObj.toString = function () {
+                return this.message + (" at: line " + this.lines);
+            };
+            throw errObj;
+        }
+        function clone(obj) {
+            var newObj = {};
+            if (obj instanceof Object) {
+                for (var key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        newObj[key] = obj[key];
+                    }
+                }
+            }
+            return newObj;
+        }
+        var IDENTITY = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+        function evalWithData(expr, data) {
+            if (!(data instanceof Object)) {
+                return eval(expr);
+            }
+            var definition = 'var $=data;';
+            for (var k in data) {
+                if (data.hasOwnProperty(k) && IDENTITY.test(k)) {
+                    definition += 'var ' + k + '=$.' + k + ';';
+                }
+            }
+            return eval(definition + expr);
+        }
+        var ENTITY = {
+            '<': '&lt;',
+            '>': '&gt;',
+            '&': '&amp;',
+            '\'': '&apos;',
+            '"': '&quot;'
+        };
+        function text(t) {
+            if (t == null || typeof t == 'undefined' || (typeof t == 'number' && isNaN(t))) {
+                return '';
+            }
+            else
+                return t;
+        }
+        function safeText(t) {
+            if (t == null || typeof t == 'undefined' || (typeof t == 'number' && isNaN(t))) {
+                return '';
+            }
+            t += '';
+            return t.replace(/[<>&'"]/g, function (v) {
+                return ENTITY[v];
+            });
+        }
+        template_1.safeText = safeText;
+        function render(template, data) {
+            if (!template)
+                return '';
+            template = template + '';
+            var html = '';
+            var regex = /\{\{([^}]+)\}\}/g;
+            var match;
+            var pos = 0;
+            var cmdStack = [];
+            while ((match = regex.exec(template)) != null) {
+                if (cmdStack.length == 0) {
+                    html += template.substring(pos, match.index);
+                }
+                pos = regex.lastIndex;
+                var key = match[1].trim();
+                if (key[0] == '@') {
+                    var m = void 0;
+                    if ((m = CMD_LOOP.exec(key)) != null) {
+                        cmdStack.push({
+                            cmd: 'loop',
+                            idx: m[1],
+                            declare: m[2],
+                            expression: m[3],
+                            match: match,
+                            index: pos
+                        });
+                    }
+                    else if ((m = CMD_END_LOOP.exec(key)) != null) {
+                        if (cmdStack.length > 0 && cmdStack[cmdStack.length - 1].cmd == 'loop') {
+                            var loopCmd = cmdStack.pop();
+                            if (cmdStack.length > 0)
+                                continue;
+                            var loopTemplate = template.substring(loopCmd.index, match.index);
+                            var array = void 0;
+                            try {
+                                array = evalWithData(loopCmd.expression, data);
+                            }
+                            catch (e) {
+                                error(loopCmd.match, e + '');
+                            }
+                            if (!(array instanceof Array)) {
+                                error(loopCmd.match, 'expression cannot be calculate as array');
+                            }
+                            try {
+                                var newData = clone(data);
+                                for (var i = 0; i < array.length; i++) {
+                                    var item = array[i];
+                                    if (loopCmd.declare != '_') {
+                                        newData[loopCmd.declare] = item;
+                                    }
+                                    if (loopCmd.idx && loopCmd.idx != '_') {
+                                        newData[loopCmd.idx] = i;
+                                    }
+                                    html += render(loopTemplate, newData);
+                                }
+                            }
+                            catch (e) {
+                                error(loopCmd.match, e);
+                            }
+                        }
+                        else {
+                            error(match);
+                        }
+                    }
+                    else if ((m = CMD_IF.exec(key)) != null) {
+                        cmdStack.push({
+                            cmd: 'if',
+                            expression: m[1],
+                            match: match,
+                            index: pos
+                        });
+                    }
+                    else if ((m = CMD_ELSE.exec(key)) != null) {
+                        if (cmdStack.length > 0 && cmdStack[cmdStack.length - 1].cmd == 'if') {
+                            cmdStack.push({
+                                cmd: 'else',
+                                match: match,
+                                index: pos
+                            });
+                        }
+                        else {
+                            error(match);
+                        }
+                    }
+                    else if ((m = CMD_END_IF.exec(key)) != null) {
+                        if (cmdStack.length > 0 && cmdStack[cmdStack.length - 1].cmd == 'if') {
+                            var ifCmd = cmdStack.pop();
+                            if (cmdStack.length > 0)
+                                continue;
+                            var ifTemplate = template.substring(ifCmd.index, match.index);
+                            var result = void 0;
+                            try {
+                                result = evalWithData(ifCmd.expression, data);
+                            }
+                            catch (e) {
+                                error(ifCmd.match, e + '');
+                            }
+                            if (result) {
+                                try {
+                                    html += render(ifTemplate, data);
+                                }
+                                catch (e) {
+                                    error(ifCmd.match, e);
+                                }
+                            }
+                        }
+                        else if (cmdStack.length > 0 && cmdStack[cmdStack.length - 1].cmd == 'else') {
+                            var elseCmd = cmdStack.pop();
+                            var elseTemplate = template.substring(elseCmd.index, match.index);
+                            if (cmdStack.length == 0) {
+                                error(match);
+                            }
+                            var ifCmd = cmdStack.pop();
+                            if (cmdStack.length > 0)
+                                continue;
+                            var ifTemplate = template.substring(ifCmd.index, elseCmd.match.index);
+                            var result = void 0;
+                            try {
+                                result = evalWithData(ifCmd.expression, data);
+                            }
+                            catch (e) {
+                                error(ifCmd.match, e + '');
+                            }
+                            try {
+                                if (result) {
+                                    html += render(ifTemplate, data);
+                                }
+                                else {
+                                    html += render(elseTemplate, data);
+                                }
+                            }
+                            catch (e) {
+                                error(ifCmd.match, e);
+                            }
+                        }
+                        else {
+                            error(match);
+                        }
+                    }
+                    else {
+                        error(match, 'invalid command');
+                    }
+                }
+                else if (cmdStack.length == 0) {
+                    if (data instanceof Object) {
+                        try {
+                            var isHtml = false;
+                            var isJson = false;
+                            if (/^unsafe:/.test(key)) {
+                                isHtml = true;
+                                key = key.substring(7);
+                            }
+                            else if (/^json:/.test(key)) {
+                                isJson = true;
+                                key = key.substring(5);
+                            }
+                            var value = void 0;
+                            if (/[+\-*/%=^()[\]{}&<>.'";:!]/.test(key)) {
+                                value = evalWithData(key, data);
+                            }
+                            else {
+                                value = data[key];
+                            }
+                            if (!isHtml)
+                                html += safeText(value);
+                            else if (isJson) {
+                                html += JSON.stringify(value);
+                            }
+                            else
+                                html += text(value);
+                        }
+                        catch (e) {
+                            error(match, e + '');
+                        }
+                    }
+                }
+            }
+            if (cmdStack.length > 0) {
+                error(cmdStack[0].match, 'cannot find corresponding close command');
+            }
+            if (pos < template.length) {
+                html += template.substring(pos);
+            }
+            return html;
+        }
+        template_1.render = render;
+        function renderSafety(template, data) {
+            try {
+                return render(template, data);
+            }
+            catch (e) {
+                return render("\n<!DOCTYPE html>\n<html lang=\"zh-cn\">\n\t<head>\n\t\t<meta charset=\"utf-8\">\n\t\t<meta name=\"viewport\" content=\"width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1\">\n\t</head>\n\t<body>\n\t\t<div style=\"text-align: center; padding: 20px\">\n\t\t\t<p>\n\t\t\t\t<a href=\"mailto:sy_mobile@cnooc.com.cn?subject=ERROR%20REPORT&body={{message}}\"\n\t\t\t\t\tstyle=\"font-size: 12pt;color: #26d;text-decoration: none !important;\">\u53D1\u9001\u9519\u8BEF\u62A5\u544A</a>\n\t\t\t</p>\n\t\t</div>\n\t</body>\n</html>\n\t\t", {
+                    message: encodeURIComponent(e.stack ? e + '\n' + e.stack : e + ''),
+                });
+            }
+        }
+        template_1.renderSafety = renderSafety;
+    })(template = tui.template || (tui.template = {}));
+})(tui || (tui = {}));
+var tui;
+(function (tui) {
     var time;
     (function (time) {
         time.shortWeeks = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
