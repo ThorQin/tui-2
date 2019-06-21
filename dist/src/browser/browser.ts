@@ -654,7 +654,7 @@ module tui.browser {
 		}
 		var source = "(function (" + c + "){\n" + code + "\n})";
 		var func = <Function>eval(source);
-		func.apply(null, argv);
+		return func.apply(null, argv);
 	}
 
 	(<any>window).$safe = toSafeText;

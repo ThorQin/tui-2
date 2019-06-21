@@ -114,7 +114,7 @@ declare module tui.browser {
     function setInnerHtml(elem: HTMLElement, content: string): void;
     function safeExec(code: string, context?: {
         [key: string]: any;
-    }): void;
+    }): any;
 }
 declare module tui.browser {
     enum KeyCode {

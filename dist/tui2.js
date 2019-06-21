@@ -1249,7 +1249,7 @@ var tui;
             }
             var source = "(function (" + c + "){\n" + code + "\n})";
             var func = eval(source);
-            func.apply(null, argv);
+            return func.apply(null, argv);
         }
         browser.safeExec = safeExec;
         window.$safe = toSafeText;
@@ -5293,15 +5293,16 @@ var tui;
         var IDENTITY = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
         function evalWithData(expr, data) {
             if (!(data instanceof Object)) {
-                return eval(expr);
+                return tui.browser.safeExec('return ' + expr);
             }
-            var definition = 'var $=data;';
+            var context = {};
+            context.$ = data;
             for (var k in data) {
                 if (data.hasOwnProperty(k) && IDENTITY.test(k)) {
-                    definition += 'var ' + k + '=$.' + k + ';';
+                    context[k] = data[k];
                 }
             }
-            return eval(definition + expr);
+            return tui.browser.safeExec('return ' + expr, context);
         }
         var ENTITY = {
             '<': '&lt;',
@@ -5518,7 +5519,7 @@ var tui;
                 return render(template, data);
             }
             catch (e) {
-                return render("\n<!DOCTYPE html>\n<html lang=\"zh-cn\">\n\t<head>\n\t\t<meta charset=\"utf-8\">\n\t\t<meta name=\"viewport\" content=\"width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1\">\n\t</head>\n\t<body>\n\t\t<div style=\"text-align: center; padding: 20px\">\n\t\t\t<p>\n\t\t\t\t<a href=\"mailto:sy_mobile@cnooc.com.cn?subject=ERROR%20REPORT&body={{message}}\"\n\t\t\t\t\tstyle=\"font-size: 12pt;color: #26d;text-decoration: none !important;\">\u53D1\u9001\u9519\u8BEF\u62A5\u544A</a>\n\t\t\t</p>\n\t\t</div>\n\t</body>\n</html>\n\t\t", {
+                return render("\n<div style=\"text-align: center; padding: 20px\">\n\t<p>\n\t\t<a href=\"mailto:sy_mobile@cnooc.com.cn?subject=ERROR%20REPORT&body={{message}}\"\n\t\t\tstyle=\"font-size: 12pt;color: #26d;text-decoration: none !important;\">\u53D1\u9001\u9519\u8BEF\u62A5\u544A</a>\n\t</p>\n</div>", {
                     message: encodeURIComponent(e.stack ? e + '\n' + e.stack : e + ''),
                 });
             }
