@@ -36,14 +36,19 @@ module tui.widget.ext {
 
 	function createSelector(key: string, title: string, rowTooltip: string, rowType: RegExp, invalidMessage: string, classType: any, handler: (result: ResultItem | ResultItem[]) => void | boolean) {
 		let searchBox = <Input>create("input");
-		searchBox._set("iconLeft", "fa-search");
+		searchBox._set("iconRight", "fa-search");
 		searchBox._set("clearable", true);
+		searchBox._set("type", "search");
 		searchBox._set("placeholder", str("label.search"));
 		let list = <List>create("list");
 		list._set("rowTooltipKey", rowTooltip);
 		list._set("nameKey", "displayName");
 
-		let dialogDiv = elem("div");
+		let dialogDiv = elem("form");
+		dialogDiv.onsubmit = function() {
+			return false;
+		};
+		dialogDiv.setAttribute("action", "#");
 		dialogDiv.className = "tui-dialog-select-div";
 		dialogDiv.appendChild(searchBox._);
 		dialogDiv.appendChild(list._);
@@ -57,7 +62,7 @@ module tui.widget.ext {
 		let _withSubCompany: boolean;
 		let _multiple: boolean;
 
-		searchBox.on("enter clear", () => {
+		searchBox.on("enter clear right-icon-click", () => {
 			if (searchBox.get("value")) {
 				queryList();
 			} else {

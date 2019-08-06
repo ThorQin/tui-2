@@ -18,6 +18,7 @@ module tui.template {
 	const CMD_LOOP = /^@loop\s+(?:([_$a-zA-Z][_$a-zA-Z0-9]*)\s*:\s*)?([_$a-zA-Z][_$a-zA-Z0-9]*)\s+of\s+(.+)$/;
 	const CMD_END_LOOP = /^@end\s+loop\s*$/;
 	const CMD_IF = /^@if\s+(.+)$/;
+	const CMD_ELSE_IF = /^@else\s+if\s+(.+)$/;
 	const CMD_ELSE = /^@else\s*$/;
 	const CMD_END_IF = /^@end\s+if\s*$/;
 
@@ -177,8 +178,19 @@ module tui.template {
 						match: match,
 						index: pos
 					});
-				} else if ((m = CMD_ELSE.exec(key)) != null) {
+				} else if ((m = CMD_ELSE_IF.exec(key)) != null) {
 					if (cmdStack.length > 0 && cmdStack[cmdStack.length - 1].cmd == 'if') {
+						cmdStack.push({
+							cmd: 'elseif',
+							match: match,
+							index: pos
+						});
+					} else {
+						error(match);
+					}
+				} else if ((m = CMD_ELSE.exec(key)) != null) {
+					let lastCmd = (cmdStack.length > 0 ? cmdStack[cmdStack.length - 1].cmd : null);
+					if (lastCmd == 'if' || lastCmd == 'elseif') {
 						cmdStack.push({
 							cmd: 'else',
 							match: match,

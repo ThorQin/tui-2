@@ -43,13 +43,18 @@ var tui;
             }
             function createSelector(key, title, rowTooltip, rowType, invalidMessage, classType, handler) {
                 var searchBox = widget.create("input");
-                searchBox._set("iconLeft", "fa-search");
+                searchBox._set("iconRight", "fa-search");
                 searchBox._set("clearable", true);
+                searchBox._set("type", "search");
                 searchBox._set("placeholder", tui.str("label.search"));
                 var list = widget.create("list");
                 list._set("rowTooltipKey", rowTooltip);
                 list._set("nameKey", "displayName");
-                var dialogDiv = tui.elem("div");
+                var dialogDiv = tui.elem("form");
+                dialogDiv.onsubmit = function () {
+                    return false;
+                };
+                dialogDiv.setAttribute("action", "#");
                 dialogDiv.className = "tui-dialog-select-div";
                 dialogDiv.appendChild(searchBox._);
                 dialogDiv.appendChild(list._);
@@ -60,7 +65,7 @@ var tui;
                 var _topOrganId;
                 var _withSubCompany;
                 var _multiple;
-                searchBox.on("enter clear", function () {
+                searchBox.on("enter clear right-icon-click", function () {
                     if (searchBox.get("value")) {
                         queryList();
                     }

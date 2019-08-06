@@ -5239,6 +5239,7 @@ var tui;
         var CMD_LOOP = /^@loop\s+(?:([_$a-zA-Z][_$a-zA-Z0-9]*)\s*:\s*)?([_$a-zA-Z][_$a-zA-Z0-9]*)\s+of\s+(.+)$/;
         var CMD_END_LOOP = /^@end\s+loop\s*$/;
         var CMD_IF = /^@if\s+(.+)$/;
+        var CMD_ELSE_IF = /^@else\s+if\s+(.+)$/;
         var CMD_ELSE = /^@else\s*$/;
         var CMD_END_IF = /^@end\s+if\s*$/;
         var HtmlError = (function (_super) {
@@ -5400,8 +5401,21 @@ var tui;
                             index: pos
                         });
                     }
-                    else if ((m = CMD_ELSE.exec(key)) != null) {
+                    else if ((m = CMD_ELSE_IF.exec(key)) != null) {
                         if (cmdStack.length > 0 && cmdStack[cmdStack.length - 1].cmd == 'if') {
+                            cmdStack.push({
+                                cmd: 'elseif',
+                                match: match,
+                                index: pos
+                            });
+                        }
+                        else {
+                            error(match);
+                        }
+                    }
+                    else if ((m = CMD_ELSE.exec(key)) != null) {
+                        var lastCmd = (cmdStack.length > 0 ? cmdStack[cmdStack.length - 1].cmd : null);
+                        if (lastCmd == 'if' || lastCmd == 'elseif') {
                             cmdStack.push({
                                 cmd: 'else',
                                 match: match,
