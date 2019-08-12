@@ -56,7 +56,7 @@ module tui.widget {
 		data: Option[];
 	}
 
-	function optionsToText(options: OptionGroup[]): string {
+	function optionsToText(options: OptionGroup[], multiOption: boolean): string {
 		var result = "";
 		if (!options)
 			return result;
@@ -64,12 +64,16 @@ module tui.widget {
 			if (nodes) {
 				var padding = (level ? level + " " : "");
 				for (let item of nodes) {
-					if (item.value == item.text) {
-						result += padding + item.value + "\n";
-					} else {
-						result += padding + item.value + ": " + item.text + "\n";
+					var flag = multiOption ? (typeof item.check !== 'boolean' ? '#' :'') : '';
+					if (/^#/.test(item.value)) {
+						flag += '!';
 					}
-					addNodes(item.children, level + ">");
+					if (item.value == item.text) {
+						result += padding + flag + item.value + "\n";
+					} else {
+						result += padding + flag + item.value + ": " + item.text + "\n";
+					}
+					addNodes(item.children, level + "~");
 				}
 			}
 		}
@@ -93,20 +97,27 @@ module tui.widget {
 			if (!s)
 				return 0;
 			for (let c of s) {
-				if (c == '>')
+				if (c == '~')
 					count++;
 			}
 			return count;
 		}
 		function getNode(s: string): Option {
 			s = s.trim();
+			var canCheck = false;
+			if (/^!.+/.test(s)) {
+				s = s.substring(1);
+			} else if (/^#.+/.test(s)) {
+				s = s.substring(1);
+				canCheck = undefined;
+			}
 			var pos = s.indexOf(":");
 			if (pos < 0) {
-				return { value: s, text: s, check: (multiOption ? false : undefined)};
+				return { value: s, text: s, check: (multiOption ? canCheck : undefined)};
 			} else {
 				var value = s.substring(0, pos).trim();
 				var text = s.substring(pos + 1).trim();
-				return { value: value, text: text, check: (multiOption ? false : undefined)};
+				return { value: value, text: text, check: (multiOption ? canCheck : undefined)};
 			}
 		}
 		function toTree(list: string[]) : Option[] {
@@ -1677,7 +1688,7 @@ module tui.widget {
 						"key": "options",
 						"label": str("form.options"),
 						"description": str("form.option.group.desc"),
-						"value": optionsToText(this.define.options),
+						"value": optionsToText(this.define.options, false),
 						"validation": [
 							{ "format": "*any", "message": str("message.cannot.be.empty") }
 						],
@@ -1859,7 +1870,7 @@ module tui.widget {
 						"maxHeight": 400,
 						"label": str("form.options"),
 						"description": str("form.selection.desc"),
-						"value": optionsToText(this.define.selection),
+						"value": optionsToText(this.define.selection, this.define.atMost != 1),
 						"validation": [
 							{ "format": "*any", "message": str("message.cannot.be.empty") }
 						],

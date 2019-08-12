@@ -8391,7 +8391,7 @@ var tui;
             }
             return values[key];
         }
-        function optionsToText(options) {
+        function optionsToText(options, multiOption) {
             var result = "";
             if (!options)
                 return result;
@@ -8401,13 +8401,17 @@ var tui;
                     var padding = (level ? level + " " : "");
                     for (var _i = 0, nodes_1 = nodes; _i < nodes_1.length; _i++) {
                         var item = nodes_1[_i];
+                        var flag = multiOption ? (typeof item.check !== 'boolean' ? '#' : '') : '';
+                        if (/^#/.test(item.value)) {
+                            flag += '!';
+                        }
                         if (item.value == item.text) {
-                            result += padding + item.value + "\n";
+                            result += padding + flag + item.value + "\n";
                         }
                         else {
-                            result += padding + item.value + ": " + item.text + "\n";
+                            result += padding + flag + item.value + ": " + item.text + "\n";
                         }
-                        addNodes(item.children, level + ">");
+                        addNodes(item.children, level + "~");
                     }
                 }
             }
@@ -8432,21 +8436,29 @@ var tui;
                     return 0;
                 for (var _i = 0, s_1 = s; _i < s_1.length; _i++) {
                     var c = s_1[_i];
-                    if (c == '>')
+                    if (c == '~')
                         count++;
                 }
                 return count;
             }
             function getNode(s) {
                 s = s.trim();
+                var canCheck = false;
+                if (/^!.+/.test(s)) {
+                    s = s.substring(1);
+                }
+                else if (/^#.+/.test(s)) {
+                    s = s.substring(1);
+                    canCheck = undefined;
+                }
                 var pos = s.indexOf(":");
                 if (pos < 0) {
-                    return { value: s, text: s, check: (multiOption ? false : undefined) };
+                    return { value: s, text: s, check: (multiOption ? canCheck : undefined) };
                 }
                 else {
                     var value = s.substring(0, pos).trim();
                     var text = s.substring(pos + 1).trim();
-                    return { value: value, text: text, check: (multiOption ? false : undefined) };
+                    return { value: value, text: text, check: (multiOption ? canCheck : undefined) };
                 }
             }
             function toTree(list) {
@@ -9927,7 +9939,7 @@ var tui;
                                 "key": "options",
                                 "label": tui.str("form.options"),
                                 "description": tui.str("form.option.group.desc"),
-                                "value": optionsToText(this.define.options),
+                                "value": optionsToText(this.define.options, false),
                                 "validation": [
                                     { "format": "*any", "message": tui.str("message.cannot.be.empty") }
                                 ],
@@ -10098,7 +10110,7 @@ var tui;
                                 "maxHeight": 400,
                                 "label": tui.str("form.options"),
                                 "description": tui.str("form.selection.desc"),
-                                "value": optionsToText(this.define.selection),
+                                "value": optionsToText(this.define.selection, this.define.atMost != 1),
                                 "validation": [
                                     { "format": "*any", "message": tui.str("message.cannot.be.empty") }
                                 ],
