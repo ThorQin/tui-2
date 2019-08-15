@@ -4656,6 +4656,7 @@ var tui;
                         }
                     }
                 }
+                var fireError = false;
                 var xhr = new XMLHttpRequest();
                 xhr.upload.addEventListener("progress", function (e) {
                     if (e.lengthComputable) {
@@ -4686,15 +4687,33 @@ var tui;
                     }
                 }, false);
                 xhr.addEventListener("error", function (e) {
+                    if (fireError) {
+                        return;
+                    }
+                    fireError = true;
                     waitbox.close();
                     _this.fireError();
                 }, false);
                 xhr.addEventListener("abort", function (e) {
+                    if (fireError) {
+                        return;
+                    }
+                    fireError = true;
                     waitbox.close();
                     _this.fireError();
                 }, false);
-                xhr.open("POST", tui.useEnv(this._settings.action));
-                xhr.send(fd);
+                try {
+                    xhr.open("POST", tui.useEnv(this._settings.action));
+                    xhr.send(fd);
+                }
+                catch (e) {
+                    if (fireError) {
+                        return;
+                    }
+                    fireError = true;
+                    waitbox.close();
+                    this.fireError();
+                }
             };
             Uploader.prototype.submitV5 = function (file, extraData) {
                 if (this._input.files.length > 0) {
@@ -7809,9 +7828,9 @@ var tui;
                 calendar._.style.display = "block";
                 calendar._.style.borderWidth = "0";
                 calendar.on("click", function (e) {
-                    _this.set("value", calendar.get("value"));
-                    _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                     if (e.data.type === "pick") {
+                        _this.set("value", calendar.get("value"));
+                        _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this.closeSelect();
                         _this._.focus();
                     }

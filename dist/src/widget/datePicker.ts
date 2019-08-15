@@ -136,9 +136,9 @@ module tui.widget {
 			calendar._.style.display = "block";
 			calendar._.style.borderWidth = "0";
 			calendar.on("click", (e) => {
-				this.set("value", calendar.get("value"));
-				this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 				if (e.data.type === "pick") {
+					this.set("value", calendar.get("value"));
+					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this.closeSelect();
 					this._.focus();
 				}

@@ -286,6 +286,7 @@ module tui.browser {
 				}
 			}
 
+			var fireError = false;
 			var xhr = new XMLHttpRequest();
 			xhr.upload.addEventListener("progress", (e: any) => {
 				if (e.lengthComputable) {
@@ -314,15 +315,32 @@ module tui.browser {
 				}
 			}, false);
 			xhr.addEventListener("error", (e: any) => {
+				if (fireError) {
+					return;
+				}
+				fireError = true;
 				waitbox.close();
 				this.fireError();
 			}, false);
 			xhr.addEventListener("abort", (e: any) => {
+				if (fireError) {
+					return;
+				}
+				fireError = true;
 				waitbox.close();
 				this.fireError();
 			}, false);
-			xhr.open("POST", useEnv(this._settings.action));
-			xhr.send(fd);
+			try {
+				xhr.open("POST", useEnv(this._settings.action));
+				xhr.send(fd);
+			} catch (e) {
+				if (fireError) {
+					return;
+				}
+				fireError = true;
+				waitbox.close();
+				this.fireError();
+			}
 		}
 
 		private submitV5(file: string, extraData?: { [index: string]: string }) {
