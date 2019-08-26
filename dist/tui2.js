@@ -7736,25 +7736,23 @@ var tui;
                         "get": function () {
                             if (!_this._data["value"])
                                 return null;
-                            else
+                            else {
+                                calendar.set("time", _this._data["value"]);
                                 return calendar.get("time");
+                            }
                         }
                     },
                     "value": {
                         "set": function (value) {
-                            if (value instanceof Date || typeof value === "string") {
-                                calendar.set("value", value);
-                                _this._data["value"] = calendar.get("value");
-                            }
-                            else {
-                                _this._data["value"] = null;
-                            }
+                            _this._set("time", value);
                         },
                         "get": function () {
                             if (!_this._data["value"])
                                 return null;
-                            else
+                            else {
+                                calendar.set("time", _this._data["value"]);
                                 return calendar.get("value");
+                            }
                         }
                     },
                     "text": {
@@ -7828,16 +7826,21 @@ var tui;
                 calendar._.style.display = "block";
                 calendar._.style.borderWidth = "0";
                 calendar.on("click", function (e) {
-                    if (e.data.type === "pick") {
+                    var mode = _this.get("mode");
+                    if (e.data.type === "pick" && (mode == "date" || mode == "month")) {
                         _this.set("value", calendar.get("value"));
-                        _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this.closeSelect();
+                        _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this._.focus();
                     }
+                });
+                popup.on("close", function () {
+                    console.log("popup closed");
                 });
                 $(toolbar).click(function (e) {
                     var obj = (e.target || e.srcElement);
                     var name = obj.getAttribute("name");
+                    var mode = _this.get("mode");
                     if (name === "today") {
                         var tm = tui.time.now();
                         var v = _this.get("time");
@@ -7853,21 +7856,24 @@ var tui;
                             tm.setSeconds(0);
                             tm.setMilliseconds(0);
                         }
-                        _this.set("value", tm);
-                        _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
-                        _this.closeSelect();
-                        _this._.focus();
+                        calendar.set("value", tm);
+                        if (mode == "date" || mode == "month") {
+                            _this.set("value", tm);
+                            _this.closeSelect();
+                            _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
+                            _this._.focus();
+                        }
                     }
                     else if (name === "clear") {
                         _this.set("value", null);
-                        _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this.closeSelect();
+                        _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this._.focus();
                     }
                     else if (name === "ok") {
                         _this.set("value", calendar.get("value"));
-                        _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this.closeSelect();
+                        _this.fire("change", { e: e, value: _this.get("value"), text: _this.get("text") });
                         _this._.focus();
                     }
                 });
@@ -7880,13 +7886,24 @@ var tui;
                 var okButton = "<a name='ok'>" + tui.str("ok") + "</a>";
                 var clearButton = "<a name='clear'>" + tui.str("Clear") + "</a>";
                 var clearable = this.get("clearable");
+                var mode = this.get("mode");
                 calendar._.style.outline = "none";
                 toolbar.style.display = "";
+                var btnDef = okButton + (mode === "time" ? "" : " | " + todayButton);
                 if (clearable)
-                    toolbar.innerHTML = okButton + " | " + todayButton + " | " + clearButton;
+                    toolbar.innerHTML = btnDef + " | " + clearButton;
                 else
-                    toolbar.innerHTML = okButton + " | " + todayButton;
+                    toolbar.innerHTML = btnDef;
                 popup.open(this._, "Lb");
+                var v = this.get("time");
+                if (v == null) {
+                    v = new Date();
+                    v.setHours(0);
+                    v.setMinutes(0);
+                    v.setSeconds(0);
+                    v.setMilliseconds(0);
+                }
+                calendar.set("time", v);
                 setTimeout(function () {
                     calendar._.focus();
                 });
@@ -10286,14 +10303,14 @@ var tui;
                 return _this;
             }
             FormDatePicker.prototype.update = function () {
+                this._widget._set("mode", /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : null);
                 _super.prototype.update.call(this);
                 this._widget._set("format", this.define.format || null);
-                this._widget._set("min", this.define.min || null);
-                this._widget._set("max", this.define.max || null);
-                this._widget._set("mode", /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : null);
                 if (!/^(utc|locale|none)$/.test(this.define.timezone))
                     this.define.timezone = "none";
                 this._widget._set("timezone", this.define.timezone);
+                this._widget._set("min", this.define.min || null);
+                this._widget._set("max", this.define.max || null);
                 if (this.form.get("mode") === "input" && this.define.autoInit && this._widget.get("value") == null && this.define.value == null) {
                     this._widget._set("value", tui.time.now());
                     this.define.value = this._widget.get("value");

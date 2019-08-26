@@ -47,24 +47,23 @@ module tui.widget {
 					"get": (): any => {
 						if (!this._data["value"])
 							return null;
-						else
+						else {
+							calendar.set("time", this._data["value"]);
 							return calendar.get("time");
+						}
 					}
 				},
 				"value": {
 					"set":  (value: any) => {
-						if (value instanceof Date || typeof value === "string") {
-							calendar.set("value", value);
-							this._data["value"] = calendar.get("value");
-						} else {
-							this._data["value"] = null;
-						}
+						this._set("time", value);
 					},
 					"get": (): any => {
 						if (!this._data["value"])
 							return null;
-						else
+						else {
+							calendar.set("time", this._data["value"]);
 							return calendar.get("value");
+						}
 					}
 				},
 				"text": {
@@ -136,16 +135,21 @@ module tui.widget {
 			calendar._.style.display = "block";
 			calendar._.style.borderWidth = "0";
 			calendar.on("click", (e) => {
-				if (e.data.type === "pick") {
+				var mode = this.get("mode");
+				if (e.data.type === "pick" && (mode == "date" || mode == "month") ) {
 					this.set("value", calendar.get("value"));
-					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this.closeSelect();
+					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this._.focus();
 				}
+			});
+			popup.on("close", function() {
+				console.log("popup closed")
 			});
 			$(toolbar).click((e)=>{
 				var obj = <HTMLElement>(e.target || e.srcElement);
 				var name = obj.getAttribute("name");
+				var mode = this.get("mode");
 				if (name === "today") {
 					var tm = time.now();
 					var v = this.get("time") as Date;
@@ -160,19 +164,22 @@ module tui.widget {
 						tm.setSeconds(0);
 						tm.setMilliseconds(0);
 					}
-					this.set("value", tm);
-					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
-					this.closeSelect();
-					this._.focus();
+					calendar.set("value", tm);
+					if (mode == "date" || mode == "month") {
+						this.set("value", tm);
+						this.closeSelect();
+						this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
+						this._.focus();
+					}
 				} else if (name === "clear") {
 					this.set("value", null);
-					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this.closeSelect();
+					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this._.focus();
 				} else if (name === "ok") {
 					this.set("value", calendar.get("value"));
-					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this.closeSelect();
+					this.fire("change", {e:e, value: this.get("value"), text: this.get("text")});
 					this._.focus();
 				}
 			});
@@ -188,14 +195,26 @@ module tui.widget {
 			var okButton = "<a name='ok'>" + tui.str("ok") + "</a>";
 			var clearButton = "<a name='clear'>" + tui.str("Clear") + "</a>";
 			var clearable = this.get("clearable");
+			var mode = this.get("mode");
 			calendar._.style.outline = "none";
 			toolbar.style.display = "";
+			var btnDef = okButton + (mode === "time" ? "" : " | " + todayButton);
 			if (clearable)
-				toolbar.innerHTML = okButton + " | " + todayButton + " | " + clearButton;
+				toolbar.innerHTML = btnDef + " | " + clearButton;
 			else
-				toolbar.innerHTML = okButton + " | " + todayButton;
+				toolbar.innerHTML = btnDef;
 
 			popup.open(this._, "Lb");
+			var v = this.get("time");
+			if (v == null) {
+				v = new Date();
+				v.setHours(0);
+				v.setMinutes(0);
+				v.setSeconds(0);
+				v.setMilliseconds(0);
+			}
+			calendar.set("time", v);
+
 			setTimeout(() => {
 				calendar._.focus();
 			});

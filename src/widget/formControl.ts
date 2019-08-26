@@ -2015,14 +2015,14 @@ module tui.widget {
 			});
 		}
 		update() {
+			this._widget._set("mode", /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : null);
 			super.update();
 			this._widget._set("format", this.define.format || null);
+			if (!/^(utc|locale|none)$/.test(this.define.timezone))
+			this.define.timezone = "none";
+			this._widget._set("timezone", this.define.timezone);
 			this._widget._set("min", this.define.min || null);
 			this._widget._set("max", this.define.max || null);
-			this._widget._set("mode", /^(date|date-time|time|month)$/.test(this.define.mode) ? this.define.mode : null);
-			if (!/^(utc|locale|none)$/.test(this.define.timezone))
-				this.define.timezone = "none";
-			this._widget._set("timezone", this.define.timezone);
 			if (this.form.get("mode") === "input" && this.define.autoInit && this._widget.get("value") == null && this.define.value == null) {
 				this._widget._set("value", time.now());
 				this.define.value = this._widget.get("value");
