@@ -3415,6 +3415,9 @@ var tui;
                     }
                 });
                 this.on("itemvaluechanged", function (e) {
+                    if (e.data.stack) {
+                        return;
+                    }
                     _this._valueChanged = true;
                     _this.render();
                 });
@@ -10794,6 +10797,16 @@ var tui;
                         }
                         catch (e) { }
                     });
+                    fm.on("itemvaluechanged", function (e) {
+                        var stack = [{
+                                key: _this.define.key,
+                                form: fm
+                            }];
+                        if (e.data.stack) {
+                            stack = stack.concat(e.data.stack);
+                        }
+                        form.fire("itemvaluechanged", { stack: stack, control: e.data.control });
+                    });
                 });
                 _this._btnDelete = widget.create("button", { text: "<i class='fa fa-minus'></i>" });
                 _this._btnDelete.appendTo(_this._buttonBar);
@@ -10832,6 +10845,16 @@ var tui;
                 dialog.set("mobileModel", true);
                 dialog.open("ok#tui-primary");
                 fm.set("value", this._values[i]);
+                fm.on("itemvaluechanged", function (e) {
+                    var stack = [{
+                            key: _this.define.key,
+                            form: fm
+                        }];
+                    if (e.data.stack) {
+                        stack = stack.concat(e.data.stack);
+                    }
+                    _this.form.fire("itemvaluechanged", { stack: stack, control: e.data.control });
+                });
                 dialog.on("btnclick", function () {
                     if (!fm.validate())
                         return;

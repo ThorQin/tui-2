@@ -2561,6 +2561,16 @@ module tui.widget {
 						form.fire("itemvaluechanged", {control: this});
 					} catch (e) {}
 				});
+				fm.on("itemvaluechanged", (e) => {
+					var stack = [{
+						key: this.define.key,
+						form: fm
+					}];
+					if (e.data.stack) {
+						stack = stack.concat(e.data.stack)
+					}
+					form.fire("itemvaluechanged", {stack: stack, control: e.data.control});
+				});
 			});
 
 			this._btnDelete = <Button>create("button", {text: "<i class='fa fa-minus'></i>"});
@@ -2601,6 +2611,16 @@ module tui.widget {
 			dialog.set("mobileModel", true);
 			dialog.open("ok#tui-primary");
 			fm.set("value", this._values[i]);
+			fm.on("itemvaluechanged", (e) => {
+				var stack = [{
+					key: this.define.key,
+					form: fm
+				}];
+				if (e.data.stack) {
+					stack = stack.concat(e.data.stack)
+				}
+				this.form.fire("itemvaluechanged", {stack: stack, control: e.data.control});
+			});
 			dialog.on("btnclick", () => {
 				if (!fm.validate())
 					return;
