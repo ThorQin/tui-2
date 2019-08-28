@@ -3415,7 +3415,7 @@ var tui;
                     }
                 });
                 this.on("itemvaluechanged", function (e) {
-                    if (e.data.stack) {
+                    if (e.data && e.data.stack) {
                         return;
                     }
                     _this._valueChanged = true;
@@ -10778,35 +10778,7 @@ var tui;
                 _this._btnAdd = widget.create("button", { text: "<i class='fa fa-plus'></i>" });
                 _this._btnAdd.appendTo(_this._buttonBar);
                 _this._btnAdd.on("click", function () {
-                    var dialog = widget.create("dialog");
-                    var fm = widget.create("form");
-                    fm._.className = "tui-form-property-form";
-                    fm.set("definition", tui.clone(_this.define.definitions));
-                    dialog.set("content", fm._);
-                    dialog.set("mobileModel", true);
-                    dialog.open("ok#tui-primary");
-                    dialog.on("btnclick", function () {
-                        if (!fm.validate())
-                            return;
-                        try {
-                            var v = fm.get("value");
-                            _this._values.push(v);
-                            dialog.close();
-                            _this._notifyBar.innerHTML = "";
-                            form.fire("itemvaluechanged", { control: _this });
-                        }
-                        catch (e) { }
-                    });
-                    fm.on("itemvaluechanged", function (e) {
-                        var stack = [{
-                                key: _this.define.key,
-                                form: fm
-                            }];
-                        if (e.data.stack) {
-                            stack = stack.concat(e.data.stack);
-                        }
-                        form.fire("itemvaluechanged", { stack: stack, control: e.data.control });
-                    });
+                    _this.showSubForm(-1);
                 });
                 _this._btnDelete = widget.create("button", { text: "<i class='fa fa-minus'></i>" });
                 _this._btnDelete.appendTo(_this._buttonBar);
@@ -10832,11 +10804,8 @@ var tui;
                 _this.div.appendChild(_this._notifyBar);
                 return _this;
             }
-            FormGrid.prototype.editRow = function () {
+            FormGrid.prototype.showSubForm = function (editIndex) {
                 var _this = this;
-                var i = this._widget.get("activeRow");
-                if (i === null)
-                    return;
                 var dialog = widget.create("dialog");
                 var fm = widget.create("form");
                 fm._.className = "tui-form-property-form";
@@ -10844,7 +10813,32 @@ var tui;
                 dialog.set("content", fm._);
                 dialog.set("mobileModel", true);
                 dialog.open("ok#tui-primary");
-                fm.set("value", this._values[i]);
+                if (editIndex >= 0) {
+                    fm.set("value", this._values[editIndex]);
+                }
+                this.form._set("subform", fm);
+                this.form.fire("subformopened", { key: this.define.key, form: fm });
+                dialog.on("close", function () {
+                    _this.form._set("subform", null);
+                    _this.form.fire("subformclosed", { key: _this.define.key, form: fm });
+                });
+                dialog.on("btnclick", function () {
+                    if (!fm.validate())
+                        return;
+                    try {
+                        var v = fm.get("value");
+                        if (editIndex >= 0) {
+                            _this._values.splice(editIndex, 1, v);
+                        }
+                        else {
+                            _this._values.push(v);
+                        }
+                        dialog.close();
+                        _this._notifyBar.innerHTML = "";
+                        _this.form.fire("itemvaluechanged", { control: _this });
+                    }
+                    catch (e) { }
+                });
                 fm.on("itemvaluechanged", function (e) {
                     var stack = [{
                             key: _this.define.key,
@@ -10855,15 +10849,32 @@ var tui;
                     }
                     _this.form.fire("itemvaluechanged", { stack: stack, control: e.data.control });
                 });
-                dialog.on("btnclick", function () {
-                    if (!fm.validate())
-                        return;
-                    var v = fm.get("value");
-                    _this._values.splice(i, 1, v);
-                    dialog.close();
-                    _this._notifyBar.innerHTML = "";
-                    _this.form.fire("itemvaluechanged", { control: _this });
+                fm.on("subformopened", function (e) {
+                    var stack = [{
+                            key: _this.define.key,
+                            form: fm
+                        }];
+                    if (e.data.stack) {
+                        stack = stack.concat(e.data.stack);
+                    }
+                    _this.form.fire("subformopened", { stack: stack, key: e.data.key, form: e.data.form });
                 });
+                fm.on("subformclosed", function (e) {
+                    var stack = [{
+                            key: _this.define.key,
+                            form: fm
+                        }];
+                    if (e.data.stack) {
+                        stack = stack.concat(e.data.stack);
+                    }
+                    _this.form.fire("subformclosed", { stack: stack, key: e.data.key, form: e.data.form });
+                });
+            };
+            FormGrid.prototype.editRow = function () {
+                var i = this._widget.get("activeRow");
+                if (i === null)
+                    return;
+                this.showSubForm(i);
             };
             FormGrid.prototype.update = function () {
                 _super.prototype.update.call(this);

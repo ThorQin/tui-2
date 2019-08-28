@@ -735,7 +735,7 @@ module tui.widget {
 				}
 			});
 			this.on("itemvaluechanged", (e: any) => {
-				if (e.data.stack) {
+				if (e.data && e.data.stack) {
 					return;
 				}
 				this._valueChanged = true;

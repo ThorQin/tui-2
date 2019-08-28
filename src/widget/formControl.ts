@@ -2543,34 +2543,7 @@ module tui.widget {
 			this._btnAdd = <Button>create("button", {text: "<i class='fa fa-plus'></i>"});
 			this._btnAdd.appendTo(this._buttonBar);
 			this._btnAdd.on("click", () => {
-				var dialog = <Dialog>create("dialog");
-				var fm = <Form>create("form");
-				fm._.className = "tui-form-property-form";
-				fm.set("definition", tui.clone(this.define.definitions));
-				dialog.set("content", fm._);
-				dialog.set("mobileModel", true);
-				dialog.open("ok#tui-primary");
-				dialog.on("btnclick", () => {
-					if (!fm.validate())
-						return;
-					try {
-						var v = fm.get("value");
-						this._values.push(v);
-						dialog.close();
-						this._notifyBar.innerHTML = "";
-						form.fire("itemvaluechanged", {control: this});
-					} catch (e) {}
-				});
-				fm.on("itemvaluechanged", (e) => {
-					var stack = [{
-						key: this.define.key,
-						form: fm
-					}];
-					if (e.data.stack) {
-						stack = stack.concat(e.data.stack)
-					}
-					form.fire("itemvaluechanged", {stack: stack, control: e.data.control});
-				});
+				this.showSubForm(-1);
 			});
 
 			this._btnDelete = <Button>create("button", {text: "<i class='fa fa-minus'></i>"});
@@ -2599,10 +2572,7 @@ module tui.widget {
 			this.div.appendChild(this._notifyBar);
 		}
 
-		editRow() {
-			var i = this._widget.get("activeRow");
-			if (i === null)
-				return;
+		private showSubForm(editIndex) {
 			var dialog = <Dialog>create("dialog");
 			var fm = <Form>create("form");
 			fm._.className = "tui-form-property-form";
@@ -2610,7 +2580,30 @@ module tui.widget {
 			dialog.set("content", fm._);
 			dialog.set("mobileModel", true);
 			dialog.open("ok#tui-primary");
-			fm.set("value", this._values[i]);
+			if (editIndex >= 0) {
+				fm.set("value", this._values[editIndex]);
+			}
+			this.form._set("subform", fm);
+			this.form.fire("subformopened", {key: this.define.key, form: fm});
+			dialog.on("close", () => {
+				this.form._set("subform", null);
+				this.form.fire("subformclosed", {key: this.define.key, form: fm});
+			});
+			dialog.on("btnclick", () => {
+				if (!fm.validate())
+					return;
+				try {
+					var v = fm.get("value");
+					if (editIndex >= 0) {
+						this._values.splice(editIndex, 1, v);
+					} else {
+						this._values.push(v);
+					}
+					dialog.close();
+					this._notifyBar.innerHTML = "";
+					this.form.fire("itemvaluechanged", {control: this});
+				} catch (e) {}
+			});
 			fm.on("itemvaluechanged", (e) => {
 				var stack = [{
 					key: this.define.key,
@@ -2621,15 +2614,33 @@ module tui.widget {
 				}
 				this.form.fire("itemvaluechanged", {stack: stack, control: e.data.control});
 			});
-			dialog.on("btnclick", () => {
-				if (!fm.validate())
-					return;
-				var v = fm.get("value");
-				this._values.splice(i, 1, v);
-				dialog.close();
-				this._notifyBar.innerHTML = "";
-				this.form.fire("itemvaluechanged", {control: this});
+			fm.on("subformopened", (e) => {
+				var stack = [{
+					key: this.define.key,
+					form: fm
+				}];
+				if (e.data.stack) {
+					stack = stack.concat(e.data.stack)
+				}
+				this.form.fire("subformopened", {stack: stack, key: e.data.key, form: e.data.form});
 			});
+			fm.on("subformclosed", (e) => {
+				var stack = [{
+					key: this.define.key,
+					form: fm
+				}];
+				if (e.data.stack) {
+					stack = stack.concat(e.data.stack)
+				}
+				this.form.fire("subformclosed", {stack: stack, key: e.data.key, form: e.data.form});
+			});
+		}
+
+		editRow() {
+			var i = this._widget.get("activeRow");
+			if (i === null)
+				return;
+				this.showSubForm(i);
 		}
 
 		update() {
