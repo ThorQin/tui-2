@@ -163,7 +163,9 @@ module tui.widget {
 
 		private bindDownload(item: HTMLElement, url: string) {
 			$(item).click(function(e: JQueryEventObject){
-				window.open(url);
+				if (this.fire("download", {url: url}) != false) {
+					window.open(url);
+				}
 				e.preventDefault();
 				e.stopPropagation();
 			});

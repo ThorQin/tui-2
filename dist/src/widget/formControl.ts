@@ -2400,6 +2400,9 @@ module tui.widget {
 				this.define.value = this._widget.get("value");
 				form.fire("itemvaluechanged", {control: this});
 			});
+			this._widget.on("download", (e) => {
+				return form.fire("download", {control: this, url: e.data.url});
+			});
 			this._notifyBar = elem("div");
 			this._notifyBar.className = "tui-form-notify-bar";
 			this.div.appendChild(this._notifyBar);
@@ -2603,6 +2606,16 @@ module tui.widget {
 					this._notifyBar.innerHTML = "";
 					this.form.fire("itemvaluechanged", {control: this});
 				} catch (e) {}
+			});
+			fm.on("download", (e) => {
+				var stack = [{
+					key: this.define.key,
+					form: fm
+				}];
+				if (e.data.stack) {
+					stack = stack.concat(e.data.stack)
+				}
+				return this.form.fire("download", {stack: stack, control: e.data.control, url: e.data.url});
 			});
 			fm.on("itemvaluechanged", (e) => {
 				var stack = [{
