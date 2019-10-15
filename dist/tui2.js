@@ -8230,8 +8230,9 @@ var tui;
                 });
             };
             Files.prototype.bindDownload = function (item, url) {
+                var _this = this;
                 $(item).click(function (e) {
-                    if (this.fire("download", { url: url }) != false) {
+                    if (_this.fire("download", { url: url }) != false) {
                         window.open(url);
                     }
                     e.preventDefault();
