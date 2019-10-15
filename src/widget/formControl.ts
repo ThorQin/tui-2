@@ -2403,7 +2403,7 @@ module tui.widget {
 				form.fire("itemvaluechanged", {control: this});
 			});
 			this._widget.on("download", (e) => {
-				return form.fire("download", {control: this, url: e.data.url});
+				return form.fire("download", {control: this, url: e.data.url, fileName: e.data.fileName, mimeType: e.data.mimeType});
 			});
 			this._notifyBar = elem("div");
 			this._notifyBar.className = "tui-form-notify-bar";
@@ -2617,7 +2617,7 @@ module tui.widget {
 				if (e.data.stack) {
 					stack = stack.concat(e.data.stack)
 				}
-				return this.form.fire("download", {stack: stack, control: e.data.control, url: e.data.url});
+				return this.form.fire("download", {stack: stack, control: e.data.control, url: e.data.url, fileName: e.data.fileName, mimeType: e.data.mimeType});
 			});
 			fm.on("link", (e) => {
 				var stack = [{
