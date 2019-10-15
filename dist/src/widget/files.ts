@@ -161,10 +161,10 @@ module tui.widget {
 			});
 		}
 
-		private bindDownload(item: HTMLElement, url: string) {
+		private bindDownload(item: HTMLElement, fileItem: FileItem) {
 			$(item).click((e: JQueryEventObject) => {
-				if (this.fire("download", {url: url}) != false) {
-					window.open(url);
+				if (this.fire("download", {url: fileItem.url, fileName: fileItem.fileName, mimeType: fileItem.mimeType}) != false) {
+					window.open(fileItem.url);
 				}
 				e.preventDefault();
 				e.stopPropagation();
@@ -317,7 +317,7 @@ module tui.widget {
 				}
 
 				if (!disable && fileItem && fileItem.url) {
-					this.bindDownload(item, fileItem.url);
+					this.bindDownload(item, fileItem);
 				}
 
 				this._.appendChild(item);

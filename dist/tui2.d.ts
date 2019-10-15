@@ -778,7 +778,7 @@ declare module tui.widget {
         protected initRestriction(): void;
         protected init(): void;
         private bindRemove(removeIcon, fileIndex);
-        private bindDownload(item, url);
+        private bindDownload(item, fileItem);
         private bindReorder(item, fileItem);
         render(): void;
     }

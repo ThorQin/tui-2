@@ -8229,11 +8229,11 @@ var tui;
                     e.stopPropagation();
                 });
             };
-            Files.prototype.bindDownload = function (item, url) {
+            Files.prototype.bindDownload = function (item, fileItem) {
                 var _this = this;
                 $(item).click(function (e) {
-                    if (_this.fire("download", { url: url }) != false) {
-                        window.open(url);
+                    if (_this.fire("download", { url: fileItem.url, fileName: fileItem.fileName, mimeType: fileItem.mimeType }) != false) {
+                        window.open(fileItem.url);
                     }
                     e.preventDefault();
                     e.stopPropagation();
@@ -8382,7 +8382,7 @@ var tui;
                         }
                     }
                     if (!disable && fileItem && fileItem.url) {
-                        this.bindDownload(item, fileItem.url);
+                        this.bindDownload(item, fileItem);
                     }
                     this._.appendChild(item);
                 }
@@ -10658,7 +10658,7 @@ var tui;
                     form.fire("itemvaluechanged", { control: _this });
                 });
                 _this._widget.on("download", function (e) {
-                    return form.fire("download", { control: _this, url: e.data.url });
+                    return form.fire("download", { control: _this, url: e.data.url, fileName: e.data.fileName, mimeType: e.data.mimeType });
                 });
                 _this._notifyBar = tui.elem("div");
                 _this._notifyBar.className = "tui-form-notify-bar";
@@ -10855,7 +10855,7 @@ var tui;
                     if (e.data.stack) {
                         stack = stack.concat(e.data.stack);
                     }
-                    return _this.form.fire("download", { stack: stack, control: e.data.control, url: e.data.url });
+                    return _this.form.fire("download", { stack: stack, control: e.data.control, url: e.data.url, fileName: e.data.fileName, mimeType: e.data.mimeType });
                 });
                 fm.on("link", function (e) {
                     var stack = [{
