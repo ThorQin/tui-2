@@ -9071,7 +9071,9 @@ var tui;
                     if (_this.define.display != "link" || _this.define.disable) {
                         return;
                     }
-                    form.fire("itemevent", { event: "openLink", control: _this, name: _this.define.label, url: _this.getValue() });
+                    if (form.fire("link", { control: _this, name: _this.define.label, url: _this.getValue() }) != false) {
+                        window.open(_this.getValue(), _this.define.label);
+                    }
                 };
                 return _this;
             }
@@ -10854,6 +10856,16 @@ var tui;
                         stack = stack.concat(e.data.stack);
                     }
                     return _this.form.fire("download", { stack: stack, control: e.data.control, url: e.data.url });
+                });
+                fm.on("link", function (e) {
+                    var stack = [{
+                            key: _this.define.key,
+                            form: fm
+                        }];
+                    if (e.data.stack) {
+                        stack = stack.concat(e.data.stack);
+                    }
+                    return _this.form.fire("link", { stack: stack, control: e.data.control, url: e.data.url });
                 });
                 fm.on("itemvaluechanged", function (e) {
                     var stack = [{

@@ -729,7 +729,9 @@ module tui.widget {
 				if (this.define.display != "link" || this.define.disable) {
 					return;
 				}
-				form.fire("link", {control: this, name: this.define.label, url: this.getValue()});
+				if (form.fire("link", {control: this, name: this.define.label, url: this.getValue()}) != false) {
+					window.open(this.getValue(), this.define.label);
+				}
 			}
 		}
 

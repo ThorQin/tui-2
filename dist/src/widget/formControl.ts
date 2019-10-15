@@ -729,7 +729,9 @@ module tui.widget {
 				if (this.define.display != "link" || this.define.disable) {
 					return;
 				}
-				form.fire("itemevent", {event: "openLink", control: this, name: this.define.label, url: this.getValue()});
+				if (form.fire("link", {control: this, name: this.define.label, url: this.getValue()}) != false) {
+					window.open(this.getValue(), this.define.label);
+				}
 			}
 		}
 
@@ -2616,6 +2618,16 @@ module tui.widget {
 					stack = stack.concat(e.data.stack)
 				}
 				return this.form.fire("download", {stack: stack, control: e.data.control, url: e.data.url});
+			});
+			fm.on("link", (e) => {
+				var stack = [{
+					key: this.define.key,
+					form: fm
+				}];
+				if (e.data.stack) {
+					stack = stack.concat(e.data.stack)
+				}
+				return this.form.fire("link", {stack: stack, control: e.data.control, url: e.data.url});
 			});
 			fm.on("itemvaluechanged", (e) => {
 				var stack = [{
