@@ -349,7 +349,7 @@ module tui.widget.ext {
 			}
 			return document.createTextNode(s);
 		} else if (value && value.name)
-			return value.name;
+			return document.createTextNode(value.name);
 		else
 			return null;
 	}
@@ -438,6 +438,15 @@ module tui.widget.ext {
 		private _btnAdd: Button;
 		private _btnDelete: Button;
 		private _notifyBar: HTMLElement;
+
+		static translator = function (value: any, item: any, index: number): Node {
+			if (value instanceof Array) {
+				return document.createTextNode(value.map(it => it.name).join(", "));
+			} else if (value != null)
+				return document.createTextNode(value + "");
+			else
+				return null;
+		};
 
 		constructor(form: Form, define: UserListFormItem) {
 			super(form, define, "list");

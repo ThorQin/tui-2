@@ -338,7 +338,7 @@ var tui;
                     return document.createTextNode(s);
                 }
                 else if (value && value.name)
-                    return value.name;
+                    return document.createTextNode(value.name);
                 else
                     return null;
             }
@@ -561,6 +561,15 @@ var tui;
                 FormUserList.init = {
                     withSubCompany: true,
                     position: "newline"
+                };
+                FormUserList.translator = function (value, item, index) {
+                    if (value instanceof Array) {
+                        return document.createTextNode(value.map(function (it) { return it.name; }).join(", "));
+                    }
+                    else if (value != null)
+                        return document.createTextNode(value + "");
+                    else
+                        return null;
                 };
                 return FormUserList;
             }(widget.BasicFormControl));

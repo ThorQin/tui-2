@@ -1097,7 +1097,13 @@ module tui.widget {
 				var txt = item[columns[i].key];
 				if (typeof columns[i].translator === "function") {
 					var el = columns[i].translator(txt, item, index, line);
-					el && cell.appendChild(el);
+					if (el) {
+						if (el.nodeName) {
+							cell.appendChild(el);
+						} else {
+							cell.appendChild(document.createTextNode(el + ''));
+						}
+					}
 				} else
 					cell.appendChild(document.createTextNode(txt === null || txt === undefined ? "" : txt));
 				var suffixContent = columns[i].suffixKey !== null ? item[columns[i].suffixKey] : null;
