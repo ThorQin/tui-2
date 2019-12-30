@@ -2559,6 +2559,7 @@ module tui.widget {
 					return;
 				this._values.splice(i, 1);
 				this._notifyBar.innerHTML = "";
+				this.updateButtonState();
 				form.fire("itemvaluechanged", {control: this});
 			});
 
@@ -2606,6 +2607,7 @@ module tui.widget {
 					}
 					dialog.close();
 					this._notifyBar.innerHTML = "";
+					this.updateButtonState();
 					this.form.fire("itemvaluechanged", {control: this});
 				} catch (e) {}
 			});
@@ -2668,6 +2670,17 @@ module tui.widget {
 				this.showSubForm(i);
 		}
 
+		updateButtonState() {
+			var d = this.define;
+			this._btnAdd._.style.display = exist(this.define.features, "append") ? (
+				(d.atMost && this._values.length >= d.atMost) ? "none": "inline-block"
+			) : "none";
+			this._btnEdit._.style.display = exist(this.define.features, "edit") ? "inline-block" : "none";
+			this._btnDelete._.style.display = exist(this.define.features, "delete") ? (
+				(d.atLeast && this._values.length <= d.atLeast || this._values.length === 0) ? "none" : "inline-block"
+			) : "none";
+		}
+
 		update() {
 			super.update();
 			this._notifyBar.innerHTML = "";
@@ -2705,10 +2718,8 @@ module tui.widget {
 				this._btnDelete.set("disable", false);
 				this._widget.set("disable", false);
 			}
+			this.updateButtonState();
 
-			this._btnAdd._.style.display = exist(this.define.features, "append") ? "inline-block" : "none";
-			this._btnEdit._.style.display = exist(this.define.features, "edit") ? "inline-block" : "none";
-			this._btnDelete._.style.display = exist(this.define.features, "delete") ? "inline-block" : "none";
 			if (exist(this.define.features, "autoHeight")) {
 				this._widget._.style.height = "";
 				this._widget.set("autoHeight", true);
@@ -2803,6 +2814,7 @@ module tui.widget {
 					this._widget._set("list", this._values);
 				}
 				this._widget.render();
+				this.updateButtonState();
 				this.form.fire("itemvaluechanged", {control: this});
 			} else {
 				this._widget.render();

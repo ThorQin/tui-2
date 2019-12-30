@@ -7378,7 +7378,7 @@ var tui;
         var VALIDATORS = {
             "*email": "^(\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*)?$",
             "*chinese": "^[\\u4e00-\\u9fa5]*$",
-            "*url": "^(https?://([\\w-_]+:[^@/]+@)?[\\w-]+(\\.[\\w-]+)*(:[0-9]+)?(/[\\w-./?%&=]*)?)?$",
+            "*url": "^(https?://([\\w-_]+:[^@/]+@)?[\\w-]+(\\.[\\w-]+)*(:[0-9]+)?(/[\\w-./?%&=#]*)?)?$",
             "*digital": "^\\d*$",
             "*integer": "^([+\\-]?\\d+)?$",
             "*float": "^([+\\-]?\\d*\\.\\d+)?$",
@@ -10796,6 +10796,7 @@ var tui;
                         return;
                     _this._values.splice(i, 1);
                     _this._notifyBar.innerHTML = "";
+                    _this.updateButtonState();
                     form.fire("itemvaluechanged", { control: _this });
                 });
                 _this._btnEdit = widget.create("button", { text: "<i class='fa fa-pencil'></i>" });
@@ -10843,6 +10844,7 @@ var tui;
                         }
                         dialog.close();
                         _this._notifyBar.innerHTML = "";
+                        _this.updateButtonState();
                         _this.form.fire("itemvaluechanged", { control: _this });
                     }
                     catch (e) { }
@@ -10904,6 +10906,12 @@ var tui;
                     return;
                 this.showSubForm(i);
             };
+            FormGrid.prototype.updateButtonState = function () {
+                var d = this.define;
+                this._btnAdd._.style.display = exist(this.define.features, "append") ? ((d.atMost && this._values.length >= d.atMost) ? "none" : "inline-block") : "none";
+                this._btnEdit._.style.display = exist(this.define.features, "edit") ? "inline-block" : "none";
+                this._btnDelete._.style.display = exist(this.define.features, "delete") ? ((d.atLeast && this._values.length <= d.atLeast || this._values.length === 0) ? "none" : "inline-block") : "none";
+            };
             FormGrid.prototype.update = function () {
                 _super.prototype.update.call(this);
                 this._notifyBar.innerHTML = "";
@@ -10944,9 +10952,7 @@ var tui;
                     this._btnDelete.set("disable", false);
                     this._widget.set("disable", false);
                 }
-                this._btnAdd._.style.display = exist(this.define.features, "append") ? "inline-block" : "none";
-                this._btnEdit._.style.display = exist(this.define.features, "edit") ? "inline-block" : "none";
-                this._btnDelete._.style.display = exist(this.define.features, "delete") ? "inline-block" : "none";
+                this.updateButtonState();
                 if (exist(this.define.features, "autoHeight")) {
                     this._widget._.style.height = "";
                     this._widget.set("autoHeight", true);
@@ -11040,6 +11046,7 @@ var tui;
                         this._widget._set("list", this._values);
                     }
                     this._widget.render();
+                    this.updateButtonState();
                     this.form.fire("itemvaluechanged", { control: this });
                 }
                 else {
